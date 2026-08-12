@@ -89,18 +89,16 @@ export default function Dashboard() {
             <VStack gap={3}>
               <HStack gap={2} align="center">
                 <Text weight="semibold">⚠️ Peringatan Sisa Kontrak Volume PO (&gt;85%)</Text>
-                <Badge variant="negative">{alerts.length}</Badge>
+                <Badge variant="error" label={alerts.length} />
               </HStack>
               <Divider />
               {alerts.map((a, i) => (
                 <HStack key={i} gap={3} align="center">
-                  <Badge variant={a.pct_terkirim >= 100 ? "positive" : "warning"}>
-                    {a.pct_terkirim.toFixed(0)}%
-                  </Badge>
+                  <Badge variant={a.pct_terkirim >= 100 ? "success" : "warning"} label={`${a.pct_terkirim.toFixed(0)}%`} />
                   <Text size="sm">
                     <strong>{a.po_number}</strong> — {a.item_name}
                   </Text>
-                  <Text size="xs" color="secondary" style={{ marginLeft: "auto" }}>
+                  <Text size="2xs" color="secondary" style={{ marginLeft: "auto" }}>
                     Sisa: {a.sisa.toFixed(2)} {a.unit}
                   </Text>
                 </HStack>
@@ -114,7 +112,7 @@ export default function Dashboard() {
           <GridSpan columns={1}>
             <Card padding={4}>
               <VStack gap={4}>
-                <Heading size="sm">Biaya per Kategori Material</Heading>
+                <Heading level={3}>Biaya per Kategori Material</Heading>
                 {chartData.length === 0 ? (
                   <Text color="secondary" size="sm">Belum ada data pengiriman.</Text>
                 ) : (
@@ -130,7 +128,7 @@ export default function Dashboard() {
                         tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }}
                       />
                       <Tooltip
-                        formatter={(v: number) => [formatRupiah(v), "Biaya"]}
+                        formatter={(v) => [formatRupiah(Number(v) || 0), "Biaya"] as [string, string]}
                         contentStyle={{
                           background: "var(--color-surface-overlay)",
                           border: "1px solid var(--color-border-subtle)",
@@ -154,20 +152,20 @@ export default function Dashboard() {
             <Card padding={4}>
               <VStack gap={4}>
                 <HStack align="center" justify="between">
-                  <Heading size="sm">PO Terbaru</Heading>
-                  <Button size="sm" variant="tertiary" onPress={() => navigate("/po")}>Lihat Semua</Button>
+                  <Heading level={3}>PO Terbaru</Heading>
+                  <Button size="sm" label="Lihat Semua" variant="ghost" onClick={() => navigate("/po")} />
                 </HStack>
                 {recentPOs.length === 0 ? (
                   <Text color="secondary" size="sm">Belum ada PO.</Text>
                 ) : (
                   <VStack gap={2}>
                     {recentPOs.map((po) => (
-                      <HStack key={po.po_id} gap={3} align="center" style={{ cursor: "pointer" }} onPress={() => navigate(`/po/${po.po_id}`)}>
+                      <HStack key={po.po_id} gap={3} align="center" style={{ cursor: "pointer" }} onClick={() => navigate(`/po/${po.po_id}`)}>
                         <VStack gap={0}>
                           <Text size="sm" weight="medium">{po.po_number}</Text>
-                          <Text size="xs" color="secondary">{po.vendor_name} · {formatDate(po.po_date)}</Text>
+                          <Text size="2xs" color="secondary">{po.vendor_name} · {formatDate(po.po_date)}</Text>
                         </VStack>
-                        <Text size="xs" color="secondary" style={{ marginLeft: "auto" }}>
+                        <Text size="2xs" color="secondary" style={{ marginLeft: "auto" }}>
                           {formatRupiah(po.total_price)}
                         </Text>
                       </HStack>

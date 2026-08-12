@@ -25,7 +25,7 @@
   },
   "plugins": {
     "sql": {
-      "preloadConnections": ["sqlite:proyek.db"]
+      "preload": ["sqlite:proyek.db"]
     }
   },
   "bundle": {

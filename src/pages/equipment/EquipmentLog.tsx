@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  Section, VStack, HStack, Button, Table, Badge, Dialog,
-  TextInput, Select, Textarea, Text,
+  Section, VStack, HStack, Button, Table, Dialog,
+  TextInput, Selector, TextArea, Text, Heading,
 } from "@astryxdesign/core";
 import { PageHeader } from "../../components/PageHeader";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -113,7 +113,7 @@ export default function EquipmentLogPage() {
     {
       key: "actions", label: "", width: "80px",
       render: (_: unknown, row: EquipmentLog) => (
-        <Button size="sm" variant="tertiary" sentiment="negative" onPress={() => setDeleteTarget(row.equip_log_id)}>✕</Button>
+        <Button size="sm" variant="destructive" label="✕" onClick={() => setDeleteTarget(row.equip_log_id)} />
       ),
     },
   ];
@@ -124,11 +124,11 @@ export default function EquipmentLogPage() {
         <PageHeader
           title="Log Operasional & Sewa Alat Berat"
           subtitle="Pencatatan harian jam/hari kerja unit excavator, grader, vibro, dll."
-          actions={<Button variant="primary" onPress={openCreate}>+ Tambah Log Alat</Button>}
+          actions={<Button variant="primary" label="+ Tambah Log Alat" onClick={openCreate} />}
         />
 
         <HStack gap={3}>
-          <Select
+          <Selector
             label=""
             placeholder="Semua Penyedia/Vendor"
             value={vendorFilter}
@@ -139,14 +139,14 @@ export default function EquipmentLogPage() {
             ]}
             width={240}
           />
-          <TextInput label="" type="date" value={dateDari} onChange={setDateDari} width={160} />
-          <TextInput label="" type="date" value={dateSampai} onChange={setDateSampai} width={160} />
+          <TextInput label="" value={dateDari} onChange={setDateDari} width={160} />
+          <TextInput label="" value={dateSampai} onChange={setDateSampai} width={160} />
         </HStack>
 
         <Table
-          columns={columns}
-          data={logs}
-          rowKey="equip_log_id"
+          columns={columns as any}
+          data={logs as any}
+          idKey="equip_log_id"
           emptyState={
             <VStack align="center" padding={8}>
               <Text color="secondary">Belum ada log sewa/pengoperasian alat berat.</Text>
@@ -158,13 +158,13 @@ export default function EquipmentLogPage() {
       {/* Log Form Dialog */}
       <Dialog
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Catat Operasional Alat Berat"
+        onOpenChange={(open) => setModalOpen(open)}
         width={500}
       >
         <VStack gap={3}>
+          <Heading level={3}>Catat Operasional Alat Berat</Heading>
           <HStack gap={3}>
-            <Select
+            <Selector
               label="Proyek"
               value={pId}
               onChange={setPId}
@@ -174,7 +174,7 @@ export default function EquipmentLogPage() {
               ]}
               width={220}
             />
-            <Select
+            <Selector
               label="Vendor Penyedia Sewa"
               value={vId}
               onChange={setVId}
@@ -192,13 +192,13 @@ export default function EquipmentLogPage() {
           </HStack>
 
           <HStack gap={3}>
-            <TextInput label="Tanggal Mulai" type="date" value={dateStart} onChange={setDateStart} isRequired width={220} />
-            <TextInput label="Tanggal Selesai (opsional)" type="date" value={dateEnd} onChange={setDateEnd} width={220} />
+            <TextInput label="Tanggal Mulai" value={dateStart} onChange={setDateStart} isRequired width={220} />
+            <TextInput label="Tanggal Selesai (opsional)" value={dateEnd} onChange={setDateEnd} width={220} />
           </HStack>
 
           <HStack gap={3}>
-            <TextInput label="Durasi Kerja" type="number" value={durationVal} onChange={setDurationVal} isRequired width={140} />
-            <Select
+            <TextInput label="Durasi Kerja" value={durationVal} onChange={setDurationVal} isRequired width={140} />
+            <Selector
               label="Satuan Durasi"
               value={durationUnit}
               onChange={setDurationUnit}
@@ -209,14 +209,14 @@ export default function EquipmentLogPage() {
               ]}
               width={120}
             />
-            <TextInput label="Tarif sewa / unit" type="number" value={ratePerUnit} onChange={setRatePerUnit} isRequired width={160} />
+            <TextInput label="Tarif sewa / unit" value={ratePerUnit} onChange={setRatePerUnit} isRequired width={160} />
           </HStack>
 
-          <Textarea label="Deskripsi Kegiatan" value={activity} onChange={setActivity} placeholder="Gali drainase samping, pemadatan bahu jalan STA 10+200..." />
+          <TextArea label="Deskripsi Kegiatan" value={activity} onChange={setActivity} placeholder="Gali drainase samping, pemadatan bahu jalan STA 10+200..." />
 
           <HStack gap={2} justify="end">
-            <Button variant="tertiary" onPress={() => setModalOpen(false)}>Batal</Button>
-            <Button variant="primary" onPress={handleSave} isLoading={saving} isDisabled={!equipName || !dateStart || !durationVal || !ratePerUnit}>Simpan Log</Button>
+            <Button variant="ghost" label="Batal" onClick={() => setModalOpen(false)} />
+            <Button variant="primary" label="Simpan Log" onClick={handleSave} isLoading={saving} isDisabled={!equipName || !dateStart || !durationVal || !ratePerUnit} />
           </HStack>
         </VStack>
       </Dialog>

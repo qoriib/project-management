@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Section, VStack, HStack, Button, Card, Heading, Text, Badge, Divider, Table,
+  Section, VStack, HStack, Button, Card, Heading, Text, Divider, Table,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { PageHeader } from "../../components/PageHeader";
@@ -55,8 +55,8 @@ export default function PODetailPage() {
           subtitle={`Dibuat pada ${formatDate(po.po_date)}`}
           actions={
             <HStack gap={2}>
-              <Button variant="tertiary" onClick={() => navigate("/po")}>← Kembali</Button>
-              <Button variant="primary" onClick={() => navigate(`/billing/invoice?po=${po.po_id}`)}>🧾 Buat Tagihan</Button>
+              <Button variant="ghost" label="← Kembali" onClick={() => navigate("/po")} />
+              <Button variant="primary" label="🧾 Buat Tagihan" onClick={() => navigate(`/billing/invoice?po=${po.po_id}`)} />
             </HStack>
           }
         />
@@ -65,24 +65,24 @@ export default function PODetailPage() {
         <Card padding={4}>
           <HStack gap={6}>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Vendor</Text>
+              <Text size="2xs" color="secondary">Vendor</Text>
               <Text weight="medium">{po.vendor_name}</Text>
             </VStack>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Proyek</Text>
+              <Text size="2xs" color="secondary">Proyek</Text>
               <Text weight="medium">{po.project_name ?? "—"}</Text>
             </VStack>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Subtotal</Text>
+              <Text size="2xs" color="secondary">Subtotal</Text>
               <Text weight="medium">{formatRupiah(po.subtotal_price)}</Text>
             </VStack>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">PPN (12% if any)</Text>
+              <Text size="2xs" color="secondary">PPN (12% if any)</Text>
               <Text weight="medium">{formatRupiah(po.ppn_amount)}</Text>
             </VStack>
             <VStack gap={1} style={{ marginLeft: "auto" }}>
-              <Text size="xs" color="secondary">Total Kontrak PO</Text>
-              <Heading style={{ color: "var(--color-accent-500)" }}>{formatRupiah(po.total_price)}</Heading>
+              <Text size="2xs" color="secondary">Total Kontrak PO</Text>
+              <Heading level={3} style={{ color: "var(--color-accent-500)" }}>{formatRupiah(po.total_price)}</Heading>
             </VStack>
           </HStack>
         </Card>
@@ -90,7 +90,7 @@ export default function PODetailPage() {
         {/* Volume Tracking */}
         <Card padding={4}>
           <VStack gap={4}>
-            <Heading size="sm">Tracking Realisasi Volume PO vs Volume Pengiriman</Heading>
+            <Heading level={3}>Tracking Realisasi Volume PO vs Volume Pengiriman</Heading>
             <Divider />
             {items.map((item) => (
               <VolumeProgress
@@ -108,15 +108,13 @@ export default function PODetailPage() {
         <Card padding={4}>
           <VStack gap={3}>
             <HStack gap={2} align="center">
-              <Heading size="sm">Log Penerimaan Lapangan (Surat Jalan)</Heading>
-              <Button size="sm" variant="secondary" onClick={() => navigate("/delivery/new")} style={{ marginLeft: "auto" }}>
-                + Input Pengiriman Baru
-              </Button>
+              <Heading level={3}>Log Penerimaan Lapangan (Surat Jalan)</Heading>
+              <Button size="sm" variant="secondary" label="+ Input Pengiriman Baru" onClick={() => navigate("/delivery/new")} style={{ marginLeft: "auto" }} />
             </HStack>
             <Table
               columns={deliveryColumns as any}
               data={deliveries as any}
-              rowKey="delivery_id"
+              idKey="delivery_id"
               emptyState={<VStack align="center" padding={4}><Text color="secondary">Belum ada realisasi pengiriman material untuk PO ini.</Text></VStack>}
             />
           </VStack>

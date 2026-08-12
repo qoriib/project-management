@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Section, VStack, HStack, Button, Table, Badge, Dialog,
-  TextInput, Selector, TextArea, SegmentedControl, SegmentedControlItem, Text,
+  TextInput, Selector, SegmentedControl, SegmentedControlItem, Text, Heading,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { PageHeader } from "../../components/PageHeader";
@@ -80,14 +80,14 @@ export default function CatalogPage() {
     { key: "unit", header: "Satuan", width: pixel(80) },
     {
       key: "category", header: "Kategori", width: pixel(160),
-      renderCell: (v: string) => <Badge variant="neutral">{KATEGORI_LABELS[v] ?? v}</Badge>,
+      renderCell: (v: string) => <Badge variant="neutral" label={KATEGORI_LABELS[v] ?? v} />,
     },
     {
       key: "actions", header: "", width: pixel(140),
       renderCell: (_: unknown, row: Item) => (
         <HStack gap={1}>
-          <Button size="sm" variant="tertiary" onClick={() => openEdit(row)}>Edit</Button>
-          <Button size="sm" variant="tertiary" sentiment="negative" onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })}>Hapus</Button>
+          <Button size="sm" variant="ghost" label="Edit" onClick={() => openEdit(row)} />
+          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })} />
         </HStack>
       ),
     },
@@ -99,7 +99,7 @@ export default function CatalogPage() {
         <PageHeader
           title="Katalog Material & Alat"
           subtitle="Katalog master barang, sewa alat berat, beton, solar, ATK/K3"
-          actions={<Button variant="primary" onClick={openCreate}>+ Tambah Katalog</Button>}
+          actions={<Button variant="primary" label="+ Tambah Katalog" onClick={openCreate} />}
         />
 
         <SegmentedControl
@@ -107,18 +107,16 @@ export default function CatalogPage() {
           onChange={setFilter}
           label="Filter Kategori"
         >
-          <SegmentedControlItem value="all">Semua</SegmentedControlItem>
+          <SegmentedControlItem value="all" label="Semua" />
           {KATEGORI_OPTIONS.map((opt) => (
-            <SegmentedControlItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SegmentedControlItem>
+            <SegmentedControlItem key={opt.value} value={opt.value} label={opt.label} />
           ))}
         </SegmentedControl>
 
         <Table
           columns={columns as any}
           data={filtered as any}
-          rowKey="item_id"
+          idKey="item_id"
           emptyState={
             <VStack align="center" padding={8}>
               <Text color="secondary">Tidak ada barang untuk kategori ini.</Text>
@@ -129,11 +127,11 @@ export default function CatalogPage() {
 
       <Dialog
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editItem ? "Edit Katalog Barang" : "Tambah Katalog Barang"}
+        onOpenChange={(open) => setModalOpen(open)}
         width={440}
       >
         <VStack gap={3}>
+          <Heading level={3}>{editItem ? "Edit Katalog Barang" : "Tambah Katalog Barang"}</Heading>
           <TextInput label="Kode Barang (opsional)" value={mCode} onChange={setMCode} />
           <TextInput label="Nama Barang / Alat" value={mName} onChange={setMName} isRequired />
           <Selector
@@ -149,8 +147,8 @@ export default function CatalogPage() {
             options={KATEGORI_OPTIONS}
           />
           <HStack gap={2} justify="end">
-            <Button variant="tertiary" onClick={() => setModalOpen(false)}>Batal</Button>
-            <Button variant="primary" onClick={handleSave} isLoading={saving}>Simpan</Button>
+            <Button variant="ghost" label="Batal" onClick={() => setModalOpen(false)} />
+            <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} />
           </HStack>
         </VStack>
       </Dialog>

@@ -24,8 +24,6 @@ export default function CostReportPage() {
 
   const totalPO = report.reduce((sum, r) => sum + r.total_po, 0);
   const totalTerkirim = report.reduce((sum, r) => sum + r.total_terkirim_biaya, 0);
-  const totalInvoice = report.reduce((sum, r) => sum + r.total_invoice, 0);
-  const totalBayar = report.reduce((sum, r) => sum + r.total_bayar, 0);
   const totalUtang = report.reduce((sum, r) => sum + r.saldo_utang, 0);
 
   function handleExport() {
@@ -68,8 +66,8 @@ export default function CostReportPage() {
           subtitle="Konsolidasi realisasi fisik, tagihan, dan sisa utang seluruh paket pekerjaan"
           actions={
             <HStack gap={2}>
-              <Button variant="secondary" onPress={printToPDF}>🖨️ Cetak PDF</Button>
-              <Button variant="primary" onPress={handleExport}>📊 Export Excel</Button>
+              <Button variant="secondary" label="🖨️ Cetak PDF" onClick={printToPDF} />
+              <Button variant="primary" label="📊 Export Excel" onClick={handleExport} />
             </HStack>
           }
         />
@@ -78,22 +76,22 @@ export default function CostReportPage() {
         <Grid gap={4} columns={{ minWidth: 200, repeat: "fit" }}>
           <Card padding={4}>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Total Nilai Kontrak PO</Text>
-              <Heading size="md">{loading ? "…" : formatRupiah(totalPO)}</Heading>
+              <Text size="2xs" color="secondary">Total Nilai Kontrak PO</Text>
+              <Heading level={3}>{loading ? "…" : formatRupiah(totalPO)}</Heading>
             </VStack>
           </Card>
           <Card padding={4}>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Realisasi Fisik Lapangan</Text>
-              <Heading size="md" style={{ color: "var(--color-accent-500)" }}>
+              <Text size="2xs" color="secondary">Realisasi Fisik Lapangan</Text>
+              <Heading level={3} style={{ color: "var(--color-accent-500)" }}>
                 {loading ? "…" : formatRupiah(totalTerkirim)}
               </Heading>
             </VStack>
           </Card>
           <Card padding={4}>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Total Sisa Utang</Text>
-              <Heading size="md" style={{ color: "var(--color-negative-600)" }}>
+              <Text size="2xs" color="secondary">Total Sisa Utang</Text>
+              <Heading level={3} style={{ color: "var(--color-negative-600)" }}>
                 {loading ? "…" : formatRupiah(totalUtang)}
               </Heading>
             </VStack>
@@ -103,11 +101,11 @@ export default function CostReportPage() {
         {/* Table Report */}
         <Card padding={4}>
           <VStack gap={3}>
-            <Heading size="sm">Rincian Laporan Biaya per Proyek</Heading>
+            <Heading level={3}>Rincian Laporan Biaya per Proyek</Heading>
             <Table
-              columns={columns}
-              data={report}
-              rowKey="project_id"
+              columns={columns as any}
+              data={report as any}
+              idKey="project_id"
               emptyState={
                 <VStack align="center" padding={6}>
                   <Text color="secondary">Tidak ada data proyek untuk dilaporkan.</Text>

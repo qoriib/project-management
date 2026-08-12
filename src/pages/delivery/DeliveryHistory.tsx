@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Section, VStack, HStack, Button, Table, TextInput, Select, Text,
+  Section, VStack, HStack, Button, Table, TextInput, Selector, Text,
 } from "@astryxdesign/core";
 import { PageHeader } from "../../components/PageHeader";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -79,7 +79,7 @@ export default function DeliveryHistoryPage() {
     {
       key: "actions", label: "", width: "80px",
       render: (_: unknown, row: Delivery) => (
-        <Button size="sm" variant="tertiary" sentiment="negative" onPress={() => setDeleteTarget(row.delivery_id)}>✕</Button>
+        <Button size="sm" label="✕" variant="destructive" onClick={() => setDeleteTarget(row.delivery_id)} />
       ),
     },
   ];
@@ -92,14 +92,14 @@ export default function DeliveryHistoryPage() {
           subtitle="Log kronologis penerimaan barang dan jasa sewa di lapangan"
           actions={
             <HStack gap={2}>
-              <Button variant="secondary" onPress={handleExport}>📊 Export Excel</Button>
-              <Button variant="primary" onPress={() => navigate("/delivery/new")}>+ Input Pengiriman</Button>
+              <Button variant="secondary" label="📊 Export Excel" onClick={handleExport} />
+              <Button variant="primary" label="+ Input Pengiriman" onClick={() => navigate("/delivery/new")} />
             </HStack>
           }
         />
 
         <HStack gap={3}>
-          <Select
+          <Selector
             label=""
             placeholder="Semua Vendor"
             value={vendorFilter}
@@ -112,7 +112,6 @@ export default function DeliveryHistoryPage() {
           />
           <TextInput
             label=""
-            type="date"
             placeholder="Dari tanggal"
             value={dateDari}
             onChange={setDateDari}
@@ -120,7 +119,6 @@ export default function DeliveryHistoryPage() {
           />
           <TextInput
             label=""
-            type="date"
             placeholder="Sampai tanggal"
             value={dateSampai}
             onChange={setDateSampai}
@@ -129,9 +127,9 @@ export default function DeliveryHistoryPage() {
         </HStack>
 
         <Table
-          columns={columns}
-          data={deliveries}
-          rowKey="delivery_id"
+          columns={columns as any}
+          data={deliveries as any}
+          idKey="delivery_id"
           emptyState={
             <VStack align="center" padding={8}>
               <Text color="secondary">Tidak ada data pengiriman yang cocok.</Text>

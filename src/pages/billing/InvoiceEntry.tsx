@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  Section, VStack, HStack, Button, TextInput, Select, Textarea,
+  Section, VStack, HStack, Button, TextInput, Selector, TextArea,
   Card, Heading, Text, Table, Badge, Dialog, Divider,
 } from "@astryxdesign/core";
 import { PageHeader } from "../../components/PageHeader";
-import { getInvoices, createInvoice, addPaymentDirect, type Invoice, type InvoiceItem } from "../../db/queries/billing";
+import { getInvoices, createInvoice, addPaymentDirect, type Invoice } from "../../db/queries/billing";
 import { getVendors, getProjects, type Vendor, type Project } from "../../db/queries/master";
 import { getPOItems, getPurchaseOrders, type POItem } from "../../db/queries/po";
 import { getEquipmentLogs, type EquipmentLog } from "../../db/queries/field";
@@ -19,7 +18,6 @@ interface InvoiceItemRow {
 }
 
 export default function InvoiceEntryPage() {
-  const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -142,7 +140,6 @@ export default function InvoiceEntryPage() {
         paid_amount: 0,
         payment_status: "UNPAID",
         ownership_type: ownershipType,
-        catatan,
       }, items);
       setModalOpen(false);
       await load();
@@ -176,7 +173,7 @@ export default function InvoiceEntryPage() {
     { key: "project_name", label: "Proyek", width: "1fr" },
     {
       key: "ownership_type", label: "Sifat Biaya", width: "110px",
-      render: (v: string) => <Badge variant={v === "INTERNAL" ? "informative" : "neutral"}>{v}</Badge>
+      render: (v: string) => <Badge variant={v === "INTERNAL" ? "info" : "neutral"} label={v} />
     },
     { key: "total_amount", label: "Total Tagihan", width: "140px", render: (v: number) => formatRupiah(v) },
     { key: "paid_amount", label: "Dibayar", width: "140px", render: (v: number) => formatRupiah(v) },
@@ -184,9 +181,7 @@ export default function InvoiceEntryPage() {
     {
       key: "payment_status", label: "Status", width: "110px",
       render: (v: string) => (
-        <Badge variant={STATUS_INVOICE_COLORS[v] || "neutral"}>
-          {STATUS_INVOICE_LABELS[v] || v}
-        </Badge>
+        <Badge variant={STATUS_INVOICE_COLORS[v as keyof typeof STATUS_INVOICE_COLORS] || "neutral"} label={STATUS_INVOICE_LABELS[v] || v} />
       ),
     },
     {
@@ -194,7 +189,7 @@ export default function InvoiceEntryPage() {
       render: (_: unknown, row: Invoice) => (
         <HStack gap={1}>
           {row.payment_status !== "PAID" && (
-            <Button size="sm" variant="primary" onPress={() => openPay(row)}>Bayar</Button>
+            <Button size="sm" variant="primary" label="Bayar" onClick={() => openPay(row)} />
           )}
         </HStack>
       ),
@@ -207,11 +202,11 @@ export default function InvoiceEntryPage() {
         <PageHeader
           title="Input & Manajemen Tagihan Vendor"
           subtitle="Pencatatan invoice masuk dari vendor material & alat berat"
-          actions={<Button variant="primary" onPress={openCreate}>+ Catat Invoice Baru</Button>}
+          actions={<Button variant="primary" label="+ Catat Invoice Baru" onClick={openCreate} />}
         />
 
         <HStack gap={3}>
-          <Select
+          <Selector
             label=""
             placeholder="Semua Vendor"
             value={vendorFilter}
@@ -222,7 +217,7 @@ export default function InvoiceEntryPage() {
             ]}
             width={200}
           />
-          <Select
+          <Selector
             label=""
             placeholder="Semua Status"
             value={statusFilter}
@@ -238,9 +233,9 @@ export default function InvoiceEntryPage() {
         </HStack>
 
         <Table
-          columns={columns}
-          data={invoices}
-          rowKey="invoice_id"
+          columns={columns as any}
+          data={invoices as any}
+          idKey="invoice_id"
           emptyState={
             <VStack align="center" padding={8}>
               <Text color="secondary">Tidak ada data tagihan.</Text>
@@ -252,15 +247,15 @@ export default function InvoiceEntryPage() {
       {/* Create Modal */}
       <Dialog
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Catat Invoice Vendor"
+        onOpenChange={(open) => setModalOpen(open)}
         width={720}
       >
         <VStack gap={4}>
+          <Heading level={3}>Catat Invoice Vendor</Heading>
           <HStack gap={3}>
             <TextInput label="No. Invoice" value={invNumber} onChange={setInvNumber} isRequired width={200} />
-            <TextInput label="Tanggal Invoice" type="date" value={invDate} onChange={setInvDate} isRequired width={160} />
-            <Select
+            <TextInput label="Tanggal Invoice" value={invDate} onChange={setInvDate} isRequired width={160} />
+            <Selector
               label="Sifat Kepemilikan Biaya"
               value={ownershipType}
               onChange={(v) => setOwnershipType(v as "INTERNAL" | "EKSTERNAL")}
@@ -273,7 +268,7 @@ export default function InvoiceEntryPage() {
           </HStack>
 
           <HStack gap={3}>
-            <Select
+            <Selector
               label="Pilih Vendor"
               value={vId}
               onChange={setVId}
@@ -284,7 +279,7 @@ export default function InvoiceEntryPage() {
               ]}
               width={280}
             />
-            <Select
+            <Selector
               label="Pilih Proyek"
               value={pId}
               onChange={setPId}
@@ -302,16 +297,16 @@ export default function InvoiceEntryPage() {
                 <HStack align="center" justify="between">
                   <Text weight="medium">Detail Rincian Tagihan</Text>
                   <HStack gap={2}>
-                    <Button size="sm" variant="secondary" onPress={() => { setRefType("po"); setRefModalOpen(true); }}>+ Ambil dari PO</Button>
-                    <Button size="sm" variant="secondary" onPress={() => { setRefType("equip"); setRefModalOpen(true); }}>+ Ambil dari Log Alat</Button>
-                    <Button size="sm" variant="secondary" onPress={addManualItem}>+ Rincian Manual</Button>
+                    <Button size="sm" variant="secondary" label="+ Ambil dari PO" onClick={() => { setRefType("po"); setRefModalOpen(true); }} />
+                    <Button size="sm" variant="secondary" label="+ Ambil dari Log Alat" onClick={() => { setRefType("equip"); setRefModalOpen(true); }} />
+                    <Button size="sm" variant="secondary" label="+ Rincian Manual" onClick={addManualItem} />
                   </HStack>
                 </HStack>
 
                 <Divider />
 
                 {items.length === 0 ? (
-                  <Text color="secondary" size="xs">Klik tombol di atas untuk menambahkan rincian item tagihan.</Text>
+                  <Text color="secondary" size="2xs">Klik tombol di atas untuk menambahkan rincian item tagihan.</Text>
                 ) : (
                   <VStack gap={2}>
                     {items.map((item, idx) => (
@@ -324,17 +319,16 @@ export default function InvoiceEntryPage() {
                         />
                         <TextInput
                           label=""
-                          type="number"
                           value={String(item.amount)}
                           onChange={(v) => setItems((p) => p.map((x, i) => i === idx ? { ...x, amount: parseFloat(v) || 0 } : x))}
                           width={140}
                         />
                         <Button
                           size="sm"
-                          variant="tertiary"
-                          sentiment="negative"
-                          onPress={() => setItems((p) => p.filter((_, i) => i !== idx))}
-                        >✕</Button>
+                          variant="destructive"
+                          label="✕"
+                          onClick={() => setItems((p) => p.filter((_, i) => i !== idx))}
+                        />
                       </HStack>
                     ))}
                     <Divider />
@@ -347,11 +341,11 @@ export default function InvoiceEntryPage() {
             </Card>
           )}
 
-          <Textarea label="Catatan Tambahan / Keterangan Pembayaran" value={catatan} onChange={setCatatan} />
+          <TextArea label="Catatan Tambahan / Keterangan Pembayaran" value={catatan} onChange={setCatatan} />
 
           <HStack gap={2} justify="end">
-            <Button variant="tertiary" onPress={() => setModalOpen(false)}>Batal</Button>
-            <Button variant="primary" onPress={handleSave} isLoading={saving} isDisabled={!invNumber || !vId || items.length === 0}>Simpan Invoice</Button>
+            <Button variant="ghost" label="Batal" onClick={() => setModalOpen(false)} />
+            <Button variant="primary" label="Simpan Invoice" onClick={handleSave} isLoading={saving} isDisabled={!invNumber || !vId || items.length === 0} />
           </HStack>
         </VStack>
       </Dialog>
@@ -359,28 +353,27 @@ export default function InvoiceEntryPage() {
       {/* Pay Modal */}
       <Dialog
         isOpen={payModalOpen}
-        onClose={() => setPayModalOpen(false)}
-        title="Realisasi Pembayaran Tagihan"
+        onOpenChange={(open) => setPayModalOpen(open)}
         width={400}
       >
         <VStack gap={4}>
+          <Heading level={3}>Realisasi Pembayaran Tagihan</Heading>
           {payTarget && (
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Membayar tagihan:</Text>
+              <Text size="2xs" color="secondary">Membayar tagihan:</Text>
               <Text weight="semibold">{payTarget.invoice_number}</Text>
-              <Text size="xs" color="secondary">Sisa Utang: {formatRupiah(payTarget.remaining_balance)}</Text>
+              <Text size="2xs" color="secondary">Sisa Utang: {formatRupiah(payTarget.remaining_balance)}</Text>
             </VStack>
           )}
           <TextInput
             label="Jumlah Pembayaran (Rp)"
-            type="number"
             value={payAmount}
             onChange={setPayAmount}
             isRequired
           />
           <HStack gap={2} justify="end">
-            <Button variant="tertiary" onPress={() => setPayModalOpen(false)}>Batal</Button>
-            <Button variant="primary" onPress={handlePaySubmit} isLoading={paying}>Konfirmasi Pembayaran</Button>
+            <Button variant="ghost" label="Batal" onClick={() => setPayModalOpen(false)} />
+            <Button variant="primary" label="Konfirmasi Pembayaran" onClick={handlePaySubmit} isLoading={paying} />
           </HStack>
         </VStack>
       </Dialog>
@@ -388,23 +381,23 @@ export default function InvoiceEntryPage() {
       {/* Reference Selector Modal */}
       <Dialog
         isOpen={refModalOpen}
-        onClose={() => setRefModalOpen(false)}
-        title={refType === "po" ? "Pilih Item PO Vendor" : "Pilih Log Alat Berat Vendor"}
+        onOpenChange={(open) => setRefModalOpen(open)}
         width={600}
       >
         <VStack gap={3}>
+          <Heading level={3}>{refType === "po" ? "Pilih Item PO Vendor" : "Pilih Log Alat Berat Vendor"}</Heading>
           {refType === "po" ? (
             availablePOItems.length === 0 ? (
               <Text color="secondary" size="sm">Tidak ada item PO yang tersedia untuk vendor ini.</Text>
             ) : (
               availablePOItems.map((poi) => (
-                <Card key={poi.po_item_id} padding={3} style={{ cursor: "pointer" }} onPress={() => addRefPOItem(poi)}>
+                <Card key={poi.po_item_id} padding={3} style={{ cursor: "pointer" }} onClick={() => addRefPOItem(poi)}>
                   <HStack justify="between" align="center">
                     <VStack gap={0.5}>
                       <Text weight="medium" size="sm">{poi.item_name}</Text>
-                      <Text size="xs" color="secondary">Sisa Volume: {poi.sisa} {poi.unit} @ {formatRupiah(poi.unit_price)}</Text>
+                      <Text size="2xs" color="secondary">Sisa Volume: {poi.sisa} {poi.unit} @ {formatRupiah(poi.unit_price)}</Text>
                     </VStack>
-                    <Button size="sm" variant="secondary">Pilih</Button>
+                    <Button size="sm" variant="secondary" label="Pilih" />
                   </HStack>
                 </Card>
               ))
@@ -414,20 +407,20 @@ export default function InvoiceEntryPage() {
               <Text color="secondary" size="sm">Tidak ada log alat berat yang tersedia untuk vendor ini.</Text>
             ) : (
               availableEquipLogs.map((log) => (
-                <Card key={log.equip_log_id} padding={3} style={{ cursor: "pointer" }} onPress={() => addRefEquipLog(log)}>
+                <Card key={log.equip_log_id} padding={3} style={{ cursor: "pointer" }} onClick={() => addRefEquipLog(log)}>
                   <HStack justify="between" align="center">
                     <VStack gap={0.5}>
                       <Text weight="medium" size="sm">{log.equipment_name}</Text>
-                      <Text size="xs" color="secondary">Durasi: {log.duration_value} {log.duration_unit} · Total: {formatRupiah(log.total_cost)}</Text>
+                      <Text size="2xs" color="secondary">Durasi: {log.duration_value} {log.duration_unit} · Total: {formatRupiah(log.total_cost)}</Text>
                     </VStack>
-                    <Button size="sm" variant="secondary">Pilih</Button>
+                    <Button size="sm" variant="secondary" label="Pilih" />
                   </HStack>
                 </Card>
               ))
             )
           )}
           <HStack justify="end">
-            <Button variant="tertiary" onPress={() => setRefModalOpen(false)}>Tutup</Button>
+            <Button variant="ghost" label="Tutup" onClick={() => setRefModalOpen(false)} />
           </HStack>
         </VStack>
       </Dialog>

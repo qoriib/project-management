@@ -84,7 +84,7 @@ export async function createInvoice(
       invoice.ownership_type || "INTERNAL"
     ]
   );
-  const invoiceId = result.lastInsertId;
+  const invoiceId = result.lastInsertId ?? 0;
   for (const item of items) {
     await db.execute(
       "INSERT INTO invoice_items (invoice_id, po_item_id, equip_log_id, description, amount) VALUES (?, ?, ?, ?, ?)",

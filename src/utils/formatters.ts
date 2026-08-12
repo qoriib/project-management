@@ -86,8 +86,8 @@ export const STATUS_INVOICE_LABELS: Record<string, string> = {
   PAID: "Lunas",
 };
 
-export const STATUS_INVOICE_COLORS: Record<string, string> = {
-  UNPAID: "negative",
+export const STATUS_INVOICE_COLORS = {
+  UNPAID: "error",
   PARTIAL: "warning",
-  PAID: "positive",
-};
+  PAID: "success",
+} as const;

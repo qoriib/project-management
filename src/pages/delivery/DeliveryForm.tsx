@@ -83,12 +83,12 @@ export default function DeliveryFormPage() {
         <PageHeader
           title="Input Penerimaan Material (Surat Jalan)"
           subtitle="Catat realisasi pengiriman barang/jasa sewa dari PO"
-          actions={<Button variant="tertiary" onClick={() => navigate(-1)}>← Kembali</Button>}
+          actions={<Button variant="ghost" label="← Kembali" onClick={() => navigate(-1)} />}
         />
 
         <Card padding={4}>
           <VStack gap={4}>
-            <Heading size="sm">Hubungkan dengan Purchase Order (PO)</Heading>
+            <Heading level={3}>Hubungkan dengan Purchase Order (PO)</Heading>
             <HStack gap={3}>
               <Selector
                 label="Pilih PO"
@@ -120,9 +120,9 @@ export default function DeliveryFormPage() {
             {activeItem && (
               <Card padding={3} style={{ borderLeft: "4px solid var(--color-accent-500)" }}>
                 <VStack gap={1}>
-                  <Text size="xs" color="secondary">Detail Item PO</Text>
+                  <Text size="2xs" color="secondary">Detail Item PO</Text>
                   <Text size="sm"><strong>{activeItem.item_name}</strong></Text>
-                  <Text size="xs" color="secondary">
+                  <Text size="2xs" color="secondary">
                     Volume Kontrak PO: {formatNumber(activeItem.ordered_volume, 2)} {activeItem.unit} |
                     Terkirim: {formatNumber(activeItem.total_terkirim, 2)} {activeItem.unit} |
                     Sisa Kontrak: {formatNumber(sisaVolume, 2)} {activeItem.unit}
@@ -136,12 +136,11 @@ export default function DeliveryFormPage() {
         {selectedPoItemId && (
           <Card padding={4}>
             <VStack gap={4}>
-              <Heading size="sm">Informasi Surat Jalan / Realisasi</Heading>
+              <Heading level={3}>Informasi Surat Jalan / Realisasi</Heading>
 
               <HStack gap={3}>
                 <TextInput
                   label="Tanggal Kirim / Terima"
-                  type="date"
                   value={deliveryDate}
                   onChange={setDeliveryDate}
                   isRequired
@@ -149,7 +148,6 @@ export default function DeliveryFormPage() {
                 />
                 <TextInput
                   label={`Volume Kirim (${activeItem?.unit ?? ""})`}
-                  type="number"
                   value={deliveredVolume}
                   onChange={setDeliveredVolume}
                   isRequired
@@ -158,8 +156,8 @@ export default function DeliveryFormPage() {
                 />
                 {activeItem && (
                   <HStack gap={2} align="center" style={{ alignSelf: "end", height: "40px" }}>
-                    <StatusDot status={isOverlimit ? "warning" : "positive"} />
-                    <Text size="xs" color="secondary">
+                    <StatusDot variant={isOverlimit ? "warning" : "success"} label={isOverlimit ? "Overlimit" : "Within limit"} />
+                    <Text size="2xs" color="secondary">
                       {isOverlimit ? "Volume melebihi sisa PO" : "Volume dalam batas PO"}
                     </Text>
                   </HStack>
@@ -194,15 +192,14 @@ export default function DeliveryFormPage() {
         )}
 
         <HStack gap={2} justify="end">
-          <Button variant="tertiary" onClick={() => navigate(-1)}>Batal</Button>
+          <Button variant="ghost" label="Batal" onClick={() => navigate(-1)} />
           <Button
             variant="primary"
+            label="Simpan Pengiriman"
             onClick={handleSave}
             isLoading={saving}
             isDisabled={!selectedPoItemId || !deliveryDate || !deliveredVolume}
-          >
-            Simpan Pengiriman
-          </Button>
+          />
         </HStack>
       </VStack>
     </Section>

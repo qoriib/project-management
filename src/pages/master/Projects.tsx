@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Section, VStack, HStack, Button, Table, Badge, Dialog,
-  TextInput, Selector, TextArea, SegmentedControl, SegmentedControlItem, Text,
+  TextInput, Selector, TextArea, SegmentedControl, SegmentedControlItem, Text, Heading,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { PageHeader } from "../../components/PageHeader";
@@ -60,7 +60,7 @@ export default function ProjectsPage() {
       const p = item as Project;
       setPCode(p.project_code);
       setPName(p.project_name);
-      setPKontraktor(p.contractor_name);
+      setPContractor(p.contractor_name);
       setPFiscalYear(String(p.fiscal_year));
       setPStatus(p.status);
     } else {
@@ -145,14 +145,14 @@ export default function ProjectsPage() {
     { key: "fiscal_year", header: "Tahun Anggaran", width: pixel(120) },
     {
       key: "status", header: "Status", width: pixel(120),
-      renderCell: (v: string) => <Badge variant={v === "COMPLETED" ? "positive" : "neutral"}>{v}</Badge>,
+      renderCell: (v: string) => <Badge variant={v === "COMPLETED" ? "success" : "warning"} label={v} />,
     },
     {
       key: "actions", header: "", width: pixel(140),
       renderCell: (_: unknown, row: Project) => (
         <HStack gap={1}>
-          <Button size="sm" variant="tertiary" onClick={() => openEdit(row)}>Edit</Button>
-          <Button size="sm" variant="tertiary" sentiment="negative" onClick={() => setDeleteTarget({ id: row.project_id, label: row.project_name })}>Hapus</Button>
+          <Button size="sm" variant="ghost" label="Edit" onClick={() => openEdit(row)} />
+          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.project_id, label: row.project_name })} />
         </HStack>
       ),
     },
@@ -162,7 +162,7 @@ export default function ProjectsPage() {
     { key: "vendor_name", header: "Nama Vendor", width: proportional(1.5) },
     {
       key: "vendor_type", header: "Tipe Vendor", width: pixel(160),
-      renderCell: (v: string) => <Badge variant="neutral">{VENDOR_TIPE_LABELS[v] ?? v}</Badge>,
+      renderCell: (v: string) => <Badge variant="neutral" label={VENDOR_TIPE_LABELS[v] ?? v} />,
     },
     { key: "phone", header: "Telepon", width: pixel(140) },
     { key: "address", header: "Alamat", width: proportional(1.5) },
@@ -170,8 +170,8 @@ export default function ProjectsPage() {
       key: "actions", header: "", width: pixel(140),
       renderCell: (_: unknown, row: Vendor) => (
         <HStack gap={1}>
-          <Button size="sm" variant="tertiary" onClick={() => openEdit(row)}>Edit</Button>
-          <Button size="sm" variant="tertiary" sentiment="negative" onClick={() => setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })}>Hapus</Button>
+          <Button size="sm" variant="ghost" label="Edit" onClick={() => openEdit(row)} />
+          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })} />
         </HStack>
       ),
     },
@@ -183,7 +183,7 @@ export default function ProjectsPage() {
         <PageHeader
           title="Proyek & Vendor"
           subtitle="Kelola master data proyek dan vendor/pemasok"
-          actions={<Button variant="primary" onClick={openCreate}>+ Tambah {tab === "proyek" ? "Proyek" : "Vendor"}</Button>}
+          actions={<Button variant="primary" label={"+ Tambah " + (tab === "proyek" ? "Proyek" : "Vendor")} onClick={openCreate} />}
         />
 
         <SegmentedControl
@@ -191,22 +191,22 @@ export default function ProjectsPage() {
           onChange={(v) => setTab(v as Tab)}
           label="Pilih jenis data"
         >
-          <SegmentedControlItem value="proyek">Proyek</SegmentedControlItem>
-          <SegmentedControlItem value="vendor">Vendor</SegmentedControlItem>
+          <SegmentedControlItem value="proyek" label="Proyek" />
+          <SegmentedControlItem value="vendor" label="Vendor" />
         </SegmentedControl>
 
         {tab === "proyek" ? (
           <Table
             columns={projectColumns as any}
             data={projects as any}
-            rowKey="project_id"
+            idKey="project_id"
             emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada proyek. Klik "+ Tambah Proyek" untuk menambahkan.</Text></VStack>}
           />
         ) : (
           <Table
             columns={vendorColumns as any}
             data={vendors as any}
-            rowKey="vendor_id"
+            idKey="vendor_id"
             emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada vendor. Klik "+ Tambah Vendor" untuk menambahkan.</Text></VStack>}
           />
         )}
@@ -215,17 +215,17 @@ export default function ProjectsPage() {
       {/* Create/Edit Dialog */}
       <Dialog
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editItem ? `Edit ${tab === "proyek" ? "Proyek" : "Vendor"}` : `Tambah ${tab === "proyek" ? "Proyek" : "Vendor"}`}
+        onOpenChange={(open) => setModalOpen(open)}
         width={480}
       >
         <VStack gap={3}>
+          <Heading level={3}>{editItem ? `Edit ${tab === "proyek" ? "Proyek" : "Vendor"}` : `Tambah ${tab === "proyek" ? "Proyek" : "Vendor"}`}</Heading>
           {tab === "proyek" ? (
             <>
               <TextInput label="Kode Proyek" value={pCode} onChange={setPCode} isRequired />
               <TextInput label="Nama Proyek" value={pName} onChange={setPName} isRequired />
               <TextInput label="Kontraktor" value={pContractor} onChange={setPContractor} isRequired />
-              <TextInput label="Tahun Fiskal" value={pFiscalYear} onChange={setPFiscalYear} isRequired type="number" />
+              <TextInput label="Tahun Fiskal" value={pFiscalYear} onChange={setPFiscalYear} isRequired />
               <Selector
                 label="Status"
                 value={pStatus}
@@ -251,8 +251,8 @@ export default function ProjectsPage() {
             </>
           )}
           <HStack gap={2} justify="end">
-            <Button variant="tertiary" onClick={() => setModalOpen(false)}>Batal</Button>
-            <Button variant="primary" onClick={handleSave} isLoading={saving}>Simpan</Button>
+            <Button variant="ghost" label="Batal" onClick={() => setModalOpen(false)} />
+            <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} />
           </HStack>
         </VStack>
       </Dialog>

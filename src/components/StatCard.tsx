@@ -23,13 +23,13 @@ export function StatCard({ label, value, sublabel, icon, accent = "neutral" }: S
           {icon} {label}
         </Text>
         <Heading
-          size="xl"
+          level={3}
           style={{ color: accentColor[accent], fontVariantNumeric: "tabular-nums" }}
         >
           {value}
         </Heading>
         {sublabel && (
-          <Text size="xs" color="secondary">
+          <Text size="2xs" color="secondary">
             {sublabel}
           </Text>
         )}

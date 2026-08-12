@@ -1,5 +1,5 @@
 -- ============================================================
--- SCHEMA DATABASE RELASIONAL (SQLITE COMPATIBLE)
+-- LEGACY SCHEMA REFERENCE (Drizzle now owns the schema)
 -- ============================================================
 
 PRAGMA foreign_keys = ON;
@@ -110,21 +110,3 @@ CREATE TABLE IF NOT EXISTS invoice_items (
     amount REAL NOT NULL
 );
 
--- View: Rekap Sisa Volume Pengiriman Per Item PO (Mencegah Sisa Kontrak Tercecer)
-CREATE VIEW IF NOT EXISTS view_po_delivery_summary AS
-SELECT 
-    p.project_name,
-    po.po_number,
-    v.vendor_name,
-    i.item_name,
-    poi.ordered_volume AS volume_po,
-    COALESCE(SUM(d.delivered_volume), 0) AS total_volume_terkirim,
-    (poi.ordered_volume - COALESCE(SUM(d.delivered_volume), 0)) AS sisa_volume_kontrak,
-    i.unit
-FROM po_items poi
-JOIN purchase_orders po ON poi.po_id = po.po_id
-JOIN projects p ON po.project_id = p.project_id
-JOIN vendors v ON po.vendor_id = v.vendor_id
-JOIN items i ON poi.item_id = i.item_id
-LEFT JOIN deliveries d ON poi.po_item_id = d.po_item_id
-GROUP BY poi.po_item_id;

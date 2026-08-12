@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  Section, VStack, HStack, Button, Table, Badge, Card, Heading, Text, Grid
+  Section, VStack, Button, Table, Badge, Card, Heading, Text, Grid
 } from "@astryxdesign/core";
 import { PageHeader } from "../../components/PageHeader";
 import { getDebtSummary, type DebtSummaryRow } from "../../db/queries/billing";
@@ -42,7 +42,7 @@ export default function DebtSummaryPage() {
     { key: "vendor_name", label: "Nama Pemasok / Vendor", width: "1.5fr" },
     {
       key: "vendor_type", label: "Kategori Pemasok", width: "150px",
-      render: (v: string) => <Badge variant="neutral">{VENDOR_TIPE_LABELS[v] ?? v}</Badge>
+      render: (v: string) => <Badge variant="neutral" label={VENDOR_TIPE_LABELS[v] ?? v} />
     },
     { key: "jumlah_invoice", label: "Jml Invoice", width: "100px", render: (v: number) => String(v) },
     { key: "total_tagihan", label: "Total Tagihan", width: "1fr", render: (v: number) => formatRupiah(v) },
@@ -63,29 +63,29 @@ export default function DebtSummaryPage() {
         <PageHeader
           title="Manajemen Utang & Ringkasan Tagihan"
           subtitle="Matriks rekapitulasi utang vendor internal vs eksternal"
-          actions={<Button variant="secondary" onPress={handleExport}>📊 Export Excel</Button>}
+          actions={<Button variant="secondary" label="📊 Export Excel" onClick={handleExport} />}
         />
 
         {/* Global Summary Metrics */}
         <Grid gap={4} columns={{ minWidth: 240, repeat: "fit" }}>
           <Card padding={4}>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Total Seluruh Tagihan</Text>
-              <Heading size="md">{loading ? "…" : formatRupiah(totalTagihanAll)}</Heading>
+              <Text size="2xs" color="secondary">Total Seluruh Tagihan</Text>
+              <Heading level={3}>{loading ? "…" : formatRupiah(totalTagihanAll)}</Heading>
             </VStack>
           </Card>
           <Card padding={4}>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Total Sudah Terbayar</Text>
-              <Heading size="md" style={{ color: "var(--color-positive-600)" }}>
+              <Text size="2xs" color="secondary">Total Sudah Terbayar</Text>
+              <Heading level={3} style={{ color: "var(--color-positive-600)" }}>
                 {loading ? "…" : formatRupiah(totalBayarAll)}
               </Heading>
             </VStack>
           </Card>
           <Card padding={4}>
             <VStack gap={1}>
-              <Text size="xs" color="secondary">Sisa Saldo Utang Vendor</Text>
-              <Heading size="md" style={{ color: "var(--color-negative-600)" }}>
+              <Text size="2xs" color="secondary">Sisa Saldo Utang Vendor</Text>
+              <Heading level={3} style={{ color: "var(--color-negative-600)" }}>
                 {loading ? "…" : formatRupiah(totalUtangAll)}
               </Heading>
             </VStack>
@@ -95,11 +95,11 @@ export default function DebtSummaryPage() {
         {/* Matrix Table */}
         <Card padding={4}>
           <VStack gap={3}>
-            <Heading size="sm">Matriks Utang per Pemasok</Heading>
+            <Heading level={3}>Matriks Utang per Pemasok</Heading>
             <Table
-              columns={columns}
-              data={summary}
-              rowKey="vendor_id"
+              columns={columns as any}
+              data={summary as any}
+              idKey="vendor_id"
               emptyState={
                 <VStack align="center" padding={6}>
                   <Text color="secondary">Belum ada tagihan terdaftar.</Text>

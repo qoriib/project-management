@@ -1,11 +1,25 @@
 import { useEffect } from "react";
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
-  AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading,
+  AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Icon,
   Text, VStack,
 } from "@astryxdesign/core";
 import { getDB } from "./db";
 import { useAppStore } from "./store/useAppStore";
+
+function ProjectMarkIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M4 19h16M6 19V7.5L12 4l6 3.5V19M9 19v-5h6v5M10.5 7.25h3"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -57,8 +71,8 @@ function AppLayout() {
           resizable={{ defaultWidth: 240, minWidth: 200, maxWidth: 320, autoSaveId: "sidenav-width" }}
           header={
             <SideNavHeading
-              icon="🏗️"
-              label="Manajemen Proyek"
+              icon={<Icon icon={ProjectMarkIcon} size="lg" color="accent" />}
+              heading="Manajemen Proyek"
             />
           }
         >
@@ -69,7 +83,7 @@ function AppLayout() {
             onClick={() => navigate("/dashboard")}
           />
 
-          <SideNavSection label="Master Data">
+          <SideNavSection title="Master Data">
             <SideNavItem
               label="Proyek & Vendor"
               icon="folder"
@@ -84,7 +98,7 @@ function AppLayout() {
             />
           </SideNavSection>
 
-          <SideNavSection label="Pemesanan (PO)">
+          <SideNavSection title="Pemesanan (PO)">
             <SideNavItem
               label="Daftar PO"
               icon="list"
@@ -99,7 +113,7 @@ function AppLayout() {
             />
           </SideNavSection>
 
-          <SideNavSection label="Lapangan">
+          <SideNavSection title="Lapangan">
             <SideNavItem
               label="Input Pengiriman"
               icon="truck"
@@ -120,7 +134,7 @@ function AppLayout() {
             />
           </SideNavSection>
 
-          <SideNavSection label="Keuangan">
+          <SideNavSection title="Keuangan">
             <SideNavItem
               label="Input Tagihan"
               icon="file-text"
@@ -135,7 +149,7 @@ function AppLayout() {
             />
           </SideNavSection>
 
-          <SideNavSection label="Laporan">
+          <SideNavSection title="Laporan">
             <SideNavItem
               label="Laporan Biaya"
               icon="bar-chart"

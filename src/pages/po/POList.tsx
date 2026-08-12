@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Section, VStack, HStack, Button, Table, Badge, TextInput, Selector, Text,
+  Section, VStack, HStack, Button, Table, TextInput, Selector, Text,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { PageHeader } from "../../components/PageHeader";
@@ -58,9 +58,9 @@ export default function POListPage() {
       key: "actions", header: "", width: pixel(200),
       renderCell: (_: unknown, row: PurchaseOrder) => (
         <HStack gap={1}>
-          <Button size="sm" variant="tertiary" onClick={() => navigate(`/po/${row.po_id}`)}>Detail</Button>
-          <Button size="sm" variant="tertiary" onClick={() => navigate(`/po/${row.po_id}/edit`)}>Edit</Button>
-          <Button size="sm" variant="tertiary" sentiment="negative" onClick={() => setDeleteTarget({ id: row.po_id, label: row.po_number })}>Hapus</Button>
+          <Button size="sm" variant="ghost" label="Detail" onClick={() => navigate(`/po/${row.po_id}`)} />
+          <Button size="sm" variant="ghost" label="Edit" onClick={() => navigate(`/po/${row.po_id}/edit`)} />
+          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.po_id, label: row.po_number })} />
         </HStack>
       ),
     },
@@ -72,7 +72,7 @@ export default function POListPage() {
         <PageHeader
           title="Daftar Purchase Order"
           subtitle="Manajemen dan pelacakan seluruh dokumen Purchase Order (PO)"
-          actions={<Button variant="primary" onClick={() => navigate("/po/new")}>+ Buat PO Baru</Button>}
+          actions={<Button variant="primary" label="+ Buat PO Baru" onClick={() => navigate("/po/new")} />}
         />
 
         <HStack gap={3}>
@@ -100,8 +100,8 @@ export default function POListPage() {
         <Table
           columns={columns as any}
           data={pos as any}
-          rowKey="po_id"
-          hasHoverHighlight
+          idKey="po_id"
+          hasHover
           emptyState={
             <VStack align="center" padding={8}>
               <Text color="secondary">

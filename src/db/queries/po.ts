@@ -107,7 +107,7 @@ export async function createPO(
      VALUES (?, ?, ?, ?, ?)`,
     [po.po_number, po.po_date, po.vendor_id, po.project_id ?? null, po.notes ?? null]
   );
-  const poId = result.lastInsertId;
+  const poId = result.lastInsertId ?? 0;
   for (const item of items) {
     await db.execute(
       "INSERT INTO po_items (po_id, item_id, ordered_volume, unit_price, ppn_percentage) VALUES (?, ?, ?, ?, ?)",

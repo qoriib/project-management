@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Section, VStack, HStack, Button, TextInput, Selector, TextArea,
-  Checkbox, Table, Text, Divider, Heading, Card,
+  Table, Text, Divider, Heading, Card,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { PageHeader } from "../../components/PageHeader";
-import { createPO, getPOById, type PurchaseOrder, type POItem } from "../../db/queries/po";
+import { createPO, type PurchaseOrder, type POItem } from "../../db/queries/po";
 import { getVendors, getItems, type Vendor, type Item } from "../../db/queries/master";
 import { getProjects, type Project } from "../../db/queries/master";
 import { formatRupiah, todayISO } from "../../utils/formatters";
@@ -131,13 +131,13 @@ export default function POFormPage() {
     {
       key: "ordered_volume", header: "Volume Dipesan", width: pixel(115),
       renderCell: (_: unknown, row: ItemRow, idx: number) => (
-        <TextInput label="" type="number" value={String(row.ordered_volume)} onChange={(v) => updateItem(idx, "ordered_volume", parseFloat(v) || 0)} />
+      <TextInput label="" value={String(row.ordered_volume)} onChange={(v) => updateItem(idx, "ordered_volume", parseFloat(v) || 0)} />
       ),
     },
     {
       key: "unit_price", header: "Harga Satuan (Rp)", width: pixel(165),
       renderCell: (_: unknown, row: ItemRow, idx: number) => (
-        <TextInput label="" type="number" value={String(row.unit_price)} onChange={(v) => updateItem(idx, "unit_price", parseFloat(v) || 0)} />
+        <TextInput label="" value={String(row.unit_price)} onChange={(v) => updateItem(idx, "unit_price", parseFloat(v) || 0)} />
       ),
     },
     {
@@ -147,7 +147,7 @@ export default function POFormPage() {
     {
       key: "remove", header: "", width: pixel(50),
       renderCell: (_: unknown, __: ItemRow, idx: number) => (
-        <Button size="sm" variant="tertiary" sentiment="negative" isDisabled={items.length === 1} onClick={() => removeItem(idx)}>✕</Button>
+        <Button size="sm" variant="ghost" label="✕" isDisabled={items.length === 1} onClick={() => removeItem(idx)} />
       ),
     },
   ];
@@ -158,15 +158,15 @@ export default function POFormPage() {
         <PageHeader
           title={isEdit ? "Edit PO" : "Buat PO Baru"}
           subtitle="Masukkan data kontrak Purchase Order"
-          actions={<Button variant="tertiary" onClick={() => navigate("/po")}>← Kembali</Button>}
+          actions={<Button variant="ghost" label="← Kembali" onClick={() => navigate("/po")} />}
         />
 
         <Card padding={4}>
           <VStack gap={3}>
-            <Heading size="sm">Informasi PO</Heading>
+            <Heading level={4}>Informasi PO</Heading>
             <HStack gap={3}>
               <TextInput label="Nomor PO" value={poNumber} onChange={setPoNumber} isRequired width={220} />
-              <TextInput label="Tanggal PO" type="date" value={poDate} onChange={setPoDate} isRequired width={160} />
+              <TextInput label="Tanggal PO" value={poDate} onChange={setPoDate} isRequired width={160} />
             </HStack>
             <HStack gap={3}>
               <Selector
@@ -191,7 +191,10 @@ export default function POFormPage() {
                 width={240}
               />
             </HStack>
-            <Checkbox isChecked={ppn} onChange={setPPN} label="Tambahkan PPN 12% untuk semua item" />
+            <HStack gap={2} align="center">
+              <input type="checkbox" checked={ppn} onChange={(e) => setPPN(e.target.checked)} />
+              <Text>Tambahkan PPN 12% untuk semua item</Text>
+            </HStack>
             <TextArea label="Catatan / Syarat Pengiriman" value={notes} onChange={setNotes} />
           </VStack>
         </Card>
@@ -199,24 +202,24 @@ export default function POFormPage() {
         <Card padding={4}>
           <VStack gap={3}>
             <HStack gap={2} align="center">
-              <Heading size="sm">Daftar Item Barang / Alat</Heading>
-              <Button size="sm" variant="secondary" onClick={addItem} style={{ marginLeft: "auto" }}>+ Tambah Item</Button>
+              <Heading level={4}>Daftar Item Barang / Alat</Heading>
+              <Button size="sm" variant="secondary" label="+ Tambah Item" onClick={addItem} />
             </HStack>
-            <Table columns={itemColumns as any} data={items as any} rowKey={(_, i) => String(i)} />
+              <Table columns={itemColumns as any} data={items as any} />
             <Divider />
             <HStack gap={4} justify="end">
               <VStack gap={1} align="end">
                 <HStack gap={6}><Text color="secondary">Subtotal</Text><Text weight="medium">{formatRupiah(subtotal)}</Text></HStack>
                 {ppn && <HStack gap={6}><Text color="secondary">PPN 12%</Text><Text weight="medium">{formatRupiah(ppnAmount)}</Text></HStack>}
-                <HStack gap={6}><Text weight="semibold">Total</Text><Heading size="md">{formatRupiah(total)}</Heading></HStack>
+                <HStack gap={6}><Text weight="semibold">Total</Text><Heading level={2}>{formatRupiah(total)}</Heading></HStack>
               </VStack>
             </HStack>
           </VStack>
         </Card>
 
         <HStack gap={2} justify="end">
-          <Button variant="tertiary" onClick={() => navigate("/po")}>Batal</Button>
-          <Button variant="primary" onClick={handleSave} isLoading={saving} isDisabled={!poNumber || !vendorId}>Simpan PO</Button>
+          <Button variant="ghost" label="Batal" onClick={() => navigate("/po")} />
+          <Button variant="primary" label="Simpan PO" onClick={handleSave} isLoading={saving} isDisabled={!poNumber || !vendorId} />
         </HStack>
       </VStack>
     </Section>

@@ -13,14 +13,14 @@ export function VolumeProgress({ label, satuan, qtyPO, totalTerkirim }: VolumePr
   const sisa = Math.max(qtyPO - totalTerkirim, 0);
 
   const statusColor =
-    pct >= 100 ? "positive" : pct >= 85 ? "warning" : "neutral";
+    pct >= 100 ? "success" : pct >= 85 ? "warning" : "neutral";
 
   return (
     <VStack gap={1}>
       <HStack gap={2} align="center">
-        <StatusDot status={statusColor} />
+        <StatusDot variant={statusColor} label={`${label} status`} />
         <Text size="sm" weight="medium">{label}</Text>
-        <Text size="xs" color="secondary" style={{ marginLeft: "auto" }}>
+        <Text size="2xs" color="secondary" style={{ marginLeft: "auto" }}>
           {formatNumber(totalTerkirim, 2)} / {formatNumber(qtyPO, 2)} {satuan}
         </Text>
       </HStack>
@@ -51,8 +51,8 @@ export function VolumeProgress({ label, satuan, qtyPO, totalTerkirim }: VolumePr
       </div>
 
       <HStack gap={4}>
-        <Text size="xs" color="secondary">Terkirim: {pct.toFixed(1)}%</Text>
-        <Text size="xs" color="secondary">Sisa: {formatNumber(sisa, 2)} {satuan}</Text>
+        <Text size="2xs" color="secondary">Terkirim: {pct.toFixed(1)}%</Text>
+        <Text size="2xs" color="secondary">Sisa: {formatNumber(sisa, 2)} {satuan}</Text>
       </HStack>
     </VStack>
   );

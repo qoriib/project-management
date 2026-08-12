@@ -160,18 +160,14 @@ export default function ExportBackupPage() {
           {/* Export Section */}
           <Card padding={4}>
             <VStack gap={3}>
-              <Heading size="sm">📊 Export Data Laporan</Heading>
-              <Text size="xs" color="secondary">
+              <Heading level={3}>📊 Export Data Laporan</Heading>
+              <Text size="2xs" color="secondary">
                 Unduh seluruh data transaksi, master data, dan log pengiriman lapangan ke dalam format dokumen Excel (.xlsx) multilebar atau cetak laporan resmi.
               </Text>
               <Divider />
               <HStack gap={2}>
-                <Button variant="primary" onPress={handleExportAll} isLoading={exporting}>
-                  Export Semua Data (Excel)
-                </Button>
-                <Button variant="secondary" onPress={printToPDF}>
-                  Cetak / Simpan PDF
-                </Button>
+                <Button variant="primary" label="Export Semua Data (Excel)" onClick={handleExportAll} isLoading={exporting} />
+                <Button variant="secondary" label="Cetak / Simpan PDF" onClick={printToPDF} />
               </HStack>
             </VStack>
           </Card>
@@ -179,18 +175,14 @@ export default function ExportBackupPage() {
           {/* Database Backup Section */}
           <Card padding={4}>
             <VStack gap={3}>
-              <Heading size="sm">💾 Backup / Restore Database Lokal</Heading>
-              <Text size="xs" color="secondary">
+              <Heading level={3}>💾 Backup / Restore Database Lokal</Heading>
+              <Text size="2xs" color="secondary">
                 Karena aplikasi ini menggunakan database SQLite lokal yang terisolasi di dalam komputer Anda, silakan lakukan backup secara berkala ke cloud drive atau flashdisk eksternal untuk menghindari kehilangan data.
               </Text>
               <Divider />
               <HStack gap={2}>
-                <Button variant="primary" onPress={handleBackup} isLoading={backingUp}>
-                  Buat File Backup (.db)
-                </Button>
-                <Button variant="secondary" onPress={handleRestore} isLoading={restoring} sentiment="negative">
-                  Restore / Pulihkan Data
-                </Button>
+                <Button variant="primary" label="Buat File Backup (.db)" onClick={handleBackup} isLoading={backingUp} />
+                <Button variant="secondary" label="Restore / Pulihkan Data" onClick={handleRestore} isLoading={restoring} />
               </HStack>
             </VStack>
           </Card>
