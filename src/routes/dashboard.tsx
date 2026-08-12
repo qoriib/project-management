@@ -1,17 +1,18 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Grid, GridSpan, VStack, HStack, Card, Heading, Text, Badge, Divider, Section, Button
 } from "@astryxdesign/core";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
-import { StatCard } from "../components/StatCard";
-import { PageHeader } from "../components/PageHeader";
-import { getDashboardStats, getCostByCategory, getPOVolumeAlerts } from "../db/queries/reports";
-import { getPurchaseOrders } from "../db/queries/po";
-import { formatRupiah, formatDate, KATEGORI_LABELS } from "../utils/formatters";
-import type { PurchaseOrder } from "../db/queries/po";
+import { StatCard } from "@/components/StatCard";
+import { PageHeader } from "@/components/PageHeader";
+import { getDashboardStats, getCostByCategory, getPOVolumeAlerts } from "@/db/queries/reports";
+import { getPurchaseOrders } from "@/db/queries/po";
+import { formatRupiah, formatDate, KATEGORI_LABELS } from "@/utils/formatters";
+import type { PurchaseOrder } from "@/db/queries/po";
 
 interface Stats {
   total_po_aktif: number;
@@ -20,7 +21,7 @@ interface Stats {
   total_pengiriman: number;
 }
 
-export default function Dashboard() {
+function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats | null>(null);
   const [chartData, setChartData] = useState<{ name: string; biaya: number }[]>([]);
@@ -153,14 +154,14 @@ export default function Dashboard() {
               <VStack gap={4}>
                 <HStack align="center" justify="between">
                   <Heading level={3}>PO Terbaru</Heading>
-                  <Button size="sm" label="Lihat Semua" variant="ghost" onClick={() => navigate("/po")} />
+                  <Button size="sm" label="Lihat Semua" variant="ghost" onClick={() => navigate({ to: "/po" })} />
                 </HStack>
                 {recentPOs.length === 0 ? (
                   <Text color="secondary" size="sm">Belum ada PO.</Text>
                 ) : (
                   <VStack gap={2}>
                     {recentPOs.map((po) => (
-                      <HStack key={po.po_id} gap={3} align="center" style={{ cursor: "pointer" }} onClick={() => navigate(`/po/${po.po_id}`)}>
+                      <HStack key={po.po_id} gap={3} align="center" style={{ cursor: "pointer" }} onClick={() => navigate({ to: `/po/${po.po_id}` })}>
                         <VStack gap={0}>
                           <Text size="sm" weight="medium">{po.po_number}</Text>
                           <Text size="2xs" color="secondary">{po.vendor_name} · {formatDate(po.po_date)}</Text>
@@ -180,3 +181,8 @@ export default function Dashboard() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/dashboard')({
+  component: Dashboard,
+});

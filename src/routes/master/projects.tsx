@@ -1,21 +1,22 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import {
   Section, VStack, HStack, Button, Table, Badge, Dialog,
   TextInput, Selector, TextArea, SegmentedControl, SegmentedControlItem, Text, Heading,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { PageHeader } from "../../components/PageHeader";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { PageHeader } from "@/components/PageHeader";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   getProjects, createProject, updateProject, deleteProject,
   getVendors, createVendor, updateVendor, deleteVendor,
   type Project, type Vendor,
-} from "../../db/queries/master";
-import { VENDOR_TIPE_OPTIONS, VENDOR_TIPE_LABELS } from "../../utils/formatters";
+} from "@/db/queries/master";
+import { VENDOR_TIPE_OPTIONS, VENDOR_TIPE_LABELS } from "@/utils/formatters";
 
 type Tab = "proyek" | "vendor";
 
-export default function ProjectsPage() {
+function ProjectsPage() {
   const [tab, setTab] = useState<Tab>("proyek");
   const [projects, setProjects] = useState<Project[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -145,11 +146,11 @@ export default function ProjectsPage() {
     { key: "fiscal_year", header: "Tahun Anggaran", width: pixel(120) },
     {
       key: "status", header: "Status", width: pixel(120),
-      renderCell: (v: string) => <Badge variant={v === "COMPLETED" ? "success" : "warning"} label={v} />,
+      renderCell: (row: Project) => <Badge variant={row.status === "COMPLETED" ? "success" : "warning"} label={row.status} />,
     },
     {
       key: "actions", header: "", width: pixel(140),
-      renderCell: (_: unknown, row: Project) => (
+      renderCell: (row: Project) => (
         <HStack gap={1}>
           <Button size="sm" variant="ghost" label="Edit" onClick={() => openEdit(row)} />
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.project_id, label: row.project_name })} />
@@ -162,13 +163,13 @@ export default function ProjectsPage() {
     { key: "vendor_name", header: "Nama Vendor", width: proportional(1.5) },
     {
       key: "vendor_type", header: "Tipe Vendor", width: pixel(160),
-      renderCell: (v: string) => <Badge variant="neutral" label={VENDOR_TIPE_LABELS[v] ?? v} />,
+      renderCell: (row: Vendor) => <Badge variant="neutral" label={VENDOR_TIPE_LABELS[row.vendor_type] ?? row.vendor_type} />,
     },
     { key: "phone", header: "Telepon", width: pixel(140) },
     { key: "address", header: "Alamat", width: proportional(1.5) },
     {
       key: "actions", header: "", width: pixel(140),
-      renderCell: (_: unknown, row: Vendor) => (
+      renderCell: (row: Vendor) => (
         <HStack gap={1}>
           <Button size="sm" variant="ghost" label="Edit" onClick={() => openEdit(row)} />
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })} />
@@ -269,3 +270,8 @@ export default function ProjectsPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/master/projects')({
+  component: ProjectsPage,
+});

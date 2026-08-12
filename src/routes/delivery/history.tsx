@@ -1,16 +1,17 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Section, VStack, HStack, Button, Table, TextInput, Selector, Text,
 } from "@astryxdesign/core";
-import { PageHeader } from "../../components/PageHeader";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { getDeliveries, deleteDelivery, type Delivery } from "../../db/queries/field";
-import { getVendors, type Vendor } from "../../db/queries/master";
-import { formatDate, formatNumber } from "../../utils/formatters";
-import { exportToExcel } from "../../utils/export";
+import { PageHeader } from "@/components/PageHeader";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { getDeliveries, deleteDelivery, type Delivery } from "@/db/queries/field";
+import { getVendors, type Vendor } from "@/db/queries/master";
+import { formatDate, formatNumber } from "@/utils/formatters";
+import { exportToExcel } from "@/utils/export";
 
-export default function DeliveryHistoryPage() {
+function DeliveryHistoryPage() {
   const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -93,7 +94,7 @@ export default function DeliveryHistoryPage() {
           actions={
             <HStack gap={2}>
               <Button variant="secondary" label="📊 Export Excel" onClick={handleExport} />
-              <Button variant="primary" label="+ Input Pengiriman" onClick={() => navigate("/delivery/new")} />
+              <Button variant="primary" label="+ Input Pengiriman" onClick={() => navigate({ to: "/delivery/new" })} />
             </HStack>
           }
         />
@@ -149,3 +150,8 @@ export default function DeliveryHistoryPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/delivery/history')({
+  component: DeliveryHistoryPage,
+});

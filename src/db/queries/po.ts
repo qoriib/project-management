@@ -1,4 +1,4 @@
-import { getDB } from "../index";
+import { getDB } from "@/db/index";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

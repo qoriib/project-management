@@ -1,17 +1,19 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { z } from 'zod';
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
   Section, VStack, HStack, Button, TextInput, Selector, TextArea, Card, Heading, Text, StatusDot,
 } from "@astryxdesign/core";
-import { PageHeader } from "../../components/PageHeader";
-import { getPurchaseOrders, getPOItems, type PurchaseOrder, type POItem } from "../../db/queries/po";
-import { createDelivery } from "../../db/queries/field";
-import { todayISO, formatNumber } from "../../utils/formatters";
+import { PageHeader } from "@/components/PageHeader";
+import { getPurchaseOrders, getPOItems, type PurchaseOrder, type POItem } from "@/db/queries/po";
+import { createDelivery } from "@/db/queries/field";
+import { todayISO, formatNumber } from "@/utils/formatters";
 
-export default function DeliveryFormPage() {
+function DeliveryFormPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const initialPoId = searchParams.get("po");
+  const searchParams = useSearch({ strict: false }) as Record<string, string>;
+  const initialPoId = searchParams.po;
 
   const [pos, setPOs] = useState<PurchaseOrder[]>([]);
   const [selectedPoId, setSelectedPoId] = useState("");
@@ -71,7 +73,7 @@ export default function DeliveryFormPage() {
         location_destination: locationDestination,
         notes,
       });
-      navigate(selectedPoId ? `/po/${selectedPoId}` : "/delivery/history");
+      navigate({ to: selectedPoId ? `/po/${selectedPoId}` : "/delivery/history" });
     } finally {
       setSaving(false);
     }
@@ -83,7 +85,7 @@ export default function DeliveryFormPage() {
         <PageHeader
           title="Input Penerimaan Material (Surat Jalan)"
           subtitle="Catat realisasi pengiriman barang/jasa sewa dari PO"
-          actions={<Button variant="ghost" label="← Kembali" onClick={() => navigate(-1)} />}
+          actions={<Button variant="ghost" label="← Kembali" onClick={() => window.history.back()} />}
         />
 
         <Card padding={4}>
@@ -192,7 +194,7 @@ export default function DeliveryFormPage() {
         )}
 
         <HStack gap={2} justify="end">
-          <Button variant="ghost" label="Batal" onClick={() => navigate(-1)} />
+          <Button variant="ghost" label="Batal" onClick={() => window.history.back()} />
           <Button
             variant="primary"
             label="Simpan Pengiriman"
@@ -205,3 +207,13 @@ export default function DeliveryFormPage() {
     </Section>
   );
 }
+
+
+const searchSchema = z.object({
+  po: z.string().optional(),
+});
+
+export const Route = createFileRoute('/delivery/new')({
+  validateSearch: searchSchema,
+  component: DeliveryFormPage,
+});

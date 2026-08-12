@@ -1,17 +1,18 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import {
   Section, VStack, HStack, Button, Table, Dialog,
   TextInput, Selector, TextArea, Text, Heading,
 } from "@astryxdesign/core";
-import { PageHeader } from "../../components/PageHeader";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { PageHeader } from "@/components/PageHeader";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   getEquipmentLogs, createEquipmentLog, deleteEquipmentLog, type EquipmentLog
-} from "../../db/queries/field";
-import { getProjects, getVendors, type Project, type Vendor } from "../../db/queries/master";
-import { formatDate, formatRupiah, formatNumber } from "../../utils/formatters";
+} from "@/db/queries/field";
+import { getProjects, getVendors, type Project, type Vendor } from "@/db/queries/master";
+import { formatDate, formatRupiah, formatNumber } from "@/utils/formatters";
 
-export default function EquipmentLogPage() {
+function EquipmentLogPage() {
   const [logs, setLogs] = useState<EquipmentLog[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -232,3 +233,8 @@ export default function EquipmentLogPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/equipment')({
+  component: EquipmentLogPage,
+});

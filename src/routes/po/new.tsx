@@ -1,15 +1,16 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   Section, VStack, HStack, Button, TextInput, Selector, TextArea,
   Table, Text, Divider, Heading, Card,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { PageHeader } from "../../components/PageHeader";
-import { createPO, type PurchaseOrder, type POItem } from "../../db/queries/po";
-import { getVendors, getItems, type Vendor, type Item } from "../../db/queries/master";
-import { getProjects, type Project } from "../../db/queries/master";
-import { formatRupiah, todayISO } from "../../utils/formatters";
+import { PageHeader } from "@/components/PageHeader";
+import { createPO, type PurchaseOrder, type POItem } from "@/db/queries/po";
+import { getVendors, getItems, type Vendor, type Item } from "@/db/queries/master";
+import { getProjects, type Project } from "@/db/queries/master";
+import { formatRupiah, todayISO } from "@/utils/formatters";
 
 interface ItemRow {
   item_id: number;
@@ -19,9 +20,9 @@ interface ItemRow {
   unit_price: number;
 }
 
-export default function POFormPage() {
+function POFormPage() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id } = useParams({ strict: false });
   const isEdit = !!id;
 
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -102,7 +103,7 @@ export default function POFormPage() {
             ppn_percentage: ppn ? 12 : 0,
           }));
       const newId = await createPO(poData, poItems);
-      navigate(`/po/${newId}`);
+      navigate({ to: `/po/${newId}` });
     } finally {
       setSaving(false);
     }
@@ -111,12 +112,12 @@ export default function POFormPage() {
   const itemColumns = [
     {
       key: "item_id", header: "Barang / Material / Jasa Sewa", width: proportional(1.5),
-      renderCell: (_: unknown, row: ItemRow, idx: number) => (
+      renderCell: (row: ItemRow) => (
         <Selector
           label="Pilih Katalog"
           isLabelHidden
           value={String(row.item_id)}
-          onChange={(v) => updateItem(idx, "item_id", v)}
+          onChange={(v) => updateItem(items.indexOf(row), "item_id", v)}
           options={[
             { value: "0", label: "Pilih katalog..." },
             ...catalogItems.map((m) => ({ value: String(m.item_id), label: `${m.item_name} (${m.unit})` })),
@@ -126,28 +127,28 @@ export default function POFormPage() {
     },
     {
       key: "unit", header: "Satuan", width: pixel(90),
-      renderCell: (_: unknown, row: ItemRow) => <Text size="sm">{row.unit}</Text>,
+      renderCell: (row: ItemRow) => <Text size="sm">{row.unit}</Text>,
     },
     {
       key: "ordered_volume", header: "Volume Dipesan", width: pixel(115),
-      renderCell: (_: unknown, row: ItemRow, idx: number) => (
-      <TextInput label="" value={String(row.ordered_volume)} onChange={(v) => updateItem(idx, "ordered_volume", parseFloat(v) || 0)} />
+      renderCell: (row: ItemRow) => (
+      <TextInput label="" value={String(row.ordered_volume)} onChange={(v) => updateItem(items.indexOf(row), "ordered_volume", parseFloat(v) || 0)} />
       ),
     },
     {
       key: "unit_price", header: "Harga Satuan (Rp)", width: pixel(165),
-      renderCell: (_: unknown, row: ItemRow, idx: number) => (
-        <TextInput label="" value={String(row.unit_price)} onChange={(v) => updateItem(idx, "unit_price", parseFloat(v) || 0)} />
+      renderCell: (row: ItemRow) => (
+        <TextInput label="" value={String(row.unit_price)} onChange={(v) => updateItem(items.indexOf(row), "unit_price", parseFloat(v) || 0)} />
       ),
     },
     {
       key: "subtotal_item", header: "Subtotal", width: pixel(140),
-      renderCell: (_: unknown, row: ItemRow) => <Text size="sm">{formatRupiah(row.ordered_volume * row.unit_price)}</Text>,
+      renderCell: (row: ItemRow) => <Text size="sm">{formatRupiah(row.ordered_volume * row.unit_price)}</Text>,
     },
     {
       key: "remove", header: "", width: pixel(50),
-      renderCell: (_: unknown, __: ItemRow, idx: number) => (
-        <Button size="sm" variant="ghost" label="✕" isDisabled={items.length === 1} onClick={() => removeItem(idx)} />
+      renderCell: (row: ItemRow) => (
+        <Button size="sm" variant="ghost" label="✕" isDisabled={items.length === 1} onClick={() => removeItem(items.indexOf(row))} />
       ),
     },
   ];
@@ -158,7 +159,7 @@ export default function POFormPage() {
         <PageHeader
           title={isEdit ? "Edit PO" : "Buat PO Baru"}
           subtitle="Masukkan data kontrak Purchase Order"
-          actions={<Button variant="ghost" label="← Kembali" onClick={() => navigate("/po")} />}
+          actions={<Button variant="ghost" label="← Kembali" onClick={() => navigate({ to: "/po" })} />}
         />
 
         <Card padding={4}>
@@ -218,10 +219,15 @@ export default function POFormPage() {
         </Card>
 
         <HStack gap={2} justify="end">
-          <Button variant="ghost" label="Batal" onClick={() => navigate("/po")} />
+          <Button variant="ghost" label="Batal" onClick={() => navigate({ to: "/po" })} />
           <Button variant="primary" label="Simpan PO" onClick={handleSave} isLoading={saving} isDisabled={!poNumber || !vendorId} />
         </HStack>
       </VStack>
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/po/new')({
+  component: POFormPage,
+});

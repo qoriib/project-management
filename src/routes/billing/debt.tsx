@@ -1,13 +1,14 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import {
   Section, VStack, Button, Table, Badge, Card, Heading, Text, Grid
 } from "@astryxdesign/core";
-import { PageHeader } from "../../components/PageHeader";
-import { getDebtSummary, type DebtSummaryRow } from "../../db/queries/billing";
-import { formatRupiah, VENDOR_TIPE_LABELS } from "../../utils/formatters";
-import { exportToExcel } from "../../utils/export";
+import { PageHeader } from "@/components/PageHeader";
+import { getDebtSummary, type DebtSummaryRow } from "@/db/queries/billing";
+import { formatRupiah, VENDOR_TIPE_LABELS } from "@/utils/formatters";
+import { exportToExcel } from "@/utils/export";
 
-export default function DebtSummaryPage() {
+function DebtSummaryPage() {
   const [summary, setSummary] = useState<DebtSummaryRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -112,3 +113,8 @@ export default function DebtSummaryPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/billing/debt')({
+  component: DebtSummaryPage,
+});

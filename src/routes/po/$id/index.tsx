@@ -1,18 +1,19 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   Section, VStack, HStack, Button, Card, Heading, Text, Divider, Table,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { PageHeader } from "../../components/PageHeader";
-import { VolumeProgress } from "../../components/VolumeProgress";
-import { getPOById, getPOItems, type PurchaseOrder, type POItem } from "../../db/queries/po";
-import { getDeliveries, type Delivery } from "../../db/queries/field";
-import { formatRupiah, formatDate } from "../../utils/formatters";
+import { PageHeader } from "@/components/PageHeader";
+import { VolumeProgress } from "@/components/VolumeProgress";
+import { getPOById, getPOItems, type PurchaseOrder, type POItem } from "@/db/queries/po";
+import { getDeliveries, type Delivery } from "@/db/queries/field";
+import { formatRupiah, formatDate } from "@/utils/formatters";
 
-export default function PODetailPage() {
+function PODetailPage() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id } = useParams({ strict: false });
   const [po, setPO] = useState<PurchaseOrder | null>(null);
   const [items, setItems] = useState<POItem[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
@@ -40,9 +41,9 @@ export default function PODetailPage() {
   if (!po) return <Section padding={6}><Text color="secondary">PO tidak ditemukan.</Text></Section>;
 
   const deliveryColumns = [
-    { key: "delivery_date", header: "Tanggal Kirim", width: pixel(120), renderCell: (v: string) => formatDate(v) },
+    { key: "delivery_date", header: "Tanggal Kirim", width: pixel(120), renderCell: (row: Delivery) => formatDate(row.delivery_date) },
     { key: "item_name", header: "Barang / Material", width: proportional(1) },
-    { key: "delivered_volume", header: "Volume Kirim", width: pixel(120), renderCell: (v: number, row: Delivery) => `${v} ${row.unit ?? ""}` },
+    { key: "delivered_volume", header: "Volume Kirim", width: pixel(120), renderCell: (row: Delivery) => `${row.delivered_volume} ${row.unit ?? ""}` },
     { key: "delivery_note_number", header: "No. Surat Jalan", width: pixel(140) },
     { key: "location_destination", header: "Tujuan", width: proportional(1) },
   ];
@@ -55,8 +56,8 @@ export default function PODetailPage() {
           subtitle={`Dibuat pada ${formatDate(po.po_date)}`}
           actions={
             <HStack gap={2}>
-              <Button variant="ghost" label="← Kembali" onClick={() => navigate("/po")} />
-              <Button variant="primary" label="🧾 Buat Tagihan" onClick={() => navigate(`/billing/invoice?po=${po.po_id}`)} />
+              <Button variant="ghost" label="← Kembali" onClick={() => navigate({ to: "/po" })} />
+              <Button variant="primary" label="🧾 Buat Tagihan" onClick={() => navigate({ to: "/billing/invoice", search: { po: String(po.po_id) } })} />
             </HStack>
           }
         />
@@ -109,7 +110,7 @@ export default function PODetailPage() {
           <VStack gap={3}>
             <HStack gap={2} align="center">
               <Heading level={3}>Log Penerimaan Lapangan (Surat Jalan)</Heading>
-              <Button size="sm" variant="secondary" label="+ Input Pengiriman Baru" onClick={() => navigate("/delivery/new")} style={{ marginLeft: "auto" }} />
+              <Button size="sm" variant="secondary" label="+ Input Pengiriman Baru" onClick={() => navigate({ to: "/delivery/new" })} style={{ marginLeft: "auto" }} />
             </HStack>
             <Table
               columns={deliveryColumns as any}
@@ -132,3 +133,8 @@ export default function PODetailPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/po/$id/')({
+  component: PODetailPage,
+});

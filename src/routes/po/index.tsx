@@ -1,16 +1,17 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Section, VStack, HStack, Button, Table, TextInput, Selector, Text,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { PageHeader } from "../../components/PageHeader";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { getPurchaseOrders, deletePO, type PurchaseOrder } from "../../db/queries/po";
-import { getVendors, type Vendor } from "../../db/queries/master";
-import { formatRupiah, formatDate } from "../../utils/formatters";
+import { PageHeader } from "@/components/PageHeader";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { getPurchaseOrders, deletePO, type PurchaseOrder } from "@/db/queries/po";
+import { getVendors, type Vendor } from "@/db/queries/master";
+import { formatRupiah, formatDate } from "@/utils/formatters";
 
-export default function POListPage() {
+function POListPage() {
   const navigate = useNavigate();
   const [pos, setPOs] = useState<PurchaseOrder[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -47,19 +48,19 @@ export default function POListPage() {
 
   const columns = [
     { key: "po_number", header: "No. PO", width: pixel(180) },
-    { key: "po_date", header: "Tanggal", width: pixel(110), renderCell: (v: string) => formatDate(v) },
+    { key: "po_date", header: "Tanggal", width: pixel(110), renderCell: (row: PurchaseOrder) => formatDate(row.po_date) },
     { key: "vendor_name", header: "Vendor", width: proportional(1) },
     { key: "project_name", header: "Proyek", width: proportional(1) },
     {
       key: "total_price", header: "Total", width: pixel(160),
-      renderCell: (v: number) => <Text size="sm" weight="semibold">{formatRupiah(v)}</Text>,
+      renderCell: (row: PurchaseOrder) => <Text size="sm" weight="semibold">{formatRupiah(row.total_price)}</Text>,
     },
     {
       key: "actions", header: "", width: pixel(200),
-      renderCell: (_: unknown, row: PurchaseOrder) => (
+      renderCell: (row: PurchaseOrder) => (
         <HStack gap={1}>
-          <Button size="sm" variant="ghost" label="Detail" onClick={() => navigate(`/po/${row.po_id}`)} />
-          <Button size="sm" variant="ghost" label="Edit" onClick={() => navigate(`/po/${row.po_id}/edit`)} />
+          <Button size="sm" variant="ghost" label="Detail" onClick={() => navigate({ to: `/po/${row.po_id}` })} />
+          <Button size="sm" variant="ghost" label="Edit" onClick={() => navigate({ to: `/po/${row.po_id}/edit` })} />
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.po_id, label: row.po_number })} />
         </HStack>
       ),
@@ -72,7 +73,7 @@ export default function POListPage() {
         <PageHeader
           title="Daftar Purchase Order"
           subtitle="Manajemen dan pelacakan seluruh dokumen Purchase Order (PO)"
-          actions={<Button variant="primary" label="+ Buat PO Baru" onClick={() => navigate("/po/new")} />}
+          actions={<Button variant="primary" label="+ Buat PO Baru" onClick={() => navigate({ to: "/po/new" })} />}
         />
 
         <HStack gap={3}>
@@ -123,3 +124,8 @@ export default function POListPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/po/')({
+  component: POListPage,
+});

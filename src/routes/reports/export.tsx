@@ -1,15 +1,16 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useState } from "react";
 import {
   Section, VStack, HStack, Button, Card, Heading, Text, Grid, Divider
 } from "@astryxdesign/core";
-import { PageHeader } from "../../components/PageHeader";
-import { backupDatabase, restoreDatabase, exportMultiSheet, printToPDF } from "../../utils/export";
-import { getProjects, getVendors, getItems } from "../../db/queries/master";
-import { getPurchaseOrders } from "../../db/queries/po";
-import { getDeliveries } from "../../db/queries/field";
-import { getInvoices } from "../../db/queries/billing";
+import { PageHeader } from "@/components/PageHeader";
+import { backupDatabase, restoreDatabase, exportMultiSheet, printToPDF } from "@/utils/export";
+import { getProjects, getVendors, getItems } from "@/db/queries/master";
+import { getPurchaseOrders } from "@/db/queries/po";
+import { getDeliveries } from "@/db/queries/field";
+import { getInvoices } from "@/db/queries/billing";
 
-export default function ExportBackupPage() {
+function ExportBackupPage() {
   const [backingUp, setBackingUp] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -191,3 +192,8 @@ export default function ExportBackupPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/reports/export')({
+  component: ExportBackupPage,
+});

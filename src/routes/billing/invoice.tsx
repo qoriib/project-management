@@ -1,14 +1,15 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import {
   Section, VStack, HStack, Button, TextInput, Selector, TextArea,
   Card, Heading, Text, Table, Badge, Dialog, Divider,
 } from "@astryxdesign/core";
-import { PageHeader } from "../../components/PageHeader";
-import { getInvoices, createInvoice, addPaymentDirect, type Invoice } from "../../db/queries/billing";
-import { getVendors, getProjects, type Vendor, type Project } from "../../db/queries/master";
-import { getPOItems, getPurchaseOrders, type POItem } from "../../db/queries/po";
-import { getEquipmentLogs, type EquipmentLog } from "../../db/queries/field";
-import { formatDate, formatRupiah, STATUS_INVOICE_LABELS, STATUS_INVOICE_COLORS } from "../../utils/formatters";
+import { PageHeader } from "@/components/PageHeader";
+import { getInvoices, createInvoice, addPaymentDirect, type Invoice } from "@/db/queries/billing";
+import { getVendors, getProjects, type Vendor, type Project } from "@/db/queries/master";
+import { getPOItems, getPurchaseOrders, type POItem } from "@/db/queries/po";
+import { getEquipmentLogs, type EquipmentLog } from "@/db/queries/field";
+import { formatDate, formatRupiah, STATUS_INVOICE_LABELS, STATUS_INVOICE_COLORS } from "@/utils/formatters";
 
 interface InvoiceItemRow {
   po_item_id?: number;
@@ -17,7 +18,7 @@ interface InvoiceItemRow {
   amount: number;
 }
 
-export default function InvoiceEntryPage() {
+function InvoiceEntryPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -427,3 +428,8 @@ export default function InvoiceEntryPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/billing/invoice')({
+  component: InvoiceEntryPage,
+});

@@ -28,7 +28,7 @@
  */
 
 import {defineTheme, defineSyntaxTheme} from '@astryxdesign/core/theme';
-import {neutralIconRegistry} from './icons';
+import {neutralIconRegistry} from '@/theme/icons';
 
 /**
  * Neutral syntax palette — pulled from the OKLCH T30 (light) / T80 (dark)

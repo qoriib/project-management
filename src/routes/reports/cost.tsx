@@ -1,13 +1,14 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import {
   Section, VStack, HStack, Button, Table, Card, Heading, Text, Grid
 } from "@astryxdesign/core";
-import { PageHeader } from "../../components/PageHeader";
-import { getProjectCostReport, type ProjectCostRow } from "../../db/queries/reports";
-import { formatRupiah } from "../../utils/formatters";
-import { exportToExcel, printToPDF } from "../../utils/export";
+import { PageHeader } from "@/components/PageHeader";
+import { getProjectCostReport, type ProjectCostRow } from "@/db/queries/reports";
+import { formatRupiah } from "@/utils/formatters";
+import { exportToExcel, printToPDF } from "@/utils/export";
 
-export default function CostReportPage() {
+function CostReportPage() {
   const [report, setReport] = useState<ProjectCostRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -118,3 +119,8 @@ export default function CostReportPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/reports/cost')({
+  component: CostReportPage,
+});

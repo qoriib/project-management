@@ -1,5 +1,5 @@
 import { VStack, HStack, Text, StatusDot } from "@astryxdesign/core";
-import { formatNumber } from "../utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 
 interface VolumeProgressProps {
   label: string;

@@ -1,18 +1,19 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import {
   Section, VStack, HStack, Button, Table, Badge, Dialog,
   TextInput, Selector, SegmentedControl, SegmentedControlItem, Text, Heading,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { PageHeader } from "../../components/PageHeader";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { PageHeader } from "@/components/PageHeader";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   getItems, createItem, updateItem, deleteItem,
   type Item,
-} from "../../db/queries/master";
-import { KATEGORI_LABELS, KATEGORI_OPTIONS, SATUAN_OPTIONS } from "../../utils/formatters";
+} from "@/db/queries/master";
+import { KATEGORI_LABELS, KATEGORI_OPTIONS, SATUAN_OPTIONS } from "@/utils/formatters";
 
-export default function CatalogPage() {
+function CatalogPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [filter, setFilter] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
@@ -80,11 +81,11 @@ export default function CatalogPage() {
     { key: "unit", header: "Satuan", width: pixel(80) },
     {
       key: "category", header: "Kategori", width: pixel(160),
-      renderCell: (v: string) => <Badge variant="neutral" label={KATEGORI_LABELS[v] ?? v} />,
+      renderCell: (row: Item) => <Badge variant="neutral" label={KATEGORI_LABELS[row.category] ?? row.category} />,
     },
     {
       key: "actions", header: "", width: pixel(140),
-      renderCell: (_: unknown, row: Item) => (
+      renderCell: (row: Item) => (
         <HStack gap={1}>
           <Button size="sm" variant="ghost" label="Edit" onClick={() => openEdit(row)} />
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })} />
@@ -164,3 +165,8 @@ export default function CatalogPage() {
     </Section>
   );
 }
+
+
+export const Route = createFileRoute('/master/catalog')({
+  component: CatalogPage,
+});
