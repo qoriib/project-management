@@ -83,7 +83,7 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
                 />
               )}
             />

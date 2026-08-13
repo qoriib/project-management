@@ -67,7 +67,7 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
 
     // 2. Fetch PO Aggregates (join item_prices for price)
     const poQb = new QueryBuilder()
-      .select("poi.item_id")
+      .select("poi.item_id", "poi.item_price_id")
       .selectRaw("SUM(poi.qty) as total_ordered")
       .selectRaw("SUM(d.total_delivered) as total_delivered")
       .selectRaw("COALESCE(SUM(poi.qty * ip.price) / NULLIF(SUM(poi.qty), 0), 0) as avg_po_price")
@@ -81,30 +81,32 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
       )
       .where("po.project_id", "=", projectId)
       .where("po.deleted_at", "IS NULL")
-      .groupBy("poi.item_id");
+      .groupBy("poi.item_id", "poi.item_price_id");
 
     const { sql: poSql, params: poParams } = poQb.build();
-    const poAggs = await db.select<{ item_id: number; total_ordered: number; total_delivered: number; avg_po_price: number }[]>(poSql, poParams);
+    const poAggs = await db.select<{ item_id: number; item_price_id: number; total_ordered: number; total_delivered: number; avg_po_price: number }[]>(poSql, poParams);
 
     // 3. Build remaining map
-    const itemRemaining = new Map<number, { ordered: number; delivered: number; avgPrice: number }>();
+    const itemRemaining = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
     for (const agg of poAggs) {
-      itemRemaining.set(agg.item_id, {
+      itemRemaining.set(`${agg.item_id}-${agg.item_price_id}`, {
         ordered: agg.total_ordered || 0,
         delivered: agg.total_delivered || 0,
         avgPrice: agg.avg_po_price || 0,
       });
     }
 
-    // Count stages per item for "last stage" detection
-    const stageCounts = new Map<number, number>();
+    // Count stages per item+price for "last stage" detection
+    const stageCounts = new Map<string, number>();
     for (const row of boms) {
-      stageCounts.set(row.item_id, (stageCounts.get(row.item_id) || 0) + 1);
+      const key = `${row.item_id}-${row.item_price_id}`;
+      stageCounts.set(key, (stageCounts.get(key) || 0) + 1);
     }
 
     // 4. Distribute over BOM stages
     for (const row of boms) {
-      const remain = itemRemaining.get(row.item_id);
+      const key = `${row.item_id}-${row.item_price_id}`;
+      const remain = itemRemaining.get(key);
       if (!remain) {
         row.total_ordered = 0;
         row.total_delivered = 0;
@@ -112,8 +114,8 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
         continue;
       }
 
-      const count = stageCounts.get(row.item_id)!;
-      stageCounts.set(row.item_id, count - 1);
+      const count = stageCounts.get(key)!;
+      stageCounts.set(key, count - 1);
 
       const isLastStage = count === 1;
 

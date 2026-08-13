@@ -3,16 +3,11 @@ import { VStack, HStack, Button, Selector, Heading, Text } from "@astryxdesign/c
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
-import * as v from "valibot";
-import {
-  bomRepo,
-  itemPriceRepo,
-  type BillOfMaterial,
-  type BOMDetail,
-} from "@/db/repositories";
+import { bomRepo, itemPriceRepo, type BillOfMaterial, type BOMDetail } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { formatRupiah } from "@/utils/formatters";
+import * as v from "valibot";
 
 const bomSchema = v.object({
   stage_id: v.pipe(v.string(), v.nonEmpty("Tahap proyek harus dipilih.")),
@@ -25,11 +20,12 @@ interface BOMFormProps {
   stageId?: number;
   initialData?: BOMDetail;
   isInline?: boolean;
+  isDisabled?: boolean;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }: BOMFormProps) {
+export function BOMForm({ stageId, initialData, isInline, isDisabled, onSuccess, onCancel }: BOMFormProps) {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const { items } = useMasterStore();
   const [existingBoms, setExistingBoms] = useState<BillOfMaterial[]>([]);
@@ -92,6 +88,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
 
   // Watch for external prop changes
   useEffect(() => {
+    form.reset(); // Reset form to clear isTouched states
     if (initialData) {
       form.setFieldValue("stage_id", String(initialData.stage_id));
       form.setFieldValue("item_id", String(initialData.item_id));
@@ -100,9 +97,11 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
       loadPricesForItem(String(initialData.item_id));
     } else if (stageId) {
       form.setFieldValue("stage_id", String(stageId));
-      form.setFieldValue("item_id", "");
-      form.setFieldValue("qty", 0);
-      form.setFieldValue("item_price_id", "");
+      // No need to set item_id and others to empty because form.reset() already did that
+      setPriceOptions([]);
+    } else {
+      // If no stageId (e.g. activeTab === "all")
+      form.setFieldValue("stage_id", "");
       setPriceOptions([]);
     }
   }, [initialData, stageId]); // intentionally omitting `form`
@@ -147,13 +146,14 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                         }}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                        status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
                         options={[
                           { value: "", label: "Pilih Material/Alat..." },
                           ...items
                             .filter(i => (initialData?.item_id === i.item_id) || !existingBoms.some(b => b.item_id === i.item_id))
                             .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit_name})` })),
                         ]}
+                        isDisabled={isDisabled}
                       />
                     )}
                   />
@@ -169,7 +169,8 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                         onChange={(val) => field.handleChange(val || 0)}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                        status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                        isDisabled={isDisabled}
                       />
                     )}
                   />
@@ -184,23 +185,23 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                         onChange={(val) => field.handleChange(val)}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                        status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
                         options={[
                           { value: "", label: priceOptions.length === 0 ? "Pilih item dahulu..." : "Pilih harga..." },
                           ...priceOptions,
                         ]}
-                        isDisabled={!formItemId || priceOptions.length === 0}
+                        isDisabled={isDisabled || !formItemId || priceOptions.length === 0}
                       />
                     )}
                   />
                 </div>
-                <div style={{ paddingTop: '28px' }}>
+                <div style={{ paddingTop: '24px' }}>
                   <Button
                     variant="primary"
-                    label={initialData ? "Simpan Edit" : "Tambah BOM"}
+                    label={initialData ? "Simpan" : "Tambah"}
                     type="submit"
                     isLoading={isSubmitting}
-                    isDisabled={!canSubmit || !selectedProjectId}
+                    isDisabled={isDisabled || !canSubmit || !selectedProjectId}
                   />
                   {initialData && <Button variant="ghost" label="Batal" onClick={onCancel} style={{ marginLeft: 8 }} />}
                 </div>
@@ -224,7 +225,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                         onChange={(val) => field.handleChange(val)}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                        status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
                         options={[{ value: "", label: "Pilih Tahap..." }, ...stages]}
                       />
                     )}
@@ -245,7 +246,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                       }}
                       onBlur={field.handleBlur}
                       statusVariant="attached"
-                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                      status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
                       options={[
                         { value: "", label: "Pilih Material/Alat..." },
                         ...items
@@ -269,7 +270,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                           onChange={(val) => field.handleChange(val || 0)}
                           onBlur={field.handleBlur}
                           statusVariant="attached"
-                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                          status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
                         />
                       )}
                     />
@@ -287,7 +288,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                           }}
                           onBlur={field.handleBlur}
                           statusVariant="attached"
-                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                          status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
                           options={[
                             { value: "", label: priceOptions.length === 0 ? "Pilih item dahulu..." : "Pilih harga..." },
                             ...priceOptions,

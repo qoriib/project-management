@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from "react";
-import { Section, VStack, Dialog, Selector } from "@astryxdesign/core";
+import { Section, VStack, Selector } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { BOMTable } from "@/components/bom/BOMTable";
@@ -14,8 +14,6 @@ function BOMPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // BOM Form Modal
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editData, setEditData] = useState<BOMDetail | undefined>(undefined);
 
   async function loadStages() {
@@ -34,13 +32,11 @@ function BOMPage() {
   }, [selectedProjectId]);
 
   function handleSuccess() {
-    setIsDialogOpen(false);
     setEditData(undefined);
     setRefreshTrigger((r) => r + 1);
   }
 
-  function handleClose() {
-    setIsDialogOpen(false);
+  function handleCancelEdit() {
     setEditData(undefined);
   }
 
@@ -66,26 +62,15 @@ function BOMPage() {
               />
             }
           />
-
           <ProjectRequired>
             <BOMTable
               stageId={activeTab === "all" ? undefined : Number(activeTab)}
               refreshTrigger={refreshTrigger}
-              onEdit={(_, data) => { setEditData(data); setIsDialogOpen(true); }}
+              onEdit={(_, data) => setEditData(data)}
             />
           </ProjectRequired>
         </VStack>
-
-        <Dialog isOpen={isDialogOpen && !!editData} onOpenChange={(open) => !open && handleClose()} width={550}>
-          <BOMForm
-            stageId={editData?.stage_id || (activeTab === "all" ? undefined : Number(activeTab))}
-            initialData={editData}
-            onSuccess={handleSuccess}
-            onCancel={handleClose}
-          />
-        </Dialog>
-
-        {activeTab !== "all" && selectedProjectId && (
+        {selectedProjectId && (
           <div style={{
             position: "sticky",
             bottom: -24,
@@ -96,10 +81,12 @@ function BOMPage() {
             zIndex: 10
           }}>
             <BOMForm
-              stageId={Number(activeTab)}
+              stageId={editData?.stage_id || (activeTab === "all" ? undefined : Number(activeTab))}
+              initialData={editData}
               isInline
-              onSuccess={() => setRefreshTrigger(r => r + 1)}
-              onCancel={() => { }}
+              isDisabled={!editData && activeTab === "all"}
+              onSuccess={handleSuccess}
+              onCancel={handleCancelEdit}
             />
           </div>
         )}

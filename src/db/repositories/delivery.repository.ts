@@ -152,6 +152,29 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
       }
     });
   }
+
+  /**
+   * Update a delivery and replace its items.
+   */
+  async updateWithItems(
+    deliveryId: number,
+    header: UpdateDelivery,
+    items: DeliveryItemInput[]
+  ): Promise<void> {
+    return this.transaction(async () => {
+      if (Object.keys(header).length > 0) {
+        await this.update(deliveryId, header);
+      }
+
+      await this.rawExecute("DELETE FROM delivery_items WHERE delivery_id = $1", [deliveryId]);
+
+      const itemsToInsert = items.filter(it => it.qty > 0);
+      if (itemsToInsert.length > 0) {
+        const rows = itemsToInsert.map(it => [deliveryId, it.po_item_id, it.qty]);
+        await this.bulkInsert("delivery_items", ["delivery_id", "po_item_id", "qty"], rows);
+      }
+    });
+  }
 }
 
 export const deliveryRepo = new DeliveryRepository();

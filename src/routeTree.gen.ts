@@ -21,6 +21,7 @@ import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
 import { Route as MasterVendorRouteImport } from './routes/master/vendor'
 import { Route as PoIndexRouteImport } from './routes/po/index'
 import { Route as PoNewRouteImport } from './routes/po/new'
+import { Route as DeliveryIdEditRouteImport } from './routes/delivery/$id/edit'
 import { Route as PoIdIndexRouteImport } from './routes/po/$id/index'
 import { Route as PoIdEditRouteImport } from './routes/po/$id/edit'
 
@@ -84,6 +85,11 @@ const PoNewRoute = PoNewRouteImport.update({
   path: '/po/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeliveryIdEditRoute = DeliveryIdEditRouteImport.update({
+  id: '/delivery/$id/edit',
+  path: '/delivery/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PoIdIndexRoute = PoIdIndexRouteImport.update({
   id: '/po/$id/',
   path: '/po/$id/',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/bom/': typeof BomIndexRoute
   '/delivery/': typeof DeliveryIndexRoute
   '/po/': typeof PoIndexRoute
+  '/delivery/$id/edit': typeof DeliveryIdEditRoute
   '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
 }
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/bom': typeof BomIndexRoute
   '/delivery': typeof DeliveryIndexRoute
   '/po': typeof PoIndexRoute
+  '/delivery/$id/edit': typeof DeliveryIdEditRoute
   '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id': typeof PoIdIndexRoute
 }
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/bom/': typeof BomIndexRoute
   '/delivery/': typeof DeliveryIndexRoute
   '/po/': typeof PoIndexRoute
+  '/delivery/$id/edit': typeof DeliveryIdEditRoute
   '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
 }
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/bom/'
     | '/delivery/'
     | '/po/'
+    | '/delivery/$id/edit'
     | '/po/$id/edit'
     | '/po/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/bom'
     | '/delivery'
     | '/po'
+    | '/delivery/$id/edit'
     | '/po/$id/edit'
     | '/po/$id'
   id:
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/bom/'
     | '/delivery/'
     | '/po/'
+    | '/delivery/$id/edit'
     | '/po/$id/edit'
     | '/po/$id/'
   fileRoutesById: FileRoutesById
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   BomIndexRoute: typeof BomIndexRoute
   DeliveryIndexRoute: typeof DeliveryIndexRoute
   PoIndexRoute: typeof PoIndexRoute
+  DeliveryIdEditRoute: typeof DeliveryIdEditRoute
   PoIdEditRoute: typeof PoIdEditRoute
   PoIdIndexRoute: typeof PoIdIndexRoute
 }
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/delivery/$id/edit': {
+      id: '/delivery/$id/edit'
+      path: '/delivery/$id/edit'
+      fullPath: '/delivery/$id/edit'
+      preLoaderRoute: typeof DeliveryIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/po/$id/': {
       id: '/po/$id/'
       path: '/po/$id'
@@ -337,6 +357,7 @@ const rootRouteChildren: RootRouteChildren = {
   BomIndexRoute: BomIndexRoute,
   DeliveryIndexRoute: DeliveryIndexRoute,
   PoIndexRoute: PoIndexRoute,
+  DeliveryIdEditRoute: DeliveryIdEditRoute,
   PoIdEditRoute: PoIdEditRoute,
   PoIdIndexRoute: PoIdIndexRoute,
 }

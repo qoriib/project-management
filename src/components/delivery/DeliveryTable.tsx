@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { HStack, Button, Table, Text, VStack, Card, Badge } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -60,12 +61,15 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
     },
     { key: "item_count", header: "Total Item", width: pixel(120), renderCell: (row: DeliverySummary) => `${row.item_count} Item` },
     {
-      key: "actions", header: "", width: pixel(100),
+      key: "actions", header: "", width: pixel(180),
       renderCell: (row: DeliverySummary) => (
-        <HStack gap={1} justify="end">
-          <Button size="sm" label="Hapus" variant="destructive" onClick={() => setDeleteTarget(row.delivery_id)} />
+        <HStack gap={2}>
+          <Link to="/delivery/$id/edit" params={{ id: String(row.delivery_id) }}>
+            <Button size="sm" variant="secondary" label="Edit" />
+          </Link>
+          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget(row.delivery_id)} />
         </HStack>
-      ),
+      )
     },
   ];
 

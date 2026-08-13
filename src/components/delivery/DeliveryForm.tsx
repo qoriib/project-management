@@ -32,11 +32,13 @@ const deliverySchema = v.object({
 
 interface DeliveryFormProps {
   initialPoId?: string;
-  onSuccess: () => void;
+  initialEditId?: number;
+  onSuccess: (poId: number) => void;
   onCancel: () => void;
 }
 
-export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormProps) {
+export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }: DeliveryFormProps) {
+  const isEdit = !!initialEditId;
   const [pos, setPOs] = useState<POWithSummary[]>([]);
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
@@ -51,19 +53,52 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
     },
     onSubmit: async ({ value }) => {
       const itemsToSave = value.items.filter((it) => it.qty > 0);
-      await deliveryRepo.createWithItems(
-        { po_id: Number(value.poId), delivery_date: value.deliveryDate },
-        itemsToSave.map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }))
-      );
-      onSuccess();
+      if (isEdit) {
+        await deliveryRepo.updateWithItems(
+          initialEditId,
+          { po_id: Number(value.poId), delivery_date: value.deliveryDate },
+          itemsToSave.map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }))
+        );
+      } else {
+        await deliveryRepo.createWithItems(
+          { po_id: Number(value.poId), delivery_date: value.deliveryDate },
+          itemsToSave.map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }))
+        );
+      }
+      onSuccess(Number(value.poId));
     },
   });
 
   useEffect(() => {
-    async function loadPOs() {
+    async function loadData() {
       const p = await purchaseOrderRepo.findAllWithSummary({ project_id: selectedProjectId || undefined });
       setPOs(p);
-      if (initialPoId) {
+
+      if (isEdit) {
+        const d = await deliveryRepo.findById(initialEditId);
+        if (d) {
+          form.setFieldValue("poId", String(d.po_id));
+          form.setFieldValue("deliveryDate", d.delivery_date);
+
+          const poItems = await purchaseOrderRepo.findItems(d.po_id);
+          const delivItems = await deliveryRepo.findItems(initialEditId);
+          
+          form.setFieldValue(
+            "items",
+            poItems.map((i) => {
+              const old = delivItems.find(di => di.po_item_id === i.po_item_id);
+              const oldQty = old ? old.qty : 0;
+              return {
+                po_item_id: i.po_item_id,
+                item_name: i.item_name || "",
+                unit: i.unit || "",
+                sisa: (i.sisa || 0) + oldQty,
+                qty: oldQty
+              };
+            })
+          );
+        }
+      } else if (initialPoId) {
         const items = await purchaseOrderRepo.findItems(Number(initialPoId));
         form.setFieldValue(
           "items",
@@ -71,83 +106,84 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
         );
       }
     }
-    loadPOs();
-  }, [initialPoId, form, selectedProjectId]);
+    loadData();
+  }, [initialPoId, initialEditId, isEdit, form, selectedProjectId]);
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
       <form.Subscribe
-        selector={(state) => [state.values.poId, state.values.items, state.canSubmit, state.isSubmitting, state.errors] as const}
+        selector={(state) => [state.values.poId, state.values.items, state.canSubmit, state.isSubmitting] as const}
       >
-        {([selectedPoId, items, canSubmit, isSubmitting, formErrors]) => {
+        {([selectedPoId, items, canSubmit, isSubmitting]) => {
           return (
             <VStack gap={6}>
               <Card padding={4}>
-                <VStack gap={4}>
-                  <Heading level={3}>Informasi Penerimaan</Heading>
-                  <HStack gap={4} style={{ alignItems: 'flex-start' }}>
-                    <div style={{ flex: 1 }}>
-                      <form.Field
-                        name="poId"
-                        children={(field) => (
-                          <Selector
-                            label="Pilih PO"
-                            value={field.state.value}
-                            onChange={async (v) => {
-                              const strVal = v as string;
-                              field.handleChange(strVal);
-                              if (strVal) {
-                                const poItems = await purchaseOrderRepo.findItems(Number(strVal));
-                                form.setFieldValue(
-                                  "items",
-                                  poItems.map((i) => ({ po_item_id: i.po_item_id, item_name: i.item_name || "", unit: i.unit || "", sisa: i.sisa || 0, qty: 0 }))
-                                );
-                              } else {
-                                form.setFieldValue("items", []);
-                              }
-                            }}
-                            onBlur={field.handleBlur}
-                            statusVariant="attached"
-                            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                            isRequired
-                            options={[
-                              { value: "", label: "Pilih nomor PO..." },
-                              ...pos.map((p: any) => ({ value: String(p.po_id), label: `PO-${p.po_id} (${p.vendor_names || "Tidak ada vendor"})` })),
-                            ]}
-                          />
-                        )}
-                      />
-                    </div>
+                <HStack gap={4} style={{ alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <form.Field
+                      name="poId"
+                      children={(field) => (
+                        <Selector
+                          label="Pilih PO"
+                          value={field.state.value}
+                          onChange={async (v) => {
+                            const strVal = v as string;
+                            field.handleChange(strVal);
+                            if (strVal) {
+                              const poItems = await purchaseOrderRepo.findItems(Number(strVal));
+                              form.setFieldValue(
+                                "items",
+                                poItems.map((i) => ({ po_item_id: i.po_item_id, item_name: i.item_name || "", unit: i.unit || "", sisa: i.sisa || 0, qty: 0 }))
+                              );
+                            } else {
+                              form.setFieldValue("items", []);
+                            }
+                          }}
+                          onBlur={field.handleBlur}
+                          statusVariant="attached"
+                          status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                          isRequired
+                          isDisabled={isEdit}
+                          options={[
+                            { value: "", label: "Pilih nomor PO..." },
+                            ...pos.map((p: any) => ({ value: String(p.po_id), label: `PO-${p.po_id} (${p.vendor_names || "Tidak ada vendor"})` })),
+                          ]}
+                        />
+                      )}
+                    />
+                  </div>
 
-                    <div style={{ width: 240 }}>
-                      <form.Field
-                        name="deliveryDate"
-                        children={(field) => (
-                          <DateInput
-                            label="Tanggal Kirim / Terima"
-                            value={field.state.value as any}
-                            onChange={(v) => field.handleChange(v || "")}
-                            onBlur={field.handleBlur}
-                            statusVariant="attached"
-                            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                            isRequired
-                          />
-                        )}
-                      />
-                    </div>
-                  </HStack>
-                </VStack>
+                  <div style={{ width: 240 }}>
+                    <form.Field
+                      name="deliveryDate"
+                      children={(field) => (
+                        <DateInput
+                          label="Tanggal Kirim / Terima"
+                          value={field.state.value as any}
+                          onChange={(v) => field.handleChange(v || "")}
+                          onBlur={field.handleBlur}
+                          statusVariant="attached"
+                          status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                          isRequired
+                        />
+                      )}
+                    />
+                  </div>
+                </HStack>
               </Card>
 
               {selectedPoId && items.length > 0 && (
                 <Card padding={4}>
                   <VStack gap={4}>
                     <Heading level={3}>Daftar Item Diterima</Heading>
-                    <Text color="secondary" size="sm">Isi volume yang diterima untuk masing-masing material.</Text>
 
-                    {formErrors?.length > 0 && (
-                      <Text size="sm" style={{ color: '#e3193b' }}>{String(formErrors[0])}</Text>
-                    )}
+                    <form.Field name="items">
+                      {(field) => field.state.meta.errors.length > 0 && (
+                        <Text size="sm" style={{ color: '#e3193b' }}>
+                          {typeof field.state.meta.errors[0] === 'string' ? field.state.meta.errors[0] : field.state.meta.errors[0]?.message}
+                        </Text>
+                      )}
+                    </form.Field>
 
                     <Table
                       columns={[
@@ -164,7 +200,7 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                               <form.Field name={`items[${idx}]`}>
                                 {(field) => {
                                   // The error is on the array element itself because of v.custom
-                                  const err = getFieldError(field.state.meta.errors, field.state.meta.isTouched);
+                                  const err = getFieldError(field.state.meta.errors, !!field.state.meta.isTouched);
                                   return (
                                     <form.Field name={`items[${idx}].qty`}>
                                       {(qtyField) => (
