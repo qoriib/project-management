@@ -27,8 +27,8 @@
  * Only overrides tokens that differ from the defaults.
  */
 
-import {defineTheme, defineSyntaxTheme} from '@astryxdesign/core/theme';
-import {neutralIconRegistry} from '@/theme/icons';
+import { defineTheme, defineSyntaxTheme } from '@astryxdesign/core/theme';
+import { neutralIconRegistry } from '@/theme/icons';
 
 /**
  * Neutral syntax palette — pulled from the OKLCH T30 (light) / T80 (dark)
@@ -62,7 +62,7 @@ export const neutralTheme = defineTheme({
   // platform default for code.
   // Scale: base=14, ratio=1.2. Bold weights on h3/h4 for subsection hierarchy.
   typography: {
-    scale: {base: 14, ratio: 1.2},
+    scale: { base: 14, ratio: 1.2 },
     body: {
       family: 'Figtree',
       fallbacks:
@@ -72,7 +72,7 @@ export const neutralTheme = defineTheme({
       family: 'Figtree',
       fallbacks:
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-      weights: {3: 'bold', 4: 'bold'},
+      weights: { 3: 'bold', 4: 'bold' },
     },
     code: {
       family: 'ui-monospace',
@@ -84,7 +84,7 @@ export const neutralTheme = defineTheme({
   // Motion: snappier than default to match shadcn/Tailwind conventions.
   // Produces: fast-min=95ms, fast=125ms, fast-max=165ms,
   //           medium-min=225ms, medium=300ms, medium-max=400ms.
-  motion: {fast: 125, medium: 300, slow: 700, ratio: 0.75},
+  motion: { fast: 125, medium: 300, slow: 700, ratio: 0.75 },
 
   syntax: neutralSyntax,
 
@@ -508,10 +508,10 @@ export const neutralTheme = defineTheme({
     // not among the "too dark" cases.
     // =========================================================================
     statusdot: {
-      'variant:success': {backgroundColor: 'light-dark(#198100, #64af4c)'},
-      'variant:warning': {backgroundColor: '#ffce2f'},
-      'variant:error': {backgroundColor: 'light-dark(#e33f4a, #ff705d)'},
-      'variant:accent': {backgroundColor: 'light-dark(#0074e2, #6d9cfe)'},
+      'variant:success': { backgroundColor: 'light-dark(#198100, #64af4c)' },
+      'variant:warning': { backgroundColor: '#ffce2f' },
+      'variant:error': { backgroundColor: 'light-dark(#e33f4a, #ff705d)' },
+      'variant:accent': { backgroundColor: 'light-dark(#0074e2, #6d9cfe)' },
     },
 
     // =========================================================================

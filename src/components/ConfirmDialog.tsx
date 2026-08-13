@@ -22,7 +22,13 @@ export function ConfirmDialog({
   isLoading = false,
 }: ConfirmDialogProps) {
   return (
-    <Dialog isOpen={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} width={400}>
+    <Dialog
+      width={400}
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+    >
       <VStack gap={4}>
         <Heading level={3}>{title}</Heading>
         <Text color="secondary">{message}</Text>

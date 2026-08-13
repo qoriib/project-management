@@ -7,6 +7,14 @@ export const Route = createFileRoute("/master")({
   component: MasterLayout,
 });
 
+const actionLabels: Record<string, string> = {
+  item: "Tambah Item",
+  vendor: "Tambah Vendor",
+  kategori: "Tambah Kategori",
+  satuan: "Tambah Satuan",
+  project: "Tambah Project",
+};
+
 function MasterLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,13 +23,6 @@ function MasterLayout() {
   let currentTab = location.pathname.split("/").pop() || "item";
   if (currentTab === "master") currentTab = "item";
 
-  const actionLabels: Record<string, string> = {
-    item: "Tambah Item",
-    vendor: "Tambah Vendor",
-    kategori: "Tambah Kategori",
-    satuan: "Tambah Satuan",
-    project: "Tambah Project",
-  };
   const currentActionLabel = actionLabels[currentTab] || "Tambah";
 
   return (
