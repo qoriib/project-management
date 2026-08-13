@@ -4,20 +4,29 @@ export type { Project, Vendor, Item, ItemCategory, Unit, ItemPrice };
 
 // ── Projects ─────────────────────────────────────────────────────────────────
 
-export async function getProjects(): Promise<Project[]> {
+export type ProjectWithStages = Project & { stages: string[] };
+
+export async function getProjects(): Promise<ProjectWithStages[]> {
   const db = await getDB();
-  return db.select<Project[]>("SELECT * FROM projects ORDER BY created_at DESC");
+  const projects = await db.select<Project[]>("SELECT * FROM projects ORDER BY created_at DESC");
+  const stages = await db.select<{ project_id: number; stage_name: string }[]>("SELECT project_id, stage_name FROM project_stages");
+  
+  return projects.map(proj => ({
+    ...proj,
+    stages: stages.filter(s => s.project_id === proj.project_id).map(s => s.stage_name)
+  }));
 }
 
 export async function createProject(
   data: Omit<Project, "project_id" | "created_at">
-): Promise<void> {
+): Promise<number> {
   const db = await getDB();
-  await db.execute(
+  const res = await db.execute(
     `INSERT INTO projects (project_name, company_name, fiscal_year) 
      VALUES ($1, $2, $3)`,
     [data.project_name, data.company_name, data.fiscal_year]
   );
+  return res.lastInsertId as number;
 }
 
 export async function updateProject(
@@ -50,6 +59,52 @@ export async function updateProject(
 export async function deleteProject(id: number): Promise<void> {
   const db = await getDB();
   await db.execute("DELETE FROM projects WHERE project_id = $1", [id]);
+}
+
+export async function getProjectStagesWithRelation(projectId: number): Promise<{ stage_id: number; stage_name: string; has_relation: boolean }[]> {
+  const db = await getDB();
+  const stages = await db.select<{ stage_id: number; stage_name: string; count: number }[]>(
+    `SELECT s.stage_id, s.stage_name, COUNT(b.bom_id) as count 
+     FROM project_stages s 
+     LEFT JOIN bill_of_materials b ON s.stage_id = b.stage_id 
+     WHERE s.project_id = $1 
+     GROUP BY s.stage_id`,
+    [projectId]
+  );
+  return stages.map(s => ({
+    stage_id: s.stage_id,
+    stage_name: s.stage_name,
+    has_relation: s.count > 0
+  }));
+}
+
+export async function saveProjectStages(projectId: number, stages: { stage_id?: number, stage_name: string }[]): Promise<void> {
+  const db = await getDB();
+  const existing = await db.select<{ stage_id: number }[]>("SELECT stage_id FROM project_stages WHERE project_id = $1", [projectId]);
+  const existingIds = existing.map(e => e.stage_id);
+  const newIds = stages.filter(s => s.stage_id).map(s => s.stage_id!);
+  const idsToDelete = existingIds.filter(id => !newIds.includes(id));
+  
+  for (const id of idsToDelete) {
+    const rel = await db.select<{ count: number }[]>("SELECT COUNT(*) as count FROM bill_of_materials WHERE stage_id = $1", [id]);
+    if (rel[0].count === 0) {
+      await db.execute("DELETE FROM project_stages WHERE stage_id = $1", [id]);
+    }
+  }
+
+  for (const stage of stages) {
+    if (stage.stage_id) {
+      await db.execute(
+        `UPDATE project_stages SET stage_name = $1 WHERE stage_id = $2`,
+        [stage.stage_name, stage.stage_id]
+      );
+    } else {
+      await db.execute(
+        `INSERT INTO project_stages (project_id, stage_name) VALUES ($1, $2)`,
+        [projectId, stage.stage_name]
+      );
+    }
+  }
 }
 
 // ── Vendors ──────────────────────────────────────────────────────────────────
@@ -96,9 +151,17 @@ export async function deleteVendor(id: number): Promise<void> {
 
 // ── Items (Catalog) ──────────────────────────────────────────────────────────
 
-export async function getItems(): Promise<Item[]> {
+export type ItemWithPrices = Item & { prices: number[] };
+
+export async function getItems(): Promise<ItemWithPrices[]> {
   const db = await getDB();
-  return db.select<Item[]>("SELECT * FROM items ORDER BY category ASC, item_name ASC");
+  const items = await db.select<Item[]>("SELECT * FROM items ORDER BY category ASC, item_name ASC");
+  const prices = await db.select<{ item_id: number; price: number }[]>("SELECT item_id, price FROM item_prices");
+  
+  return items.map(item => ({
+    ...item,
+    prices: prices.filter(p => p.item_id === item.item_id).map(p => p.price)
+  }));
 }
 
 export async function createItem(data: Omit<Item, "item_id">): Promise<number> {
@@ -137,26 +200,51 @@ export async function deleteItem(id: number): Promise<void> {
 
 // ── Item Prices ───────────────────────────────────────────────────────────────
 
-export async function getItemPrices(itemId: number): Promise<ItemPrice[]> {
+export type ItemPriceWithRelation = ItemPrice & { has_relation?: boolean };
+
+export async function getItemPrices(itemId: number): Promise<ItemPriceWithRelation[]> {
   const db = await getDB();
-  return db.select<ItemPrice[]>(
-    "SELECT * FROM item_prices WHERE item_id = $1 ORDER BY price_id ASC",
+  const prices = await db.select<{ price_id: number; item_id: number; price: number; created_at?: string; bom_count: number; po_count: number }[]>(
+    `SELECT 
+       p.*,
+       (SELECT COUNT(*) FROM bill_of_materials b WHERE b.item_id = p.item_id AND b.estimated_unit_price = p.price) as bom_count,
+       (SELECT COUNT(*) FROM po_items po WHERE po.item_id = p.item_id AND po.unit_price = p.price) as po_count
+     FROM item_prices p
+     WHERE p.item_id = $1
+     ORDER BY p.price_id ASC`,
     [itemId]
   );
+  
+  return prices.map(p => ({
+    ...p,
+    has_relation: p.bom_count > 0 || p.po_count > 0
+  })) as ItemPriceWithRelation[];
 }
 
-export async function saveItemPrices(itemId: number, prices: { price: number }[]): Promise<void> {
+export async function saveItemPrices(itemId: number, prices: { price_id?: number, price: number }[]): Promise<void> {
   const db = await getDB();
   
-  // Hapus semua harga sebelumnya untuk item ini
-  await db.execute("DELETE FROM item_prices WHERE item_id = $1", [itemId]);
+  const existing = await db.select<{ price_id: number }[]>("SELECT price_id FROM item_prices WHERE item_id = $1", [itemId]);
+  const existingIds = existing.map(e => e.price_id);
+  const newIds = prices.filter(p => p.price_id).map(p => p.price_id!);
+  const idsToDelete = existingIds.filter(id => !newIds.includes(id));
   
-  // Masukkan harga baru
+  for (const id of idsToDelete) {
+    await db.execute("DELETE FROM item_prices WHERE price_id = $1", [id]);
+  }
+
   for (const price of prices) {
-    await db.execute(
-      `INSERT INTO item_prices (item_id, price) VALUES ($1, $2)`,
-      [itemId, price.price]
-    );
+    if (price.price_id) {
+      await db.execute(
+        `UPDATE item_prices SET price = $1 WHERE price_id = $2`,
+        [price.price, price.price_id]
+      );
+    } else {
+      await db.execute(
+        `INSERT INTO item_prices (item_id, price) VALUES ($1, $2)`,
+        [itemId, price.price]
+      );
+    }
   }
 }
 

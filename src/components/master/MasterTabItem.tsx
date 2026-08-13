@@ -7,12 +7,12 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   getItems, createItem, updateItem, deleteItem,
   getItemCategories, getUnits,
-  getItemPrices, saveItemPrices,
-  type Item, type ItemCategory, type Unit, type ItemPrice,
+  getItemPrices, saveItemPrices, type ItemPriceWithRelation,
+  type Item, type ItemCategory, type Unit, type ItemPrice, type ItemWithPrices,
 } from "@/db/queries/master";
 
 export function MasterTabItem() {
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ItemWithPrices[]>([]);
   const [categories, setCategories] = useState<ItemCategory[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   
@@ -30,7 +30,7 @@ export function MasterTabItem() {
   const [itemUnit, setItemUnit] = useState("m3");
 
   // Price Management State
-  const [prices, setPrices] = useState<{ price: number }[]>([]);
+  const [prices, setPrices] = useState<Partial<ItemPriceWithRelation>[]>([]);
   const [loadingPrices, setLoadingPrices] = useState(false);
 
   async function loadData() {
@@ -96,7 +96,7 @@ export function MasterTabItem() {
         showToast({ body: "Item dan harga berhasil ditambahkan", type: "info" });
       }
       
-      await saveItemPrices(itemId, prices);
+      await saveItemPrices(itemId, prices as { price_id?: number, price: number }[]);
       setIsDialogOpen(false);
       setEditTarget(null);
       await loadData();
@@ -131,6 +131,16 @@ export function MasterTabItem() {
     },
     { key: "item_name", header: "Nama Item", width: proportional(1.5) },
     { key: "unit", header: "Satuan", width: pixel(100) },
+    { 
+      key: "prices", header: "Harga (Rp)", width: proportional(1),
+      renderCell: (row: ItemWithPrices) => (
+        <HStack gap={1} style={{ flexWrap: 'wrap' }}>
+          {row.prices?.length > 0 ? row.prices.map((p, idx) => (
+            <Badge key={idx} variant="neutral" label={new Intl.NumberFormat('id-ID').format(p)} />
+          )) : "-"}
+        </HStack>
+      )
+    },
     {
       key: "category", header: "Kategori", width: pixel(180),
       renderCell: (row: Item) => <Badge variant="neutral" label={row.category} />,
@@ -194,8 +204,9 @@ export function MasterTabItem() {
                       setPrices(newPrices);
                     }} 
                     width={180}
+                    isDisabled={p.has_relation}
                   />
-                  {prices.length > 1 && (
+                  {!p.has_relation && prices.length > 1 && (
                     <Button 
                       variant="destructive" 
                       label="✕" 

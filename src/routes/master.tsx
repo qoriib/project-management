@@ -21,7 +21,6 @@ function MasterLayout() {
     kategori: "Tambah Kategori",
     satuan: "Tambah Satuan",
     project: "Tambah Project",
-    stage: "Tambah Tahap",
   };
   const currentActionLabel = actionLabels[currentTab] || "Tambah";
 
@@ -55,8 +54,7 @@ function MasterLayout() {
           <Tab value="vendor" label="Vendor" />
           <Tab value="kategori" label="Kategori" />
           <Tab value="satuan" label="Satuan" />
-          <Tab value="project" label="Project" />
-          <Tab value="stage" label="Tahap Proyek" />
+          <Tab value="project" label="Proyek" />
         </TabList>
 
         <Outlet />
