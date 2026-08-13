@@ -147,7 +147,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                         }}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors)}
+                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                         options={[
                           { value: "", label: "Pilih Material/Alat..." },
                           ...items
@@ -169,7 +169,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                         onChange={(val) => field.handleChange(val || 0)}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors)}
+                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       />
                     )}
                   />
@@ -184,7 +184,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                         onChange={(val) => field.handleChange(val)}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors)}
+                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                         options={[
                           { value: "", label: priceOptions.length === 0 ? "Pilih item dahulu..." : "Pilih harga..." },
                           ...priceOptions,
@@ -224,7 +224,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                         onChange={(val) => field.handleChange(val)}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors)}
+                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                         options={[{ value: "", label: "Pilih Tahap..." }, ...stages]}
                       />
                     )}
@@ -245,7 +245,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                       }}
                       onBlur={field.handleBlur}
                       statusVariant="attached"
-                      status={getFieldError(field.state.meta.errors)}
+                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       options={[
                         { value: "", label: "Pilih Material/Alat..." },
                         ...items
@@ -269,7 +269,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                           onChange={(val) => field.handleChange(val || 0)}
                           onBlur={field.handleBlur}
                           statusVariant="attached"
-                          status={getFieldError(field.state.meta.errors)}
+                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                         />
                       )}
                     />
@@ -287,7 +287,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                           }}
                           onBlur={field.handleBlur}
                           statusVariant="attached"
-                          status={getFieldError(field.state.meta.errors)}
+                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                           options={[
                             { value: "", label: priceOptions.length === 0 ? "Pilih item dahulu..." : "Pilih harga..." },
                             ...priceOptions,

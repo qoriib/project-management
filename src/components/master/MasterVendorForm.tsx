@@ -89,7 +89,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors)}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -102,7 +102,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors)}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -115,7 +115,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors)}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />

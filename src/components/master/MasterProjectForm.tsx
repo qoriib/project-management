@@ -111,7 +111,7 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors)}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -125,7 +125,7 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors)}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -139,7 +139,7 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors)}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />

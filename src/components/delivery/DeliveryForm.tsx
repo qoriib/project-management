@@ -108,7 +108,7 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                             }}
                             onBlur={field.handleBlur}
                             statusVariant="attached"
-                            status={getFieldError(field.state.meta.errors)}
+                            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                             isRequired
                             options={[
                               { value: "", label: "Pilih nomor PO..." },
@@ -129,7 +129,7 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                             onChange={(v) => field.handleChange(v || "")}
                             onBlur={field.handleBlur}
                             statusVariant="attached"
-                            status={getFieldError(field.state.meta.errors)}
+                            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                             isRequired
                           />
                         )}
@@ -164,7 +164,7 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                               <form.Field name={`items[${idx}]`}>
                                 {(field) => {
                                   // The error is on the array element itself because of v.custom
-                                  const err = getFieldError(field.state.meta.errors);
+                                  const err = getFieldError(field.state.meta.errors, field.state.meta.isTouched);
                                   return (
                                     <form.Field name={`items[${idx}].qty`}>
                                       {(qtyField) => (
@@ -175,7 +175,7 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                                           onChange={(v) => qtyField.handleChange(v || 0)}
                                           onBlur={qtyField.handleBlur}
                                           statusVariant="attached"
-                                          status={err || getFieldError(qtyField.state.meta.errors)}
+                                          status={err || getFieldError(qtyField.state.meta.errors, qtyField.state.meta.isTouched)}
                                         />
                                       )}
                                     </form.Field>

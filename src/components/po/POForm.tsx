@@ -167,7 +167,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                           onChange={(v) => field.handleChange(v || "")}
                           onBlur={field.handleBlur}
                           statusVariant="attached"
-                          status={getFieldError(field.state.meta.errors)}
+                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                           isRequired
                         />
                       )}
@@ -214,7 +214,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                                   }}
                                   onBlur={field.handleBlur}
                                   statusVariant="attached"
-                                  status={getFieldError(field.state.meta.errors)}
+                                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                                 />
                               )}
                             </form.Field>
@@ -258,7 +258,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                                   onChange={(v) => field.handleChange(v)}
                                   onBlur={field.handleBlur}
                                   statusVariant="attached"
-                                  status={getFieldError(field.state.meta.errors)}
+                                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                                   isDisabled={!itemId || prices.length === 0}
                                 />
                               )}
@@ -281,7 +281,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                                   onChange={(v) => field.handleChange(v)}
                                   onBlur={field.handleBlur}
                                   statusVariant="attached"
-                                  status={getFieldError(field.state.meta.errors)}
+                                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                                 />
                               )}
                             </form.Field>
@@ -302,7 +302,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                                   onChange={(v) => field.handleChange(v || 0)}
                                   onBlur={field.handleBlur}
                                   statusVariant="attached"
-                                  status={getFieldError(field.state.meta.errors)}
+                                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                                 />
                               )}
                             </form.Field>
