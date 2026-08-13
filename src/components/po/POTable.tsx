@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HStack, Button, Table, Text, VStack, Card, Badge } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { purchaseOrderRepo, type POWithSummary } from "@/db/repositories";
 import { formatRupiah, formatDate } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";

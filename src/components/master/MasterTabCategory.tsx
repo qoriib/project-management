@@ -3,7 +3,7 @@ import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading }
 import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   itemCategoryRepo, itemRepo,
   type ItemCategory, type Item,
@@ -12,7 +12,7 @@ import {
 export function MasterTabCategory() {
   const [categories, setCategories] = useState<ItemCategory[]>([]);
   const [items, setItems] = useState<Item[]>([]);
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ItemCategory | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
@@ -98,9 +98,9 @@ export function MasterTabCategory() {
   }));
 
   const columns = [
-    { 
-      key: "category_id", 
-      header: "Kode Kategori", 
+    {
+      key: "category_id",
+      header: "Kode Kategori",
       width: pixel(180),
       renderCell: (row: ItemCategory) => String(row.category_id).padStart(4, '0')
     },
@@ -121,22 +121,22 @@ export function MasterTabCategory() {
     <VStack gap={4}>
       <Card padding={0}>
         <Table
-        textOverflow="truncate"
-        columns={columns as any}
-        data={categoryRows as any}
-        idKey="category_id"
-        emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada kategori.</Text></VStack>}
-      />
+          textOverflow="truncate"
+          columns={columns as any}
+          data={categoryRows as any}
+          idKey="category_id"
+          emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada kategori.</Text></VStack>}
+        />
       </Card>
 
       <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={520}>
         <VStack gap={3}>
           <Heading level={3}>{editTarget ? "Edit Kategori" : "Tambah Kategori"}</Heading>
-          
+
           {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
-          
+
           <TextInput label="Nama Kategori" value={categoryName} onChange={setCategoryName} isRequired />
-          
+
           <HStack gap={2} justify="end">
             <Button variant="ghost" label="Batal" onClick={() => setIsDialogOpen(false)} />
             <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} />

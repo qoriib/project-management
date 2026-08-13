@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HStack, Button, Table, Text, VStack, Heading, Card } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { bomRepo, type BOMDetail } from "@/db/repositories";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";

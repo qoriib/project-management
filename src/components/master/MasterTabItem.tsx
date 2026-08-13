@@ -4,7 +4,7 @@ import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   itemRepo, itemPriceRepo, itemCategoryRepo, unitRepo,
   type Item, type ItemCategory, type Unit, type ItemWithPrices, type ItemPriceWithRelation,
@@ -14,7 +14,7 @@ export function MasterTabItem() {
   const [items, setItems] = useState<ItemWithPrices[]>([]);
   const [categories, setCategories] = useState<ItemCategory[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Item | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
@@ -66,7 +66,7 @@ export function MasterTabItem() {
     setItemUnit(item.unit);
     setErrorMsg(null);
     setIsDialogOpen(true);
-    
+
     setLoadingPrices(true);
     try {
       const fetched = await itemPriceRepo.findByItemWithRelation(item.item_id);
@@ -94,7 +94,7 @@ export function MasterTabItem() {
         itemId = await itemRepo.create(data);
         showToast({ body: "Item dan harga berhasil ditambahkan", type: "info" });
       }
-      
+
       await itemPriceRepo.syncPrices(itemId, prices as { price_id?: number, price: number }[]);
       setIsDialogOpen(false);
       setEditTarget(null);
@@ -122,15 +122,15 @@ export function MasterTabItem() {
   }
 
   const columns = [
-    { 
-      key: "item_id", 
-      header: "Kode", 
+    {
+      key: "item_id",
+      header: "Kode",
       width: pixel(120),
       renderCell: (row: Item) => String(row.item_id).padStart(4, '0')
     },
     { key: "item_name", header: "Nama Item", width: proportional(1.5) },
     { key: "unit", header: "Satuan", width: pixel(100) },
-    { 
+    {
       key: "prices", header: "Harga (Rp)", width: proportional(1),
       renderCell: (row: ItemWithPrices) => (
         <HStack gap={1} style={{ flexWrap: 'wrap' }}>
@@ -169,24 +169,24 @@ export function MasterTabItem() {
     <VStack gap={4}>
       <Card padding={0}>
         <Table
-        textOverflow="truncate"
-        columns={columns as any}
-        data={items as any}
-        idKey="item_id"
-        emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada item.</Text></VStack>}
-      />
+          textOverflow="truncate"
+          columns={columns as any}
+          data={items as any}
+          idKey="item_id"
+          emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada item.</Text></VStack>}
+        />
       </Card>
 
       <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={520}>
         <VStack gap={3}>
           <Heading level={3}>{editTarget ? "Edit Item" : "Tambah Item"}</Heading>
-          
+
           {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
-          
+
           <TextInput label="Nama Item" value={itemName} onChange={setItemName} isRequired />
           <Selector label="Kategori" value={itemCategory} onChange={setItemCategory} options={categoryOptions} />
           <Selector label="Satuan" value={itemUnit} onChange={setItemUnit} options={unitOptions} />
-          
+
           <Heading level={4} style={{ marginTop: '1rem' }}>Variasi Harga</Heading>
           {loadingPrices ? (
             <Text color="secondary">Memuat data harga...</Text>
@@ -194,33 +194,33 @@ export function MasterTabItem() {
             <VStack gap={3}>
               {prices.map((p, idx) => (
                 <HStack key={idx} gap={2} align="end">
-                  <NumberInput 
-                    label="Harga (Rp)" 
-                    value={p.price} 
+                  <NumberInput
+                    label="Harga (Rp)"
+                    value={p.price}
                     onChange={(val) => {
                       const newPrices = [...prices];
                       newPrices[idx].price = val || 0;
                       setPrices(newPrices);
-                    }} 
+                    }}
                     width={180}
                     isDisabled={p.has_relation}
                   />
                   {!p.has_relation && prices.length > 1 && (
-                    <Button 
-                      variant="destructive" 
-                      label="✕" 
-                      onClick={() => setPrices(prices.filter((_, i) => i !== idx))} 
+                    <Button
+                      variant="destructive"
+                      label="✕"
+                      onClick={() => setPrices(prices.filter((_, i) => i !== idx))}
                     />
                   )}
                 </HStack>
               ))}
-              
+
               <HStack>
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
-                  label="+ Tambah Variasi Harga" 
-                  onClick={() => setPrices([...prices, { price: 0 }])} 
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  label="+ Tambah Variasi Harga"
+                  onClick={() => setPrices([...prices, { price: 0 }])}
                 />
               </HStack>
             </VStack>

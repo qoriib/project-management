@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate, useLocation } from "@tanstack/react-router";
 import { Section, VStack, Button } from "@astryxdesign/core";
 import { Tab, TabList } from "@astryxdesign/core/TabList";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 export const Route = createFileRoute("/master")({
   component: MasterLayout,

@@ -4,7 +4,7 @@ import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   projectRepo,
   type Project, type ProjectWithStages
@@ -88,7 +88,7 @@ export function MasterTabProject() {
         projectId = await projectRepo.create(data);
         showToast({ body: "Project berhasil ditambahkan", type: "info" });
       }
-      
+
       const validStages = stages.filter(s => s.stage_name.trim() !== "");
       if (validStages.length > 0) {
         await projectRepo.saveStages(projectId, validStages);
@@ -179,32 +179,32 @@ export function MasterTabProject() {
             <VStack gap={3}>
               {stages.map((s, idx) => (
                 <HStack key={idx} gap={2} align="end">
-                  <TextInput 
-                    label={`Nama Tahap ${idx + 1}`} 
-                    value={s.stage_name} 
+                  <TextInput
+                    label={`Nama Tahap ${idx + 1}`}
+                    value={s.stage_name}
                     onChange={(val) => {
                       const newStages = [...stages];
                       newStages[idx].stage_name = val;
                       setStages(newStages);
-                    }} 
+                    }}
                     style={{ flex: 1 }}
                   />
                   {!s.has_relation && stages.length > 1 && (
-                    <Button 
-                      variant="destructive" 
-                      label="✕" 
-                      onClick={() => setStages(stages.filter((_, i) => i !== idx))} 
+                    <Button
+                      variant="destructive"
+                      label="✕"
+                      onClick={() => setStages(stages.filter((_, i) => i !== idx))}
                     />
                   )}
                 </HStack>
               ))}
-              
+
               <HStack>
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
-                  label="+ Tambah Tahap" 
-                  onClick={() => setStages([...stages, { stage_name: "" }])} 
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  label="+ Tambah Tahap"
+                  onClick={() => setStages([...stages, { stage_name: "" }])}
                 />
               </HStack>
             </VStack>

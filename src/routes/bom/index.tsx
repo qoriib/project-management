@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from "react";
 import { Section, VStack, Dialog, Selector } from "@astryxdesign/core";
-import { PageHeader } from "@/components/PageHeader";
-import { ProjectRequired } from "@/components/ProjectRequired";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { BOMTable } from "@/components/bom/BOMTable";
 import { BOMForm } from "@/components/bom/BOMForm";
 import { bomRepo, type BOMDetail, type ProjectStageWithProject } from "@/db/repositories";

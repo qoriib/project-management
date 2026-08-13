@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   unitRepo, itemRepo,
   type Unit, type Item,
@@ -10,7 +10,7 @@ import {
 export function MasterTabUnit() {
   const [units, setUnits] = useState<Unit[]>([]);
   const [items, setItems] = useState<Item[]>([]);
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Unit | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
@@ -100,19 +100,19 @@ export function MasterTabUnit() {
     <VStack gap={4}>
       <Card padding={0}>
         <Table
-        textOverflow="truncate"
-        columns={columns as any}
-        data={unitRows as any}
-        idKey="unit_id"
-        emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada satuan.</Text></VStack>}
-      />
+          textOverflow="truncate"
+          columns={columns as any}
+          data={unitRows as any}
+          idKey="unit_id"
+          emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada satuan.</Text></VStack>}
+        />
       </Card>
 
       <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={520}>
         <VStack gap={3}>
           <Heading level={3}>{editTarget ? "Edit Satuan" : "Tambah Satuan"}</Heading>
           <TextInput label="Nama Satuan" value={unitName} onChange={setUnitName} isRequired />
-          
+
           <HStack gap={2} justify="end">
             <Button variant="ghost" label="Batal" onClick={() => setIsDialogOpen(false)} />
             <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} />

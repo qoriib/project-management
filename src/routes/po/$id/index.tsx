@@ -5,7 +5,7 @@ import {
   Section, VStack, HStack, Button, Card, Heading, Text, Table,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { purchaseOrderRepo, deliveryRepo, type POWithSummary, type POItemDetail, type DeliveryItemByPO } from "@/db/repositories";
 import { formatRupiah, formatDate, formatNumber } from "@/utils/formatters";
 

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Section, VStack } from "@astryxdesign/core";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { POForm } from "@/components/po/POForm";
 
 function EditPOPage() {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HStack, Button, Table, Text, VStack, Card, Badge } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { deliveryRepo, type DeliverySummary } from "@/db/repositories";
 import { formatDate } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
@@ -48,8 +48,8 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
     { key: "delivery_date", header: "Tanggal", width: pixel(120), renderCell: (row: DeliverySummary) => formatDate(row.delivery_date) },
     { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: DeliverySummary) => `PO-${row.po_id}` },
     { key: "project_name", header: "Proyek", width: proportional(1.5), renderCell: (row: DeliverySummary) => row.project_name || "—" },
-    { 
-      key: "vendor_names", header: "Vendor Pemasok", width: proportional(1.5), 
+    {
+      key: "vendor_names", header: "Vendor Pemasok", width: proportional(1.5),
       renderCell: (row: DeliverySummary) => (
         <HStack gap={1} style={{ flexWrap: 'wrap' }}>
           {row.vendor_names ? row.vendor_names.split(',').map((v: string, i: number) => (

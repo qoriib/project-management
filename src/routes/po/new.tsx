@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Section, VStack } from "@astryxdesign/core";
-import { PageHeader } from "@/components/PageHeader";
-import { ProjectRequired } from "@/components/ProjectRequired";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { POForm } from "@/components/po/POForm";
 
 function NewPOPage() {
@@ -15,7 +15,7 @@ function NewPOPage() {
     <Section padding={6}>
       <VStack gap={4}>
         <PageHeader title="Buat Purchase Order Baru" subtitle="Isi form di bawah untuk membuat PO baru" />
-        
+
         <ProjectRequired>
           <POForm onSuccess={goBack} onCancel={goBack} />
         </ProjectRequired>

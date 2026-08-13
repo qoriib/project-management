@@ -3,7 +3,7 @@ import { Card, Button, Table, Dialog, TextInput, TextArea, VStack, HStack, Text,
 import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   vendorRepo,
   type Vendor,
@@ -12,7 +12,7 @@ import {
 
 export function MasterTabVendor() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Vendor | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
@@ -111,24 +111,24 @@ export function MasterTabVendor() {
     <VStack gap={4}>
       <Card padding={0}>
         <Table
-        textOverflow="truncate"
-        columns={columns as any}
-        data={vendors as any}
-        idKey="vendor_id"
-        emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada vendor.</Text></VStack>}
-      />
+          textOverflow="truncate"
+          columns={columns as any}
+          data={vendors as any}
+          idKey="vendor_id"
+          emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada vendor.</Text></VStack>}
+        />
       </Card>
 
       <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={520}>
         <VStack gap={3}>
           <Heading level={3}>{editTarget ? "Edit Vendor" : "Tambah Vendor"}</Heading>
-          
+
           {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
-          
+
           <TextInput label="Nama Vendor" value={vendorName} onChange={setVendorName} isRequired />
           <TextInput label="Telepon" value={vendorPhone} onChange={setVendorPhone} />
           <TextArea label="Alamat" value={vendorAddress} onChange={setVendorAddress} />
-          
+
           <HStack gap={2} justify="end">
             <Button variant="ghost" label="Batal" onClick={() => setIsDialogOpen(false)} />
             <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} />

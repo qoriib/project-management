@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Section, VStack, Button } from "@astryxdesign/core";
-import { PageHeader } from "@/components/PageHeader";
-import { ProjectRequired } from "@/components/ProjectRequired";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { DeliveryTable } from "@/components/delivery/DeliveryTable";
 import { useAppStore } from "@/store/useAppStore";
 
