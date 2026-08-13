@@ -86,7 +86,7 @@ function AppLayout() {
               onClick={() => navigate({ to: "/dashboard" })}
             />
             <SideNavItem
-              label="Rencana Kebutuhan"
+              label="Kebutuhan"
               icon={ClipboardList}
               isSelected={path.startsWith("/bom")}
               onClick={() => navigate({ to: "/bom" })}

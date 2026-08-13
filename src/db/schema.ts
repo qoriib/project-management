@@ -53,10 +53,7 @@ export interface Unit {
 export interface PurchaseOrder {
   po_id: number;
   project_id: number | null;
-  vendor_id: number | null;
-  po_number: string;
   po_date: string;
-  notes: string | null;
   created_at: string;
 }
 
@@ -64,12 +61,9 @@ export interface POItem {
   po_item_id: number;
   po_id: number | null;
   item_id: number | null;
-  ordered_volume: number;
-  unit_price: number;
-  subtotal_price: number;
-  ppn_percentage: number;
-  ppn_amount: number;
-  total_price: number;
+  item_price_id: number | null;
+  vendor_id: number | null;
+  qty: number;
 }
 
 export interface Delivery {

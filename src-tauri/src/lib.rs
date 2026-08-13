@@ -9,6 +9,12 @@ pub fn run() {
             description: "init_schema",
             sql: include_str!("../migrations/001_init.sql"),
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "seed_master_data",
+            sql: include_str!("../migrations/002_seed.sql"),
+            kind: MigrationKind::Up,
         }
     ];
 
@@ -16,7 +22,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
-                .add_migrations("sqlite:proyek.dbproyek_v5.db", migrations)
+                .add_migrations("sqlite:proyek.dbproyek_v7.db", migrations)
                 .build(),
         )
         .plugin(tauri_plugin_dialog::init())

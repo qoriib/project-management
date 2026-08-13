@@ -1,10 +1,13 @@
 import { getDB } from "@/db/index";
 
 export interface DashboardBOMReportItem {
+  item_id: number;
+  item_price_id: number;
   stage_name: string;
   item_name: string;
   category: string;
   unit: string;
+  price: number;
   planned_volume: number;
   planned_budget: number;
   total_ordered: number;
@@ -20,11 +23,12 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
       SELECT 
         po.project_id, 
         poi.item_id, 
-        SUM(poi.ordered_volume) as total_ordered,
-        SUM(poi.total_price) as total_po_price,
+        SUM(poi.qty) as total_ordered,
+        SUM(poi.qty * ip.price) as total_po_price,
         SUM(d.total_delivered) as total_delivered
       FROM po_items poi
       JOIN purchase_orders po ON po.po_id = poi.po_id
+      LEFT JOIN item_prices ip ON ip.price_id = poi.item_price_id
       LEFT JOIN (
         SELECT po_item_id, SUM(delivered_volume) as total_delivered 
         FROM deliveries 
@@ -33,10 +37,13 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
       GROUP BY po.project_id, poi.item_id
     )
     SELECT 
+      b.item_id,
+      b.item_price_id,
       ps.stage_name,
       i.item_name,
       i.category,
       i.unit,
+      ip.price,
       b.qty as planned_volume,
       (b.qty * ip.price) as planned_budget,
       COALESCE(poa.total_ordered, 0) as total_ordered,

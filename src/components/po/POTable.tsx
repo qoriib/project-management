@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { HStack, Button, Table, TextInput, Selector, Text, VStack } from "@astryxdesign/core";
+import { HStack, Button, Table, Text, VStack } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { getPurchaseOrders, deletePO, type PurchaseOrder } from "@/db/queries/po";
-import { getVendors, type Vendor } from "@/db/queries/master";
 import { formatRupiah, formatDate } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
@@ -17,26 +16,19 @@ interface POTableProps {
 export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   const navigate = useNavigate();
   const [pos, setPOs] = useState<PurchaseOrder[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [vendorFilter, setVendorFilter] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   async function load() {
-    const [p, v] = await Promise.all([
-      getPurchaseOrders({
-        vendor_id: vendorFilter ? Number(vendorFilter) : undefined,
-        project_id: selectedProjectId || undefined,
-      }),
-      getVendors(),
-    ]);
+    const p = await getPurchaseOrders({
+      project_id: selectedProjectId || undefined,
+    });
     setPOs(p);
-    setVendors(v);
   }
 
-  useEffect(() => { load(); }, [vendorFilter, refreshTrigger, selectedProjectId]);
+  useEffect(() => { load(); }, [refreshTrigger, selectedProjectId]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -52,12 +44,11 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   }
 
   const columns = [
-    { key: "po_number", header: "No. PO", width: pixel(180) },
-    { key: "po_date", header: "Tanggal", width: pixel(110), renderCell: (row: PurchaseOrder) => formatDate(row.po_date) },
-    { key: "vendor_name", header: "Vendor", width: proportional(1) },
+    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: PurchaseOrder) => `PO-${row.po_id}` },
+    { key: "po_date", header: "Tanggal", width: pixel(150), renderCell: (row: PurchaseOrder) => formatDate(row.po_date) },
     { key: "project_name", header: "Proyek", width: proportional(1) },
     {
-      key: "total_price", header: "Total", width: pixel(160),
+      key: "total_price", header: "Total Nilai", width: pixel(160),
       renderCell: (row: PurchaseOrder) => <Text size="sm" weight="semibold">{formatRupiah(row.total_price)}</Text>,
     },
     {
@@ -66,7 +57,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
         <HStack gap={1}>
           <Button size="sm" variant="ghost" label="Detail" onClick={() => navigate({ to: `/po/${row.po_id}` })} />
           <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row.po_id)} />
-          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.po_id, label: row.po_number })} />
+          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.po_id, label: `PO-${row.po_id}` })} />
         </HStack>
       ),
     },
@@ -74,21 +65,6 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
 
   return (
     <VStack gap={4}>
-      <HStack gap={3}>
-        <Selector
-          label="Vendor"
-          isLabelHidden
-          placeholder="Filter vendor..."
-          value={vendorFilter}
-          onChange={setVendorFilter}
-          options={[
-            { value: "", label: "Semua Vendor" },
-            ...vendors.map((v) => ({ value: String(v.vendor_id), label: v.vendor_name })),
-          ]}
-          width={240}
-        />
-      </HStack>
-
       <Table
         columns={columns as any}
         data={pos as any}
@@ -97,7 +73,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
         emptyState={
           <VStack align="center" padding={8}>
             <Text color="secondary">
-              {vendorFilter ? "Tidak ada PO yang cocok dengan filter." : "Belum ada PO. Klik '+ Buat PO Baru' untuk memulai."}
+              Belum ada PO. Klik '+ Buat PO Baru' untuk memulai.
             </Text>
           </VStack>
         }

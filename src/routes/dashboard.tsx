@@ -22,7 +22,7 @@ function Dashboard() {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
       try {
         const rep = await getDashboardBOMReport(selectedProjectId);
@@ -35,7 +35,7 @@ function Dashboard() {
   }, [selectedProjectId]);
 
   const stages = Array.from(new Set(report.map(r => r.stage_name)));
-  
+
   const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0);
   const totalPO = report.reduce((sum, r) => sum + r.total_po_price, 0);
 
@@ -74,7 +74,7 @@ function Dashboard() {
 
             {stages.length === 0 && !loading && (
               <VStack align="center" padding={12}>
-                <Text color="secondary">Belum ada Rencana Kebutuhan (BOM) untuk proyek ini.</Text>
+                <Text color="secondary">Belum ada Kebutuhan (BOM) untuk proyek ini.</Text>
               </VStack>
             )}
 
@@ -89,36 +89,42 @@ function Dashboard() {
                     <Table
                       columns={[
                         { key: "item", header: "Material / Alat", width: proportional(1.5), renderCell: (r: DashboardBOMReportItem) => <Text weight="medium">{r.item_name}</Text> },
-                        { key: "planned", header: "BOM (Rencana)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => (
-                          <VStack gap={0}>
-                            <Text size="sm">{formatNumber(r.planned_volume, 2)} {r.unit}</Text>
-                            <Text size="2xs" color="secondary">{formatRupiah(r.planned_budget)}</Text>
-                          </VStack>
-                        )},
-                        { key: "ordered", header: "PO (Dipesan)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => {
-                          const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
-                          const isOver = percent > 100;
-                          return (
+                        {
+                          key: "planned", header: "BOM (Rencana)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => (
                             <VStack gap={0}>
-                              <HStack gap={2} align="center">
-                                <StatusDot variant={isOver ? "warning" : percent === 100 ? "success" : percent > 0 ? "info" : "neutral"} />
-                                <Text size="sm">{formatNumber(r.total_ordered, 2)} {r.unit}</Text>
-                              </HStack>
-                              <Text size="2xs" color="secondary">{percent.toFixed(1)}% Terpenuhi</Text>
+                              <Text size="sm">{formatNumber(r.planned_volume, 2)} {r.unit}</Text>
+                              <Text size="2xs" color="secondary">{formatRupiah(r.planned_budget)}</Text>
                             </VStack>
-                          );
-                        }},
-                        { key: "delivered", header: "Delivery (Terkirim)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => {
-                          const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
-                          return (
-                            <VStack gap={0}>
-                              <Text size="sm">{formatNumber(r.total_delivered, 2)} {r.unit}</Text>
-                              <Text size="2xs" color="secondary">
-                                {r.total_ordered === 0 ? "Belum dipesan" : `${percent.toFixed(1)}% dari PO`}
-                              </Text>
-                            </VStack>
-                          );
-                        }},
+                          )
+                        },
+                        {
+                          key: "ordered", header: "PO (Dipesan)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => {
+                            const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
+                            const isOver = percent > 100;
+                            return (
+                              <VStack gap={0}>
+                                <HStack gap={2} align="center">
+                                  <StatusDot variant={isOver ? "warning" : percent === 100 ? "success" : percent > 0 ? "info" : "neutral"} />
+                                  <Text size="sm">{formatNumber(r.total_ordered, 2)} {r.unit}</Text>
+                                </HStack>
+                                <Text size="2xs" color="secondary">{percent.toFixed(1)}% Terpenuhi</Text>
+                              </VStack>
+                            );
+                          }
+                        },
+                        {
+                          key: "delivered", header: "Delivery (Terkirim)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => {
+                            const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
+                            return (
+                              <VStack gap={0}>
+                                <Text size="sm">{formatNumber(r.total_delivered, 2)} {r.unit}</Text>
+                                <Text size="2xs" color="secondary">
+                                  {r.total_ordered === 0 ? "Belum dipesan" : `${percent.toFixed(1)}% dari PO`}
+                                </Text>
+                              </VStack>
+                            );
+                          }
+                        },
                       ]}
                       data={stageData}
                       idKey="item_name"

@@ -52,7 +52,7 @@ function PODetailPage() {
     <Section padding={6}>
       <VStack gap={6}>
         <PageHeader
-          title={`Detail PO: ${po.po_number}`}
+          title={`Detail PO-${po.po_id}`}
           subtitle={`Dibuat pada ${formatDate(po.po_date)}`}
           actions={
             <HStack gap={2}>
@@ -65,23 +65,11 @@ function PODetailPage() {
         <Card padding={4}>
           <HStack gap={6}>
             <VStack gap={1}>
-              <Text size="2xs" color="secondary">Vendor</Text>
-              <Text weight="medium">{po.vendor_name}</Text>
-            </VStack>
-            <VStack gap={1}>
               <Text size="2xs" color="secondary">Proyek</Text>
               <Text weight="medium">{po.project_name ?? "—"}</Text>
             </VStack>
-            <VStack gap={1}>
-              <Text size="2xs" color="secondary">Subtotal</Text>
-              <Text weight="medium">{formatRupiah(po.subtotal_price)}</Text>
-            </VStack>
-            <VStack gap={1}>
-              <Text size="2xs" color="secondary">PPN (12% if any)</Text>
-              <Text weight="medium">{formatRupiah(po.ppn_amount)}</Text>
-            </VStack>
             <VStack gap={1} style={{ marginLeft: "auto" }}>
-              <Text size="2xs" color="secondary">Total Kontrak PO</Text>
+              <Text size="2xs" color="secondary">Estimasi Total PO</Text>
               <Heading level={3} style={{ color: "var(--color-accent-500)" }}>{formatRupiah(po.total_price)}</Heading>
             </VStack>
           </HStack>
@@ -93,13 +81,15 @@ function PODetailPage() {
             <Heading level={3}>Tracking Realisasi Volume PO vs Volume Pengiriman</Heading>
             <Divider />
             {items.map((item) => (
-              <VolumeProgress
-                key={item.po_item_id}
-                label={`${item.item_name}`}
-                satuan={item.unit ?? ""}
-                qtyPO={item.ordered_volume}
-                totalTerkirim={item.total_terkirim ?? 0}
-              />
+              <VStack gap={2} key={item.po_item_id}>
+                <Text size="sm" color="secondary">Vendor: {item.vendor_name}</Text>
+                <VolumeProgress
+                  label={`${item.item_name}`}
+                  satuan={item.unit ?? ""}
+                  qtyPO={item.qty}
+                  totalTerkirim={item.total_terkirim ?? 0}
+                />
+              </VStack>
             ))}
           </VStack>
         </Card>
@@ -119,15 +109,6 @@ function PODetailPage() {
             />
           </VStack>
         </Card>
-
-        {po.notes && (
-          <Card padding={4}>
-            <VStack gap={1}>
-              <Text size="sm" weight="medium">Catatan Khusus PO</Text>
-              <Text color="secondary">{po.notes}</Text>
-            </VStack>
-          </Card>
-        )}
       </VStack>
     </Section>
   );

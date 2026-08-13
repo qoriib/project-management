@@ -1,23 +1,15 @@
 import { useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import {
-  VStack, HStack, Button, TextInput, Selector, TextArea,
+  VStack, HStack, Button, TextInput, Selector,
   Table, Text, Divider, Heading, Card,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { createPO, updatePO, getPOById, getPOItems } from "@/db/queries/po";
-import { getVendors, getItems, type Vendor, type Item as CatalogItem } from "@/db/queries/master";
+import { getVendors, type Vendor } from "@/db/queries/master";
+import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/queries/dashboard";
 import { formatRupiah, todayISO } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
-
-function generatePONumber() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const r = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-  return `PO-${y}${m}${day}-${r}`;
-}
 
 interface POFormProps {
   initialEditId?: number;
@@ -29,39 +21,44 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
   const isEdit = !!initialEditId;
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(isEdit);
+  const [loading, setLoading] = useState(true);
+
+  // Filter States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterMode, setFilterMode] = useState<"all" | "needed" | "ordered">("all");
 
   const form = useForm({
     defaultValues: {
-      poNumber: isEdit ? "" : generatePONumber(),
       poDate: todayISO(),
-      vendorId: "",
-      ppn: false,
-      notes: "",
-      items: [
-        { po_item_id: 0, item_id: 0, item_name: "", unit: "m3", ordered_volume: 0, unit_price: 0 }
-      ],
+      items: [] as {
+        po_item_id: number;
+        item_id: number;
+        item_price_id: number;
+        item_name: string;
+        unit: string;
+        qty: number;
+        price: number;
+        vendor_id: string; // Dari Dropdown
+        planned_volume: number;
+        total_ordered: number;
+      }[],
     },
     onSubmit: async ({ value }) => {
       setSaving(true);
       try {
         const poData = {
-          po_number: value.poNumber,
           po_date: value.poDate,
-          vendor_id: Number(value.vendorId),
           project_id: selectedProjectId || null,
-          notes: value.notes,
         };
         const poItems = value.items
-          .filter((it) => it.item_id > 0)
+          .filter((it) => it.qty > 0)
           .map((it) => ({
             po_item_id: it.po_item_id || undefined, // For update
             item_id: it.item_id,
-            ordered_volume: it.ordered_volume,
-            unit_price: it.unit_price,
-            ppn_percentage: value.ppn ? 12 : 0,
+            item_price_id: it.item_price_id,
+            vendor_id: it.vendor_id ? Number(it.vendor_id) : null,
+            qty: it.qty,
           }));
 
         if (isEdit) {
@@ -78,50 +75,78 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
 
   useEffect(() => {
     async function loadData() {
-      const [v, m] = await Promise.all([getVendors(), getItems()]);
+      if (!selectedProjectId) {
+        setLoading(false);
+        return;
+      }
+
+      const [v, bom] = await Promise.all([getVendors(), getDashboardBOMReport(selectedProjectId)]);
       setVendors(v);
-      setCatalogItems(m);
 
       if (isEdit) {
         const po = await getPOById(initialEditId);
         const poItems = await getPOItems(initialEditId);
         if (po) {
-          form.setFieldValue("poNumber", po.po_number);
           form.setFieldValue("poDate", po.po_date);
-          form.setFieldValue("vendorId", String(po.vendor_id));
-          form.setFieldValue("notes", po.notes || "");
-          const hasPpn = poItems.some((i) => (i.ppn_percentage || 0) > 0);
-          form.setFieldValue("ppn", hasPpn);
           
-          if (poItems.length > 0) {
-            form.setFieldValue("items", poItems.map(i => ({
-              po_item_id: i.po_item_id,
-              item_id: i.item_id || 0,
-              item_name: i.item_name || "",
-              unit: i.unit || "",
-              ordered_volume: i.ordered_volume,
-              unit_price: i.unit_price,
-            })));
-          }
+          form.setFieldValue("items", bom.map(b => {
+            const existing = poItems.find(p => p.item_id === b.item_id);
+            return {
+              po_item_id: existing?.po_item_id || 0,
+              item_id: b.item_id,
+              item_price_id: b.item_price_id,
+              item_name: b.item_name,
+              unit: b.unit,
+              qty: existing?.qty || 0,
+              price: b.price,
+              vendor_id: existing?.vendor_id ? String(existing.vendor_id) : "",
+              planned_volume: b.planned_volume,
+              total_ordered: b.total_ordered, 
+            };
+          }));
         }
-        setLoading(false);
+      } else {
+        form.setFieldValue("items", bom.map(b => ({
+          po_item_id: 0,
+          item_id: b.item_id,
+          item_price_id: b.item_price_id,
+          item_name: b.item_name,
+          unit: b.unit,
+          qty: 0,
+          price: b.price,
+          vendor_id: "",
+          planned_volume: b.planned_volume,
+          total_ordered: b.total_ordered,
+        })));
       }
+      setLoading(false);
     }
     loadData();
-  }, [isEdit, initialEditId, form]);
+  }, [isEdit, initialEditId, form, selectedProjectId]);
 
   if (loading) return <VStack padding={4}><Text>Memuat data...</Text></VStack>;
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
       <form.Subscribe
-        selector={(state) => [state.values.items, state.values.ppn, state.values.poNumber, state.values.vendorId] as const}
+        selector={(state) => [state.values.items, state.values.poDate] as const}
       >
-        {([items, ppn, poNumber, vendorId]) => {
-          const subtotal = items.reduce((sum, it) => sum + (it.ordered_volume * it.unit_price), 0);
-          const ppnAmount = ppn ? subtotal * 0.12 : 0;
-          const total = subtotal + ppnAmount;
-          const isValid = poNumber !== "" && vendorId !== "";
+        {([items, poDate]) => {
+          const total = items.reduce((sum, it) => sum + (it.qty * it.price), 0);
+          const hasOrderedItems = items.some(it => it.qty > 0 && it.vendor_id !== "");
+          const isValid = hasOrderedItems;
+
+          const filteredItems = items.filter(it => {
+            if (searchQuery && !it.item_name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+            
+            let sisa = it.planned_volume - it.total_ordered;
+            if (isEdit && it.po_item_id) sisa += it.qty; // original ordered amount
+            
+            if (filterMode === "needed" && sisa <= 0) return false;
+            if (filterMode === "ordered" && it.qty <= 0) return false;
+            
+            return true;
+          });
 
           return (
             <VStack gap={6}>
@@ -129,141 +154,110 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                 <VStack gap={3}>
                   <Heading level={4}>Informasi PO</Heading>
                   <HStack gap={4} style={{ alignItems: 'flex-start' }}>
-                    <div style={{ flex: 1 }}>
-                      <form.Field name="poNumber">
-                        {(field) => (
-                          <TextInput label="Nomor PO" value={field.state.value} onChange={(e) => field.handleChange(e)} isDisabled isRequired />
-                        )}
-                      </form.Field>
-                    </div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ width: 240 }}>
                       <form.Field name="poDate">
                         {(field) => (
                           <TextInput label="Tanggal PO" type="date" value={field.state.value} onChange={(e) => field.handleChange(e)} isRequired />
                         )}
                       </form.Field>
                     </div>
-                    <div style={{ flex: 2 }}>
-                      <form.Field name="vendorId">
-                        {(field) => (
-                          <Selector
-                            label="Vendor Pemasok"
-                            value={field.state.value}
-                            onChange={(v) => field.handleChange(v as string)}
-                            isRequired
-                            options={[{ value: "", label: "Pilih vendor..." }, ...vendors.map((v) => ({ value: String(v.vendor_id), label: v.vendor_name }))]}
-                          />
-                        )}
-                      </form.Field>
-                    </div>
                   </HStack>
-                  <HStack gap={2} align="center">
-                    <form.Field name="ppn">
-                      {(field) => (
-                        <input type="checkbox" checked={field.state.value} onChange={(e) => field.handleChange(e.target.checked)} />
-                      )}
-                    </form.Field>
-                    <Text>Tambahkan PPN 12% untuk semua item</Text>
-                  </HStack>
-                  <form.Field name="notes">
-                    {(field) => (
-                      <TextArea label="Catatan / Syarat Pengiriman" value={field.state.value} onChange={(e) => field.handleChange(e)} />
-                    )}
-                  </form.Field>
                 </VStack>
               </Card>
 
               <Card padding={4}>
-                <VStack gap={3}>
-                  <HStack gap={2} align="center">
-                    <Heading level={4}>Daftar Item Barang / Alat</Heading>
-                    <form.Field name="items">
-                      {(field) => (
-                        <Button size="sm" variant="secondary" label="+ Tambah Item" type="button" onClick={() => field.pushValue({ po_item_id: 0, item_id: 0, item_name: "", unit: "m3", ordered_volume: 0, unit_price: 0 })} />
-                      )}
-                    </form.Field>
+                <VStack gap={4}>
+                  <HStack justify="space-between" align="center">
+                     <Heading level={4}>Daftar Kebutuhan BOM</Heading>
+                     <HStack gap={2}>
+                        <TextInput 
+                          label="Cari..."
+                          isLabelHidden
+                          placeholder="Cari material..." 
+                          value={searchQuery}
+                          onChange={setSearchQuery}
+                        />
+                        <Selector
+                          label="Filter Status"
+                          isLabelHidden
+                          options={[
+                            { label: "Semua", value: "all" },
+                            { label: "Yang Dibutuhkan Saja", value: "needed" },
+                            { label: "Volume Tidak Nol", value: "ordered" },
+                          ]}
+                          value={filterMode}
+                          onChange={(v) => setFilterMode(v as any)}
+                        />
+                     </HStack>
                   </HStack>
+
+                  <Text color="secondary" size="sm">Isi jumlah pemesanan pada kolom "Volume Dipesan". Barang dengan nilai 0 akan diabaikan.</Text>
 
                   <Table
                     columns={[
                       {
-                        key: "item", header: "Barang / Material / Jasa Sewa", width: proportional(1.5),
+                        key: "item", header: "Barang / Material / Jasa", width: proportional(2),
+                        renderCell: (row: any) => <Text weight="medium">{row.item_name}</Text>
+                      },
+                      {
+                        key: "bom", header: "BOM (Sisa / Rencana)", width: pixel(180),
+                        renderCell: (row: any) => {
+                          let sisa = row.planned_volume - row.total_ordered;
+                          if (isEdit && row.po_item_id) {
+                             sisa += row.qty;
+                          }
+                          sisa = Math.max(0, sisa);
+                          return (
+                            <VStack gap={0.5}>
+                              <Text size="sm">{sisa} {row.unit} (Sisa)</Text>
+                              <Text size="sm" color="secondary">Rencana: {row.planned_volume} {row.unit}</Text>
+                            </VStack>
+                          );
+                        }
+                      },
+                      {
+                        key: "vendor", header: "Vendor Pemasok", width: proportional(1.5),
                         renderCell: (row: any) => {
                           const idx = items.indexOf(row);
                           return (
-                          <form.Field name={`items[${idx}].item_id`}>
+                          <form.Field name={`items[${idx}].vendor_id`}>
                             {(field) => (
                               <Selector
-                                label="Pilih Katalog"
                                 isLabelHidden
-                                value={String(field.state.value)}
-                                onChange={(v) => {
-                                  field.handleChange(Number(v));
-                                  const mat = catalogItems.find(m => m.item_id === Number(v));
-                                  form.setFieldValue(`items[${idx}].item_name`, mat?.item_name ?? "");
-                                  form.setFieldValue(`items[${idx}].unit`, mat?.unit ?? "m3");
-                                }}
-                                options={[{ value: "0", label: "Pilih katalog..." }, ...catalogItems.map((m) => ({ value: String(m.item_id), label: `${m.item_name} (${m.unit})` }))]}
+                                label="Vendor"
+                                options={[{ value: "", label: "Pilih vendor..." }, ...vendors.map(v => ({ value: String(v.vendor_id), label: v.vendor_name }))]}
+                                value={field.state.value}
+                                onChange={(v) => field.handleChange(v as string)}
                               />
                             )}
                           </form.Field>
                         )}
                       },
                       {
-                        key: "unit", header: "Satuan", width: pixel(90),
+                        key: "qty", header: "Volume Dipesan", width: pixel(130),
                         renderCell: (row: any) => {
                           const idx = items.indexOf(row);
                           return (
-                          <form.Field name={`items[${idx}].unit`}>
-                            {(field) => <Text size="sm">{field.state.value}</Text>}
+                          <form.Field name={`items[${idx}].qty`}>
+                            {(field) => <TextInput label="Volume" isLabelHidden value={String(field.state.value)} onChange={(v) => field.handleChange(parseFloat(v) || 0)} />}
                           </form.Field>
                         )}
                       },
                       {
-                        key: "ordered_volume", header: "Volume Dipesan", width: pixel(115),
-                        renderCell: (row: any) => {
-                          const idx = items.indexOf(row);
-                          return (
-                          <form.Field name={`items[${idx}].ordered_volume`}>
-                            {(field) => <TextInput label="" value={String(field.state.value)} onChange={(v) => field.handleChange(parseFloat(v) || 0)} />}
-                          </form.Field>
-                        )}
-                      },
-                      {
-                        key: "unit_price", header: "Harga Satuan (Rp)", width: pixel(165),
-                        renderCell: (row: any) => {
-                          const idx = items.indexOf(row);
-                          return (
-                          <form.Field name={`items[${idx}].unit_price`}>
-                            {(field) => <TextInput label="" value={String(field.state.value)} onChange={(v) => field.handleChange(parseFloat(v) || 0)} />}
-                          </form.Field>
-                        )}
+                        key: "price", header: "Harga Satuan (Rp)", width: pixel(150),
+                        renderCell: (row: any) => <Text size="sm">{formatRupiah(row.price)}</Text>
                       },
                       {
                         key: "subtotal_item", header: "Subtotal", width: pixel(140),
-                        renderCell: (row) => <Text size="sm">{formatRupiah(row.ordered_volume * row.unit_price)}</Text>
-                      },
-                      {
-                        key: "remove", header: "", width: pixel(50),
-                        renderCell: (row: any) => {
-                          const idx = items.indexOf(row);
-                          return (
-                          <form.Field name="items">
-                            {(field) => (
-                              <Button size="sm" variant="ghost" label="✕" type="button" isDisabled={field.state.value.length === 1} onClick={() => field.removeValue(idx)} />
-                            )}
-                          </form.Field>
-                        )}
+                        renderCell: (row: any) => <Text size="sm">{formatRupiah(row.qty * row.price)}</Text>
                       }
                     ]}
-                    data={items as any}
+                    data={filteredItems as any}
                   />
                   <Divider />
                   <HStack gap={4} justify="end">
                     <VStack gap={1} align="end">
-                      <HStack gap={6}><Text color="secondary">Subtotal</Text><Text weight="medium">{formatRupiah(subtotal)}</Text></HStack>
-                      {ppn && <HStack gap={6}><Text color="secondary">PPN 12%</Text><Text weight="medium">{formatRupiah(ppnAmount)}</Text></HStack>}
-                      <HStack gap={6}><Text weight="semibold">Total</Text><Heading level={2}>{formatRupiah(total)}</Heading></HStack>
+                      <HStack gap={6}><Text weight="semibold">Estimasi Total Biaya</Text><Heading level={2}>{formatRupiah(total)}</Heading></HStack>
                     </VStack>
                   </HStack>
                 </VStack>

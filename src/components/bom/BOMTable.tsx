@@ -47,7 +47,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
 
   const columns = [
     { key: "item_name", header: "Material/Alat", width: proportional(1.5) },
-    { 
+    {
       key: "qty", header: "Volume Rencana", width: pixel(140),
       renderCell: (row: BillOfMaterial) => `${formatNumber(row.qty, 2)} ${row.unit || ""}`
     },
@@ -138,7 +138,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Hapus Rencana Kebutuhan"
+        title="Hapus Kebutuhan"
         message="Apakah Anda yakin ingin menghapus material ini dari rencana (BOM)?"
         isLoading={deleting}
       />

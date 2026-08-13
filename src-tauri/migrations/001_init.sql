@@ -74,30 +74,23 @@ CREATE TABLE `bill_of_materials` (
 CREATE TABLE `purchase_orders` (
 	`po_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`project_id` integer,
-	`vendor_id` integer,
-	`po_number` text NOT NULL,
 	`po_date` text NOT NULL,
-	`notes` text,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
-	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`vendor_id`) ON UPDATE no action ON DELETE restrict
+	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade
 );
-
-CREATE UNIQUE INDEX `purchase_orders_po_number_unique` ON `purchase_orders` (`po_number`);
 
 -- Rincian Item Barang yang ada di dalam 1 PO
 CREATE TABLE `po_items` (
 	`po_item_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`po_id` integer,
 	`item_id` integer,
-	`ordered_volume` real NOT NULL,
-	`unit_price` real NOT NULL,
-	`subtotal_price` real GENERATED ALWAYS AS (ordered_volume * unit_price) STORED,
-	`ppn_percentage` real DEFAULT 0,
-	`ppn_amount` real GENERATED ALWAYS AS (ordered_volume * unit_price * (ppn_percentage / 100.0)) STORED,
-	`total_price` real GENERATED ALWAYS AS (ordered_volume * unit_price * (1.0 + ppn_percentage / 100.0)) STORED,
+	`item_price_id` integer,
+	`vendor_id` integer,
+	`qty` real NOT NULL,
 	FOREIGN KEY (`po_id`) REFERENCES `purchase_orders`(`po_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict
+	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict,
+	FOREIGN KEY (`item_price_id`) REFERENCES `item_prices`(`price_id`) ON UPDATE no action ON DELETE restrict,
+	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`vendor_id`) ON UPDATE no action ON DELETE restrict
 );
 
 -- 6. TAHAP 2: PENGIRIMAN (DELIVERY / REALISASI FISIK LAPANGAN)
@@ -111,5 +104,3 @@ CREATE TABLE `deliveries` (
 	`notes` text,
 	FOREIGN KEY (`po_item_id`) REFERENCES `po_items`(`po_item_id`) ON UPDATE no action ON DELETE cascade
 );
-
-

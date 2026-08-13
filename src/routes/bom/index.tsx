@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from "react";
-import { Section, VStack, Button, Dialog, Text } from "@astryxdesign/core";
-import { TabList, Tab } from "@astryxdesign/core/TabList";
+import { Section, VStack, Button, Dialog, Text, Selector } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
 import { BOMTable } from "@/components/bom/BOMTable";
 import { BOMForm } from "@/components/bom/BOMForm";
@@ -28,8 +27,8 @@ function BOMPage() {
     setStages(data);
   }
 
-  useEffect(() => { 
-    loadStages(); 
+  useEffect(() => {
+    loadStages();
     // Reset tab to all if project changes
     setActiveTab("all");
   }, [selectedProjectId]);
@@ -49,52 +48,57 @@ function BOMPage() {
     <Section padding={6}>
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 48px)' }}>
         <VStack gap={4} style={{ flex: 1 }}>
-        <PageHeader
-          title="Rencana Kebutuhan (BOM)"
-          subtitle="Rincian material dan alat yang dibutuhkan untuk proyek ini."
-        />
-
-        <TabList value={activeTab} onChange={setActiveTab} hasDivider>
-          <Tab value="all" label="Semua" />
-          {stages.map(s => (
-            <Tab key={s.stage_id} value={String(s.stage_id)} label={s.stage_name} />
-          ))}
-        </TabList>
-
-        <BOMTable 
-          stageId={activeTab === "all" ? undefined : Number(activeTab)}
-          refreshTrigger={refreshTrigger} 
-          onEdit={(id, data) => { setEditData(data); setIsDialogOpen(true); }} 
-        />
-      </VStack>
-
-      <Dialog isOpen={isDialogOpen && !!editData} onOpenChange={(open) => !open && handleClose()} width={550}>
-        <BOMForm 
-          stageId={editData?.stage_id || (activeTab === "all" ? undefined : Number(activeTab))}
-          initialData={editData}
-          onSuccess={handleSuccess} 
-          onCancel={handleClose} 
-        />
-      </Dialog>
-
-      {activeTab !== "all" && (
-        <div style={{ 
-          position: "sticky", 
-          bottom: -24, 
-          padding: "16px 24px", 
-          background: "var(--color-bg-elevated)", 
-          borderTop: "1px solid var(--color-border)",
-          margin: "16px -24px -24px -24px",
-          zIndex: 10
-        }}>
-          <BOMForm 
-            stageId={Number(activeTab)} 
-            isInline 
-            onSuccess={() => setRefreshTrigger(r => r + 1)} 
-            onCancel={() => {}} 
+          <PageHeader
+            title="Kebutuhan (BOM)"
+            subtitle="Rincian material dan alat yang dibutuhkan untuk proyek ini."
+            actions={
+              <Selector
+                options={[
+                  { label: "Semua Tahapan", value: "all" },
+                  ...stages.map(s => ({ label: s.stage_name, value: String(s.stage_id) }))
+                ]}
+                value={activeTab}
+                onChange={setActiveTab}
+                placeholder="Pilih Tahapan"
+                width={300}
+              />
+            }
           />
-        </div>
-      )}
+
+          <BOMTable
+            stageId={activeTab === "all" ? undefined : Number(activeTab)}
+            refreshTrigger={refreshTrigger}
+            onEdit={(id, data) => { setEditData(data); setIsDialogOpen(true); }}
+          />
+        </VStack>
+
+        <Dialog isOpen={isDialogOpen && !!editData} onOpenChange={(open) => !open && handleClose()} width={550}>
+          <BOMForm
+            stageId={editData?.stage_id || (activeTab === "all" ? undefined : Number(activeTab))}
+            initialData={editData}
+            onSuccess={handleSuccess}
+            onCancel={handleClose}
+          />
+        </Dialog>
+
+        {activeTab !== "all" && (
+          <div style={{
+            position: "sticky",
+            bottom: -24,
+            padding: "16px 24px",
+            background: "var(--color-bg-elevated)",
+            borderTop: "1px solid var(--color-border)",
+            margin: "16px -24px -24px -24px",
+            zIndex: 10
+          }}>
+            <BOMForm
+              stageId={Number(activeTab)}
+              isInline
+              onSuccess={() => setRefreshTrigger(r => r + 1)}
+              onCancel={() => { }}
+            />
+          </div>
+        )}
       </div>
     </Section>
   );
