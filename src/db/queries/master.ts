@@ -1,49 +1,25 @@
 import { getDB } from "@/db/index";
+import * as schema from "@/db/schema";
+import { eq, desc, asc } from "drizzle-orm";
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
-export interface Project {
-  project_id: number;
-  project_code: string;
-  project_name: string;
-  contractor_name: string;
-  fiscal_year: number;
-  status: "ON_PROGRESS" | "COMPLETED" | "SUSPENDED";
-  created_at: string;
-}
-
-export interface Vendor {
-  vendor_id: number;
-  vendor_name: string;
-  vendor_type: "MATERIAL_SUPPLIER" | "EQUIPMENT_RENTAL" | "STORE";
-  phone?: string;
-  address?: string;
-  created_at: string;
-}
-
-export interface Item {
-  item_id: number;
-  item_code?: string;
-  item_name: string;
-  category: "MATERIAL" | "ALAT" | "BETON" | "SOLAR" | "ATK/K3";
-  unit: string;
-}
+export type Project = typeof schema.projects.$inferSelect;
+export type Vendor = typeof schema.vendors.$inferSelect;
+export type Item = typeof schema.items.$inferSelect;
+export type ItemCategory = typeof schema.itemCategories.$inferSelect;
+export type Unit = typeof schema.units.$inferSelect;
 
 // ── Projects ─────────────────────────────────────────────────────────────────
 
 export async function getProjects(): Promise<Project[]> {
   const db = await getDB();
-  return db.select<Project[]>("SELECT * FROM projects ORDER BY created_at DESC");
+  return db.select().from(schema.projects).orderBy(desc(schema.projects.created_at));
 }
 
 export async function createProject(
   data: Omit<Project, "project_id" | "created_at">
 ): Promise<void> {
   const db = await getDB();
-  await db.execute(
-    "INSERT INTO projects (project_code, project_name, contractor_name, fiscal_year, status) VALUES (?, ?, ?, ?, ?)",
-    [data.project_code, data.project_name, data.contractor_name, data.fiscal_year, data.status || 'ON_PROGRESS']
-  );
+  await db.insert(schema.projects).values(data);
 }
 
 export async function updateProject(
@@ -51,87 +27,100 @@ export async function updateProject(
   data: Partial<Omit<Project, "project_id" | "created_at">>
 ): Promise<void> {
   const db = await getDB();
-  await db.execute(
-    `UPDATE projects SET
-      project_code = COALESCE(?, project_code),
-      project_name = COALESCE(?, project_name),
-      contractor_name = COALESCE(?, contractor_name),
-      fiscal_year = COALESCE(?, fiscal_year),
-      status = COALESCE(?, status)
-     WHERE project_id = ?`,
-    [data.project_code ?? null, data.project_name ?? null, data.contractor_name ?? null, data.fiscal_year ?? null, data.status ?? null, id]
-  );
+  await db.update(schema.projects).set(data).where(eq(schema.projects.project_id, id));
 }
 
 export async function deleteProject(id: number): Promise<void> {
   const db = await getDB();
-  await db.execute("DELETE FROM projects WHERE project_id = ?", [id]);
+  await db.delete(schema.projects).where(eq(schema.projects.project_id, id));
 }
 
 // ── Vendors ──────────────────────────────────────────────────────────────────
 
 export async function getVendors(): Promise<Vendor[]> {
   const db = await getDB();
-  return db.select<Vendor[]>("SELECT * FROM vendors ORDER BY vendor_name");
+  return db.select().from(schema.vendors).orderBy(asc(schema.vendors.vendor_name));
 }
 
 export async function createVendor(
   data: Omit<Vendor, "vendor_id" | "created_at">
 ): Promise<void> {
   const db = await getDB();
-  await db.execute(
-    "INSERT INTO vendors (vendor_name, vendor_type, phone, address) VALUES (?, ?, ?, ?)",
-    [data.vendor_name, data.vendor_type, data.phone ?? null, data.address ?? null]
-  );
+  await db.insert(schema.vendors).values(data);
 }
 
 export async function updateVendor(id: number, data: Partial<Omit<Vendor, "vendor_id" | "created_at">>): Promise<void> {
   const db = await getDB();
-  await db.execute(
-    `UPDATE vendors SET
-      vendor_name = COALESCE(?, vendor_name),
-      vendor_type = COALESCE(?, vendor_type),
-      phone = ?,
-      address = ?
-     WHERE vendor_id = ?`,
-    [data.vendor_name ?? null, data.vendor_type ?? null, data.phone ?? null, data.address ?? null, id]
-  );
+  await db.update(schema.vendors).set(data).where(eq(schema.vendors.vendor_id, id));
 }
 
 export async function deleteVendor(id: number): Promise<void> {
   const db = await getDB();
-  await db.execute("DELETE FROM vendors WHERE vendor_id = ?", [id]);
+  await db.delete(schema.vendors).where(eq(schema.vendors.vendor_id, id));
 }
 
 // ── Items (Catalog) ──────────────────────────────────────────────────────────
 
 export async function getItems(): Promise<Item[]> {
   const db = await getDB();
-  return db.select<Item[]>("SELECT * FROM items ORDER BY category, item_name");
+  return db.select().from(schema.items).orderBy(asc(schema.items.category), asc(schema.items.item_name));
 }
 
 export async function createItem(data: Omit<Item, "item_id">): Promise<void> {
   const db = await getDB();
-  await db.execute(
-    "INSERT INTO items (item_code, item_name, category, unit) VALUES (?, ?, ?, ?)",
-    [data.item_code ?? null, data.item_name, data.category, data.unit]
-  );
+  await db.insert(schema.items).values(data);
 }
 
 export async function updateItem(id: number, data: Partial<Omit<Item, "item_id">>): Promise<void> {
   const db = await getDB();
-  await db.execute(
-    `UPDATE items SET
-      item_code = ?,
-      item_name = COALESCE(?, item_name),
-      category = COALESCE(?, category),
-      unit = COALESCE(?, unit)
-     WHERE item_id = ?`,
-    [data.item_code ?? null, data.item_name ?? null, data.category ?? null, data.unit ?? null, id]
-  );
+  await db.update(schema.items).set(data).where(eq(schema.items.item_id, id));
 }
 
 export async function deleteItem(id: number): Promise<void> {
   const db = await getDB();
-  await db.execute("DELETE FROM items WHERE item_id = ?", [id]);
+  await db.delete(schema.items).where(eq(schema.items.item_id, id));
+}
+
+// ── Item Categories ──────────────────────────────────────────────────────────
+
+export async function getItemCategories(): Promise<ItemCategory[]> {
+  const db = await getDB();
+  return db.select().from(schema.itemCategories).orderBy(asc(schema.itemCategories.category_name));
+}
+
+export async function createItemCategory(data: Omit<ItemCategory, "category_id">): Promise<void> {
+  const db = await getDB();
+  await db.insert(schema.itemCategories).values(data);
+}
+
+export async function updateItemCategory(id: number, data: Partial<Omit<ItemCategory, "category_id">>): Promise<void> {
+  const db = await getDB();
+  await db.update(schema.itemCategories).set(data).where(eq(schema.itemCategories.category_id, id));
+}
+
+export async function deleteItemCategory(id: number): Promise<void> {
+  const db = await getDB();
+  await db.delete(schema.itemCategories).where(eq(schema.itemCategories.category_id, id));
+}
+
+// ── Units ────────────────────────────────────────────────────────────────────
+
+export async function getUnits(): Promise<Unit[]> {
+  const db = await getDB();
+  return db.select().from(schema.units).orderBy(asc(schema.units.unit_name));
+}
+
+export async function createUnit(data: Omit<Unit, "unit_id">): Promise<void> {
+  const db = await getDB();
+  await db.insert(schema.units).values(data);
+}
+
+export async function updateUnit(id: number, data: Partial<Omit<Unit, "unit_id">>): Promise<void> {
+  const db = await getDB();
+  await db.update(schema.units).set(data).where(eq(schema.units.unit_id, id));
+}
+
+export async function deleteUnit(id: number): Promise<void> {
+  const db = await getDB();
+  await db.delete(schema.units).where(eq(schema.units.unit_id, id));
 }

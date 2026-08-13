@@ -31,7 +31,7 @@ function PODetailPage() {
       setItems(its);
       // filter only deliveries for this PO's items
       const poItemIds = new Set(its.map((i) => i.po_item_id));
-      setDeliveries(del.filter((d) => poItemIds.has(d.po_item_id)));
+      setDeliveries(del.filter((d) => d.po_item_id && poItemIds.has(d.po_item_id)));
       setLoading(false);
     }
     load();
@@ -110,7 +110,7 @@ function PODetailPage() {
           <VStack gap={3}>
             <HStack gap={2} align="center">
               <Heading level={3}>Log Penerimaan Lapangan (Surat Jalan)</Heading>
-              <Button size="sm" variant="secondary" label="+ Input Pengiriman Baru" onClick={() => navigate({ to: "/delivery/new" })} style={{ marginLeft: "auto" }} />
+              <Button size="sm" variant="secondary" label="+ Input Pengiriman Baru" onClick={() => navigate({ to: "/delivery", search: { po: String(po.po_id) } })} style={{ marginLeft: "auto" }} />
             </HStack>
             <Table
               columns={deliveryColumns as any}

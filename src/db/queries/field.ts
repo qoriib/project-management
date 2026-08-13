@@ -1,38 +1,21 @@
 import { getDB } from "@/db/index";
+import * as schema from "@/db/schema";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export interface Delivery {
-  delivery_id: number;
-  po_item_id: number;
+export type Delivery = typeof schema.deliveries.$inferSelect & {
   po_id?: number;
   po_number?: string;
   item_name?: string;
   vendor_name?: string;
   unit?: string;
-  delivery_date: string;
-  delivered_volume: number;
-  delivery_note_number?: string;
-  location_destination?: string;
-  notes?: string;
-}
+};
 
-export interface EquipmentLog {
-  equip_log_id: number;
-  project_id?: number;
+export type EquipmentLog = typeof schema.equipmentLogs.$inferSelect & {
   project_name?: string;
-  vendor_id?: number;
   vendor_name?: string;
-  equipment_name: string;
-  operator_name?: string;
-  work_date_start: string;
-  work_date_end?: string;
-  duration_value: number;
-  duration_unit: string;
-  rate_per_unit: number;
-  total_cost?: number;
-  activity_description?: string;
-}
+};
 
 // ── Deliveries ────────────────────────────────────────────────────────────────
 
@@ -42,39 +25,53 @@ export async function getDeliveries(filters?: {
   tanggal_sampai?: string;
 }): Promise<Delivery[]> {
   const db = await getDB();
-  let sql = `
-    SELECT d.*,
-      pi.po_id,
-      po.po_number,
-      i.item_name,
-      i.unit,
-      v.vendor_name
-    FROM deliveries d
-    JOIN po_items pi ON pi.po_item_id = d.po_item_id
-    JOIN purchase_orders po ON po.po_id = pi.po_id
-    JOIN items i ON i.item_id = pi.item_id
-    JOIN vendors v ON v.vendor_id = po.vendor_id
-    WHERE 1=1
-  `;
-  const params: (string | number)[] = [];
-  if (filters?.vendor_id) { sql += " AND po.vendor_id = ?"; params.push(filters.vendor_id); }
-  if (filters?.tanggal_dari) { sql += " AND d.delivery_date >= ?"; params.push(filters.tanggal_dari); }
-  if (filters?.tanggal_sampai) { sql += " AND d.delivery_date <= ?"; params.push(filters.tanggal_sampai); }
-  sql += " ORDER BY d.delivery_date DESC, d.delivery_id DESC";
-  return db.select<Delivery[]>(sql, params);
+  const conditions = [];
+
+  if (filters?.vendor_id) conditions.push(eq(schema.purchaseOrders.vendor_id, filters.vendor_id));
+  if (filters?.tanggal_dari) conditions.push(sql`${schema.deliveries.delivery_date} >= ${filters.tanggal_dari}`);
+  if (filters?.tanggal_sampai) conditions.push(sql`${schema.deliveries.delivery_date} <= ${filters.tanggal_sampai}`);
+
+  const rows = await db
+    .select({
+      delivery_id: schema.deliveries.delivery_id,
+      po_item_id: schema.deliveries.po_item_id,
+      delivery_date: schema.deliveries.delivery_date,
+      delivered_volume: schema.deliveries.delivered_volume,
+      delivery_note_number: schema.deliveries.delivery_note_number,
+      location_destination: schema.deliveries.location_destination,
+      notes: schema.deliveries.notes,
+      po_id: schema.poItems.po_id,
+      po_number: schema.purchaseOrders.po_number,
+      item_name: schema.items.item_name,
+      unit: schema.items.unit,
+      vendor_name: schema.vendors.vendor_name,
+    })
+    .from(schema.deliveries)
+    .innerJoin(schema.poItems, eq(schema.poItems.po_item_id, schema.deliveries.po_item_id))
+    .innerJoin(schema.purchaseOrders, eq(schema.purchaseOrders.po_id, schema.poItems.po_id))
+    .innerJoin(schema.items, eq(schema.items.item_id, schema.poItems.item_id))
+    .innerJoin(schema.vendors, eq(schema.vendors.vendor_id, schema.purchaseOrders.vendor_id))
+    .where(and(...conditions))
+    .orderBy(desc(schema.deliveries.delivery_date), desc(schema.deliveries.delivery_id));
+
+  return rows as Delivery[];
 }
 
 export async function createDelivery(data: Omit<Delivery, "delivery_id" | "po_id" | "po_number" | "item_name" | "vendor_name" | "unit">): Promise<void> {
   const db = await getDB();
-  await db.execute(
-    "INSERT INTO deliveries (po_item_id, delivery_date, delivered_volume, delivery_note_number, location_destination, notes) VALUES (?, ?, ?, ?, ?, ?)",
-    [data.po_item_id, data.delivery_date, data.delivered_volume, data.delivery_note_number ?? null, data.location_destination ?? null, data.notes ?? null]
-  );
+  await db.insert(schema.deliveries).values({
+    po_item_id: data.po_item_id!,
+    delivery_date: data.delivery_date,
+    delivered_volume: data.delivered_volume,
+    delivery_note_number: data.delivery_note_number ?? null,
+    location_destination: data.location_destination ?? null,
+    notes: data.notes ?? null,
+  });
 }
 
 export async function deleteDelivery(id: number): Promise<void> {
   const db = await getDB();
-  await db.execute("DELETE FROM deliveries WHERE delivery_id = ?", [id]);
+  await db.delete(schema.deliveries).where(eq(schema.deliveries.delivery_id, id));
 }
 
 // ── Equipment ─────────────────────────────────────────────────────────────────
@@ -85,41 +82,55 @@ export async function getEquipmentLogs(filters?: {
   tanggal_sampai?: string;
 }): Promise<EquipmentLog[]> {
   const db = await getDB();
-  let sql = `
-    SELECT el.*, v.vendor_name, p.project_name
-    FROM equipment_logs el
-    LEFT JOIN vendors v ON v.vendor_id = el.vendor_id
-    LEFT JOIN projects p ON p.project_id = el.project_id
-    WHERE 1=1
-  `;
-  const params: (string | number)[] = [];
-  if (filters?.vendor_id) { sql += " AND el.vendor_id = ?"; params.push(filters.vendor_id); }
-  if (filters?.tanggal_dari) { sql += " AND el.work_date_start >= ?"; params.push(filters.tanggal_dari); }
-  if (filters?.tanggal_sampai) { sql += " AND el.work_date_start <= ?"; params.push(filters.tanggal_sampai); }
-  sql += " ORDER BY el.work_date_start DESC, el.equip_log_id DESC";
-  return db.select<EquipmentLog[]>(sql, params);
+  const conditions = [];
+
+  if (filters?.vendor_id) conditions.push(eq(schema.equipmentLogs.vendor_id, filters.vendor_id));
+  if (filters?.tanggal_dari) conditions.push(sql`${schema.equipmentLogs.work_date_start} >= ${filters.tanggal_dari}`);
+  if (filters?.tanggal_sampai) conditions.push(sql`${schema.equipmentLogs.work_date_start} <= ${filters.tanggal_sampai}`);
+
+  const rows = await db
+    .select({
+      equip_log_id: schema.equipmentLogs.equip_log_id,
+      project_id: schema.equipmentLogs.project_id,
+      vendor_id: schema.equipmentLogs.vendor_id,
+      equipment_name: schema.equipmentLogs.equipment_name,
+      operator_name: schema.equipmentLogs.operator_name,
+      work_date_start: schema.equipmentLogs.work_date_start,
+      work_date_end: schema.equipmentLogs.work_date_end,
+      duration_value: schema.equipmentLogs.duration_value,
+      duration_unit: schema.equipmentLogs.duration_unit,
+      rate_per_unit: schema.equipmentLogs.rate_per_unit,
+      total_cost: schema.equipmentLogs.total_cost,
+      activity_description: schema.equipmentLogs.activity_description,
+      vendor_name: schema.vendors.vendor_name,
+      project_name: schema.projects.project_name,
+    })
+    .from(schema.equipmentLogs)
+    .leftJoin(schema.vendors, eq(schema.vendors.vendor_id, schema.equipmentLogs.vendor_id))
+    .leftJoin(schema.projects, eq(schema.projects.project_id, schema.equipmentLogs.project_id))
+    .where(and(...conditions))
+    .orderBy(desc(schema.equipmentLogs.work_date_start), desc(schema.equipmentLogs.equip_log_id));
+
+  return rows as EquipmentLog[];
 }
 
 export async function createEquipmentLog(data: Omit<EquipmentLog, "equip_log_id" | "vendor_name" | "project_name" | "total_cost">): Promise<void> {
   const db = await getDB();
-  await db.execute(
-    "INSERT INTO equipment_logs (project_id, vendor_id, equipment_name, operator_name, work_date_start, work_date_end, duration_value, duration_unit, rate_per_unit, activity_description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [
-      data.project_id ?? null,
-      data.vendor_id ?? null,
-      data.equipment_name,
-      data.operator_name ?? null,
-      data.work_date_start,
-      data.work_date_end ?? null,
-      data.duration_value,
-      data.duration_unit,
-      data.rate_per_unit,
-      data.activity_description ?? null
-    ]
-  );
+  await db.insert(schema.equipmentLogs).values({
+    project_id: data.project_id ?? null,
+    vendor_id: data.vendor_id ?? null,
+    equipment_name: data.equipment_name,
+    operator_name: data.operator_name ?? null,
+    work_date_start: data.work_date_start,
+    work_date_end: data.work_date_end ?? null,
+    duration_value: data.duration_value,
+    duration_unit: data.duration_unit,
+    rate_per_unit: data.rate_per_unit,
+    activity_description: data.activity_description ?? null,
+  });
 }
 
 export async function deleteEquipmentLog(id: number): Promise<void> {
   const db = await getDB();
-  await db.execute("DELETE FROM equipment_logs WHERE equip_log_id = ?", [id]);
+  await db.delete(schema.equipmentLogs).where(eq(schema.equipmentLogs.equip_log_id, id));
 }

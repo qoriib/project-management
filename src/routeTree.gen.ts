@@ -12,18 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as EquipmentRouteImport } from './routes/equipment'
-import { Route as BillingDebtRouteImport } from './routes/billing/debt'
-import { Route as BillingInvoiceRouteImport } from './routes/billing/invoice'
-import { Route as DeliveryHistoryRouteImport } from './routes/delivery/history'
-import { Route as DeliveryNewRouteImport } from './routes/delivery/new'
-import { Route as MasterCatalogRouteImport } from './routes/master/catalog'
-import { Route as MasterProjectsRouteImport } from './routes/master/projects'
+import { Route as MasterRouteImport } from './routes/master'
+import { Route as DeliveryIndexRouteImport } from './routes/delivery/index'
+import { Route as MasterIndexRouteImport } from './routes/master/index'
+import { Route as MasterKategoriRouteImport } from './routes/master/kategori'
+import { Route as MasterProjectRouteImport } from './routes/master/project'
+import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
+import { Route as MasterVendorRouteImport } from './routes/master/vendor'
 import { Route as PoIndexRouteImport } from './routes/po/index'
-import { Route as PoNewRouteImport } from './routes/po/new'
-import { Route as ReportsCostRouteImport } from './routes/reports/cost'
-import { Route as ReportsExportRouteImport } from './routes/reports/export'
 import { Route as PoIdIndexRouteImport } from './routes/po/$id/index'
-import { Route as PoIdEditRouteImport } from './routes/po/$id/edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,54 +37,44 @@ const EquipmentRoute = EquipmentRouteImport.update({
   path: '/equipment',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BillingDebtRoute = BillingDebtRouteImport.update({
-  id: '/billing/debt',
-  path: '/billing/debt',
+const MasterRoute = MasterRouteImport.update({
+  id: '/master',
+  path: '/master',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BillingInvoiceRoute = BillingInvoiceRouteImport.update({
-  id: '/billing/invoice',
-  path: '/billing/invoice',
+const DeliveryIndexRoute = DeliveryIndexRouteImport.update({
+  id: '/delivery/',
+  path: '/delivery/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DeliveryHistoryRoute = DeliveryHistoryRouteImport.update({
-  id: '/delivery/history',
-  path: '/delivery/history',
-  getParentRoute: () => rootRouteImport,
+const MasterIndexRoute = MasterIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MasterRoute,
 } as any)
-const DeliveryNewRoute = DeliveryNewRouteImport.update({
-  id: '/delivery/new',
-  path: '/delivery/new',
-  getParentRoute: () => rootRouteImport,
+const MasterKategoriRoute = MasterKategoriRouteImport.update({
+  id: '/kategori',
+  path: '/kategori',
+  getParentRoute: () => MasterRoute,
 } as any)
-const MasterCatalogRoute = MasterCatalogRouteImport.update({
-  id: '/master/catalog',
-  path: '/master/catalog',
-  getParentRoute: () => rootRouteImport,
+const MasterProjectRoute = MasterProjectRouteImport.update({
+  id: '/project',
+  path: '/project',
+  getParentRoute: () => MasterRoute,
 } as any)
-const MasterProjectsRoute = MasterProjectsRouteImport.update({
-  id: '/master/projects',
-  path: '/master/projects',
-  getParentRoute: () => rootRouteImport,
+const MasterSatuanRoute = MasterSatuanRouteImport.update({
+  id: '/satuan',
+  path: '/satuan',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterVendorRoute = MasterVendorRouteImport.update({
+  id: '/vendor',
+  path: '/vendor',
+  getParentRoute: () => MasterRoute,
 } as any)
 const PoIndexRoute = PoIndexRouteImport.update({
   id: '/po/',
   path: '/po/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PoNewRoute = PoNewRouteImport.update({
-  id: '/po/new',
-  path: '/po/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportsCostRoute = ReportsCostRouteImport.update({
-  id: '/reports/cost',
-  path: '/reports/cost',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportsExportRoute = ReportsExportRouteImport.update({
-  id: '/reports/export',
-  path: '/reports/export',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoIdIndexRoute = PoIdIndexRouteImport.update({
@@ -95,44 +82,32 @@ const PoIdIndexRoute = PoIdIndexRouteImport.update({
   path: '/po/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PoIdEditRoute = PoIdEditRouteImport.update({
-  id: '/po/$id/edit',
-  path: '/po/$id/edit',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/equipment': typeof EquipmentRoute
-  '/billing/debt': typeof BillingDebtRoute
-  '/billing/invoice': typeof BillingInvoiceRoute
-  '/delivery/history': typeof DeliveryHistoryRoute
-  '/delivery/new': typeof DeliveryNewRoute
-  '/master/catalog': typeof MasterCatalogRoute
-  '/master/projects': typeof MasterProjectsRoute
-  '/po/new': typeof PoNewRoute
-  '/reports/cost': typeof ReportsCostRoute
-  '/reports/export': typeof ReportsExportRoute
+  '/master': typeof MasterRouteWithChildren
+  '/master/kategori': typeof MasterKategoriRoute
+  '/master/project': typeof MasterProjectRoute
+  '/master/satuan': typeof MasterSatuanRoute
+  '/master/vendor': typeof MasterVendorRoute
+  '/delivery/': typeof DeliveryIndexRoute
+  '/master/': typeof MasterIndexRoute
   '/po/': typeof PoIndexRoute
-  '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/equipment': typeof EquipmentRoute
-  '/billing/debt': typeof BillingDebtRoute
-  '/billing/invoice': typeof BillingInvoiceRoute
-  '/delivery/history': typeof DeliveryHistoryRoute
-  '/delivery/new': typeof DeliveryNewRoute
-  '/master/catalog': typeof MasterCatalogRoute
-  '/master/projects': typeof MasterProjectsRoute
-  '/po/new': typeof PoNewRoute
-  '/reports/cost': typeof ReportsCostRoute
-  '/reports/export': typeof ReportsExportRoute
+  '/master/kategori': typeof MasterKategoriRoute
+  '/master/project': typeof MasterProjectRoute
+  '/master/satuan': typeof MasterSatuanRoute
+  '/master/vendor': typeof MasterVendorRoute
+  '/delivery': typeof DeliveryIndexRoute
+  '/master': typeof MasterIndexRoute
   '/po': typeof PoIndexRoute
-  '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id': typeof PoIdIndexRoute
 }
 export interface FileRoutesById {
@@ -140,17 +115,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/equipment': typeof EquipmentRoute
-  '/billing/debt': typeof BillingDebtRoute
-  '/billing/invoice': typeof BillingInvoiceRoute
-  '/delivery/history': typeof DeliveryHistoryRoute
-  '/delivery/new': typeof DeliveryNewRoute
-  '/master/catalog': typeof MasterCatalogRoute
-  '/master/projects': typeof MasterProjectsRoute
-  '/po/new': typeof PoNewRoute
-  '/reports/cost': typeof ReportsCostRoute
-  '/reports/export': typeof ReportsExportRoute
+  '/master': typeof MasterRouteWithChildren
+  '/master/kategori': typeof MasterKategoriRoute
+  '/master/project': typeof MasterProjectRoute
+  '/master/satuan': typeof MasterSatuanRoute
+  '/master/vendor': typeof MasterVendorRoute
+  '/delivery/': typeof DeliveryIndexRoute
+  '/master/': typeof MasterIndexRoute
   '/po/': typeof PoIndexRoute
-  '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -159,51 +131,41 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/equipment'
-    | '/billing/debt'
-    | '/billing/invoice'
-    | '/delivery/history'
-    | '/delivery/new'
-    | '/master/catalog'
-    | '/master/projects'
-    | '/po/new'
-    | '/reports/cost'
-    | '/reports/export'
+    | '/master'
+    | '/master/kategori'
+    | '/master/project'
+    | '/master/satuan'
+    | '/master/vendor'
+    | '/delivery/'
+    | '/master/'
     | '/po/'
-    | '/po/$id/edit'
     | '/po/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
     | '/equipment'
-    | '/billing/debt'
-    | '/billing/invoice'
-    | '/delivery/history'
-    | '/delivery/new'
-    | '/master/catalog'
-    | '/master/projects'
-    | '/po/new'
-    | '/reports/cost'
-    | '/reports/export'
+    | '/master/kategori'
+    | '/master/project'
+    | '/master/satuan'
+    | '/master/vendor'
+    | '/delivery'
+    | '/master'
     | '/po'
-    | '/po/$id/edit'
     | '/po/$id'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
     | '/equipment'
-    | '/billing/debt'
-    | '/billing/invoice'
-    | '/delivery/history'
-    | '/delivery/new'
-    | '/master/catalog'
-    | '/master/projects'
-    | '/po/new'
-    | '/reports/cost'
-    | '/reports/export'
+    | '/master'
+    | '/master/kategori'
+    | '/master/project'
+    | '/master/satuan'
+    | '/master/vendor'
+    | '/delivery/'
+    | '/master/'
     | '/po/'
-    | '/po/$id/edit'
     | '/po/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -211,17 +173,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   EquipmentRoute: typeof EquipmentRoute
-  BillingDebtRoute: typeof BillingDebtRoute
-  BillingInvoiceRoute: typeof BillingInvoiceRoute
-  DeliveryHistoryRoute: typeof DeliveryHistoryRoute
-  DeliveryNewRoute: typeof DeliveryNewRoute
-  MasterCatalogRoute: typeof MasterCatalogRoute
-  MasterProjectsRoute: typeof MasterProjectsRoute
-  PoNewRoute: typeof PoNewRoute
-  ReportsCostRoute: typeof ReportsCostRoute
-  ReportsExportRoute: typeof ReportsExportRoute
+  MasterRoute: typeof MasterRouteWithChildren
+  DeliveryIndexRoute: typeof DeliveryIndexRoute
   PoIndexRoute: typeof PoIndexRoute
-  PoIdEditRoute: typeof PoIdEditRoute
   PoIdIndexRoute: typeof PoIdIndexRoute
 }
 
@@ -248,74 +202,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipmentRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/billing/debt': {
-      id: '/billing/debt'
-      path: '/billing/debt'
-      fullPath: '/billing/debt'
-      preLoaderRoute: typeof BillingDebtRouteImport
+    '/master': {
+      id: '/master'
+      path: '/master'
+      fullPath: '/master'
+      preLoaderRoute: typeof MasterRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/billing/invoice': {
-      id: '/billing/invoice'
-      path: '/billing/invoice'
-      fullPath: '/billing/invoice'
-      preLoaderRoute: typeof BillingInvoiceRouteImport
+    '/delivery/': {
+      id: '/delivery/'
+      path: '/delivery'
+      fullPath: '/delivery/'
+      preLoaderRoute: typeof DeliveryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/delivery/history': {
-      id: '/delivery/history'
-      path: '/delivery/history'
-      fullPath: '/delivery/history'
-      preLoaderRoute: typeof DeliveryHistoryRouteImport
-      parentRoute: typeof rootRouteImport
+    '/master/': {
+      id: '/master/'
+      path: '/'
+      fullPath: '/master/'
+      preLoaderRoute: typeof MasterIndexRouteImport
+      parentRoute: typeof MasterRoute
     }
-    '/delivery/new': {
-      id: '/delivery/new'
-      path: '/delivery/new'
-      fullPath: '/delivery/new'
-      preLoaderRoute: typeof DeliveryNewRouteImport
-      parentRoute: typeof rootRouteImport
+    '/master/kategori': {
+      id: '/master/kategori'
+      path: '/kategori'
+      fullPath: '/master/kategori'
+      preLoaderRoute: typeof MasterKategoriRouteImport
+      parentRoute: typeof MasterRoute
     }
-    '/master/catalog': {
-      id: '/master/catalog'
-      path: '/master/catalog'
-      fullPath: '/master/catalog'
-      preLoaderRoute: typeof MasterCatalogRouteImport
-      parentRoute: typeof rootRouteImport
+    '/master/project': {
+      id: '/master/project'
+      path: '/project'
+      fullPath: '/master/project'
+      preLoaderRoute: typeof MasterProjectRouteImport
+      parentRoute: typeof MasterRoute
     }
-    '/master/projects': {
-      id: '/master/projects'
-      path: '/master/projects'
-      fullPath: '/master/projects'
-      preLoaderRoute: typeof MasterProjectsRouteImport
-      parentRoute: typeof rootRouteImport
+    '/master/satuan': {
+      id: '/master/satuan'
+      path: '/satuan'
+      fullPath: '/master/satuan'
+      preLoaderRoute: typeof MasterSatuanRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/vendor': {
+      id: '/master/vendor'
+      path: '/vendor'
+      fullPath: '/master/vendor'
+      preLoaderRoute: typeof MasterVendorRouteImport
+      parentRoute: typeof MasterRoute
     }
     '/po/': {
       id: '/po/'
       path: '/po'
       fullPath: '/po/'
       preLoaderRoute: typeof PoIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/po/new': {
-      id: '/po/new'
-      path: '/po/new'
-      fullPath: '/po/new'
-      preLoaderRoute: typeof PoNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reports/cost': {
-      id: '/reports/cost'
-      path: '/reports/cost'
-      fullPath: '/reports/cost'
-      preLoaderRoute: typeof ReportsCostRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reports/export': {
-      id: '/reports/export'
-      path: '/reports/export'
-      fullPath: '/reports/export'
-      preLoaderRoute: typeof ReportsExportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/po/$id/': {
@@ -325,31 +265,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/po/$id/edit': {
-      id: '/po/$id/edit'
-      path: '/po/$id/edit'
-      fullPath: '/po/$id/edit'
-      preLoaderRoute: typeof PoIdEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
+
+interface MasterRouteChildren {
+  MasterKategoriRoute: typeof MasterKategoriRoute
+  MasterProjectRoute: typeof MasterProjectRoute
+  MasterSatuanRoute: typeof MasterSatuanRoute
+  MasterVendorRoute: typeof MasterVendorRoute
+  MasterIndexRoute: typeof MasterIndexRoute
+}
+
+const MasterRouteChildren: MasterRouteChildren = {
+  MasterKategoriRoute: MasterKategoriRoute,
+  MasterProjectRoute: MasterProjectRoute,
+  MasterSatuanRoute: MasterSatuanRoute,
+  MasterVendorRoute: MasterVendorRoute,
+  MasterIndexRoute: MasterIndexRoute,
+}
+
+const MasterRouteWithChildren =
+  MasterRoute._addFileChildren(MasterRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   EquipmentRoute: EquipmentRoute,
-  BillingDebtRoute: BillingDebtRoute,
-  BillingInvoiceRoute: BillingInvoiceRoute,
-  DeliveryHistoryRoute: DeliveryHistoryRoute,
-  DeliveryNewRoute: DeliveryNewRoute,
-  MasterCatalogRoute: MasterCatalogRoute,
-  MasterProjectsRoute: MasterProjectsRoute,
-  PoNewRoute: PoNewRoute,
-  ReportsCostRoute: ReportsCostRoute,
-  ReportsExportRoute: ReportsExportRoute,
+  MasterRoute: MasterRouteWithChildren,
+  DeliveryIndexRoute: DeliveryIndexRoute,
   PoIndexRoute: PoIndexRoute,
-  PoIdEditRoute: PoIdEditRoute,
   PoIdIndexRoute: PoIdIndexRoute,
 }
 export const routeTree = rootRouteImport

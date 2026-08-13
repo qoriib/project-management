@@ -34,6 +34,17 @@ CREATE TABLE IF NOT EXISTS items (
     unit TEXT NOT NULL                   -- 'm3', 'Kg', 'Batang', 'Liter', 'Rol', 'Pcs'
 );
 
+CREATE TABLE IF NOT EXISTS item_categories (
+    category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_code TEXT UNIQUE NOT NULL,
+    category_name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS units (
+    unit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_name TEXT UNIQUE NOT NULL
+);
+
 -- 4. TAHAP 1: PURCHASE ORDER (PO / PEMESANAN)
 CREATE TABLE IF NOT EXISTS purchase_orders (
     po_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,4 +120,3 @@ CREATE TABLE IF NOT EXISTS invoice_items (
     description TEXT NOT NULL,
     amount REAL NOT NULL
 );
-

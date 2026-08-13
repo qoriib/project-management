@@ -69,16 +69,16 @@ function EquipmentLogPage() {
     setSaving(true);
     try {
       await createEquipmentLog({
-        project_id: pId ? Number(pId) : undefined,
-        vendor_id: vId ? Number(vId) : undefined,
+        project_id: pId ? Number(pId) : null,
+        vendor_id: vId ? Number(vId) : null,
         equipment_name: equipName,
-        operator_name: operator,
+        operator_name: operator || null,
         work_date_start: dateStart,
-        work_date_end: dateEnd || undefined,
+        work_date_end: dateEnd || null,
         duration_value: parseFloat(durationVal) || 0,
         duration_unit: durationUnit,
         rate_per_unit: parseFloat(ratePerUnit) || 0,
-        activity_description: activity,
+        activity_description: activity || null,
       });
       setModalOpen(false);
       await load();

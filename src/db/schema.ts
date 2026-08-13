@@ -8,98 +8,109 @@ export const invoiceStatusValues = ["UNPAID", "PARTIAL", "PAID"] as const;
 export const ownershipTypeValues = ["INTERNAL", "EKSTERNAL"] as const;
 
 export const projects = sqliteTable("projects", {
-  projectId: integer("project_id").primaryKey({ autoIncrement: true }),
-  projectCode: text("project_code").notNull().unique(),
-  projectName: text("project_name").notNull(),
-  contractorName: text("contractor_name").notNull(),
-  fiscalYear: integer("fiscal_year").notNull(),
+  project_id: integer("project_id").primaryKey({ autoIncrement: true }),
+  project_code: text("project_code").notNull().unique(),
+  project_name: text("project_name").notNull(),
+  contractor_name: text("contractor_name").notNull(),
+  fiscal_year: integer("fiscal_year").notNull(),
   status: text("status", { enum: projectStatusValues }).default("ON_PROGRESS"),
-  createdAt: text("created_at").default(sql`(datetime('now', 'localtime'))`),
+  created_at: text("created_at").default(sql`(datetime('now', 'localtime'))`),
 });
 
 export const vendors = sqliteTable("vendors", {
-  vendorId: integer("vendor_id").primaryKey({ autoIncrement: true }),
-  vendorName: text("vendor_name").notNull().unique(),
-  vendorType: text("vendor_type", { enum: vendorTypeValues }).notNull(),
+  vendor_id: integer("vendor_id").primaryKey({ autoIncrement: true }),
+  vendor_name: text("vendor_name").notNull().unique(),
+  vendor_type: text("vendor_type", { enum: vendorTypeValues }).notNull(),
   phone: text("phone"),
   address: text("address"),
-  createdAt: text("created_at").default(sql`(datetime('now', 'localtime'))`),
+  created_at: text("created_at").default(sql`(datetime('now', 'localtime'))`),
 });
 
 export const items = sqliteTable("items", {
-  itemId: integer("item_id").primaryKey({ autoIncrement: true }),
-  itemCode: text("item_code").unique(),
-  itemName: text("item_name").notNull(),
+  item_id: integer("item_id").primaryKey({ autoIncrement: true }),
+  item_code: text("item_code").unique(),
+  item_name: text("item_name").notNull(),
   category: text("category", { enum: itemCategoryValues }).notNull(),
   unit: text("unit").notNull(),
 });
 
+export const itemCategories = sqliteTable("item_categories", {
+  category_id: integer("category_id").primaryKey({ autoIncrement: true }),
+  category_code: text("category_code").notNull().unique(),
+  category_name: text("category_name").notNull(),
+});
+
+export const units = sqliteTable("units", {
+  unit_id: integer("unit_id").primaryKey({ autoIncrement: true }),
+  unit_name: text("unit_name").notNull().unique(),
+});
+
 export const purchaseOrders = sqliteTable("purchase_orders", {
-  poId: integer("po_id").primaryKey({ autoIncrement: true }),
-  projectId: integer("project_id").references(() => projects.projectId, { onDelete: "cascade" }),
-  vendorId: integer("vendor_id").references(() => vendors.vendorId, { onDelete: "restrict" }),
-  poNumber: text("po_number").notNull().unique(),
-  poDate: text("po_date").notNull(),
+  po_id: integer("po_id").primaryKey({ autoIncrement: true }),
+  project_id: integer("project_id").references(() => projects.project_id, { onDelete: "cascade" }),
+  vendor_id: integer("vendor_id").references(() => vendors.vendor_id, { onDelete: "restrict" }),
+  po_number: text("po_number").notNull().unique(),
+  po_date: text("po_date").notNull(),
   notes: text("notes"),
-  createdAt: text("created_at").default(sql`(datetime('now', 'localtime'))`),
+  created_at: text("created_at").default(sql`(datetime('now', 'localtime'))`),
 });
 
 export const poItems = sqliteTable("po_items", {
-  poItemId: integer("po_item_id").primaryKey({ autoIncrement: true }),
-  poId: integer("po_id").references(() => purchaseOrders.poId, { onDelete: "cascade" }),
-  itemId: integer("item_id").references(() => items.itemId, { onDelete: "restrict" }),
-  orderedVolume: real("ordered_volume").notNull(),
-  unitPrice: real("unit_price").notNull(),
-  subtotalPrice: real("subtotal_price").generatedAlwaysAs(sql`ordered_volume * unit_price`, { mode: "stored" }),
-  ppnPercentage: real("ppn_percentage").default(0),
-  ppnAmount: real("ppn_amount").generatedAlwaysAs(sql`ordered_volume * unit_price * (ppn_percentage / 100.0)`, { mode: "stored" }),
-  totalPrice: real("total_price").generatedAlwaysAs(sql`ordered_volume * unit_price * (1.0 + ppn_percentage / 100.0)`, { mode: "stored" }),
+  po_item_id: integer("po_item_id").primaryKey({ autoIncrement: true }),
+  po_id: integer("po_id").references(() => purchaseOrders.po_id, { onDelete: "cascade" }),
+  item_id: integer("item_id").references(() => items.item_id, { onDelete: "restrict" }),
+  ordered_volume: real("ordered_volume").notNull(),
+  unit_price: real("unit_price").notNull(),
+  subtotal_price: real("subtotal_price").generatedAlwaysAs(sql`ordered_volume * unit_price`, { mode: "stored" }),
+  ppn_percentage: real("ppn_percentage").default(0),
+  ppn_amount: real("ppn_amount").generatedAlwaysAs(sql`ordered_volume * unit_price * (ppn_percentage / 100.0)`, { mode: "stored" }),
+  total_price: real("total_price").generatedAlwaysAs(sql`ordered_volume * unit_price * (1.0 + ppn_percentage / 100.0)`, { mode: "stored" }),
 });
 
 export const deliveries = sqliteTable("deliveries", {
-  deliveryId: integer("delivery_id").primaryKey({ autoIncrement: true }),
-  poItemId: integer("po_item_id").references(() => poItems.poItemId, { onDelete: "cascade" }),
-  deliveryDate: text("delivery_date").notNull(),
-  deliveredVolume: real("delivered_volume").notNull(),
-  deliveryNoteNumber: text("delivery_note_number"),
-  locationDestination: text("location_destination"),
+  delivery_id: integer("delivery_id").primaryKey({ autoIncrement: true }),
+  po_item_id: integer("po_item_id").references(() => poItems.po_item_id, { onDelete: "cascade" }),
+  delivery_date: text("delivery_date").notNull(),
+  delivered_volume: real("delivered_volume").notNull(),
+  delivery_note_number: text("delivery_note_number"),
+  location_destination: text("location_destination"),
   notes: text("notes"),
 });
 
 export const equipmentLogs = sqliteTable("equipment_logs", {
-  equipLogId: integer("equip_log_id").primaryKey({ autoIncrement: true }),
-  projectId: integer("project_id").references(() => projects.projectId, { onDelete: "set null" }),
-  vendorId: integer("vendor_id").references(() => vendors.vendorId, { onDelete: "set null" }),
-  equipmentName: text("equipment_name").notNull(),
-  operatorName: text("operator_name"),
-  workDateStart: text("work_date_start").notNull(),
-  workDateEnd: text("work_date_end"),
-  durationValue: real("duration_value").notNull(),
-  durationUnit: text("duration_unit").notNull(),
-  ratePerUnit: real("rate_per_unit").notNull(),
-  totalCost: real("total_cost").generatedAlwaysAs(sql`duration_value * rate_per_unit`, { mode: "stored" }),
-  activityDescription: text("activity_description"),
+  equip_log_id: integer("equip_log_id").primaryKey({ autoIncrement: true }),
+  project_id: integer("project_id").references(() => projects.project_id, { onDelete: "set null" }),
+  vendor_id: integer("vendor_id").references(() => vendors.vendor_id, { onDelete: "set null" }),
+  equipment_name: text("equipment_name").notNull(),
+  operator_name: text("operator_name"),
+  work_date_start: text("work_date_start").notNull(),
+  work_date_end: text("work_date_end"),
+  duration_value: real("duration_value").notNull(),
+  duration_unit: text("duration_unit").notNull(),
+  rate_per_unit: real("rate_per_unit").notNull(),
+  total_cost: real("total_cost").generatedAlwaysAs(sql`duration_value * rate_per_unit`, { mode: "stored" }),
+  activity_description: text("activity_description"),
 });
 
 export const invoices = sqliteTable("invoices", {
-  invoiceId: integer("invoice_id").primaryKey({ autoIncrement: true }),
-  projectId: integer("project_id").references(() => projects.projectId, { onDelete: "set null" }),
-  vendorId: integer("vendor_id").references(() => vendors.vendorId, { onDelete: "restrict" }),
-  invoiceNumber: text("invoice_number").unique(),
-  invoiceDate: text("invoice_date").notNull(),
-  totalAmount: real("total_amount").notNull(),
-  paidAmount: real("paid_amount").default(0),
-  remainingBalance: real("remaining_balance").generatedAlwaysAs(sql`total_amount - paid_amount`, { mode: "stored" }),
-  paymentStatus: text("payment_status", { enum: invoiceStatusValues }).default("UNPAID"),
-  ownershipType: text("ownership_type", { enum: ownershipTypeValues }).default("INTERNAL"),
-  createdAt: text("created_at").default(sql`(datetime('now', 'localtime'))`),
+  invoice_id: integer("invoice_id").primaryKey({ autoIncrement: true }),
+  project_id: integer("project_id").references(() => projects.project_id, { onDelete: "set null" }),
+  vendor_id: integer("vendor_id").references(() => vendors.vendor_id, { onDelete: "restrict" }),
+  invoice_number: text("invoice_number").unique(),
+  invoice_date: text("invoice_date").notNull(),
+  total_amount: real("total_amount").notNull(),
+  paid_amount: real("paid_amount").default(0),
+  remaining_balance: real("remaining_balance").generatedAlwaysAs(sql`total_amount - paid_amount`, { mode: "stored" }),
+  payment_status: text("payment_status", { enum: invoiceStatusValues }).default("UNPAID"),
+  ownership_type: text("ownership_type", { enum: ownershipTypeValues }).default("INTERNAL"),
+  created_at: text("created_at").default(sql`(datetime('now', 'localtime'))`),
 });
 
 export const invoiceItems = sqliteTable("invoice_items", {
-  invItemId: integer("inv_item_id").primaryKey({ autoIncrement: true }),
-  invoiceId: integer("invoice_id").references(() => invoices.invoiceId, { onDelete: "cascade" }),
-  poItemId: integer("po_item_id").references(() => poItems.poItemId, { onDelete: "set null" }),
-  equipLogId: integer("equip_log_id").references(() => equipmentLogs.equipLogId, { onDelete: "set null" }),
+  inv_item_id: integer("inv_item_id").primaryKey({ autoIncrement: true }),
+  invoice_id: integer("invoice_id").references(() => invoices.invoice_id, { onDelete: "cascade" }),
+  po_item_id: integer("po_item_id").references(() => poItems.po_item_id, { onDelete: "set null" }),
+  equip_log_id: integer("equip_log_id").references(() => equipmentLogs.equip_log_id, { onDelete: "set null" }),
   description: text("description").notNull(),
   amount: real("amount").notNull(),
 });
@@ -108,6 +119,8 @@ export const schema = {
   projects,
   vendors,
   items,
+  itemCategories,
+  units,
   purchaseOrders,
   poItems,
   deliveries,

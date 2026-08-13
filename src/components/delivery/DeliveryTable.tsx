@@ -1,18 +1,17 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import {
-  Section, VStack, HStack, Button, Table, TextInput, Selector, Text,
-} from "@astryxdesign/core";
-import { PageHeader } from "@/components/PageHeader";
+import { HStack, Button, Table, TextInput, Selector, Text, VStack } from "@astryxdesign/core";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { getDeliveries, deleteDelivery, type Delivery } from "@/db/queries/field";
 import { getVendors, type Vendor } from "@/db/queries/master";
 import { formatDate, formatNumber } from "@/utils/formatters";
 import { exportToExcel } from "@/utils/export";
 
-function DeliveryHistoryPage() {
-  const navigate = useNavigate();
+interface DeliveryTableProps {
+  onRefresh?: () => void;
+  refreshTrigger?: number; // to allow parent to trigger refresh
+}
+
+export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps) {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
 
@@ -37,7 +36,7 @@ function DeliveryHistoryPage() {
     setVendors(v);
   }
 
-  useEffect(() => { load(); }, [vendorFilter, dateDari, dateSampai]);
+  useEffect(() => { load(); }, [vendorFilter, dateDari, dateSampai, refreshTrigger]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -46,6 +45,7 @@ function DeliveryHistoryPage() {
       await deleteDelivery(deleteTarget);
       setDeleteTarget(null);
       await load();
+      if (onRefresh) onRefresh();
     } finally {
       setDeleting(false);
     }
@@ -86,19 +86,8 @@ function DeliveryHistoryPage() {
   ];
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader
-          title="Rekapitulasi Pengiriman Material"
-          subtitle="Log kronologis penerimaan barang dan jasa sewa di lapangan"
-          actions={
-            <HStack gap={2}>
-              <Button variant="secondary" label="📊 Export Excel" onClick={handleExport} />
-              <Button variant="primary" label="+ Input Pengiriman" onClick={() => navigate({ to: "/delivery/new" })} />
-            </HStack>
-          }
-        />
-
+    <VStack gap={4}>
+      <HStack gap={3} justify="between">
         <HStack gap={3}>
           <Selector
             label=""
@@ -126,18 +115,19 @@ function DeliveryHistoryPage() {
             width={160}
           />
         </HStack>
+        <Button variant="secondary" label="📊 Export Excel" onClick={handleExport} />
+      </HStack>
 
-        <Table
-          columns={columns as any}
-          data={deliveries as any}
-          idKey="delivery_id"
-          emptyState={
-            <VStack align="center" padding={8}>
-              <Text color="secondary">Tidak ada data pengiriman yang cocok.</Text>
-            </VStack>
-          }
-        />
-      </VStack>
+      <Table
+        columns={columns as any}
+        data={deliveries as any}
+        idKey="delivery_id"
+        emptyState={
+          <VStack align="center" padding={8}>
+            <Text color="secondary">Tidak ada data pengiriman yang cocok.</Text>
+          </VStack>
+        }
+      />
 
       <ConfirmDialog
         isOpen={!!deleteTarget}
@@ -147,11 +137,6 @@ function DeliveryHistoryPage() {
         message="Apakah Anda yakin ingin menghapus data pengiriman ini? Jumlah sisa PO terkait akan bertambah kembali."
         isLoading={deleting}
       />
-    </Section>
+    </VStack>
   );
 }
-
-
-export const Route = createFileRoute('/delivery/history')({
-  component: DeliveryHistoryPage,
-});
