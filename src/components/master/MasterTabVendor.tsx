@@ -4,11 +4,7 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import {
-  vendorRepo,
-  type Vendor,
-} from "@/db/repositories";
-
+import { vendorRepo, type Vendor } from "@/db/repositories";
 
 export function MasterTabVendor() {
   const [vendors, setVendors] = useState<Vendor[]>([]);

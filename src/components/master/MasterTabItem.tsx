@@ -5,10 +5,7 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import {
-  itemRepo, itemPriceRepo, itemCategoryRepo, unitRepo,
-  type Item, type ItemCategory, type Unit, type ItemWithPrices, type ItemPriceWithRelation,
-} from "@/db/repositories";
+import { itemRepo, itemPriceRepo, itemCategoryRepo, unitRepo, type Item, type ItemCategory, type Unit, type ItemWithPrices, type ItemPriceWithRelation } from "@/db/repositories";
 
 export function MasterTabItem() {
   const [items, setItems] = useState<ItemWithPrices[]>([]);

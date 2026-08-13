@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import {
-  unitRepo, itemRepo,
-  type Unit, type Item,
-} from "@/db/repositories";
+import { unitRepo, itemRepo, type Unit, type Item } from "@/db/repositories";
 
 export function MasterTabUnit() {
   const [units, setUnits] = useState<Unit[]>([]);

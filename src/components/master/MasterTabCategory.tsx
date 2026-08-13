@@ -4,10 +4,7 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import {
-  itemCategoryRepo, itemRepo,
-  type ItemCategory, type Item,
-} from "@/db/repositories";
+import { itemCategoryRepo, itemRepo, type ItemCategory, type Item } from "@/db/repositories";
 
 export function MasterTabCategory() {
   const [categories, setCategories] = useState<ItemCategory[]>([]);

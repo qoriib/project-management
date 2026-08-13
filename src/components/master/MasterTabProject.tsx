@@ -5,10 +5,7 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import {
-  projectRepo,
-  type Project, type ProjectWithStages
-} from "@/db/repositories";
+import { projectRepo, type Project, type ProjectWithStages } from "@/db/repositories";
 
 export function MasterTabProject() {
   const [projects, setProjects] = useState<ProjectWithStages[]>([]);

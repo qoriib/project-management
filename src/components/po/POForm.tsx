@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
-import {
-  VStack, HStack, Button, Selector,
-  Table, Text, Divider, Heading, Card,
-} from "@astryxdesign/core";
+import { VStack, HStack, Button, Selector, Table, Text, Divider, Heading, Card } from "@astryxdesign/core";
 import { DateInput } from "@astryxdesign/core/DateInput";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { proportional, pixel } from "@astryxdesign/core/Table";
@@ -134,11 +131,11 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
               <Card padding={4}>
                 <HStack gap={4} style={{ alignItems: 'flex-start' }}>
                   <div style={{ width: 240 }}>
-                      <form.Field name="poDate">
-                        {(field) => (
-                          <DateInput label="Tanggal PO" value={field.state.value as any} onChange={(v) => field.handleChange(v || "")} isRequired />
-                        )}
-                      </form.Field>
+                    <form.Field name="poDate">
+                      {(field) => (
+                        <DateInput label="Tanggal PO" value={field.state.value as any} onChange={(v) => field.handleChange(v || "")} isRequired />
+                      )}
+                    </form.Field>
                   </div>
                 </HStack>
               </Card>
