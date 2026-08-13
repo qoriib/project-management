@@ -180,44 +180,140 @@ INSERT INTO `bill_of_materials` (`project_id`, `stage_id`, `item_id`, `item_pric
 
 -- 9. PURCHASE ORDERS (PO)
 INSERT INTO `purchase_orders` (`project_id`, `po_date`) VALUES 
-(1, '2026-03-01'), -- PO 1: Semen & Pasir
-(1, '2026-03-05'), -- PO 2: Besi
-(2, '2026-04-10'), -- PO 3: Triplek & Cat (Project 2)
-(3, '2026-05-15'); -- PO 4: Sewa Alat (Project 3)
+(1, '2026-03-01'), -- PO 1: Alat Berat & Tenaga (Persiapan)
+(1, '2026-03-05'), -- PO 2: Semen, Pasir, Mortar
+(1, '2026-03-10'), -- PO 3: Batu & Kayu
+(1, '2026-03-12'), -- PO 4: Besi & Kawat
+(1, '2026-04-05'), -- PO 5: Keramik, Pipa, Listrik
+(1, '2026-04-15'), -- PO 6: Cat & Waterproofing
+(2, '2026-04-20'), -- PO 7: Pekerja, Triplek, Cat (Proyek 2)
+(2, '2026-04-25'), -- PO 8: Kabel & Lampu (Proyek 2)
+(3, '2026-05-10'), -- PO 9: Alat Berat & Pasir (Proyek 3)
+(3, '2026-05-15'); -- PO 10: Besi Baja (Proyek 3)
 
 -- 10. PO ITEMS (Rincian PO)
 INSERT INTO `po_items` (`po_id`, `item_id`, `item_price_id`, `vendor_id`, `qty`) VALUES 
--- PO 1 Items
-(1, 1, 1, 1, 100),    -- Semen Portland 100 Zak dari TB Sinar
-(1, 5, 8, 3, 10),     -- Pasir Beton 10 m3 dari CV Sumber Pasir
--- PO 2 Items
-(2, 8, 11, 2, 100),   -- Besi 8mm 100 Btg dari PT Baja Jaya
-(2, 10, 15, 2, 100),  -- Besi Ulir 13mm 100 Btg dari PT Baja Jaya
--- PO 3 Items
-(3, 14, 20, 1, 60),   -- Triplek 12mm 60 Lembar dari TB Sinar
-(3, 17, 24, 4, 5),    -- Cat Interior 5 Pail dari Toko Cat Warna
--- PO 4 Items
-(4, 26, 36, 6, 120),  -- Excavator 120 Jam dari Sewa Alat Berat
-(4, 27, 37, 6, 5);    -- Concrete Pump 5 Hari dari Sewa Alat Berat
+-- PO 1 Items (ID 1-4)
+(1, 26, 35, 6, 40),    -- 1. Excavator 40 Jam
+(1, 28, 38, 6, 14),    -- 2. Tukang 14 Hari
+(1, 29, 40, 6, 14),    -- 3. Mandor 14 Hari
+(1, 27, 37, 6, 2),     -- 4. Concrete Pump 2 Hari
+-- PO 2 Items (ID 5-9)
+(2, 1, 1, 1, 300),     -- 5. Semen Portland 300 Zak (Dari 350)
+(2, 5, 8, 3, 15),      -- 6. Pasir Beton 15 m3
+(2, 4, 6, 3, 20),      -- 7. Pasir Pasang 20 m3
+(2, 3, 4, 1, 80),      -- 8. Mortar 80 Zak (Dari 100)
+(2, 2, 3, 1, 10),      -- 9. Semen Putih 10 Zak
+-- PO 3 Items (ID 10-13)
+(3, 6, 9, 3, 15),      -- 10. Batu Split 15 m3
+(3, 16, 23, 7, 50),    -- 11. Papan Cor 50 Lembar
+(3, 15, 22, 7, 200),   -- 12. Kaso 200 Btg
+(3, 13, 19, 7, 50),    -- 13. Triplek 9mm 50 Lembar
+-- PO 4 Items (ID 14-17)
+(4, 8, 11, 2, 100),    -- 14. Besi 8mm 100 Btg
+(4, 9, 13, 2, 150),    -- 15. Besi 10mm 150 Btg
+(4, 10, 15, 2, 150),   -- 16. Besi Ulir 13mm 150 Btg (Dari 200)
+(4, 12, 18, 2, 20),    -- 17. Kawat Bendrat 20 Kg
+-- PO 5 Items (ID 18-23)
+(5, 24, 32, 5, 120),   -- 18. Granit 120 m2
+(5, 25, 34, 5, 40),    -- 19. Keramik 40 m2
+(5, 20, 28, 1, 10),    -- 20. Pipa 4 inch 10 Btg
+(5, 21, 29, 1, 25),    -- 21. Pipa 1/2 inch 25 Btg
+(5, 22, 30, 1, 5),     -- 22. Kabel NYM 5 Roll
+(5, 23, 31, 1, 30),    -- 23. Downlight 30 Unit
+-- PO 6 Items (ID 24-26)
+(6, 17, 24, 4, 15),    -- 24. Cat Interior 15 Pail
+(6, 18, 26, 4, 10),    -- 25. Cat Eksterior 10 Pail
+(6, 19, 27, 4, 5),     -- 26. Waterproofing 5 Pail
+-- PO 7 Items (ID 27-29) - Proyek 2
+(7, 28, 38, 6, 20),    -- 27. Tukang 20 Hari
+(7, 14, 20, 1, 160),   -- 28. Triplek 12mm 160 Lembar
+(7, 17, 24, 4, 5),     -- 29. Cat Interior 5 Pail
+-- PO 8 Items (ID 30-31) - Proyek 2
+(8, 22, 30, 1, 10),    -- 30. Kabel NYM 10 Roll
+(8, 23, 31, 1, 50),    -- 31. Downlight 50 Unit
+-- PO 9 Items (ID 32-34) - Proyek 3
+(9, 26, 36, 6, 100),   -- 32. Excavator 100 Jam (Dari 120)
+(9, 27, 37, 6, 5),     -- 33. Concrete Pump 5 Hari
+(9, 4, 6, 3, 50),      -- 34. Pasir Urug 50 m3
+-- PO 10 Items (ID 35) - Proyek 3
+(10, 11, 17, 2, 400);  -- 35. Besi Ulir 16mm 400 Btg (Dari 500)
 
--- 11. DELIVERIES (Pengiriman)
+-- 11. DELIVERIES (Pengiriman / Penerimaan)
 INSERT INTO `deliveries` (`po_id`, `delivery_date`) VALUES 
-(1, '2026-03-03'), -- Pengiriman 1 dari PO 1
-(1, '2026-03-05'), -- Pengiriman 2 dari PO 1
-(2, '2026-03-08'), -- Pengiriman 3 dari PO 2
-(3, '2026-04-12'); -- Pengiriman 4 dari PO 3
+(1, '2026-03-03'), -- 1: Del 1 PO 1
+(2, '2026-03-07'), -- 2: Del 2 PO 2 (Batch 1)
+(2, '2026-03-14'), -- 3: Del 3 PO 2 (Batch 2)
+(2, '2026-03-20'), -- 4: Del 4 PO 2 (Batch 3)
+(3, '2026-03-12'), -- 5: Del 5 PO 3 (Batch 1)
+(3, '2026-03-18'), -- 6: Del 6 PO 3 (Batch 2)
+(4, '2026-03-15'), -- 7: Del 7 PO 4
+(5, '2026-04-10'), -- 8: Del 8 PO 5 (Batch 1)
+(5, '2026-04-12'), -- 9: Del 9 PO 5 (Batch 2)
+(6, '2026-04-18'), -- 10: Del 10 PO 6
+(7, '2026-04-22'), -- 11: Del 11 PO 7 (Batch 1)
+(7, '2026-05-02'), -- 12: Del 12 PO 7 (Batch 2)
+(8, '2026-04-28'), -- 13: Del 13 PO 8
+(9, '2026-05-15'), -- 14: Del 14 PO 9
+(10, '2026-05-20'), -- 15: Del 15 PO 10 (Batch 1)
+(10, '2026-05-25'); -- 16: Del 16 PO 10 (Batch 2)
 
--- 12. DELIVERY ITEMS (Rincian Pengiriman)
+-- 12. DELIVERY ITEMS (Rincian Penerimaan Lapangan)
 INSERT INTO `delivery_items` (`delivery_id`, `po_item_id`, `qty`) VALUES 
--- Pengiriman 1 (Semen 50 Zak, Pasir 5 m3)
-(1, 1, 50), 
-(1, 2, 5),
--- Pengiriman 2 (Semen sisa 50 Zak, Pasir 5 m3)
-(2, 1, 50),
-(2, 2, 5),
--- Pengiriman 3 (Besi 8mm 100 Btg, Besi 13mm 50 Btg - parsial)
-(3, 3, 100),
-(3, 4, 50),
--- Pengiriman 4 (Triplek 60 Lembar, Cat 2 Pail)
-(4, 5, 60),
-(4, 6, 2);
+-- Delivery 1 (PO 1)
+(1, 1, 30),  -- Excavator 30 Jam (Sisa 10 belum)
+(1, 2, 14),
+(1, 3, 14),
+(1, 4, 2),
+-- Delivery 2 (PO 2 - Batch 1)
+(2, 5, 100), -- Semen 100
+(2, 6, 15),  -- Pasir Beton 15
+(2, 7, 10),  -- Pasir Pasang 10
+(2, 9, 10),  -- Semen Putih 10
+-- Delivery 3 (PO 2 - Batch 2)
+(3, 5, 100), -- Semen 100
+(3, 7, 10),  -- Pasir Pasang 10 (Lunas)
+(3, 8, 80),  -- Mortar 80 (Lunas)
+-- Delivery 4 (PO 2 - Batch 3)
+(4, 5, 50),  -- Semen 50 (Total 250, PO sisa 50)
+-- Delivery 5 (PO 3 - Batch 1)
+(5, 10, 10), -- Batu Split 10 (Sisa 5)
+(5, 11, 50), -- Papan Cor 50
+(5, 12, 100),-- Kaso 100
+-- Delivery 6 (PO 3 - Batch 2)
+(6, 12, 100),-- Kaso 100 (Lunas)
+(6, 13, 50), -- Triplek 9mm 50 (Lunas)
+-- Delivery 7 (PO 4 - All)
+(7, 14, 100),
+(7, 15, 150),
+(7, 16, 150),
+(7, 17, 20),
+-- Delivery 8 (PO 5 - Batch 1)
+(8, 18, 60), -- Granit 60
+(8, 19, 40), -- Keramik 40 (Lunas)
+(8, 20, 10),
+(8, 21, 25),
+(8, 22, 5),
+(8, 23, 20), -- Downlight 20 (Sisa 10)
+-- Delivery 9 (PO 5 - Batch 2)
+(8, 18, 40), -- Granit 40 (Total 100, Sisa 20)
+-- Delivery 10 (PO 6) -> Waterproofing belum terkirim
+(10, 24, 15), 
+(10, 25, 10),
+-- Delivery 11 (PO 7 - Batch 1)
+(11, 27, 10),
+(11, 28, 80),
+-- Delivery 12 (PO 7 - Batch 2)
+(12, 27, 10),
+(12, 28, 80),
+(12, 29, 5),
+-- Delivery 13 (PO 8)
+(13, 30, 10),
+(13, 31, 50),
+-- Delivery 14 (PO 9) -> Concrete pump (item 33) belum terkirim
+(14, 32, 100),
+(14, 34, 50),
+-- Delivery 15 (PO 10 - Batch 1)
+(15, 35, 200),
+-- Delivery 16 (PO 10 - Batch 2)
+(16, 35, 200);

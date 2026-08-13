@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import {
-  VStack, HStack, Card, Heading, Text, Section, Table, StatusDot, Grid, GridSpan
+  VStack, HStack, Card, Heading, Text, Section, Table, Grid, GridSpan
 } from "@astryxdesign/core";
+import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { PageHeader } from "@/components/PageHeader";
 import { ProjectRequired } from "@/components/ProjectRequired";
 import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/queries/dashboard";
@@ -77,18 +78,30 @@ function Dashboard() {
 
             {stages.map(stage => {
               const stageData = report.filter(r => r.stage_name === stage);
+              
+              const stageTotalBudget = stageData.reduce((sum, r) => sum + r.planned_budget, 0);
+              const stageDeliveredValue = stageData.reduce((sum, r) => {
+                const percentDelivered = r.planned_volume > 0 ? (r.total_delivered / r.planned_volume) : 0;
+                // Cap at 100% per item so over-delivery doesn't artificially inflate total progress
+                return sum + (Math.min(percentDelivered, 1) * r.planned_budget);
+              }, 0);
+              const stageProgressPercent = stageTotalBudget > 0 ? (stageDeliveredValue / stageTotalBudget) * 100 : 0;
+
               return (
-                <Card key={stage} padding={0}>
-                  <VStack gap={0}>
-                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--color-border-subtle)" }}>
-                      <Heading level={4}>{stage}</Heading>
-                    </div>
+                <VStack key={stage} gap={3}>
+                  <HStack justify="between" align="center">
+                    <Heading level={4}>{stage}</Heading>
+                    <Text weight="medium" color="secondary">
+                      Progres: {stageProgressPercent.toFixed(1)}%
+                    </Text>
+                  </HStack>
+                  <Card padding={0}>
                     <Table
                       columns={[
                         { key: "item", header: "Material / Alat", width: proportional(1.5), renderCell: (r: any) => <Text weight="medium">{r.item_name}</Text> },
                         {
                           key: "planned", header: "BOM (Rencana)", width: pixel(180), renderCell: (r: any) => (
-                            <VStack gap={0}>
+                            <VStack gap={1}>
                               <Text size="sm">{formatNumber(r.planned_volume, 2)} {r.unit}</Text>
                               <Text size="2xs" color="secondary">{formatRupiah(r.planned_budget)}</Text>
                             </VStack>
@@ -99,13 +112,13 @@ function Dashboard() {
                             const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
                             const isOver = percent > 100;
                             return (
-                              <VStack gap={0}>
-                                <HStack gap={2} align="center">
-                                  <StatusDot variant={isOver ? "warning" : percent === 100 ? "success" : "neutral"} label={isOver ? "Over budget" : percent === 100 ? "Terpenuhi" : "Berjalan"} />
-                                  <Text size="sm">{formatNumber(r.total_ordered, 2)} {r.unit}</Text>
-                                </HStack>
-                                <Text size="2xs" color="secondary">{percent.toFixed(1)}% Terpenuhi</Text>
-                              </VStack>
+                              <ProgressBar
+                                label={`${formatNumber(r.total_ordered, 2)} ${r.unit}`}
+                                value={r.total_ordered}
+                                max={r.planned_volume || 1}
+                                variant={isOver ? 'warning' : percent === 100 ? 'success' : 'accent'}
+                                hasValueLabel
+                              />
                             );
                           }
                         },
@@ -113,12 +126,13 @@ function Dashboard() {
                           key: "delivered", header: "Delivery (Terkirim)", width: pixel(180), renderCell: (r: any) => {
                             const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
                             return (
-                              <VStack gap={0}>
-                                <Text size="sm">{formatNumber(r.total_delivered, 2)} {r.unit}</Text>
-                                <Text size="2xs" color="secondary">
-                                  {r.total_ordered === 0 ? "Belum dipesan" : `${percent.toFixed(1)}% dari PO`}
-                                </Text>
-                              </VStack>
+                              <ProgressBar
+                                label={`${formatNumber(r.total_delivered, 2)} ${r.unit}`}
+                                value={r.total_delivered}
+                                max={r.total_ordered || 1}
+                                variant={percent === 100 ? 'success' : 'accent'}
+                                hasValueLabel
+                              />
                             );
                           }
                         },
@@ -126,8 +140,8 @@ function Dashboard() {
                       data={stageData as any}
                       idKey="item_name"
                     />
-                  </VStack>
-                </Card>
+                  </Card>
+                </VStack>
               );
             })}
           </>

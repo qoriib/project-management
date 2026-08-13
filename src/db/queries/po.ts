@@ -159,13 +159,13 @@ export async function getPOItems(poId: number): Promise<POItem[]> {
       i.item_name, i.unit,
       ip.price,
       v.vendor_name,
-      COALESCE(SUM(d.delivered_volume), 0) as total_terkirim,
-      poi.qty - COALESCE(SUM(d.delivered_volume), 0) as sisa
+      COALESCE(SUM(d.qty), 0) as total_terkirim,
+      poi.qty - COALESCE(SUM(d.qty), 0) as sisa
     FROM po_items poi
     LEFT JOIN items i ON i.item_id = poi.item_id
     LEFT JOIN item_prices ip ON ip.price_id = poi.item_price_id
     LEFT JOIN vendors v ON v.vendor_id = poi.vendor_id
-    LEFT JOIN deliveries d ON d.po_item_id = poi.po_item_id
+    LEFT JOIN delivery_items d ON d.po_item_id = poi.po_item_id
     WHERE poi.po_id = $1
     GROUP BY poi.po_item_id
   `;
