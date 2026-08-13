@@ -9,6 +9,24 @@ import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/service
 import { formatRupiah, todayISO } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
+import { getFieldError } from "@/utils/form";
+import * as v from "valibot";
+
+const poSchema = v.object({
+  poDate: v.pipe(v.string(), v.nonEmpty("Tanggal PO harus diisi.")),
+  items: v.pipe(
+    v.array(
+      v.object({
+        po_item_id: v.number(),
+        item_id: v.pipe(v.number(), v.minValue(1, "Material harus dipilih.")),
+        vendor_id: v.pipe(v.string(), v.nonEmpty("Vendor harus dipilih.")),
+        price: v.pipe(v.number(), v.minValue(0, "Harga tidak valid.")),
+        qty: v.pipe(v.number(), v.minValue(0.001, "Volume tidak valid.")),
+      })
+    ),
+    v.minLength(1, "Minimal harus ada 1 item yang dipesan.")
+  )
+});
 
 interface POFormProps {
   initialEditId?: number;
@@ -21,7 +39,6 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const { vendors } = useMasterStore();
   const [bomData, setBomData] = useState<DashboardBOMReportItem[]>([]);
-  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const form = useForm({
@@ -35,32 +52,28 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         qty: number;
       }[],
     },
+    validators: {
+      onChange: poSchema,
+    },
     onSubmit: async ({ value }) => {
-      setSaving(true);
-      try {
-        const poData = {
-          po_date: value.poDate,
-          project_id: selectedProjectId!,
-        };
-        const poItems = value.items
-          .filter((it) => it.qty > 0 && it.item_id !== 0)
-          .map((it) => ({
-            po_item_id: it.po_item_id || undefined, // For update
-            item_id: it.item_id,
-            vendor_id: Number(it.vendor_id),
-            price: it.price,
-            qty: it.qty,
-          }));
+      const poData = {
+        po_date: value.poDate,
+        project_id: selectedProjectId!,
+      };
+      const poItems = value.items.map((it) => ({
+        po_item_id: it.po_item_id || undefined, // For update
+        item_id: it.item_id,
+        vendor_id: Number(it.vendor_id),
+        price: it.price,
+        qty: it.qty,
+      }));
 
-        if (isEdit) {
-          await purchaseOrderRepo.updateWithItems(initialEditId, poData, poItems as any);
-        } else {
-          await purchaseOrderRepo.createWithItems(poData, poItems as any);
-        }
-        onSuccess();
-      } finally {
-        setSaving(false);
+      if (isEdit) {
+        await purchaseOrderRepo.updateWithItems(initialEditId, poData, poItems as any);
+      } else {
+        await purchaseOrderRepo.createWithItems(poData, poItems as any);
       }
+      onSuccess();
     },
   });
 
@@ -103,9 +116,9 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
   return (
     <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
       <form.Subscribe
-        selector={(state) => [state.values.items] as const}
+        selector={(state) => [state.values.items, state.canSubmit, state.isSubmitting, state.errors] as const}
       >
-        {([items]) => {
+        {([items, canSubmit, isSubmitting, formErrors]) => {
           const bomOptions = bomData;
 
           // Resolve full item objects for rendering
@@ -122,8 +135,6 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           });
 
           const total = resolvedItems.reduce((sum, it) => sum + (it.qty * it.price), 0);
-          const hasOrderedItems = items.some(it => it.qty > 0 && it.item_id !== 0 && it.vendor_id !== "");
-          const isValid = hasOrderedItems;
 
           return (
             <VStack gap={6}>
@@ -132,7 +143,15 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                   <div style={{ width: 240 }}>
                     <form.Field name="poDate">
                       {(field) => (
-                        <DateInput label="Tanggal PO" value={field.state.value as any} onChange={(v) => field.handleChange(v || "")} isRequired />
+                        <DateInput
+                          label="Tanggal PO"
+                          value={field.state.value as any}
+                          onChange={(v) => field.handleChange(v || "")}
+                          onBlur={field.handleBlur}
+                          statusVariant="attached"
+                          status={getFieldError(field.state.meta.errors)}
+                          isRequired
+                        />
                       )}
                     </form.Field>
                   </div>
@@ -146,6 +165,10 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                   </HStack>
 
                   <Text color="secondary" size="sm">Pilih material dari daftar BOM dan isi volume yang dipesan.</Text>
+
+                  {formErrors?.length > 0 && (
+                    <Text size="sm" style={{ color: '#e3193b' }}>{String(formErrors[0])}</Text>
+                  )}
 
                   <Table
                     columns={[
@@ -172,6 +195,9 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                                       form.setFieldValue(`items[${idx}].price`, bom.price);
                                     }
                                   }}
+                                  onBlur={field.handleBlur}
+                                  statusVariant="attached"
+                                  status={getFieldError(field.state.meta.errors)}
                                 />
                               )}
                             </form.Field>
@@ -208,6 +234,9 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                                   options={[{ value: "", label: "Pilih vendor..." }, ...vendors.map(v => ({ value: String(v.vendor_id), label: v.vendor_name }))]}
                                   value={field.state.value}
                                   onChange={(v) => field.handleChange(v)}
+                                  onBlur={field.handleBlur}
+                                  statusVariant="attached"
+                                  status={getFieldError(field.state.meta.errors)}
                                 />
                               )}
                             </form.Field>
@@ -220,7 +249,17 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                           const idx = resolvedItems.indexOf(row);
                           return (
                             <form.Field name={`items[${idx}].qty`}>
-                              {(field) => <NumberInput label="Volume" isLabelHidden value={field.state.value} onChange={(v) => field.handleChange(v)} />}
+                              {(field) => (
+                                <NumberInput
+                                  label="Volume"
+                                  isLabelHidden
+                                  value={field.state.value}
+                                  onChange={(v) => field.handleChange(v || 0)}
+                                  onBlur={field.handleBlur}
+                                  statusVariant="attached"
+                                  status={getFieldError(field.state.meta.errors)}
+                                />
+                              )}
                             </form.Field>
                           )
                         }
@@ -231,7 +270,17 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                           const idx = resolvedItems.indexOf(row);
                           return (
                             <form.Field name={`items[${idx}].price`}>
-                              {(field) => <NumberInput label="Harga" isLabelHidden value={field.state.value} onChange={(v) => field.handleChange(v || 0)} />}
+                              {(field) => (
+                                <NumberInput
+                                  label="Harga"
+                                  isLabelHidden
+                                  value={field.state.value}
+                                  onChange={(v) => field.handleChange(v || 0)}
+                                  onBlur={field.handleBlur}
+                                  statusVariant="attached"
+                                  status={getFieldError(field.state.meta.errors)}
+                                />
+                              )}
                             </form.Field>
                           )
                         }
@@ -274,7 +323,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
 
               <HStack gap={2} justify="end">
                 <Button variant="ghost" label="Batal" type="button" onClick={onCancel} />
-                <Button variant="primary" label="Simpan PO" type="submit" isLoading={saving} isDisabled={!isValid} />
+                <Button variant="primary" label="Simpan PO" type="submit" isLoading={isSubmitting} isDisabled={!canSubmit} />
               </HStack>
             </VStack>
           );

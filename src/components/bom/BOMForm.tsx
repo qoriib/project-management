@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { VStack, HStack, Button, Selector, Heading } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
+import { useForm } from "@tanstack/react-form";
+import { getFieldError } from "@/utils/form";
+import * as v from "valibot";
 import {
   bomRepo,
   type BillOfMaterial,
@@ -8,6 +11,13 @@ import {
 } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
+
+const bomSchema = v.object({
+  stage_id: v.pipe(v.string(), v.nonEmpty("Tahap proyek harus dipilih.")),
+  item_id: v.pipe(v.string(), v.nonEmpty("Material harus dipilih.")),
+  qty: v.pipe(v.number(), v.minValue(0.001, "Volume harus lebih dari 0.")),
+  price: v.pipe(v.number(), v.minValue(0, "Harga tidak boleh negatif.")),
+});
 
 interface BOMFormProps {
   stageId?: number;
@@ -22,27 +32,56 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
   const { items } = useMasterStore();
   const [existingBoms, setExistingBoms] = useState<BillOfMaterial[]>([]);
   const [stages, setStages] = useState<{ value: string; label: string }[]>([]);
-  const [saving, setSaving] = useState(false);
+  
+  const form = useForm({
+    defaultValues: {
+      stage_id: initialData?.stage_id ? String(initialData.stage_id) : (stageId ? String(stageId) : ""),
+      item_id: initialData?.item_id ? String(initialData.item_id) : "",
+      qty: initialData?.qty ? Number(initialData.qty) : 0,
+      price: initialData?.price ? Number(initialData.price) : 0,
+    },
+    validators: {
+      onChange: bomSchema,
+    },
+    onSubmit: async ({ value }) => {
+      if (!selectedProjectId) return;
+      
+      const data = {
+        project_id: selectedProjectId,
+        item_id: Number(value.item_id),
+        stage_id: Number(value.stage_id),
+        qty: value.qty,
+        price: value.price,
+      };
 
-  const [formStageId, setFormStageId] = useState(initialData?.stage_id ? String(initialData.stage_id) : (stageId ? String(stageId) : ""));
-  const [itemId, setItemId] = useState(initialData?.item_id ? String(initialData.item_id) : "");
-  const [qty, setQty] = useState<number | null>(initialData?.qty ? Number(initialData.qty) : null);
-  const [price, setPrice] = useState<number | null>(initialData?.price ? Number(initialData.price) : null);
+      if (initialData) {
+        await bomRepo.update(initialData.bom_id, data);
+      } else {
+        await bomRepo.create(data);
+        if (isInline) {
+          form.setFieldValue("item_id", "");
+          form.setFieldValue("qty", 0);
+          form.setFieldValue("price", 0);
+        }
+      }
+      onSuccess();
+    }
+  });
 
-  // Update state when initialData or stageId changes (important for inline forms that don't unmount)
+  // Watch for external prop changes
   useEffect(() => {
     if (initialData) {
-      setFormStageId(String(initialData.stage_id));
-      setItemId(String(initialData.item_id));
-      setQty(Number(initialData.qty));
-      setPrice(Number(initialData.price));
+      form.setFieldValue("stage_id", String(initialData.stage_id));
+      form.setFieldValue("item_id", String(initialData.item_id));
+      form.setFieldValue("qty", Number(initialData.qty));
+      form.setFieldValue("price", Number(initialData.price));
     } else if (stageId) {
-      setFormStageId(String(stageId));
-      setItemId("");
-      setQty(null);
-      setPrice(null);
+      form.setFieldValue("stage_id", String(stageId));
+      form.setFieldValue("item_id", "");
+      form.setFieldValue("qty", 0);
+      form.setFieldValue("price", 0);
     }
-  }, [initialData, stageId]);
+  }, [initialData, stageId]); // intentionally omitting `form`
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -52,159 +91,189 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
     }
   }, [selectedProjectId]);
 
-  useEffect(() => {
-    if (selectedProjectId && formStageId) {
-      bomRepo.findAllWithDetails({ project_id: selectedProjectId, stage_id: Number(formStageId) }).then(setExistingBoms);
-    } else {
-      setExistingBoms([]);
-    }
-  }, [selectedProjectId, formStageId]);
-
-  async function handleSave() {
-    if (!selectedProjectId || !itemId || !qty || !formStageId) return;
-    setSaving(true);
-    
-    try {
-      const data = {
-        project_id: selectedProjectId,
-        item_id: Number(itemId),
-        stage_id: Number(formStageId),
-        qty: qty || 0,
-        price: price || 0,
-      };
-
-      if (initialData) {
-        await bomRepo.update(initialData.bom_id, data);
-      } else {
-        await bomRepo.create(data);
-        if (isInline) {
-          setItemId("");
-          setQty(null);
-          setPrice(null);
-        }
-      }
-      onSuccess();
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (isInline) {
-    return (
-      <HStack gap={3} align="end" padding={3}>
-        <div style={{ flex: 2 }}>
-          <Selector
-            label="Material / Alat"
-            hasSearch
-            value={itemId}
-            onChange={(val) => {
-              setItemId(val);
-            }}
-            options={[
-              { value: "", label: "Pilih Material/Alat..." },
-              ...items
-                .filter(i => 
-                  // Include if it's the currently edited item, or if it's NOT in existingBoms
-                  (initialData?.item_id === i.item_id) || 
-                  !existingBoms.some(b => b.item_id === i.item_id)
-                )
-                .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit_name})` })),
-            ]}
-          />
-        </div>
-        <div style={{ flex: 1 }}>
-          <NumberInput
-            label="Volume Rencana"
-            placeholder="Contoh: 1500"
-            value={qty}
-            onChange={setQty}
-          />
-        </div>
-        <div style={{ flex: 2 }}>
-          <NumberInput
-            label="Harga Rencana (Rp)"
-            placeholder="Contoh: 50000"
-            value={price}
-            onChange={setPrice}
-          />
-        </div>
-        <Button 
-          variant="primary" 
-          label={initialData ? "Simpan Edit" : "Tambah BOM"} 
-          onClick={handleSave} 
-          isLoading={saving} 
-          isDisabled={!itemId || !qty || !formStageId || !selectedProjectId} 
-        />
-        {initialData && <Button variant="ghost" label="Batal" onClick={onCancel} />}
-      </HStack>
-    );
-  }
-
   return (
-    <VStack gap={4} padding={4}>
-      <Heading level={4}>{initialData ? "Edit Kebutuhan Material" : "Tambah Kebutuhan Material"}</Heading>
+    <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
+      <form.Subscribe
+        selector={(state) => [state.values.stage_id, state.canSubmit, state.isSubmitting] as const}
+        children={([formStageId, canSubmit, isSubmitting]) => {
+          
+          // Fetch existing BOMs for this stage whenever it changes
+          useEffect(() => {
+            if (selectedProjectId && formStageId) {
+              bomRepo.findAllWithDetails({ project_id: selectedProjectId, stage_id: Number(formStageId) }).then(setExistingBoms);
+            } else {
+              setExistingBoms([]);
+            }
+          }, [selectedProjectId, formStageId]);
 
-      <VStack gap={4} style={{ marginTop: 8 }}>
-        {(!stageId || initialData) && (
-          <Selector
-            label="Tahap Proyek"
-            isRequired
-            value={formStageId}
-            onChange={setFormStageId}
-            options={[{ value: "", label: "Pilih Tahap..." }, ...stages]}
-          />
-        )}
+          if (isInline) {
+            return (
+              <HStack gap={3} align="start" padding={3}>
+                <div style={{ flex: 2 }}>
+                  <form.Field
+                    name="item_id"
+                    children={(field) => (
+                      <Selector
+                        label="Material / Alat"
+                        hasSearch
+                        value={field.state.value}
+                        onChange={(val) => field.handleChange(val)}
+                        onBlur={field.handleBlur}
+                        statusVariant="attached"
+                        status={getFieldError(field.state.meta.errors)}
+                        options={[
+                          { value: "", label: "Pilih Material/Alat..." },
+                          ...items
+                            .filter(i => (initialData?.item_id === i.item_id) || !existingBoms.some(b => b.item_id === i.item_id))
+                            .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit_name})` })),
+                        ]}
+                      />
+                    )}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <form.Field
+                    name="qty"
+                    children={(field) => (
+                      <NumberInput
+                        label="Volume Rencana"
+                        placeholder="Contoh: 1500"
+                        value={field.state.value || null}
+                        onChange={(val) => field.handleChange(val || 0)}
+                        onBlur={field.handleBlur}
+                        statusVariant="attached"
+                        status={getFieldError(field.state.meta.errors)}
+                      />
+                    )}
+                  />
+                </div>
+                <div style={{ flex: 2 }}>
+                  <form.Field
+                    name="price"
+                    children={(field) => (
+                      <NumberInput
+                        label="Harga Rencana (Rp)"
+                        placeholder="Contoh: 50000"
+                        value={field.state.value || null}
+                        onChange={(val) => field.handleChange(val || 0)}
+                        onBlur={field.handleBlur}
+                        statusVariant="attached"
+                        status={getFieldError(field.state.meta.errors)}
+                      />
+                    )}
+                  />
+                </div>
+                <div style={{ paddingTop: '28px' }}>
+                  <Button 
+                    variant="primary" 
+                    label={initialData ? "Simpan Edit" : "Tambah BOM"} 
+                    type="submit"
+                    isLoading={isSubmitting} 
+                    isDisabled={!canSubmit || !selectedProjectId} 
+                  />
+                  {initialData && <Button variant="ghost" label="Batal" onClick={onCancel} style={{ marginLeft: 8 }} />}
+                </div>
+              </HStack>
+            );
+          }
 
-        <Selector
-          label="Material / Alat"
-          hasSearch
-          value={itemId}
-          onChange={(val) => {
-            setItemId(val);
-          }}
-          options={[
-            { value: "", label: "Pilih Material/Alat..." },
-            ...items
-              .filter(i => 
-                (initialData?.item_id === i.item_id) || 
-                !existingBoms.some(b => b.item_id === i.item_id)
-              )
-              .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit_name})` })),
-          ]}
-        />
+          return (
+            <VStack gap={4} padding={4}>
+              <Heading level={4}>{initialData ? "Edit Kebutuhan Material" : "Tambah Kebutuhan Material"}</Heading>
 
-        <HStack gap={3}>
-          <div style={{ flex: 1 }}>
-            <NumberInput
-              label="Volume Rencana"
-              isRequired
-              placeholder="Contoh: 1500"
-              value={qty}
-              onChange={setQty}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <NumberInput
-              label="Harga Rencana (Rp)"
-              isRequired
-              placeholder="Contoh: 50000"
-              value={price}
-              onChange={setPrice}
-            />
-          </div>
-        </HStack>
-      </VStack>
+              <VStack gap={4} style={{ marginTop: 8 }}>
+                {(!stageId || initialData) && (
+                  <form.Field
+                    name="stage_id"
+                    children={(field) => (
+                      <Selector
+                        label="Tahap Proyek"
+                        isRequired
+                        value={field.state.value}
+                        onChange={(val) => field.handleChange(val)}
+                        onBlur={field.handleBlur}
+                        statusVariant="attached"
+                        status={getFieldError(field.state.meta.errors)}
+                        options={[{ value: "", label: "Pilih Tahap..." }, ...stages]}
+                      />
+                    )}
+                  />
+                )}
 
-      <HStack gap={2} justify="end" style={{ marginTop: 16 }}>
-        <Button variant="ghost" label="Batal" onClick={onCancel} />
-        <Button 
-          variant="primary" 
-          label="Simpan" 
-          onClick={handleSave} 
-          isLoading={saving} 
-          isDisabled={!itemId || !qty || !formStageId || !selectedProjectId} 
-        />
-      </HStack>
-    </VStack>
+                <form.Field
+                  name="item_id"
+                  children={(field) => (
+                    <Selector
+                      label="Material / Alat"
+                      isRequired
+                      hasSearch
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val)}
+                      onBlur={field.handleBlur}
+                      statusVariant="attached"
+                      status={getFieldError(field.state.meta.errors)}
+                      options={[
+                        { value: "", label: "Pilih Material/Alat..." },
+                        ...items
+                          .filter(i => (initialData?.item_id === i.item_id) || !existingBoms.some(b => b.item_id === i.item_id))
+                          .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit_name})` })),
+                      ]}
+                    />
+                  )}
+                />
+
+                <HStack gap={3}>
+                  <div style={{ flex: 1 }}>
+                    <form.Field
+                      name="qty"
+                      children={(field) => (
+                        <NumberInput
+                          label="Volume Rencana"
+                          isRequired
+                          placeholder="Contoh: 1500"
+                          value={field.state.value || null}
+                          onChange={(val) => field.handleChange(val || 0)}
+                          onBlur={field.handleBlur}
+                          statusVariant="attached"
+                          status={getFieldError(field.state.meta.errors)}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <form.Field
+                      name="price"
+                      children={(field) => (
+                        <NumberInput
+                          label="Harga Rencana (Rp)"
+                          isRequired
+                          placeholder="Contoh: 50000"
+                          value={field.state.value || null}
+                          onChange={(val) => field.handleChange(val || 0)}
+                          onBlur={field.handleBlur}
+                          statusVariant="attached"
+                          status={getFieldError(field.state.meta.errors)}
+                        />
+                      )}
+                    />
+                  </div>
+                </HStack>
+              </VStack>
+
+              <HStack gap={2} justify="end" style={{ marginTop: 16 }}>
+                <Button variant="ghost" label="Batal" type="button" onClick={onCancel} />
+                <Button 
+                  variant="primary" 
+                  label="Simpan" 
+                  type="submit"
+                  isLoading={isSubmitting} 
+                  isDisabled={!canSubmit || !selectedProjectId} 
+                />
+              </HStack>
+            </VStack>
+          );
+        }}
+      />
+    </form>
   );
 }

@@ -11,8 +11,8 @@ import * as v from "valibot";
 
 const vendorSchema = v.object({
   vendor_name: v.pipe(v.string(), v.nonEmpty("Nama vendor harus diisi.")),
-  phone: v.optional(v.string()),
-  address: v.optional(v.string()),
+  phone: v.string(),
+  address: v.string(),
 });
 
 interface MasterVendorFormProps {
@@ -124,7 +124,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
           <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
             <Button variant="ghost" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting]}
+              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
                 <Button variant="primary" label="Simpan" type="submit" isLoading={isSubmitting} isDisabled={!canSubmit} />
               )}

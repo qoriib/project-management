@@ -7,6 +7,28 @@ import { proportional, pixel } from "@astryxdesign/core/Table";
 import { purchaseOrderRepo, deliveryRepo, type POWithSummary } from "@/db/repositories";
 import { todayISO, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
+import { getFieldError } from "@/utils/form";
+import * as v from "valibot";
+
+const deliverySchema = v.object({
+  poId: v.pipe(v.string(), v.nonEmpty("PO harus dipilih.")),
+  deliveryDate: v.pipe(v.string(), v.nonEmpty("Tanggal kirim harus diisi.")),
+  items: v.pipe(
+    v.array(
+      v.pipe(
+        v.object({
+          po_item_id: v.number(),
+          item_name: v.string(),
+          unit: v.string(),
+          sisa: v.number(),
+          qty: v.number(),
+        }),
+        v.custom((item: any) => item.qty <= item.sisa, "Volume melebihi sisa PO.")
+      )
+    ),
+    v.custom((items: any) => items.some((it: any) => it.qty > 0), "Minimal ada 1 item yang diterima.")
+  )
+});
 
 interface DeliveryFormProps {
   initialPoId?: string;
@@ -16,7 +38,6 @@ interface DeliveryFormProps {
 
 export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormProps) {
   const [pos, setPOs] = useState<POWithSummary[]>([]);
-  const [saving, setSaving] = useState(false);
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const form = useForm({
@@ -25,18 +46,16 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
       deliveryDate: todayISO(),
       items: [] as { po_item_id: number; item_name: string; unit: string; sisa: number; qty: number }[],
     },
+    validators: {
+      onChange: deliverySchema,
+    },
     onSubmit: async ({ value }) => {
-      setSaving(true);
-      try {
-        const itemsToSave = value.items.filter((it) => it.qty > 0);
-        await deliveryRepo.createWithItems(
-          { po_id: Number(value.poId), delivery_date: value.deliveryDate },
-          itemsToSave.map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }))
-        );
-        onSuccess();
-      } finally {
-        setSaving(false);
-      }
+      const itemsToSave = value.items.filter((it) => it.qty > 0);
+      await deliveryRepo.createWithItems(
+        { po_id: Number(value.poId), delivery_date: value.deliveryDate },
+        itemsToSave.map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }))
+      );
+      onSuccess();
     },
   });
 
@@ -58,13 +77,9 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
   return (
     <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
       <form.Subscribe
-        selector={(state) => [state.values.poId, state.values.deliveryDate, state.values.items] as const}
+        selector={(state) => [state.values.poId, state.values.items, state.canSubmit, state.isSubmitting, state.errors] as const}
       >
-        {([selectedPoId, deliveryDate, items]) => {
-          const hasValidDelivery = items.some((it) => it.qty > 0);
-          const hasOverlimit = items.some((it) => it.qty > it.sisa);
-          const isValid = selectedPoId !== "" && deliveryDate !== "" && hasValidDelivery && !hasOverlimit;
-
+        {([selectedPoId, items, canSubmit, isSubmitting, formErrors]) => {
           return (
             <VStack gap={6}>
               <Card padding={4}>
@@ -91,6 +106,9 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                                 form.setFieldValue("items", []);
                               }
                             }}
+                            onBlur={field.handleBlur}
+                            statusVariant="attached"
+                            status={getFieldError(field.state.meta.errors)}
                             isRequired
                             options={[
                               { value: "", label: "Pilih nomor PO..." },
@@ -109,6 +127,9 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                             label="Tanggal Kirim / Terima"
                             value={field.state.value as any}
                             onChange={(v) => field.handleChange(v || "")}
+                            onBlur={field.handleBlur}
+                            statusVariant="attached"
+                            status={getFieldError(field.state.meta.errors)}
                             isRequired
                           />
                         )}
@@ -124,6 +145,10 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                     <Heading level={3}>Daftar Item Diterima</Heading>
                     <Text color="secondary" size="sm">Isi volume yang diterima untuk masing-masing material.</Text>
 
+                    {formErrors?.length > 0 && (
+                      <Text size="sm" style={{ color: '#e3193b' }}>{String(formErrors[0])}</Text>
+                    )}
+
                     <Table
                       columns={[
                         { key: "item", header: "Barang / Material", width: proportional(2), renderCell: (row: any) => <Text weight="medium">{row.item_name}</Text> },
@@ -136,17 +161,24 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                           renderCell: (row: any) => {
                             const idx = items.indexOf(row);
                             return (
-                              <form.Field name={`items[${idx}].qty`}>
+                              <form.Field name={`items[${idx}]`}>
                                 {(field) => {
-                                  const isOverlimit = field.state.value > row.sisa;
+                                  // The error is on the array element itself because of v.custom
+                                  const err = getFieldError(field.state.meta.errors);
                                   return (
-                                    <NumberInput
-                                      label="Volume"
-                                      isLabelHidden
-                                      value={field.state.value}
-                                      onChange={(v) => field.handleChange(v)}
-                                      status={isOverlimit ? { type: "warning", message: "Melebihi sisa PO" } : undefined}
-                                    />
+                                    <form.Field name={`items[${idx}].qty`}>
+                                      {(qtyField) => (
+                                        <NumberInput
+                                          label="Volume"
+                                          isLabelHidden
+                                          value={qtyField.state.value}
+                                          onChange={(v) => qtyField.handleChange(v || 0)}
+                                          onBlur={qtyField.handleBlur}
+                                          statusVariant="attached"
+                                          status={err || getFieldError(qtyField.state.meta.errors)}
+                                        />
+                                      )}
+                                    </form.Field>
                                   );
                                 }}
                               </form.Field>
@@ -167,8 +199,8 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                   variant="primary"
                   label="Simpan Pengiriman"
                   type="submit"
-                  isLoading={saving}
-                  isDisabled={!isValid}
+                  isLoading={isSubmitting}
+                  isDisabled={!canSubmit}
                 />
               </HStack>
             </VStack>
