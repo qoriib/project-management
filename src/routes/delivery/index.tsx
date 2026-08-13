@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from "react";
-import { Section, VStack, Button, Text } from "@astryxdesign/core";
+import { Section, VStack, Button } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
+import { ProjectRequired } from "@/components/ProjectRequired";
 import { DeliveryTable } from "@/components/delivery/DeliveryTable";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -21,13 +22,9 @@ function DeliveryPage() {
           }
         />
         
-        {!selectedProjectId ? (
-          <VStack align="center" padding={12}>
-            <Text color="secondary">Silakan pilih Proyek Aktif di menu samping terlebih dahulu.</Text>
-          </VStack>
-        ) : (
+        <ProjectRequired>
           <DeliveryTable refreshTrigger={refreshTrigger} />
-        )}
+        </ProjectRequired>
       </VStack>
     </Section>
   );

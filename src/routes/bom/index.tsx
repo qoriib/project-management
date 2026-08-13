@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from "react";
 import { Section, VStack, Button, Dialog, Text, Selector } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
+import { ProjectRequired } from "@/components/ProjectRequired";
 import { BOMTable } from "@/components/bom/BOMTable";
 import { BOMForm } from "@/components/bom/BOMForm";
 import type { BillOfMaterial, ProjectStage } from "@/db/queries/bom";
@@ -65,11 +66,13 @@ function BOMPage() {
             }
           />
 
-          <BOMTable
-            stageId={activeTab === "all" ? undefined : Number(activeTab)}
-            refreshTrigger={refreshTrigger}
-            onEdit={(id, data) => { setEditData(data); setIsDialogOpen(true); }}
-          />
+          <ProjectRequired>
+            <BOMTable
+              stageId={activeTab === "all" ? undefined : Number(activeTab)}
+              refreshTrigger={refreshTrigger}
+              onEdit={(id, data) => { setEditData(data); setIsDialogOpen(true); }}
+            />
+          </ProjectRequired>
         </VStack>
 
         <Dialog isOpen={isDialogOpen && !!editData} onOpenChange={(open) => !open && handleClose()} width={550}>
@@ -81,7 +84,7 @@ function BOMPage() {
           />
         </Dialog>
 
-        {activeTab !== "all" && (
+        {activeTab !== "all" && selectedProjectId && (
           <div style={{
             position: "sticky",
             bottom: -24,

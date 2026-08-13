@@ -4,6 +4,7 @@ import {
   VStack, HStack, Card, Heading, Text, Section, Table, StatusDot, Grid, GridSpan
 } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
+import { ProjectRequired } from "@/components/ProjectRequired";
 import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/queries/dashboard";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
@@ -47,11 +48,7 @@ function Dashboard() {
           subtitle="Ringkasan pemenuhan Bill of Materials terhadap pemesanan (PO) dan penerimaan (Delivery)"
         />
 
-        {!selectedProjectId ? (
-          <VStack align="center" padding={12}>
-            <Text color="secondary">Silakan pilih Proyek Aktif di menu samping untuk melihat laporan.</Text>
-          </VStack>
-        ) : (
+        <ProjectRequired>
           <>
             <Grid gap={4} columns={{ minWidth: 250, max: 2 }}>
               <GridSpan columns={1}>
@@ -134,7 +131,7 @@ function Dashboard() {
               );
             })}
           </>
-        )}
+        </ProjectRequired>
       </VStack>
     </Section>
   );

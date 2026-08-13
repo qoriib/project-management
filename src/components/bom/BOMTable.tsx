@@ -94,9 +94,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
       <Card padding={8}>
         <VStack align="center">
           <Text color="secondary">
-            {!selectedProjectId
-              ? "Pilih Proyek Aktif di menu samping terlebih dahulu."
-              : "Belum ada rencana material di tahap ini. Isi form di bawah untuk mulai menambahkan."}
+            Belum ada rencana material di tahap ini. Isi form di bawah untuk mulai menambahkan.
           </Text>
         </VStack>
       </Card>

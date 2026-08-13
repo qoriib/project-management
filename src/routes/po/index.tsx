@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from "react";
 import { Section, VStack, Button, Card, Text } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
+import { ProjectRequired } from "@/components/ProjectRequired";
 import { POTable } from "@/components/po/POTable";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -27,13 +28,9 @@ function POListPage() {
           actions={selectedProjectId ? <Button variant="primary" label="+ Buat PO Baru" onClick={openNew} /> : null}
         />
 
-        {!selectedProjectId ? (
-          <VStack align="center" padding={12}>
-            <Text color="secondary">Silakan pilih Proyek Aktif di menu samping terlebih dahulu.</Text>
-          </VStack>
-        ) : (
+        <ProjectRequired>
           <POTable refreshTrigger={refreshTrigger} onEdit={openEdit} />
-        )}
+        </ProjectRequired>
       </VStack>
     </Section>
   );

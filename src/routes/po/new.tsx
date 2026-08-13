@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Section, VStack, Text } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
+import { ProjectRequired } from "@/components/ProjectRequired";
 import { POForm } from "@/components/po/POForm";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -17,13 +18,9 @@ function NewPOPage() {
       <VStack gap={4}>
         <PageHeader title="Buat Purchase Order Baru" subtitle="Isi form di bawah untuk membuat PO baru" />
         
-        {!selectedProjectId ? (
-          <VStack align="center" padding={12}>
-            <Text color="secondary">Silakan pilih Proyek Aktif di menu samping terlebih dahulu.</Text>
-          </VStack>
-        ) : (
+        <ProjectRequired>
           <POForm onSuccess={goBack} onCancel={goBack} />
-        )}
+        </ProjectRequired>
       </VStack>
     </Section>
   );
