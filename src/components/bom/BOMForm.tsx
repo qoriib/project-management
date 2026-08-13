@@ -76,7 +76,14 @@ export function BOMForm({ stageId, initialData, isInline, isDisabled, onSuccess,
       return;
     }
     const prices = await itemPriceRepo.findByItem(Number(itemId));
-    const opts = prices.map(p => ({ value: String(p.item_price_id), label: formatRupiah(p.price) }));
+    
+    // Filter out prices already used by this item in this stage
+    const usedPricesForItem = existingBoms
+      .filter(b => b.item_id === Number(itemId) && (!initialData || b.bom_id !== initialData.bom_id))
+      .map(b => b.item_price_id);
+      
+    const availablePrices = prices.filter(p => !usedPricesForItem.includes(p.item_price_id));
+    const opts = availablePrices.map(p => ({ value: String(p.item_price_id), label: formatRupiah(p.price) }));
     setPriceOptions(opts);
 
     // Auto-select first option if no current selection
@@ -150,7 +157,6 @@ export function BOMForm({ stageId, initialData, isInline, isDisabled, onSuccess,
                         options={[
                           { value: "", label: "Pilih Material/Alat..." },
                           ...items
-                            .filter(i => (initialData?.item_id === i.item_id) || !existingBoms.some(b => b.item_id === i.item_id))
                             .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit_name})` })),
                         ]}
                         isDisabled={isDisabled}

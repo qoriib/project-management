@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 interface AppStore {
   // Active project filter (null = semua proyek)
@@ -14,13 +15,24 @@ interface AppStore {
   setGlobalError: (err: string | null) => void;
 }
 
-export const useAppStore = create<AppStore>((set) => ({
-  selectedProjectId: null,
-  setSelectedProjectId: (id) => set({ selectedProjectId: id }),
+export const useAppStore = create<AppStore>()(
+  persist(
+    (set) => ({
+      selectedProjectId: null,
+      setSelectedProjectId: (id) => set({ selectedProjectId: id }),
 
-  dbReady: false,
-  setDbReady: (ready) => set({ dbReady: ready }),
+      dbReady: false,
+      setDbReady: (ready) => set({ dbReady: ready }),
 
-  globalError: null,
-  setGlobalError: (err) => set({ globalError: err }),
-}));
+      globalError: null,
+      setGlobalError: (err) => set({ globalError: err }),
+    }),
+    {
+      name: "app-storage", // nama unik untuk key di localStorage
+      storage: createJSONStorage(() => localStorage),
+      // Hanya selectedProjectId yang disimpan ke localStorage.
+      // dbReady dan globalError diabaikan agar selalu di-reset saat aplikasi dimuat ulang.
+      partialize: (state) => ({ selectedProjectId: state.selectedProjectId }),
+    }
+  )
+);

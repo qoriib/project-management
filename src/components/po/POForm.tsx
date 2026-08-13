@@ -148,11 +148,9 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
             let total_ordered = 0;
             
             if (it.item_price_id) {
-              const variantBom = bomData.find(bom => bom.item_id === it.item_id && String(bom.item_price_id) === it.item_price_id);
-              if (variantBom) {
-                planned_volume = variantBom.planned_volume;
-                total_ordered = variantBom.total_ordered;
-              }
+              const matchingVariants = bomData.filter(bom => bom.item_id === it.item_id && String(bom.item_price_id) === it.item_price_id);
+              planned_volume = matchingVariants.reduce((sum, v) => sum + v.planned_volume, 0);
+              total_ordered = matchingVariants.reduce((sum, v) => sum + v.total_ordered, 0);
             } else {
               const allVariants = bomData.filter(bom => bom.item_id === it.item_id);
               planned_volume = allVariants.reduce((sum, v) => sum + v.planned_volume, 0);
