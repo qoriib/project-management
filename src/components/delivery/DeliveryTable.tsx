@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { HStack, Button, Table, TextInput, Selector, Text, VStack } from "@astryxdesign/core";
+import { HStack, Button, Table, TextInput, Selector, Text, VStack, Card, Badge } from "@astryxdesign/core";
+import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { getDeliveries, deleteDelivery, type Delivery } from "@/db/queries/field";
-import { getVendors, type Vendor } from "@/db/queries/master";
-import { formatDate, formatNumber } from "@/utils/formatters";
-import { exportToExcel } from "@/utils/export";
+import { formatDate } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 
 interface DeliveryTableProps {
@@ -14,12 +13,6 @@ interface DeliveryTableProps {
 
 export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps) {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-
-  // Filters
-  const [vendorFilter, setVendorFilter] = useState("");
-  const [dateDari, setDateDari] = useState("");
-  const [dateSampai, setDateSampai] = useState("");
 
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -27,20 +20,13 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   async function load() {
-    const [d, v] = await Promise.all([
-      getDeliveries({
-        vendor_id: vendorFilter ? Number(vendorFilter) : undefined,
-        project_id: selectedProjectId || undefined,
-        tanggal_dari: dateDari || undefined,
-        tanggal_sampai: dateSampai || undefined,
-      }),
-      getVendors(),
-    ]);
+    const d = await getDeliveries({
+      project_id: selectedProjectId || undefined,
+    });
     setDeliveries(d);
-    setVendors(v);
   }
 
-  useEffect(() => { load(); }, [vendorFilter, dateDari, dateSampai, refreshTrigger, selectedProjectId]);
+  useEffect(() => { load(); }, [refreshTrigger, selectedProjectId]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -55,83 +41,49 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
     }
   }
 
-  function handleExport() {
-    const exportData = deliveries.map((d) => ({
-      "No. PO": d.po_number || "",
-      "Tanggal Kirim": formatDate(d.delivery_date),
-      "Nama Material": d.item_name || "",
-      "Volume Kirim": d.delivered_volume,
-      "Satuan": d.unit || "",
-      "No. Surat Jalan": d.delivery_note_number || "",
-      "Lokasi Tujuan": d.location_destination || "",
-      "Vendor": d.vendor_name || "",
-      "Keterangan": d.notes || "",
-    }));
-    exportToExcel(exportData, `rekap-pengiriman-${new Date().toISOString().slice(0, 10)}`);
-  }
+
 
   const columns = [
-    { key: "delivery_date", label: "Tanggal Kirim", width: "120px", render: (v: string) => formatDate(v) },
-    { key: "po_number", label: "No. PO", width: "160px" },
-    { key: "vendor_name", label: "Vendor", width: "1fr" },
-    { key: "item_name", label: "Material", width: "1fr" },
-    {
-      key: "delivered_volume", label: "Volume", width: "100px",
-      render: (v: number, row: Delivery) => `${formatNumber(v, 2)} ${row.unit || ""}`
+    { key: "delivery_id", header: "ID Pengiriman", width: pixel(140), renderCell: (row: Delivery) => `DLV-${row.delivery_id}` },
+    { key: "delivery_date", header: "Tanggal", width: pixel(120), renderCell: (row: Delivery) => formatDate(row.delivery_date) },
+    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: Delivery) => `PO-${row.po_id}` },
+    { key: "project_name", header: "Proyek", width: proportional(1.5), renderCell: (row: Delivery) => row.project_name || "—" },
+    { 
+      key: "vendor_names", header: "Vendor Pemasok", width: proportional(1.5), 
+      renderCell: (row: Delivery) => (
+        <HStack gap={1} style={{ flexWrap: 'wrap' }}>
+          {row.vendor_names ? row.vendor_names.split(',').map((v: string, i: number) => (
+            <Badge key={i} variant="neutral" label={v.trim()} />
+          )) : "—"}
+        </HStack>
+      )
     },
-    { key: "delivery_note_number", label: "No. Surat Jalan", width: "140px" },
-    { key: "location_destination", label: "Lokasi", width: "1fr" },
+    { key: "item_count", header: "Total Item", width: pixel(120), renderCell: (row: Delivery) => `${row.item_count} Item` },
     {
-      key: "actions", label: "", width: "80px",
-      render: (_: unknown, row: Delivery) => (
-        <Button size="sm" label="✕" variant="destructive" onClick={() => setDeleteTarget(row.delivery_id)} />
+      key: "actions", header: "", width: pixel(100),
+      renderCell: (row: Delivery) => (
+        <HStack gap={1} justify="end">
+          <Button size="sm" label="Hapus" variant="destructive" onClick={() => setDeleteTarget(row.delivery_id)} />
+        </HStack>
       ),
     },
   ];
 
   return (
     <VStack gap={4}>
-      <HStack gap={3} justify="between">
-        <HStack gap={3}>
-          <Selector
-            label=""
-            placeholder="Semua Vendor"
-            value={vendorFilter}
-            onChange={setVendorFilter}
-            options={[
-              { value: "", label: "Semua Vendor" },
-              ...vendors.map((v) => ({ value: String(v.vendor_id), label: v.vendor_name })),
-            ]}
-            width={200}
-          />
-          <TextInput
-            label=""
-            placeholder="Dari tanggal"
-            value={dateDari}
-            onChange={setDateDari}
-            width={160}
-          />
-          <TextInput
-            label=""
-            placeholder="Sampai tanggal"
-            value={dateSampai}
-            onChange={setDateSampai}
-            width={160}
-          />
-        </HStack>
-        <Button variant="secondary" label="📊 Export Excel" onClick={handleExport} />
-      </HStack>
-
-      <Table
-        columns={columns as any}
-        data={deliveries as any}
-        idKey="delivery_id"
-        emptyState={
-          <VStack align="center" padding={8}>
-            <Text color="secondary">Tidak ada data pengiriman yang cocok.</Text>
-          </VStack>
-        }
-      />
+      <Card padding={0}>
+        <Table
+          textOverflow="truncate"
+          columns={columns as any}
+          data={deliveries as any}
+          idKey="delivery_id"
+          emptyState={
+            <VStack align="center" padding={8}>
+              <Text color="secondary">Tidak ada data pengiriman yang cocok.</Text>
+            </VStack>
+          }
+        />
+      </Card>
 
       <ConfirmDialog
         isOpen={!!deleteTarget}

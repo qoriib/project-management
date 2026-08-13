@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, Button, Table, Badge, Dialog, TextInput, Selector, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
@@ -195,12 +196,12 @@ export function MasterTabItem() {
             <VStack gap={3}>
               {prices.map((p, idx) => (
                 <HStack key={idx} gap={2} align="end">
-                  <TextInput 
+                  <NumberInput 
                     label="Harga (Rp)" 
-                    value={p.price ? String(p.price) : ""} 
+                    value={p.price} 
                     onChange={(val) => {
                       const newPrices = [...prices];
-                      newPrices[idx].price = parseFloat(val) || 0;
+                      newPrices[idx].price = val || 0;
                       setPrices(newPrices);
                     }} 
                     width={180}

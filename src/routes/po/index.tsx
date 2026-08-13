@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from "react";
-import { Section, VStack, Button } from "@astryxdesign/core";
+import { Section, VStack, Button, Card, Text } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
 import { POTable } from "@/components/po/POTable";
+import { useAppStore } from "@/store/useAppStore";
 
 function POListPage() {
   const navigate = useNavigate();
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   function openNew() {
@@ -22,10 +24,16 @@ function POListPage() {
         <PageHeader
           title="Daftar Purchase Order"
           subtitle="Manajemen dan pelacakan seluruh dokumen Purchase Order (PO)"
-          actions={<Button variant="primary" label="+ Buat PO Baru" onClick={openNew} />}
+          actions={selectedProjectId ? <Button variant="primary" label="+ Buat PO Baru" onClick={openNew} /> : null}
         />
 
-        <POTable refreshTrigger={refreshTrigger} onEdit={openEdit} />
+        {!selectedProjectId ? (
+          <VStack align="center" padding={12}>
+            <Text color="secondary">Silakan pilih Proyek Aktif di menu samping terlebih dahulu.</Text>
+          </VStack>
+        ) : (
+          <POTable refreshTrigger={refreshTrigger} onEdit={openEdit} />
+        )}
       </VStack>
     </Section>
   );

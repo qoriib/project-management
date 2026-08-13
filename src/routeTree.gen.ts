@@ -14,6 +14,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as MasterRouteImport } from './routes/master'
 import { Route as BomIndexRouteImport } from './routes/bom/index'
 import { Route as DeliveryIndexRouteImport } from './routes/delivery/index'
+import { Route as DeliveryNewRouteImport } from './routes/delivery/new'
 import { Route as MasterIndexRouteImport } from './routes/master/index'
 import { Route as MasterKategoriRouteImport } from './routes/master/kategori'
 import { Route as MasterProjectRouteImport } from './routes/master/project'
@@ -47,6 +48,11 @@ const BomIndexRoute = BomIndexRouteImport.update({
 const DeliveryIndexRoute = DeliveryIndexRouteImport.update({
   id: '/delivery/',
   path: '/delivery/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeliveryNewRoute = DeliveryNewRouteImport.update({
+  id: '/delivery/new',
+  path: '/delivery/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MasterIndexRoute = MasterIndexRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/master': typeof MasterRouteWithChildren
+  '/delivery/new': typeof DeliveryNewRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/delivery/new': typeof DeliveryNewRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/master': typeof MasterRouteWithChildren
+  '/delivery/new': typeof DeliveryNewRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/master'
+    | '/delivery/new'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/delivery/new'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/master'
+    | '/delivery/new'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   MasterRoute: typeof MasterRouteWithChildren
+  DeliveryNewRoute: typeof DeliveryNewRoute
   PoNewRoute: typeof PoNewRoute
   BomIndexRoute: typeof BomIndexRoute
   DeliveryIndexRoute: typeof DeliveryIndexRoute
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/delivery'
       fullPath: '/delivery/'
       preLoaderRoute: typeof DeliveryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/delivery/new': {
+      id: '/delivery/new'
+      path: '/delivery/new'
+      fullPath: '/delivery/new'
+      preLoaderRoute: typeof DeliveryNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/master/': {
@@ -331,6 +351,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   MasterRoute: MasterRouteWithChildren,
+  DeliveryNewRoute: DeliveryNewRoute,
   PoNewRoute: PoNewRoute,
   BomIndexRoute: BomIndexRoute,
   DeliveryIndexRoute: DeliveryIndexRoute,

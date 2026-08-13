@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
-import { VStack, HStack, Button, TextInput, Selector, TextArea, Card, Heading, Text, StatusDot } from "@astryxdesign/core";
-import { getPurchaseOrders, getPOItems, type PurchaseOrder, type POItem } from "@/db/queries/po";
+import { VStack, HStack, Button, TextInput, Selector, Card, Heading, Text, Table } from "@astryxdesign/core";
+import { DateInput } from "@astryxdesign/core/DateInput";
+import { NumberInput } from "@astryxdesign/core/NumberInput";
+import { proportional, pixel } from "@astryxdesign/core/Table";
+import { getPurchaseOrders, getPOItems, type PurchaseOrder } from "@/db/queries/po";
 import { createDelivery } from "@/db/queries/field";
 import { todayISO, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
@@ -14,31 +17,23 @@ interface DeliveryFormProps {
 
 export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormProps) {
   const [pos, setPOs] = useState<PurchaseOrder[]>([]);
-  const [poItems, setPOItems] = useState<POItem[]>([]);
   const [saving, setSaving] = useState(false);
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const form = useForm({
     defaultValues: {
       poId: initialPoId || "",
-      poItemId: "",
       deliveryDate: todayISO(),
-      deliveredVolume: "",
-      deliveryNoteNumber: "",
-      locationDestination: "",
-      notes: "",
+      items: [] as { po_item_id: number; item_name: string; unit: string; sisa: number; qty: number }[],
     },
     onSubmit: async ({ value }) => {
       setSaving(true);
       try {
-        await createDelivery({
-          po_item_id: Number(value.poItemId),
-          delivery_date: value.deliveryDate,
-          delivered_volume: parseFloat(value.deliveredVolume) || 0,
-          delivery_note_number: value.deliveryNoteNumber,
-          location_destination: value.locationDestination,
-          notes: value.notes,
-        });
+        const itemsToSave = value.items.filter((it) => it.qty > 0);
+        await createDelivery(
+          { po_id: Number(value.poId), delivery_date: value.deliveryDate },
+          itemsToSave.map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }))
+        );
         onSuccess();
       } finally {
         setSaving(false);
@@ -52,10 +47,10 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
       setPOs(p);
       if (initialPoId) {
         const items = await getPOItems(Number(initialPoId));
-        setPOItems(items);
-        if (items.length > 0 && !form.state.values.poItemId) {
-          form.setFieldValue("poItemId", String(items[0].po_item_id));
-        }
+        form.setFieldValue(
+          "items",
+          items.map((i) => ({ po_item_id: i.po_item_id, item_name: i.item_name || "", unit: i.unit || "", sisa: i.sisa || 0, qty: 0 }))
+        );
       }
     }
     loadPOs();
@@ -64,181 +59,108 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
   return (
     <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
       <form.Subscribe
-        selector={(state) => [state.values.poId, state.values.poItemId, state.values.deliveredVolume, state.values.deliveryDate] as const}
+        selector={(state) => [state.values.poId, state.values.deliveryDate, state.values.items] as const}
       >
-        {([selectedPoId, selectedPoItemId, deliveredVolumeStr, deliveryDate]) => {
-          const activeItem = poItems.find((i) => i.po_item_id === Number(selectedPoItemId));
-          const sisaVolume = activeItem ? activeItem.sisa ?? 0 : 0;
-          const inputVol = parseFloat(deliveredVolumeStr) || 0;
-          const isOverlimit = inputVol > sisaVolume;
-          
-          const isValid = selectedPoItemId !== "" && deliveryDate !== "" && deliveredVolumeStr !== "";
+        {([selectedPoId, deliveryDate, items]) => {
+          const hasValidDelivery = items.some((it) => it.qty > 0);
+          const hasOverlimit = items.some((it) => it.qty > it.sisa);
+          const isValid = selectedPoId !== "" && deliveryDate !== "" && hasValidDelivery && !hasOverlimit;
 
           return (
             <VStack gap={6}>
-        <Card padding={4}>
-          <VStack gap={4}>
-            <Heading level={3}>Hubungkan dengan Purchase Order (PO)</Heading>
-            <HStack gap={4} style={{ alignItems: 'flex-start' }}>
-              <div style={{ flex: 1 }}>
-                <form.Field
-                  name="poId"
-                  children={(field) => (
-                    <Selector
-                      label="Pilih PO"
-                      value={field.state.value}
-                      onChange={async (v) => {
-                        const strVal = v as string;
-                        field.handleChange(strVal);
-                        if (strVal) {
-                          const items = await getPOItems(Number(strVal));
-                          setPOItems(items);
-                          if (items.length > 0) {
-                            form.setFieldValue("poItemId", String(items[0].po_item_id));
-                          } else {
-                            form.setFieldValue("poItemId", "");
-                          }
-                        } else {
-                          setPOItems([]);
-                          form.setFieldValue("poItemId", "");
-                        }
-                      }}
-                      isRequired
-                      options={[
-                        { value: "", label: "Pilih nomor PO..." },
-                        ...pos.map((p) => ({ value: String(p.po_id), label: `${p.po_number} (${p.vendor_name})` })),
-                      ]}
-                    />
-                  )}
-                />
-              </div>
-
-              {selectedPoId && (
-                <div style={{ flex: 1 }}>
-                  <form.Field
-                    name="poItemId"
-                    children={(field) => (
-                      <Selector
-                        label="Pilih Item PO"
-                        value={field.state.value}
-                        onChange={(v) => field.handleChange(v as string)}
-                        isRequired
-                        options={poItems.map((i) => ({
-                          value: String(i.po_item_id),
-                          label: `${i.item_name} (Sisa: ${formatNumber(i.sisa, 2)} ${i.unit})`,
-                        }))}
+              <Card padding={4}>
+                <VStack gap={4}>
+                  <Heading level={3}>Informasi Penerimaan</Heading>
+                  <HStack gap={4} style={{ alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <form.Field
+                        name="poId"
+                        children={(field) => (
+                          <Selector
+                            label="Pilih PO"
+                            value={field.state.value}
+                            onChange={async (v) => {
+                              const strVal = v as string;
+                              field.handleChange(strVal);
+                              if (strVal) {
+                                const poItems = await getPOItems(Number(strVal));
+                                form.setFieldValue(
+                                  "items",
+                                  poItems.map((i) => ({ po_item_id: i.po_item_id, item_name: i.item_name || "", unit: i.unit || "", sisa: i.sisa || 0, qty: 0 }))
+                                );
+                              } else {
+                                form.setFieldValue("items", []);
+                              }
+                            }}
+                            isRequired
+                            options={[
+                              { value: "", label: "Pilih nomor PO..." },
+                              ...pos.map((p: any) => ({ value: String(p.po_id), label: `PO-${p.po_id} (${p.vendor_names || "Tidak ada vendor"})` })),
+                            ]}
+                          />
+                        )}
                       />
-                    )}
-                  />
-                </div>
-              )}
-            </HStack>
+                    </div>
 
-            {activeItem && (
-              <Card padding={3} style={{ borderLeft: "4px solid var(--color-accent-500)" }}>
-                <VStack gap={1}>
-                  <Text size="2xs" color="secondary">Detail Item PO</Text>
-                  <Text size="sm"><strong>{activeItem.item_name}</strong></Text>
-                  <Text size="2xs" color="secondary">
-                    Volume Kontrak PO: {formatNumber(activeItem.ordered_volume, 2)} {activeItem.unit} |
-                    Terkirim: {formatNumber(activeItem.total_terkirim, 2)} {activeItem.unit} |
-                    Sisa Kontrak: {formatNumber(sisaVolume, 2)} {activeItem.unit}
-                  </Text>
+                    <div style={{ width: 240 }}>
+                      <form.Field
+                        name="deliveryDate"
+                        children={(field) => (
+                          <DateInput
+                            label="Tanggal Kirim / Terima"
+                            value={field.state.value as any}
+                            onChange={(v) => field.handleChange(v || "")}
+                            isRequired
+                          />
+                        )}
+                      />
+                    </div>
+                  </HStack>
                 </VStack>
               </Card>
-            )}
-          </VStack>
-        </Card>
 
-        {selectedPoItemId && (
-          <Card padding={4}>
-            <VStack gap={4}>
-              <Heading level={3}>Informasi Surat Jalan / Realisasi</Heading>
+              {selectedPoId && items.length > 0 && (
+                <Card padding={4}>
+                  <VStack gap={4}>
+                    <Heading level={3}>Daftar Item Diterima</Heading>
+                    <Text color="secondary" size="sm">Isi volume yang diterima untuk masing-masing material.</Text>
 
-              <HStack gap={4} style={{ alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <form.Field
-                    name="deliveryDate"
-                    children={(field) => (
-                      <TextInput
-                        label="Tanggal Kirim / Terima"
-                        type="date"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e)}
-                        isRequired
-                      />
-                    )}
-                  />
-                </div>
-                
-                <div style={{ flex: 1 }}>
-                  <form.Field
-                    name="deliveredVolume"
-                    children={(field) => (
-                      <TextInput
-                        label={`Volume Kirim (${activeItem?.unit ?? ""})`}
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e)}
-                        isRequired
-                        status={isOverlimit ? { type: "warning", message: "Melebihi sisa kontrak PO!" } : undefined}
-                      />
-                    )}
-                  />
-                </div>
-
-                {activeItem && (
-                  <HStack gap={2} align="center" style={{ flex: 1, height: "40px", marginTop: "24px" }}>
-                    <StatusDot variant={isOverlimit ? "warning" : "success"} label={isOverlimit ? "Overlimit" : "Within limit"} />
-                    <Text size="2xs" color="secondary">
-                      {isOverlimit ? "Volume melebihi sisa PO" : "Volume dalam batas PO"}
-                    </Text>
-                  </HStack>
-                )}
-              </HStack>
-
-              <HStack gap={4}>
-                <div style={{ flex: 1 }}>
-                  <form.Field
-                    name="deliveryNoteNumber"
-                    children={(field) => (
-                      <TextInput
-                        label="Nomor Surat Jalan"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e)}
-                        placeholder="Contoh: SJ-00892"
-                      />
-                    )}
-                  />
-                </div>
-                <div style={{ flex: 2 }}>
-                  <form.Field
-                    name="locationDestination"
-                    children={(field) => (
-                      <TextInput
-                        label="Lokasi Tujuan / Dump Site"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e)}
-                        placeholder="Contoh: Sulusuban STA 12+400"
-                      />
-                    )}
-                  />
-                </div>
-              </HStack>
-
-              <form.Field
-                name="notes"
-                children={(field) => (
-                  <TextArea
-                    label="Keterangan Ritase / Plat Mobil"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e)}
-                    placeholder="Masukkan plat truk, nama driver, atau catatan kondisi barang saat diterima..."
-                  />
-                )}
-              />
-            </VStack>
-          </Card>
-        )}
+                    <Table
+                      columns={[
+                        { key: "item", header: "Barang / Material", width: proportional(2), renderCell: (row: any) => <Text weight="medium">{row.item_name}</Text> },
+                        {
+                          key: "sisa", header: "Sisa PO", width: pixel(150),
+                          renderCell: (row: any) => <Text size="sm">{formatNumber(row.sisa, 2)} {row.unit}</Text>
+                        },
+                        {
+                          key: "qty", header: "Volume Diterima", width: pixel(200),
+                          renderCell: (row: any) => {
+                            const idx = items.indexOf(row);
+                            return (
+                              <form.Field name={`items[${idx}].qty`}>
+                                {(field) => {
+                                  const isOverlimit = field.state.value > row.sisa;
+                                  return (
+                                    <NumberInput
+                                      label="Volume"
+                                      isLabelHidden
+                                      value={field.state.value}
+                                      onChange={(v) => field.handleChange(v)}
+                                      status={isOverlimit ? { type: "warning", message: "Melebihi sisa PO" } : undefined}
+                                    />
+                                  );
+                                }}
+                              </form.Field>
+                            );
+                          }
+                        },
+                        { key: "unit", header: "Satuan", width: pixel(100), renderCell: (row: any) => <Text size="sm">{row.unit}</Text> },
+                      ]}
+                      data={items as any}
+                    />
+                  </VStack>
+                </Card>
+              )}
 
               <HStack gap={2} justify="end">
                 <Button variant="ghost" label="Batal" type="button" onClick={onCancel} />

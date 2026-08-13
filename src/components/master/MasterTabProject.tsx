@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading, Badge } from "@astryxdesign/core";
+import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
@@ -24,7 +25,7 @@ export function MasterTabProject() {
 
   const [projectName, setProjectName] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [fiscalYear, setFiscalYear] = useState("2026");
+  const [fiscalYear, setFiscalYear] = useState<number | null>(new Date().getFullYear());
 
   // Stages Management State
   const [stages, setStages] = useState<{ stage_id?: number, stage_name: string, has_relation?: boolean }[]>([]);
@@ -44,7 +45,7 @@ export function MasterTabProject() {
   }, []);
 
   function openCreate() {
-    setProjectName(""); setCompanyName(""); setFiscalYear("2026");
+    setProjectName(""); setCompanyName(""); setFiscalYear(new Date().getFullYear());
     setEditTarget(null);
     setStages([{ stage_name: "" }]);
     setErrorMsg(null);
@@ -55,7 +56,7 @@ export function MasterTabProject() {
     setEditTarget(project);
     setProjectName(project.project_name);
     setCompanyName(project.company_name);
-    setFiscalYear(String(project.fiscal_year));
+    setFiscalYear(project.fiscal_year);
     setErrorMsg(null);
     setIsDialogOpen(true);
 
@@ -77,7 +78,7 @@ export function MasterTabProject() {
       const data = {
         project_name: projectName,
         company_name: companyName,
-        fiscal_year: Number(fiscalYear),
+        fiscal_year: fiscalYear || 0,
       };
       let projectId: number;
       if (editTarget) {
@@ -170,7 +171,7 @@ export function MasterTabProject() {
 
           <TextInput label="Nama Project" value={projectName} onChange={setProjectName} isRequired />
           <TextInput label="Nama Perusahaan" value={companyName} onChange={setCompanyName} isRequired />
-          <TextInput label="Tahun Fiskal" value={fiscalYear} onChange={setFiscalYear} isRequired />
+          <NumberInput label="Tahun Fiskal" value={fiscalYear} onChange={(v) => setFiscalYear(v)} isRequired />
 
           <Heading level={4} style={{ marginTop: '1rem' }}>Tahapan Proyek</Heading>
           {loadingStages ? (

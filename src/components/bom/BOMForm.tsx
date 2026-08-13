@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { VStack, HStack, Button, TextInput, Selector, Heading } from "@astryxdesign/core";
+import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { getItems, getItemPrices, type Item, type ItemPrice } from "@/db/queries/master";
 import { createBOM, updateBOM, type BillOfMaterial } from "@/db/queries/bom";
 import { useAppStore } from "@/store/useAppStore";
@@ -23,7 +24,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
 
   const [formStageId, setFormStageId] = useState(initialData?.stage_id ? String(initialData.stage_id) : (stageId ? String(stageId) : ""));
   const [itemId, setItemId] = useState(initialData?.item_id ? String(initialData.item_id) : "");
-  const [qty, setQty] = useState(initialData?.qty ? String(initialData.qty) : "");
+  const [qty, setQty] = useState<number | null>(initialData?.qty ? Number(initialData.qty) : null);
   const [itemPriceId, setItemPriceId] = useState(initialData?.item_price_id ? String(initialData.item_price_id) : "");
 
   // Update state when initialData or stageId changes (important for inline forms that don't unmount)
@@ -31,12 +32,12 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
     if (initialData) {
       setFormStageId(String(initialData.stage_id));
       setItemId(String(initialData.item_id));
-      setQty(String(initialData.qty));
+      setQty(Number(initialData.qty));
       setItemPriceId(String(initialData.item_price_id));
     } else if (stageId) {
       setFormStageId(String(stageId));
       setItemId("");
-      setQty("");
+      setQty(null);
       setItemPriceId("");
     }
   }, [initialData, stageId]);
@@ -84,7 +85,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
         project_id: selectedProjectId,
         item_id: Number(itemId),
         stage_id: Number(formStageId),
-        qty: parseFloat(qty) || 0,
+        qty: qty || 0,
         item_price_id: Number(itemPriceId) || 0,
       };
 
@@ -94,7 +95,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
         await createBOM(data);
         if (isInline) {
           setItemId("");
-          setQty("");
+          setQty(null);
           setItemPriceId("");
         }
       }
@@ -129,7 +130,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
           />
         </div>
         <div style={{ flex: 1 }}>
-          <TextInput
+          <NumberInput
             label="Volume Rencana"
             placeholder="Contoh: 1500"
             value={qty}
@@ -201,7 +202,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
 
         <HStack gap={3}>
           <div style={{ flex: 1 }}>
-            <TextInput
+            <NumberInput
               label="Volume Rencana"
               isRequired
               placeholder="Contoh: 1500"

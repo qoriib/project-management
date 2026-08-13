@@ -208,7 +208,7 @@ export async function getItemPrices(itemId: number): Promise<ItemPriceWithRelati
     `SELECT 
        p.*,
        (SELECT COUNT(*) FROM bill_of_materials b WHERE b.item_price_id = p.price_id) as bom_count,
-       (SELECT COUNT(*) FROM po_items po WHERE po.item_id = p.item_id AND po.unit_price = p.price) as po_count
+       (SELECT COUNT(*) FROM po_items po WHERE po.item_price_id = p.price_id) as po_count
      FROM item_prices p
      WHERE p.item_id = $1
      ORDER BY p.price_id ASC`,

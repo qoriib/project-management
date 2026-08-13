@@ -70,7 +70,7 @@ CREATE TABLE `bill_of_materials` (
 	FOREIGN KEY (`item_price_id`) REFERENCES `item_prices`(`price_id`) ON UPDATE no action ON DELETE restrict
 );
 
--- 5. TAHAP 1: PURCHASE ORDER (PO / PEMESANAN)
+-- TAHAP 1: PURCHASE ORDER (PO / PEMESANAN)
 CREATE TABLE `purchase_orders` (
 	`po_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`project_id` integer,
@@ -93,14 +93,19 @@ CREATE TABLE `po_items` (
 	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`vendor_id`) ON UPDATE no action ON DELETE restrict
 );
 
--- 6. TAHAP 2: PENGIRIMAN (DELIVERY / REALISASI FISIK LAPANGAN)
+-- TAHAP 2: PENGIRIMAN (DELIVERY / REALISASI FISIK LAPANGAN)
 CREATE TABLE `deliveries` (
 	`delivery_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`po_item_id` integer,
+	`po_id` integer,
 	`delivery_date` text NOT NULL,
-	`delivered_volume` real NOT NULL,
-	`delivery_note_number` text,
-	`location_destination` text,
-	`notes` text,
+	FOREIGN KEY (`po_id`) REFERENCES `purchase_orders`(`po_id`) ON UPDATE no action ON DELETE cascade
+);
+
+CREATE TABLE `delivery_items` (
+	`delivery_item_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`delivery_id` integer,
+	`po_item_id` integer,
+	`qty` real NOT NULL,
+	FOREIGN KEY (`delivery_id`) REFERENCES `deliveries`(`delivery_id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`po_item_id`) REFERENCES `po_items`(`po_item_id`) ON UPDATE no action ON DELETE cascade
 );

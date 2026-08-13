@@ -68,12 +68,15 @@ export interface POItem {
 
 export interface Delivery {
   delivery_id: number;
-  po_item_id: number | null;
+  po_id: number | null;
   delivery_date: string;
-  delivered_volume: number;
-  delivery_note_number: string | null;
-  location_destination: string | null;
-  notes: string | null;
+}
+
+export interface DeliveryItem {
+  delivery_item_id: number;
+  delivery_id: number | null;
+  po_item_id: number | null;
+  qty: number;
 }
 
 export interface ProjectStage {

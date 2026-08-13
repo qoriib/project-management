@@ -88,9 +88,9 @@ function Dashboard() {
                     </div>
                     <Table
                       columns={[
-                        { key: "item", header: "Material / Alat", width: proportional(1.5), renderCell: (r: DashboardBOMReportItem) => <Text weight="medium">{r.item_name}</Text> },
+                        { key: "item", header: "Material / Alat", width: proportional(1.5), renderCell: (r: any) => <Text weight="medium">{r.item_name}</Text> },
                         {
-                          key: "planned", header: "BOM (Rencana)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => (
+                          key: "planned", header: "BOM (Rencana)", width: pixel(180), renderCell: (r: any) => (
                             <VStack gap={0}>
                               <Text size="sm">{formatNumber(r.planned_volume, 2)} {r.unit}</Text>
                               <Text size="2xs" color="secondary">{formatRupiah(r.planned_budget)}</Text>
@@ -98,13 +98,13 @@ function Dashboard() {
                           )
                         },
                         {
-                          key: "ordered", header: "PO (Dipesan)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => {
+                          key: "ordered", header: "PO (Dipesan)", width: pixel(180), renderCell: (r: any) => {
                             const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
                             const isOver = percent > 100;
                             return (
                               <VStack gap={0}>
                                 <HStack gap={2} align="center">
-                                  <StatusDot variant={isOver ? "warning" : percent === 100 ? "success" : percent > 0 ? "info" : "neutral"} />
+                                  <StatusDot variant={isOver ? "warning" : percent === 100 ? "success" : "neutral"} label={isOver ? "Over budget" : percent === 100 ? "Terpenuhi" : "Berjalan"} />
                                   <Text size="sm">{formatNumber(r.total_ordered, 2)} {r.unit}</Text>
                                 </HStack>
                                 <Text size="2xs" color="secondary">{percent.toFixed(1)}% Terpenuhi</Text>
@@ -113,7 +113,7 @@ function Dashboard() {
                           }
                         },
                         {
-                          key: "delivered", header: "Delivery (Terkirim)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => {
+                          key: "delivered", header: "Delivery (Terkirim)", width: pixel(180), renderCell: (r: any) => {
                             const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
                             return (
                               <VStack gap={0}>
@@ -126,7 +126,7 @@ function Dashboard() {
                           }
                         },
                       ]}
-                      data={stageData}
+                      data={stageData as any}
                       idKey="item_name"
                     />
                   </VStack>

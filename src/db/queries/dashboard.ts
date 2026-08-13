@@ -30,8 +30,8 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
       JOIN purchase_orders po ON po.po_id = poi.po_id
       LEFT JOIN item_prices ip ON ip.price_id = poi.item_price_id
       LEFT JOIN (
-        SELECT po_item_id, SUM(delivered_volume) as total_delivered 
-        FROM deliveries 
+        SELECT po_item_id, SUM(qty) as total_delivered 
+        FROM delivery_items 
         GROUP BY po_item_id
       ) d ON d.po_item_id = poi.po_item_id
       GROUP BY po.project_id, poi.item_id

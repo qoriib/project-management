@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { HStack, Button, Table, Text, VStack } from "@astryxdesign/core";
+import { HStack, Button, Table, Text, VStack, Card, Badge } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { getPurchaseOrders, deletePO, type PurchaseOrder } from "@/db/queries/po";
@@ -44,17 +44,27 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   }
 
   const columns = [
-    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: PurchaseOrder) => `PO-${row.po_id}` },
-    { key: "po_date", header: "Tanggal", width: pixel(150), renderCell: (row: PurchaseOrder) => formatDate(row.po_date) },
-    { key: "project_name", header: "Proyek", width: proportional(1) },
+    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: any) => `PO-${row.po_id}` },
+    { key: "po_date", header: "Tanggal", width: pixel(150), renderCell: (row: any) => formatDate(row.po_date) },
+    { 
+      key: "vendor_names", header: "Vendor Pemasok", width: proportional(2), 
+      renderCell: (row: any) => (
+        <HStack gap={1} style={{ flexWrap: 'wrap' }}>
+          {row.vendor_names ? row.vendor_names.split(',').map((v: string, i: number) => (
+            <Badge key={i} variant="neutral" label={v.trim()} />
+          )) : "—"}
+        </HStack>
+      )
+    },
+    { key: "item_count", header: "Total Item", width: pixel(130), renderCell: (row: any) => `${row.item_count} Item` },
     {
-      key: "total_price", header: "Total Nilai", width: pixel(160),
-      renderCell: (row: PurchaseOrder) => <Text size="sm" weight="semibold">{formatRupiah(row.total_price)}</Text>,
+      key: "total_price", header: "Estimasi Total Biaya", width: pixel(200),
+      renderCell: (row: any) => <Text size="sm" weight="semibold">{formatRupiah(row.total_price)}</Text>,
     },
     {
       key: "actions", header: "", width: pixel(200),
       renderCell: (row: PurchaseOrder) => (
-        <HStack gap={1}>
+        <HStack gap={1} justify="end">
           <Button size="sm" variant="ghost" label="Detail" onClick={() => navigate({ to: `/po/${row.po_id}` })} />
           <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row.po_id)} />
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.po_id, label: `PO-${row.po_id}` })} />
@@ -65,20 +75,22 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
 
   return (
     <VStack gap={4}>
-      <Table
-        columns={columns as any}
-        data={pos as any}
-        idKey="po_id"
-        hasHover
-        emptyState={
-          <VStack align="center" padding={8}>
-            <Text color="secondary">
-              Belum ada PO. Klik '+ Buat PO Baru' untuk memulai.
-            </Text>
-          </VStack>
-        }
-      />
-
+      <Card padding={0}>
+        <Table
+          textOverflow="truncate"
+          columns={columns as any}
+          data={pos as any}
+          idKey="po_id"
+          hasHover
+          emptyState={
+            <VStack align="center" padding={8}>
+              <Text color="secondary">
+                Belum ada PO. Klik '+ Buat PO Baru' untuk memulai.
+              </Text>
+            </VStack>
+          }
+        />
+      </Card>
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

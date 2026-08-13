@@ -8,30 +8,28 @@ import { proportional, pixel } from "@astryxdesign/core/Table";
 import { PageHeader } from "@/components/PageHeader";
 import { VolumeProgress } from "@/components/VolumeProgress";
 import { getPOById, getPOItems, type PurchaseOrder, type POItem } from "@/db/queries/po";
-import { getDeliveries, type Delivery } from "@/db/queries/field";
-import { formatRupiah, formatDate } from "@/utils/formatters";
+import { getDeliveryItemsByPO, type DeliveryItem } from "@/db/queries/field";
+import { formatRupiah, formatDate, formatNumber } from "@/utils/formatters";
 
 function PODetailPage() {
   const navigate = useNavigate();
   const { id } = useParams({ strict: false });
   const [po, setPO] = useState<PurchaseOrder | null>(null);
   const [items, setItems] = useState<POItem[]>([]);
-  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [deliveryItems, setDeliveryItems] = useState<(DeliveryItem & { delivery_date: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
     async function load() {
-      const [p, its, del] = await Promise.all([
+      const [p, its, delItems] = await Promise.all([
         getPOById(Number(id)),
         getPOItems(Number(id)),
-        getDeliveries(),
+        getDeliveryItemsByPO(Number(id)),
       ]);
       setPO(p);
       setItems(its);
-      // filter only deliveries for this PO's items
-      const poItemIds = new Set(its.map((i) => i.po_item_id));
-      setDeliveries(del.filter((d) => d.po_item_id && poItemIds.has(d.po_item_id)));
+      setDeliveryItems(delItems);
       setLoading(false);
     }
     load();
@@ -40,12 +38,21 @@ function PODetailPage() {
   if (loading) return <Section padding={6}><Text color="secondary">Memuat data PO…</Text></Section>;
   if (!po) return <Section padding={6}><Text color="secondary">PO tidak ditemukan.</Text></Section>;
 
+  const itemColumns = [
+    { key: "item_name", header: "Barang / Material", width: proportional(1.5), renderCell: (row: POItem) => row.item_name },
+    { key: "vendor_name", header: "Vendor", width: proportional(1.5), renderCell: (row: POItem) => row.vendor_name || "—" },
+    { key: "price", header: "Harga Satuan", width: pixel(140), renderCell: (row: POItem) => formatRupiah(row.price) },
+    { key: "qty", header: "Vol. Kontrak", width: pixel(120), renderCell: (row: POItem) => `${formatNumber(row.qty, 2)} ${row.unit ?? ""}` },
+    { key: "total_terkirim", header: "Terkirim", width: pixel(120), renderCell: (row: POItem) => `${formatNumber(row.total_terkirim, 2)} ${row.unit ?? ""}` },
+    { key: "sisa", header: "Sisa", width: pixel(120), renderCell: (row: POItem) => `${formatNumber(row.sisa, 2)} ${row.unit ?? ""}` },
+    { key: "subtotal", header: "Total Harga", width: pixel(150), renderCell: (row: POItem) => <Text weight="medium">{formatRupiah((row.qty || 0) * (row.price || 0))}</Text> },
+  ];
+
   const deliveryColumns = [
-    { key: "delivery_date", header: "Tanggal Kirim", width: pixel(120), renderCell: (row: Delivery) => formatDate(row.delivery_date) },
-    { key: "item_name", header: "Barang / Material", width: proportional(1) },
-    { key: "delivered_volume", header: "Volume Kirim", width: pixel(120), renderCell: (row: Delivery) => `${row.delivered_volume} ${row.unit ?? ""}` },
-    { key: "delivery_note_number", header: "No. Surat Jalan", width: pixel(140) },
-    { key: "location_destination", header: "Tujuan", width: proportional(1) },
+    { key: "delivery_date", header: "Tanggal Kirim", width: pixel(140), renderCell: (row: any) => formatDate(row.delivery_date) },
+    { key: "item_name", header: "Barang / Material", width: proportional(2), renderCell: (row: any) => row.item_name },
+    { key: "vendor_name", header: "Vendor Pemasok", width: proportional(1.5), renderCell: (row: any) => row.vendor_name || "—" },
+    { key: "qty", header: "Volume Diterima", width: pixel(180), renderCell: (row: any) => `${formatNumber(row.qty, 2)} ${row.unit ?? ""}` },
   ];
 
   return (
@@ -53,7 +60,7 @@ function PODetailPage() {
       <VStack gap={6}>
         <PageHeader
           title={`Detail PO-${po.po_id}`}
-          subtitle={`Dibuat pada ${formatDate(po.po_date)}`}
+          subtitle={`Proyek: ${po.project_name ?? "—"} • Dibuat pada ${formatDate(po.po_date)} • Estimasi Total: ${formatRupiah(po.total_price)}`}
           actions={
             <HStack gap={2}>
               <Button variant="ghost" label="← Kembali" onClick={() => navigate({ to: "/po" })} />
@@ -61,54 +68,38 @@ function PODetailPage() {
           }
         />
 
-        {/* PO Info Header */}
-        <Card padding={4}>
-          <HStack gap={6}>
-            <VStack gap={1}>
-              <Text size="2xs" color="secondary">Proyek</Text>
-              <Text weight="medium">{po.project_name ?? "—"}</Text>
-            </VStack>
-            <VStack gap={1} style={{ marginLeft: "auto" }}>
-              <Text size="2xs" color="secondary">Estimasi Total PO</Text>
-              <Heading level={3} style={{ color: "var(--color-accent-500)" }}>{formatRupiah(po.total_price)}</Heading>
-            </VStack>
+        {/* Item & Volume Tracking Table */}
+        <VStack gap={2}>
+          <HStack justify="between" align="center">
+            <Heading level={3}>Item PO & Tracking Realisasi</Heading>
           </HStack>
-        </Card>
-
-        {/* Volume Tracking */}
-        <Card padding={4}>
-          <VStack gap={4}>
-            <Heading level={3}>Tracking Realisasi Volume PO vs Volume Pengiriman</Heading>
-            <Divider />
-            {items.map((item) => (
-              <VStack gap={2} key={item.po_item_id}>
-                <Text size="sm" color="secondary">Vendor: {item.vendor_name}</Text>
-                <VolumeProgress
-                  label={`${item.item_name}`}
-                  satuan={item.unit ?? ""}
-                  qtyPO={item.qty}
-                  totalTerkirim={item.total_terkirim ?? 0}
-                />
-              </VStack>
-            ))}
-          </VStack>
-        </Card>
+          <Card padding={0}>
+            <Table
+              textOverflow="truncate"
+              columns={itemColumns as any}
+              data={items as any}
+              idKey="po_item_id"
+              emptyState={<VStack align="center" padding={4}><Text color="secondary">Tidak ada item dalam PO ini.</Text></VStack>}
+            />
+          </Card>
+        </VStack>
 
         {/* Delivery History */}
-        <Card padding={4}>
-          <VStack gap={3}>
-            <HStack gap={2} align="center">
-              <Heading level={3}>Log Penerimaan Lapangan (Surat Jalan)</Heading>
-              <Button size="sm" variant="secondary" label="+ Input Pengiriman Baru" onClick={() => navigate({ to: "/delivery", search: { po: String(po.po_id) } })} style={{ marginLeft: "auto" }} />
-            </HStack>
+        <VStack gap={2}>
+          <HStack gap={2} justify="between" align="center">
+            <Heading level={3}>Log Penerimaan Lapangan (Surat Jalan)</Heading>
+            <Button size="sm" variant="secondary" label="+ Input Pengiriman Baru" onClick={() => navigate({ to: "/delivery/new", search: { po: String(po.po_id) } })} />
+          </HStack>
+          <Card padding={0}>
             <Table
+              textOverflow="truncate"
               columns={deliveryColumns as any}
-              data={deliveries as any}
-              idKey="delivery_id"
+              data={deliveryItems as any}
+              idKey="delivery_item_id"
               emptyState={<VStack align="center" padding={4}><Text color="secondary">Belum ada realisasi pengiriman material untuk PO ini.</Text></VStack>}
             />
-          </VStack>
-        </Card>
+          </Card>
+        </VStack>
       </VStack>
     </Section>
   );

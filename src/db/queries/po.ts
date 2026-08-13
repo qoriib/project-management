@@ -23,7 +23,7 @@ export async function getPurchaseOrders(filters?: {
   project_id?: number;
   tanggal_dari?: string;
   tanggal_sampai?: string;
-}): Promise<PurchaseOrder[]> {
+}): Promise<(PurchaseOrder & { item_count: number; vendor_names: string })[]> {
   const db = await getDB();
   const conditions: string[] = [];
   const params: any[] = [];
@@ -48,17 +48,20 @@ export async function getPurchaseOrders(filters?: {
     SELECT 
       po.po_id, po.project_id, po.po_date, po.created_at,
       p.project_name,
-      COALESCE(SUM(poi.qty * ip.price), 0) as total_price
+      COALESCE(SUM(poi.qty * ip.price), 0) as total_price,
+      COUNT(poi.po_item_id) as item_count,
+      GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names
     FROM purchase_orders po
     LEFT JOIN projects p ON p.project_id = po.project_id
     LEFT JOIN po_items poi ON poi.po_id = po.po_id
     LEFT JOIN item_prices ip ON ip.price_id = poi.item_price_id
+    LEFT JOIN vendors v ON v.vendor_id = poi.vendor_id
     ${whereClause}
     GROUP BY po.po_id
     ORDER BY po.po_date DESC, po.po_id DESC
   `;
 
-  return db.select<PurchaseOrder[]>(query, params);
+  return db.select<any>(query, params);
 }
 
 export async function getPOById(id: number): Promise<PurchaseOrder | null> {
