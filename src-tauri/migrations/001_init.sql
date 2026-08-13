@@ -2,7 +2,7 @@
 -- Initialize core database schema with soft delete structure
 
 CREATE TABLE `projects` (
-	`project_id` text PRIMARY KEY NOT NULL,
+	`project_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`project_name` text NOT NULL,
 	`company_name` text NOT NULL,
 	`fiscal_year` integer NOT NULL,
@@ -12,16 +12,17 @@ CREATE TABLE `projects` (
 
 CREATE TABLE `project_stages` (
 	`stage_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`project_id` text NOT NULL,
+	`project_id` integer NOT NULL,
 	`stage_name` text NOT NULL,
+	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade
 );
 
 CREATE TABLE `vendors` (
 	`vendor_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`vendor_name` text NOT NULL,
-	`vendor_phone` text,
-	`vendor_address` text,
+	`phone` text,
+	`address` text,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL
 );
@@ -51,7 +52,7 @@ CREATE TABLE `units` (
 -- TAHAP PERSIAPAN: TAHAPAN PROYEK & BOM (RAB)
 CREATE TABLE `bill_of_materials` (
 	`bom_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`project_id` text NOT NULL,
+	`project_id` integer NOT NULL,
 	`stage_id` integer NOT NULL,
 	`item_id` integer NOT NULL,
 	`price` real NOT NULL,
@@ -66,7 +67,7 @@ CREATE TABLE `bill_of_materials` (
 -- TAHAP PELAKSANAAN: PO & PENERIMAAN
 CREATE TABLE `purchase_orders` (
 	`po_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`project_id` text NOT NULL,
+	`project_id` integer NOT NULL,
 	`po_date` text NOT NULL,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL,

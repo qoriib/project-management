@@ -39,7 +39,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
       try {
         const poData = {
           po_date: value.poDate,
-          project_id: selectedProjectId || null,
+          project_id: selectedProjectId!,
         };
         const poItems = value.items
           .filter((it) => it.qty > 0 && it.item_id !== 0)

@@ -2,14 +2,14 @@ import type { ModelDefinition } from "@/db/core/types";
 
 export interface PurchaseOrder {
   po_id: number;
-  project_id: number | null;
+  project_id: number;
   po_date: string;
   created_at: string;
   deleted_at: string | null;
 }
 
-export type CreatePurchaseOrder = Pick<PurchaseOrder, "po_date"> & Partial<Pick<PurchaseOrder, "project_id">>;
-export type UpdatePurchaseOrder = Partial<Pick<PurchaseOrder, "po_date" | "project_id">>;
+export type CreatePurchaseOrder = Pick<PurchaseOrder, "po_date" | "project_id">;
+export type UpdatePurchaseOrder = Partial<CreatePurchaseOrder>;
 
 export const PurchaseOrderModel: ModelDefinition = {
   tableName: "purchase_orders",
