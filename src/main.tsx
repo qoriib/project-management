@@ -1,14 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "@astryxdesign/core/reset.css";
-import "@astryxdesign/core/astryx.css";
 import { Theme } from "@astryxdesign/core/theme";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
-import "@astryxdesign/theme-neutral/theme.css";
-
-import { RouterProvider, createRouter, createHashHistory } from '@tanstack/react-router';
-// Import the generated route tree
 import { routeTree } from '@/routeTree.gen';
+import { RouterProvider, createRouter, createHashHistory } from '@tanstack/react-router';
+import "@astryxdesign/core/reset.css";
+import "@astryxdesign/core/astryx.css";
+import "@astryxdesign/theme-neutral/theme.css";
 
 // Create a new router instance
 const hashHistory = createHashHistory();
