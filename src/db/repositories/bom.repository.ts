@@ -64,16 +64,18 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
         .select(
           "b.bom_id", "b.project_id", "b.stage_id", "b.item_id",
           "b.price", "b.qty", "b.created_at",
-          "i.item_name", "i.unit", "i.category",
+          "i.item_name", "u.unit_name as unit", "c.category_name as category",
           "p.project_name", "ps.stage_name",
         )
         .selectRaw("(b.qty * b.price) as total_estimasi")
         .from("bill_of_materials", "b")
         .leftJoin("items", "i", "i.item_id = b.item_id")
+        .leftJoin("item_categories", "c", "i.category_id = c.category_id")
+        .leftJoin("units", "u", "i.unit_id = u.unit_id")
         .leftJoin("projects", "p", "p.project_id = b.project_id")
         .leftJoin("project_stages", "ps", "ps.stage_id = b.stage_id")
         .withSoftDelete("b")
-        .orderBy("i.category", "ASC")
+        .orderBy("c.category_name", "ASC")
         .orderBy("i.item_name", "ASC");
 
       if (filters?.project_id) {

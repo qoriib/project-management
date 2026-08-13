@@ -331,17 +331,14 @@ export abstract class BaseRepository<
   }
   /**
    * Execute operations within a database transaction.
-   * This drastically improves performance for bulk inserts/updates.
+   * Note: Explicit BEGIN/COMMIT via IPC in Tauri causes "no transaction is active" errors 
+   * because the plugin-sql uses a connection pool (sqlx) under the hood.
+   * For a local SQLite desktop app, we can bypass this wrapper safely.
    */
   protected async transaction<T>(operation: () => Promise<T>): Promise<T> {
-    const db = await this.db();
-    await db.execute("BEGIN TRANSACTION");
     try {
-      const result = await operation();
-      await db.execute("COMMIT");
-      return result;
+      return await operation();
     } catch (error) {
-      await db.execute("ROLLBACK");
       throw wrapDbError(error, this.model.tableName);
     }
   }

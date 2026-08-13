@@ -100,10 +100,11 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
    */
   async findItems(deliveryId: number): Promise<DeliveryItemDetail[]> {
     const { sql, params } = new QueryBuilder()
-      .select("di.*", "i.item_name", "i.unit", "v.vendor_name")
+      .select("di.*", "i.item_name", "u.unit_name as unit", "v.vendor_name")
       .from("delivery_items", "di")
       .leftJoin("po_items", "poi", "poi.po_item_id = di.po_item_id")
       .leftJoin("items", "i", "i.item_id = poi.item_id")
+      .leftJoin("units", "u", "i.unit_id = u.unit_id")
       .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
       .where("di.delivery_id", "=", deliveryId)
       .build();
@@ -116,11 +117,12 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
    */
   async findItemsByPO(poId: number): Promise<DeliveryItemByPO[]> {
     const { sql, params } = new QueryBuilder()
-      .select("di.*", "d.delivery_date", "i.item_name", "i.unit", "v.vendor_name")
+      .select("di.*", "d.delivery_date", "i.item_name", "u.unit_name as unit", "v.vendor_name")
       .from("delivery_items", "di")
       .join("deliveries", "d", "d.delivery_id = di.delivery_id")
       .join("po_items", "poi", "poi.po_item_id = di.po_item_id")
       .join("items", "i", "i.item_id = poi.item_id")
+      .leftJoin("units", "u", "i.unit_id = u.unit_id")
       .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
       .where("poi.po_id", "=", poId)
       .orderBy("d.delivery_date", "DESC")
