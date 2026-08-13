@@ -5,7 +5,7 @@ let _tauriDb: Database | null = null;
 export async function getDB(): Promise<Database> {
   if (_tauriDb) return _tauriDb;
 
-  _tauriDb = await Database.load("sqlite:proyek_v4.db");
+  _tauriDb = await Database.load("sqlite:proyek.dbproyek_v5.db");
 
   return _tauriDb;
 }

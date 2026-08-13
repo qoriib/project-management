@@ -13,12 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as MasterRouteImport } from './routes/master'
 import { Route as BomIndexRouteImport } from './routes/bom/index'
-import { Route as BomStageIdRouteImport } from './routes/bom/$stageId'
 import { Route as DeliveryIndexRouteImport } from './routes/delivery/index'
 import { Route as MasterIndexRouteImport } from './routes/master/index'
 import { Route as MasterKategoriRouteImport } from './routes/master/kategori'
 import { Route as MasterProjectRouteImport } from './routes/master/project'
 import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
+import { Route as MasterStageRouteImport } from './routes/master/stage'
 import { Route as MasterVendorRouteImport } from './routes/master/vendor'
 import { Route as PoIndexRouteImport } from './routes/po/index'
 import { Route as PoNewRouteImport } from './routes/po/new'
@@ -45,11 +45,6 @@ const BomIndexRoute = BomIndexRouteImport.update({
   path: '/bom/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BomStageIdRoute = BomStageIdRouteImport.update({
-  id: '/bom/$stageId',
-  path: '/bom/$stageId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DeliveryIndexRoute = DeliveryIndexRouteImport.update({
   id: '/delivery/',
   path: '/delivery/',
@@ -73,6 +68,11 @@ const MasterProjectRoute = MasterProjectRouteImport.update({
 const MasterSatuanRoute = MasterSatuanRouteImport.update({
   id: '/satuan',
   path: '/satuan',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterStageRoute = MasterStageRouteImport.update({
+  id: '/stage',
+  path: '/stage',
   getParentRoute: () => MasterRoute,
 } as any)
 const MasterVendorRoute = MasterVendorRouteImport.update({
@@ -105,10 +105,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/master': typeof MasterRouteWithChildren
-  '/bom/$stageId': typeof BomStageIdRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
+  '/master/stage': typeof MasterStageRoute
   '/master/vendor': typeof MasterVendorRoute
   '/po/new': typeof PoNewRoute
   '/bom/': typeof BomIndexRoute
@@ -121,10 +121,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/bom/$stageId': typeof BomStageIdRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
+  '/master/stage': typeof MasterStageRoute
   '/master/vendor': typeof MasterVendorRoute
   '/po/new': typeof PoNewRoute
   '/bom': typeof BomIndexRoute
@@ -139,10 +139,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/master': typeof MasterRouteWithChildren
-  '/bom/$stageId': typeof BomStageIdRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
+  '/master/stage': typeof MasterStageRoute
   '/master/vendor': typeof MasterVendorRoute
   '/po/new': typeof PoNewRoute
   '/bom/': typeof BomIndexRoute
@@ -158,10 +158,10 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/master'
-    | '/bom/$stageId'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
+    | '/master/stage'
     | '/master/vendor'
     | '/po/new'
     | '/bom/'
@@ -174,10 +174,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
-    | '/bom/$stageId'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
+    | '/master/stage'
     | '/master/vendor'
     | '/po/new'
     | '/bom'
@@ -191,10 +191,10 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/master'
-    | '/bom/$stageId'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
+    | '/master/stage'
     | '/master/vendor'
     | '/po/new'
     | '/bom/'
@@ -209,7 +209,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   MasterRoute: typeof MasterRouteWithChildren
-  BomStageIdRoute: typeof BomStageIdRoute
   PoNewRoute: typeof PoNewRoute
   BomIndexRoute: typeof BomIndexRoute
   DeliveryIndexRoute: typeof DeliveryIndexRoute
@@ -248,13 +247,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BomIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/bom/$stageId': {
-      id: '/bom/$stageId'
-      path: '/bom/$stageId'
-      fullPath: '/bom/$stageId'
-      preLoaderRoute: typeof BomStageIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/delivery/': {
       id: '/delivery/'
       path: '/delivery'
@@ -288,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/satuan'
       fullPath: '/master/satuan'
       preLoaderRoute: typeof MasterSatuanRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/stage': {
+      id: '/master/stage'
+      path: '/stage'
+      fullPath: '/master/stage'
+      preLoaderRoute: typeof MasterStageRouteImport
       parentRoute: typeof MasterRoute
     }
     '/master/vendor': {
@@ -332,6 +331,7 @@ interface MasterRouteChildren {
   MasterKategoriRoute: typeof MasterKategoriRoute
   MasterProjectRoute: typeof MasterProjectRoute
   MasterSatuanRoute: typeof MasterSatuanRoute
+  MasterStageRoute: typeof MasterStageRoute
   MasterVendorRoute: typeof MasterVendorRoute
   MasterIndexRoute: typeof MasterIndexRoute
 }
@@ -340,6 +340,7 @@ const MasterRouteChildren: MasterRouteChildren = {
   MasterKategoriRoute: MasterKategoriRoute,
   MasterProjectRoute: MasterProjectRoute,
   MasterSatuanRoute: MasterSatuanRoute,
+  MasterStageRoute: MasterStageRoute,
   MasterVendorRoute: MasterVendorRoute,
   MasterIndexRoute: MasterIndexRoute,
 }
@@ -351,7 +352,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   MasterRoute: MasterRouteWithChildren,
-  BomStageIdRoute: BomStageIdRoute,
   PoNewRoute: PoNewRoute,
   BomIndexRoute: BomIndexRoute,
   DeliveryIndexRoute: DeliveryIndexRoute,

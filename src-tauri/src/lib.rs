@@ -16,7 +16,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
-                .add_migrations("sqlite:proyek_v4.db", migrations)
+                .add_migrations("sqlite:proyek.dbproyek_v5.db", migrations)
                 .build(),
         )
         .plugin(tauri_plugin_dialog::init())
