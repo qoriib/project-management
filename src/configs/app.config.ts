@@ -6,7 +6,7 @@ export const APP = {
     {
       label: "Dashboard",
       icon: Home,
-      href: "/dashboard"
+      href: "/"
     },
     {
       icon: ClipboardList,
@@ -26,7 +26,13 @@ export const APP = {
     {
       label: "Master Data",
       icon: Folder,
-      href: "/master"
+      subitems: [
+        { label: "Proyek", href: "/master/project" },
+        { label: "Item", href: "/master/item" },
+        { label: "Vendor", href: "/master/vendor" },
+        { label: "Kategori", href: "/master/kategori" },
+        { label: "Satuan", href: "/master/satuan" },
+      ]
     }
   ]
 }

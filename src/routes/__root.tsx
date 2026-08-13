@@ -1,4 +1,4 @@
-import { createRootRoute, Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
+import { createRootRoute, Outlet, useNavigate } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import { AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Text, VStack } from "@astryxdesign/core";
 import { ListItem } from "@astryxdesign/core/List";
@@ -7,15 +7,23 @@ import { getDB } from "@/db";
 import { projectRepo, type Project } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
 import { APP } from '@/configs/app.config';
+import { NavProvider, useNav } from '@/contexts/NavContext';
 
 export const Route = createRootRoute({
-  component: AppLayout,
+  component: RootComponent,
 });
 
+function RootComponent() {
+  return (
+    <NavProvider>
+      <AppLayout />
+    </NavProvider>
+  );
+}
+
 function AppLayout() {
-  const routerState = useRouterState();
   const navigate = useNavigate();
-  const path = routerState.location.pathname;
+  const { activeNav, setActiveNav } = useNav();
 
   const { dbReady, setDbReady, setGlobalError, sideNavCollapsed, setSideNavCollapsed, selectedProjectId, setSelectedProjectId } = useAppStore();
 
@@ -49,7 +57,6 @@ function AppLayout() {
       variant="elevated"
       sideNav={
         <SideNav
-          collapsible={{ hasButton: true, isCollapsed: sideNavCollapsed, onCollapsedChange: setSideNavCollapsed }}
           header={
             <SideNavHeading
               heading={activeProject ? activeProject.project_name : APP.title}
@@ -74,15 +81,43 @@ function AppLayout() {
           }
         >
           <SideNavSection title="Menu Utama" isHeaderHidden>
-            {APP.sidenav.map((sidenavItem) => (
-              <SideNavItem
-                key={sidenavItem.href}
-                label={sidenavItem.label}
-                icon={sidenavItem.icon}
-                isSelected={path.startsWith(sidenavItem.href)}
-                onClick={() => navigate({ to: sidenavItem.href })}
-              />
-            ))}
+            {APP.sidenav.map((sidenavItem) => {
+              if (sidenavItem.subitems) {
+                return (
+                  <SideNavItem
+                    key={sidenavItem.label}
+                    label={sidenavItem.label}
+                    icon={sidenavItem.icon}
+                    collapsible={{ defaultIsCollapsed: true }}
+                  >
+                    {sidenavItem.subitems.map((sub) => (
+                      <SideNavItem
+                        key={sub.href}
+                        label={sub.label}
+                        isSelected={activeNav === sub.href || activeNav.startsWith(`${sub.href}/`)}
+                        onClick={() => {
+                          setActiveNav(sub.href);
+                          navigate({ to: sub.href });
+                        }}
+                      />
+                    ))}
+                  </SideNavItem>
+                );
+              }
+
+              return (
+                <SideNavItem
+                  key={sidenavItem.href}
+                  label={sidenavItem.label}
+                  icon={sidenavItem.icon}
+                  isSelected={activeNav === sidenavItem.href || (sidenavItem.href !== '/' && activeNav.startsWith(`${sidenavItem.href}/`))}
+                  onClick={() => {
+                    setActiveNav(sidenavItem.href!);
+                    navigate({ to: sidenavItem.href! });
+                  }}
+                />
+              );
+            })}
           </SideNavSection>
         </SideNav>
       }

@@ -10,12 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as MasterRouteImport } from './routes/master'
 import { Route as BomIndexRouteImport } from './routes/bom/index'
 import { Route as DeliveryIndexRouteImport } from './routes/delivery/index'
 import { Route as DeliveryNewRouteImport } from './routes/delivery/new'
-import { Route as MasterIndexRouteImport } from './routes/master/index'
+import { Route as MasterItemRouteImport } from './routes/master/item'
 import { Route as MasterKategoriRouteImport } from './routes/master/kategori'
 import { Route as MasterProjectRouteImport } from './routes/master/project'
 import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
@@ -28,11 +27,6 @@ import { Route as PoIdEditRouteImport } from './routes/po/$id/edit'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MasterRoute = MasterRouteImport.update({
@@ -55,9 +49,9 @@ const DeliveryNewRoute = DeliveryNewRouteImport.update({
   path: '/delivery/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MasterIndexRoute = MasterIndexRouteImport.update({
-  id: '/',
-  path: '/',
+const MasterItemRoute = MasterItemRouteImport.update({
+  id: '/item',
+  path: '/item',
   getParentRoute: () => MasterRoute,
 } as any)
 const MasterKategoriRoute = MasterKategoriRouteImport.update({
@@ -103,9 +97,9 @@ const PoIdEditRoute = PoIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/master': typeof MasterRouteWithChildren
   '/delivery/new': typeof DeliveryNewRoute
+  '/master/item': typeof MasterItemRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
@@ -113,15 +107,15 @@ export interface FileRoutesByFullPath {
   '/po/new': typeof PoNewRoute
   '/bom/': typeof BomIndexRoute
   '/delivery/': typeof DeliveryIndexRoute
-  '/master/': typeof MasterIndexRoute
   '/po/': typeof PoIndexRoute
   '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/master': typeof MasterRouteWithChildren
   '/delivery/new': typeof DeliveryNewRoute
+  '/master/item': typeof MasterItemRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
@@ -129,7 +123,6 @@ export interface FileRoutesByTo {
   '/po/new': typeof PoNewRoute
   '/bom': typeof BomIndexRoute
   '/delivery': typeof DeliveryIndexRoute
-  '/master': typeof MasterIndexRoute
   '/po': typeof PoIndexRoute
   '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id': typeof PoIdIndexRoute
@@ -137,9 +130,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/master': typeof MasterRouteWithChildren
   '/delivery/new': typeof DeliveryNewRoute
+  '/master/item': typeof MasterItemRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
@@ -147,7 +140,6 @@ export interface FileRoutesById {
   '/po/new': typeof PoNewRoute
   '/bom/': typeof BomIndexRoute
   '/delivery/': typeof DeliveryIndexRoute
-  '/master/': typeof MasterIndexRoute
   '/po/': typeof PoIndexRoute
   '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
@@ -156,9 +148,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/dashboard'
     | '/master'
     | '/delivery/new'
+    | '/master/item'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
@@ -166,15 +158,15 @@ export interface FileRouteTypes {
     | '/po/new'
     | '/bom/'
     | '/delivery/'
-    | '/master/'
     | '/po/'
     | '/po/$id/edit'
     | '/po/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard'
+    | '/master'
     | '/delivery/new'
+    | '/master/item'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
@@ -182,16 +174,15 @@ export interface FileRouteTypes {
     | '/po/new'
     | '/bom'
     | '/delivery'
-    | '/master'
     | '/po'
     | '/po/$id/edit'
     | '/po/$id'
   id:
     | '__root__'
     | '/'
-    | '/dashboard'
     | '/master'
     | '/delivery/new'
+    | '/master/item'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
@@ -199,7 +190,6 @@ export interface FileRouteTypes {
     | '/po/new'
     | '/bom/'
     | '/delivery/'
-    | '/master/'
     | '/po/'
     | '/po/$id/edit'
     | '/po/$id/'
@@ -207,7 +197,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
   MasterRoute: typeof MasterRouteWithChildren
   DeliveryNewRoute: typeof DeliveryNewRoute
   PoNewRoute: typeof PoNewRoute
@@ -225,13 +214,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/master': {
@@ -262,11 +244,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeliveryNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/master/': {
-      id: '/master/'
-      path: '/'
-      fullPath: '/master/'
-      preLoaderRoute: typeof MasterIndexRouteImport
+    '/master/item': {
+      id: '/master/item'
+      path: '/item'
+      fullPath: '/master/item'
+      preLoaderRoute: typeof MasterItemRouteImport
       parentRoute: typeof MasterRoute
     }
     '/master/kategori': {
@@ -329,19 +311,19 @@ declare module '@tanstack/react-router' {
 }
 
 interface MasterRouteChildren {
+  MasterItemRoute: typeof MasterItemRoute
   MasterKategoriRoute: typeof MasterKategoriRoute
   MasterProjectRoute: typeof MasterProjectRoute
   MasterSatuanRoute: typeof MasterSatuanRoute
   MasterVendorRoute: typeof MasterVendorRoute
-  MasterIndexRoute: typeof MasterIndexRoute
 }
 
 const MasterRouteChildren: MasterRouteChildren = {
+  MasterItemRoute: MasterItemRoute,
   MasterKategoriRoute: MasterKategoriRoute,
   MasterProjectRoute: MasterProjectRoute,
   MasterSatuanRoute: MasterSatuanRoute,
   MasterVendorRoute: MasterVendorRoute,
-  MasterIndexRoute: MasterIndexRoute,
 }
 
 const MasterRouteWithChildren =
@@ -349,7 +331,6 @@ const MasterRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
   MasterRoute: MasterRouteWithChildren,
   DeliveryNewRoute: DeliveryNewRoute,
   PoNewRoute: PoNewRoute,

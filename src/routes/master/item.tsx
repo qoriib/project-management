@@ -1,28 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MasterTabCategory } from "@/components/master/MasterTabCategory";
+import { MasterTabItem } from "@/components/master/MasterTabItem";
 import { Section, VStack, Button } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 
-export const Route = createFileRoute("/master/kategori")({
-  component: MasterKategoriPage,
+export const Route = createFileRoute("/master/item")({
+  component: MasterItemPage,
 });
 
-function MasterKategoriPage() {
+function MasterItemPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
         <PageHeader
-          title="Master Data Kategori"
-          subtitle="Kelola data kategori"
+          title="Master Data Item"
+          subtitle="Kelola data material dan alat"
           actions={
             <Button
               variant="primary"
-              label="Tambah Kategori"
+              label="Tambah Item"
               onClick={() => window.dispatchEvent(new CustomEvent('openMasterCreate'))}
             />
           }
         />
-        <MasterTabCategory />
+        <MasterTabItem />
       </VStack>
     </Section>
   );

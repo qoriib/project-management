@@ -8,7 +8,7 @@
  * These icons are bundled with the theme, not with @astryxdesign/core.
  */
 
-import type {IconRegistry} from '@astryxdesign/core/Icon';
+import type { IconRegistry } from '@astryxdesign/core/Icon';
 
 import {
   X,
