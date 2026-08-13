@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "db:seed": "vite-node src/db/seeds/run-cli.ts"
+    "db:seed": "vite-node src/db/seeds/run-cli.ts",
+    "db:reset": "vite-node src/db/seeds/run-reset-cli.ts"
   },
   "dependencies": {
     "@astryxdesign/core": "^0.3.0",
