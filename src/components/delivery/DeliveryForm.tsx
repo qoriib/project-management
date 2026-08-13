@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
-import { VStack, HStack, Button, TextInput, Selector, Card, Heading, Text, Table } from "@astryxdesign/core";
+import { VStack, HStack, Button, Selector, Card, Heading, Text, Table } from "@astryxdesign/core";
 import { DateInput } from "@astryxdesign/core/DateInput";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { getPurchaseOrders, getPOItems, type PurchaseOrder } from "@/db/queries/po";
-import { createDelivery } from "@/db/queries/field";
+import { purchaseOrderRepo, deliveryRepo, type POWithSummary } from "@/db/repositories";
 import { todayISO, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -16,7 +15,7 @@ interface DeliveryFormProps {
 }
 
 export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormProps) {
-  const [pos, setPOs] = useState<PurchaseOrder[]>([]);
+  const [pos, setPOs] = useState<POWithSummary[]>([]);
   const [saving, setSaving] = useState(false);
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
@@ -30,7 +29,7 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
       setSaving(true);
       try {
         const itemsToSave = value.items.filter((it) => it.qty > 0);
-        await createDelivery(
+        await deliveryRepo.createWithItems(
           { po_id: Number(value.poId), delivery_date: value.deliveryDate },
           itemsToSave.map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }))
         );
@@ -43,10 +42,10 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
 
   useEffect(() => {
     async function loadPOs() {
-      const p = await getPurchaseOrders({ project_id: selectedProjectId || undefined });
+      const p = await purchaseOrderRepo.findAllWithSummary({ project_id: selectedProjectId || undefined });
       setPOs(p);
       if (initialPoId) {
-        const items = await getPOItems(Number(initialPoId));
+        const items = await purchaseOrderRepo.findItems(Number(initialPoId));
         form.setFieldValue(
           "items",
           items.map((i) => ({ po_item_id: i.po_item_id, item_name: i.item_name || "", unit: i.unit || "", sisa: i.sisa || 0, qty: 0 }))
@@ -83,7 +82,7 @@ export function DeliveryForm({ initialPoId, onSuccess, onCancel }: DeliveryFormP
                               const strVal = v as string;
                               field.handleChange(strVal);
                               if (strVal) {
-                                const poItems = await getPOItems(Number(strVal));
+                                const poItems = await purchaseOrderRepo.findItems(Number(strVal));
                                 form.setFieldValue(
                                   "items",
                                   poItems.map((i) => ({ po_item_id: i.po_item_id, item_name: i.item_name || "", unit: i.unit || "", sisa: i.sisa || 0, qty: 0 }))

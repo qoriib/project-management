@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from "react";
-import { Section, VStack, Button, Card, Text } from "@astryxdesign/core";
+import { Section, VStack, Button } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
 import { ProjectRequired } from "@/components/ProjectRequired";
 import { POTable } from "@/components/po/POTable";
@@ -25,11 +25,11 @@ function POListPage() {
         <PageHeader
           title="Daftar Purchase Order"
           subtitle="Manajemen dan pelacakan seluruh dokumen Purchase Order (PO)"
-          actions={selectedProjectId ? <Button variant="primary" label="+ Buat PO Baru" onClick={openNew} /> : null}
+          actions={selectedProjectId ? <Button variant="primary" label="Buat Baru" onClick={openNew} /> : null}
         />
 
         <ProjectRequired>
-          <POTable refreshTrigger={refreshTrigger} onEdit={openEdit} />
+          <POTable refreshTrigger={refreshTrigger} onRefresh={() => setRefreshTrigger(r => r + 1)} onEdit={openEdit} />
         </ProjectRequired>
       </VStack>
     </Section>

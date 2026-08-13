@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "db:seed": "vite-node src/db/seeds/run-cli.ts"
   },
   "dependencies": {
     "@astryxdesign/core": "^0.3.0",
@@ -32,10 +33,12 @@
     "@tanstack/router-cli": "^1.167.27",
     "@tanstack/router-plugin": "^1.168.29",
     "@tauri-apps/cli": "^2",
+    "@types/node": "^26.2.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4"
+    "vite": "^7.0.4",
+    "vite-node": "^6.0.0"
   }
 }

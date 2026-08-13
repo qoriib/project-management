@@ -5,13 +5,11 @@ import {
   Text, VStack
 } from "@astryxdesign/core";
 import { ListItem } from "@astryxdesign/core/List";
-import { NavIcon } from "@astryxdesign/core/NavIcon";
 import { useEffect, useState } from "react";
 import { getDB } from "@/db";
-import { getProjects } from "@/db/queries/master";
-import type { Project } from "@/db/schema";
+import { projectRepo, type Project } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
-import { Home, Folder, ShoppingCart, Truck, Settings, ClipboardList, Building2 } from "lucide-react";
+import { Home, Folder, ShoppingCart, Truck, ClipboardList } from "lucide-react";
 
 export const Route = createRootRoute({
   component: AppLayout,
@@ -31,7 +29,7 @@ function AppLayout() {
     getDB()
       .then(() => {
         setDbReady(true);
-        getProjects().then(setProjects).catch(console.error);
+        projectRepo.findAllWithStages().then(setProjects).catch(console.error);
       })
       .catch((err) => {
         console.error("DB init failed:", err);

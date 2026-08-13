@@ -6,11 +6,9 @@ import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
-  getItems, createItem, updateItem, deleteItem,
-  getItemCategories, getUnits,
-  getItemPrices, saveItemPrices, type ItemPriceWithRelation,
-  type Item, type ItemCategory, type Unit, type ItemPrice, type ItemWithPrices,
-} from "@/db/queries/master";
+  itemRepo, itemPriceRepo, itemCategoryRepo, unitRepo,
+  type Item, type ItemCategory, type Unit, type ItemWithPrices, type ItemPriceWithRelation,
+} from "@/db/repositories";
 
 export function MasterTabItem() {
   const [items, setItems] = useState<ItemWithPrices[]>([]);
@@ -36,9 +34,9 @@ export function MasterTabItem() {
 
   async function loadData() {
     const [nextItems, nextCategories, nextUnits] = await Promise.all([
-      getItems(),
-      getItemCategories(),
-      getUnits(),
+      itemRepo.findAllWithPrices(),
+      itemCategoryRepo.findAllSorted(),
+      unitRepo.findAllSorted(),
     ]);
     setItems(nextItems);
     setCategories(nextCategories);
@@ -71,7 +69,7 @@ export function MasterTabItem() {
     
     setLoadingPrices(true);
     try {
-      const fetched = await getItemPrices(item.item_id);
+      const fetched = await itemPriceRepo.findByItemWithRelation(item.item_id);
       setPrices(fetched.length > 0 ? fetched : [{ price: 0 }]);
     } catch (error) {
       setPrices([{ price: 0 }]);
@@ -89,15 +87,15 @@ export function MasterTabItem() {
       const data = { item_name: itemName, category: itemCategory as any, unit: itemUnit };
       let itemId: number;
       if (editTarget) {
-        await updateItem(editTarget.item_id, data);
+        await itemRepo.update(editTarget.item_id, data);
         itemId = editTarget.item_id;
         showToast({ body: "Item dan harga berhasil diubah", type: "info" });
       } else {
-        itemId = await createItem(data);
+        itemId = await itemRepo.create(data);
         showToast({ body: "Item dan harga berhasil ditambahkan", type: "info" });
       }
       
-      await saveItemPrices(itemId, prices as { price_id?: number, price: number }[]);
+      await itemPriceRepo.syncPrices(itemId, prices as { price_id?: number, price: number }[]);
       setIsDialogOpen(false);
       setEditTarget(null);
       await loadData();
@@ -112,7 +110,7 @@ export function MasterTabItem() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteItem(deleteTarget.id);
+      await itemRepo.delete(deleteTarget.id);
       showToast({ body: "Item berhasil dihapus", type: "info" });
       setDeleteTarget(null);
       await loadData();

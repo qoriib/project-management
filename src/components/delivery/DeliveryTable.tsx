@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { HStack, Button, Table, TextInput, Selector, Text, VStack, Card, Badge } from "@astryxdesign/core";
+import { HStack, Button, Table, Text, VStack, Card, Badge } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { getDeliveries, deleteDelivery, type Delivery } from "@/db/queries/field";
+import { deliveryRepo, type DeliverySummary } from "@/db/repositories";
 import { formatDate } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -12,7 +12,7 @@ interface DeliveryTableProps {
 }
 
 export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps) {
-  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [deliveries, setDeliveries] = useState<DeliverySummary[]>([]);
 
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -20,7 +20,7 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   async function load() {
-    const d = await getDeliveries({
+    const d = await deliveryRepo.findAllWithSummary({
       project_id: selectedProjectId || undefined,
     });
     setDeliveries(d);
@@ -32,7 +32,7 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteDelivery(deleteTarget);
+      await deliveryRepo.delete(deleteTarget);
       setDeleteTarget(null);
       await load();
       if (onRefresh) onRefresh();
@@ -44,13 +44,13 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
 
 
   const columns = [
-    { key: "delivery_id", header: "ID Pengiriman", width: pixel(140), renderCell: (row: Delivery) => `DLV-${row.delivery_id}` },
-    { key: "delivery_date", header: "Tanggal", width: pixel(120), renderCell: (row: Delivery) => formatDate(row.delivery_date) },
-    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: Delivery) => `PO-${row.po_id}` },
-    { key: "project_name", header: "Proyek", width: proportional(1.5), renderCell: (row: Delivery) => row.project_name || "—" },
+    { key: "delivery_id", header: "ID Pengiriman", width: pixel(140), renderCell: (row: DeliverySummary) => `DLV-${row.delivery_id}` },
+    { key: "delivery_date", header: "Tanggal", width: pixel(120), renderCell: (row: DeliverySummary) => formatDate(row.delivery_date) },
+    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: DeliverySummary) => `PO-${row.po_id}` },
+    { key: "project_name", header: "Proyek", width: proportional(1.5), renderCell: (row: DeliverySummary) => row.project_name || "—" },
     { 
       key: "vendor_names", header: "Vendor Pemasok", width: proportional(1.5), 
-      renderCell: (row: Delivery) => (
+      renderCell: (row: DeliverySummary) => (
         <HStack gap={1} style={{ flexWrap: 'wrap' }}>
           {row.vendor_names ? row.vendor_names.split(',').map((v: string, i: number) => (
             <Badge key={i} variant="neutral" label={v.trim()} />
@@ -58,10 +58,10 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
         </HStack>
       )
     },
-    { key: "item_count", header: "Total Item", width: pixel(120), renderCell: (row: Delivery) => `${row.item_count} Item` },
+    { key: "item_count", header: "Total Item", width: pixel(120), renderCell: (row: DeliverySummary) => `${row.item_count} Item` },
     {
       key: "actions", header: "", width: pixel(100),
-      renderCell: (row: Delivery) => (
+      renderCell: (row: DeliverySummary) => (
         <HStack gap={1} justify="end">
           <Button size="sm" label="Hapus" variant="destructive" onClick={() => setDeleteTarget(row.delivery_id)} />
         </HStack>

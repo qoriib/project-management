@@ -15,6 +15,12 @@ pub fn run() {
             description: "seed_master_data",
             sql: include_str!("../migrations/002_seed.sql"),
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "soft_delete",
+            sql: include_str!("../migrations/003_soft_delete.sql"),
+            kind: MigrationKind::Up,
         }
     ];
 

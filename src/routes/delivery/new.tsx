@@ -1,10 +1,9 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { z } from 'zod';
-import { Section, VStack, Text } from "@astryxdesign/core";
+import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
 import { ProjectRequired } from "@/components/ProjectRequired";
 import { DeliveryForm } from "@/components/delivery/DeliveryForm";
-import { useAppStore } from "@/store/useAppStore";
 
 const searchSchema = z.object({
   po: z.string().optional(),
@@ -12,7 +11,6 @@ const searchSchema = z.object({
 
 function NewDeliveryPage() {
   const navigate = useNavigate();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const { po: initialPoId } = Route.useSearch();
 
   function goBack() {

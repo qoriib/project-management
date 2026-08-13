@@ -6,10 +6,9 @@ import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
-  getProjects, createProject, updateProject, deleteProject, saveProjectStages,
-  getProjectStagesWithRelation,
+  projectRepo,
   type Project, type ProjectWithStages
-} from "@/db/queries/master";
+} from "@/db/repositories";
 
 export function MasterTabProject() {
   const [projects, setProjects] = useState<ProjectWithStages[]>([]);
@@ -32,7 +31,7 @@ export function MasterTabProject() {
   const [loadingStages, setLoadingStages] = useState(false);
 
   async function loadData() {
-    const nextProjects = await getProjects();
+    const nextProjects = await projectRepo.findAllWithStages();
     setProjects(nextProjects);
   }
 
@@ -62,7 +61,7 @@ export function MasterTabProject() {
 
     setLoadingStages(true);
     try {
-      const fetched = await getProjectStagesWithRelation(project.project_id);
+      const fetched = await projectRepo.getStagesWithRelation(project.project_id);
       setStages(fetched.length > 0 ? fetched : [{ stage_name: "" }]);
     } catch (error) {
       setStages([{ stage_name: "" }]);
@@ -82,17 +81,17 @@ export function MasterTabProject() {
       };
       let projectId: number;
       if (editTarget) {
-        await updateProject(editTarget.project_id, data);
+        await projectRepo.update(editTarget.project_id, data);
         projectId = editTarget.project_id;
         showToast({ body: "Project berhasil diubah", type: "info" });
       } else {
-        projectId = await createProject(data);
+        projectId = await projectRepo.create(data);
         showToast({ body: "Project berhasil ditambahkan", type: "info" });
       }
       
       const validStages = stages.filter(s => s.stage_name.trim() !== "");
       if (validStages.length > 0) {
-        await saveProjectStages(projectId, validStages);
+        await projectRepo.saveStages(projectId, validStages);
       }
 
       setIsDialogOpen(false);
@@ -109,7 +108,7 @@ export function MasterTabProject() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteProject(deleteTarget.id);
+      await projectRepo.delete(deleteTarget.id);
       showToast({ body: "Project berhasil dihapus", type: "info" });
       setDeleteTarget(null);
       await loadData();

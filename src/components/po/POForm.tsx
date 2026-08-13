@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import {
-  VStack, HStack, Button, TextInput, Selector,
+  VStack, HStack, Button, Selector,
   Table, Text, Divider, Heading, Card,
 } from "@astryxdesign/core";
 import { DateInput } from "@astryxdesign/core/DateInput";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { createPO, updatePO, getPOById, getPOItems } from "@/db/queries/po";
-import { getVendors, type Vendor } from "@/db/queries/master";
-import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/queries/dashboard";
+import { purchaseOrderRepo, vendorRepo, type Vendor } from "@/db/repositories";
+import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/services";
 import { formatRupiah, todayISO } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -56,9 +55,9 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           }));
 
         if (isEdit) {
-          await updatePO(initialEditId, poData, poItems as any);
+          await purchaseOrderRepo.updateWithItems(initialEditId, poData, poItems as any);
         } else {
-          await createPO(poData, poItems as any);
+          await purchaseOrderRepo.createWithItems(poData, poItems as any);
         }
         onSuccess();
       } finally {
@@ -74,13 +73,13 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         return;
       }
 
-      const [v, bom] = await Promise.all([getVendors(), getDashboardBOMReport(selectedProjectId)]);
+      const [v, bom] = await Promise.all([vendorRepo.findAllSorted(), getDashboardBOMReport(selectedProjectId)]);
       setVendors(v);
       setBomData(bom);
 
       if (isEdit) {
-        const po = await getPOById(initialEditId);
-        const poItems = await getPOItems(initialEditId);
+        const po = await purchaseOrderRepo.findByIdWithSummary(initialEditId);
+        const poItems = await purchaseOrderRepo.findItems(initialEditId);
         if (po) {
           form.setFieldValue("poDate", po.po_date);
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { HStack, Button, Table, Text, VStack, Card, Badge } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { getPurchaseOrders, deletePO, type PurchaseOrder } from "@/db/queries/po";
+import { purchaseOrderRepo, type POWithSummary } from "@/db/repositories";
 import { formatRupiah, formatDate } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
@@ -15,14 +15,14 @@ interface POTableProps {
 
 export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   const navigate = useNavigate();
-  const [pos, setPOs] = useState<PurchaseOrder[]>([]);
+  const [pos, setPOs] = useState<POWithSummary[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   async function load() {
-    const p = await getPurchaseOrders({
+    const p = await purchaseOrderRepo.findAllWithSummary({
       project_id: selectedProjectId || undefined,
     });
     setPOs(p);
@@ -34,7 +34,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deletePO(deleteTarget.id);
+      await purchaseOrderRepo.delete(deleteTarget.id);
       setDeleteTarget(null);
       await load();
       if (onRefresh) onRefresh();
@@ -46,8 +46,8 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   const columns = [
     { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: any) => `PO-${row.po_id}` },
     { key: "po_date", header: "Tanggal", width: pixel(150), renderCell: (row: any) => formatDate(row.po_date) },
-    { 
-      key: "vendor_names", header: "Vendor Pemasok", width: proportional(2), 
+    {
+      key: "vendor_names", header: "Vendor Pemasok", width: proportional(2),
       renderCell: (row: any) => (
         <HStack gap={1} style={{ flexWrap: 'wrap' }}>
           {row.vendor_names ? row.vendor_names.split(',').map((v: string, i: number) => (
@@ -63,7 +63,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
     },
     {
       key: "actions", header: "", width: pixel(200),
-      renderCell: (row: PurchaseOrder) => (
+      renderCell: (row: POWithSummary) => (
         <HStack gap={1} justify="end">
           <Button size="sm" variant="ghost" label="Detail" onClick={() => navigate({ to: `/po/${row.po_id}` })} />
           <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row.po_id)} />
@@ -85,7 +85,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
           emptyState={
             <VStack align="center" padding={8}>
               <Text color="secondary">
-                Belum ada PO. Klik '+ Buat PO Baru' untuk memulai.
+                Belum ada PO. Klik 'Buat Baru' untuk memulai.
               </Text>
             </VStack>
           }

@@ -5,10 +5,9 @@ import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
-  getItemCategories, createItemCategory, updateItemCategory, deleteItemCategory,
-  getItems,
+  itemCategoryRepo, itemRepo,
   type ItemCategory, type Item,
-} from "@/db/queries/master";
+} from "@/db/repositories";
 
 export function MasterTabCategory() {
   const [categories, setCategories] = useState<ItemCategory[]>([]);
@@ -27,8 +26,8 @@ export function MasterTabCategory() {
 
   async function loadData() {
     const [nextCategories, nextItems] = await Promise.all([
-      getItemCategories(),
-      getItems(),
+      itemCategoryRepo.findAllSorted(),
+      itemRepo.findAllWithPrices(),
     ]);
     setCategories(nextCategories);
     setItems(nextItems);
@@ -62,10 +61,10 @@ export function MasterTabCategory() {
     try {
       const data = { category_name: categoryName };
       if (editTarget) {
-        await updateItemCategory(editTarget.category_id, data);
+        await itemCategoryRepo.update(editTarget.category_id, data);
         showToast({ body: "Kategori berhasil diubah", type: "info" });
       } else {
-        await createItemCategory(data);
+        await itemCategoryRepo.create(data);
         showToast({ body: "Kategori berhasil ditambahkan", type: "info" });
       }
       setIsDialogOpen(false);
@@ -82,7 +81,7 @@ export function MasterTabCategory() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteItemCategory(deleteTarget.id);
+      await itemCategoryRepo.delete(deleteTarget.id);
       showToast({ body: "Kategori berhasil dihapus", type: "info" });
       setDeleteTarget(null);
       await loadData();

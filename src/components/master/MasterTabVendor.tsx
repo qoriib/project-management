@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { Card, Button, Table, Badge, Dialog, TextInput, TextArea, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { Card, Button, Table, Dialog, TextInput, TextArea, VStack, HStack, Text, Heading } from "@astryxdesign/core";
 import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
-  getVendors, createVendor, updateVendor, deleteVendor,
+  vendorRepo,
   type Vendor,
-} from "@/db/queries/master";
+} from "@/db/repositories";
 
 
 export function MasterTabVendor() {
@@ -27,7 +27,7 @@ export function MasterTabVendor() {
   const [vendorAddress, setVendorAddress] = useState("");
 
   async function loadData() {
-    const nextVendors = await getVendors();
+    const nextVendors = await vendorRepo.findAllSorted();
     setVendors(nextVendors);
   }
 
@@ -61,10 +61,10 @@ export function MasterTabVendor() {
     try {
       const data = { vendor_name: vendorName, phone: vendorPhone, address: vendorAddress };
       if (editTarget) {
-        await updateVendor(editTarget.vendor_id, data);
+        await vendorRepo.update(editTarget.vendor_id, data);
         showToast({ body: "Vendor berhasil diubah", type: "info" });
       } else {
-        await createVendor(data);
+        await vendorRepo.create(data);
         showToast({ body: "Vendor berhasil ditambahkan", type: "info" });
       }
       setIsDialogOpen(false);
@@ -81,7 +81,7 @@ export function MasterTabVendor() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteVendor(deleteTarget.id);
+      await vendorRepo.delete(deleteTarget.id);
       showToast({ body: "Vendor berhasil dihapus", type: "info" });
       setDeleteTarget(null);
       await loadData();

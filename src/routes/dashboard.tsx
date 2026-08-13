@@ -6,7 +6,7 @@ import {
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { PageHeader } from "@/components/PageHeader";
 import { ProjectRequired } from "@/components/ProjectRequired";
-import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/queries/dashboard";
+import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/services";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { proportional, pixel } from "@astryxdesign/core/Table";
@@ -71,7 +71,7 @@ function Dashboard() {
             </Grid>
 
             {stages.length === 0 && !loading && (
-              <VStack align="center" padding={12}>
+              <VStack align="center" padding={8}>
                 <Text color="secondary">Belum ada Kebutuhan (BOM) untuk proyek ini.</Text>
               </VStack>
             )}

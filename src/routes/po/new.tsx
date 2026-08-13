@@ -1,13 +1,11 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Section, VStack, Text } from "@astryxdesign/core";
+import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
 import { ProjectRequired } from "@/components/ProjectRequired";
 import { POForm } from "@/components/po/POForm";
-import { useAppStore } from "@/store/useAppStore";
 
 function NewPOPage() {
   const navigate = useNavigate();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   function goBack() {
     navigate({ to: "/po" });

@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from "react";
 import { Section, VStack, Button } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
 import { ProjectRequired } from "@/components/ProjectRequired";
@@ -9,7 +8,6 @@ import { useAppStore } from "@/store/useAppStore";
 function DeliveryPage() {
   const navigate = useNavigate();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   return (
     <Section padding={6}>
@@ -18,12 +16,12 @@ function DeliveryPage() {
           title="Penerimaan Lapangan"
           subtitle="Log kronologis penerimaan barang dan jasa sewa di lapangan"
           actions={
-            selectedProjectId ? <Button variant="primary" label="+ Input Pengiriman" onClick={() => navigate({ to: "/delivery/new" })} /> : null
+            selectedProjectId ? <Button variant="primary" label="Input Pengiriman" onClick={() => navigate({ to: "/delivery/new" })} /> : null
           }
         />
-        
+
         <ProjectRequired>
-          <DeliveryTable refreshTrigger={refreshTrigger} />
+          <DeliveryTable />
         </ProjectRequired>
       </VStack>
     </Section>

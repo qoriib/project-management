@@ -1,30 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from "react";
-import { Section, VStack, Button, Dialog, Text, Selector } from "@astryxdesign/core";
+import { Section, VStack, Dialog, Selector } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
 import { ProjectRequired } from "@/components/ProjectRequired";
 import { BOMTable } from "@/components/bom/BOMTable";
 import { BOMForm } from "@/components/bom/BOMForm";
-import type { BillOfMaterial, ProjectStage } from "@/db/queries/bom";
-import { getProjectStages } from "@/db/queries/bom";
+import { bomRepo, type BOMDetail, type ProjectStageWithProject } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
 
 function BOMPage() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const [stages, setStages] = useState<ProjectStage[]>([]);
+  const [stages, setStages] = useState<ProjectStageWithProject[]>([]);
   const [activeTab, setActiveTab] = useState("all");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // BOM Form Modal
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editData, setEditData] = useState<BillOfMaterial | undefined>(undefined);
+  const [editData, setEditData] = useState<BOMDetail | undefined>(undefined);
 
   async function loadStages() {
     if (!selectedProjectId) {
       setStages([]);
       return;
     }
-    const data = await getProjectStages(selectedProjectId);
+    const data = await bomRepo.findStagesByProject(selectedProjectId);
     setStages(data);
   }
 
@@ -54,6 +53,8 @@ function BOMPage() {
             subtitle="Rincian material dan alat yang dibutuhkan untuk proyek ini."
             actions={
               <Selector
+                label="Tahapan"
+                isLabelHidden
                 options={[
                   { label: "Semua Tahapan", value: "all" },
                   ...stages.map(s => ({ label: s.stage_name, value: String(s.stage_id) }))
@@ -70,7 +71,7 @@ function BOMPage() {
             <BOMTable
               stageId={activeTab === "all" ? undefined : Number(activeTab)}
               refreshTrigger={refreshTrigger}
-              onEdit={(id, data) => { setEditData(data); setIsDialogOpen(true); }}
+              onEdit={(_, data) => { setEditData(data); setIsDialogOpen(true); }}
             />
           </ProjectRequired>
         </VStack>

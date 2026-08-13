@@ -3,10 +3,9 @@ import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading }
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
-  getUnits, createUnit, updateUnit, deleteUnit,
-  getItems,
+  unitRepo, itemRepo,
   type Unit, type Item,
-} from "@/db/queries/master";
+} from "@/db/repositories";
 
 export function MasterTabUnit() {
   const [units, setUnits] = useState<Unit[]>([]);
@@ -22,8 +21,8 @@ export function MasterTabUnit() {
 
   async function loadData() {
     const [nextUnits, nextItems] = await Promise.all([
-      getUnits(),
-      getItems(),
+      unitRepo.findAllSorted(),
+      itemRepo.findAllWithPrices(),
     ]);
     setUnits(nextUnits);
     setItems(nextItems);
@@ -54,9 +53,9 @@ export function MasterTabUnit() {
     try {
       const data = { unit_name: unitName };
       if (editTarget) {
-        await updateUnit(editTarget.unit_id, data);
+        await unitRepo.update(editTarget.unit_id, data);
       } else {
-        await createUnit(data);
+        await unitRepo.create(data);
       }
       setIsDialogOpen(false);
       setEditTarget(null);
@@ -70,7 +69,7 @@ export function MasterTabUnit() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteUnit(deleteTarget.id);
+      await unitRepo.delete(deleteTarget.id);
       setDeleteTarget(null);
       await loadData();
     } finally {

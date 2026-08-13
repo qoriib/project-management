@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
-import { VStack, HStack, Button, TextInput, Selector, Heading } from "@astryxdesign/core";
+import { VStack, HStack, Button, Selector, Heading } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
-import { getItems, getItemPrices, type Item, type ItemPrice } from "@/db/queries/master";
-import { createBOM, updateBOM, type BillOfMaterial } from "@/db/queries/bom";
+import {
+  itemRepo,
+  itemPriceRepo,
+  bomRepo,
+  type Item,
+  type ItemPrice,
+  type BillOfMaterial,
+  type BOMDetail,
+} from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
 import { formatRupiah } from "@/utils/formatters";
 
 interface BOMFormProps {
   stageId?: number;
-  initialData?: BillOfMaterial;
+  initialData?: BOMDetail;
   isInline?: boolean;
   onSuccess: () => void;
   onCancel: () => void;
@@ -43,9 +50,9 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
   }, [initialData, stageId]);
 
   useEffect(() => {
-    getItems().then(setItems);
+    itemRepo.findAll().then(setItems);
     if (selectedProjectId) {
-      import("@/db/queries/bom").then(m => m.getProjectStages(selectedProjectId)).then(data => {
+      bomRepo.findStagesByProject(selectedProjectId).then(data => {
         setStages(data.map(d => ({ value: String(d.stage_id), label: d.stage_name })));
       });
     }
@@ -53,9 +60,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
 
   useEffect(() => {
     if (selectedProjectId && formStageId) {
-      import("@/db/queries/bom").then(m => 
-        m.getBOMs({ project_id: selectedProjectId, stage_id: Number(formStageId) })
-      ).then(setExistingBoms);
+      bomRepo.findAllWithDetails({ project_id: selectedProjectId, stage_id: Number(formStageId) }).then(setExistingBoms);
     } else {
       setExistingBoms([]);
     }
@@ -63,7 +68,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
 
   useEffect(() => {
     if (itemId) {
-      getItemPrices(Number(itemId)).then(prices => {
+      itemPriceRepo.findAll({ where: { item_id: Number(itemId) } }).then(prices => {
         setItemPrices(prices);
         if (prices.length > 0) {
           // Auto-select first price if not currently editing a specific price
@@ -90,9 +95,9 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
       };
 
       if (initialData) {
-        await updateBOM(initialData.bom_id, data);
+        await bomRepo.update(initialData.bom_id, data);
       } else {
-        await createBOM(data);
+        await bomRepo.create(data);
         if (isInline) {
           setItemId("");
           setQty(null);

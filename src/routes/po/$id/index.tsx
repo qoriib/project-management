@@ -2,30 +2,28 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import {
-  Section, VStack, HStack, Button, Card, Heading, Text, Divider, Table,
+  Section, VStack, HStack, Button, Card, Heading, Text, Table,
 } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { PageHeader } from "@/components/PageHeader";
-import { VolumeProgress } from "@/components/VolumeProgress";
-import { getPOById, getPOItems, type PurchaseOrder, type POItem } from "@/db/queries/po";
-import { getDeliveryItemsByPO, type DeliveryItem } from "@/db/queries/field";
+import { purchaseOrderRepo, deliveryRepo, type POWithSummary, type POItemDetail, type DeliveryItemByPO } from "@/db/repositories";
 import { formatRupiah, formatDate, formatNumber } from "@/utils/formatters";
 
 function PODetailPage() {
   const navigate = useNavigate();
   const { id } = useParams({ strict: false });
-  const [po, setPO] = useState<PurchaseOrder | null>(null);
-  const [items, setItems] = useState<POItem[]>([]);
-  const [deliveryItems, setDeliveryItems] = useState<(DeliveryItem & { delivery_date: string })[]>([]);
+  const [po, setPO] = useState<POWithSummary | null>(null);
+  const [items, setItems] = useState<POItemDetail[]>([]);
+  const [deliveryItems, setDeliveryItems] = useState<DeliveryItemByPO[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
     async function load() {
       const [p, its, delItems] = await Promise.all([
-        getPOById(Number(id)),
-        getPOItems(Number(id)),
-        getDeliveryItemsByPO(Number(id)),
+        purchaseOrderRepo.findByIdWithSummary(Number(id)),
+        purchaseOrderRepo.findItems(Number(id)),
+        deliveryRepo.findItemsByPO(Number(id)),
       ]);
       setPO(p);
       setItems(its);
@@ -39,13 +37,13 @@ function PODetailPage() {
   if (!po) return <Section padding={6}><Text color="secondary">PO tidak ditemukan.</Text></Section>;
 
   const itemColumns = [
-    { key: "item_name", header: "Barang / Material", width: proportional(1.5), renderCell: (row: POItem) => row.item_name },
-    { key: "vendor_name", header: "Vendor", width: proportional(1.5), renderCell: (row: POItem) => row.vendor_name || "—" },
-    { key: "price", header: "Harga Satuan", width: pixel(140), renderCell: (row: POItem) => formatRupiah(row.price) },
-    { key: "qty", header: "Vol. Kontrak", width: pixel(120), renderCell: (row: POItem) => `${formatNumber(row.qty, 2)} ${row.unit ?? ""}` },
-    { key: "total_terkirim", header: "Terkirim", width: pixel(120), renderCell: (row: POItem) => `${formatNumber(row.total_terkirim, 2)} ${row.unit ?? ""}` },
-    { key: "sisa", header: "Sisa", width: pixel(120), renderCell: (row: POItem) => `${formatNumber(row.sisa, 2)} ${row.unit ?? ""}` },
-    { key: "subtotal", header: "Total Harga", width: pixel(150), renderCell: (row: POItem) => <Text weight="medium">{formatRupiah((row.qty || 0) * (row.price || 0))}</Text> },
+    { key: "item_name", header: "Barang / Material", width: proportional(1.5), renderCell: (row: POItemDetail) => row.item_name },
+    { key: "vendor_name", header: "Vendor", width: proportional(1.5), renderCell: (row: POItemDetail) => row.vendor_name || "—" },
+    { key: "price", header: "Harga Satuan", width: pixel(140), renderCell: (row: POItemDetail) => formatRupiah(row.price) },
+    { key: "qty", header: "Vol. Kontrak", width: pixel(120), renderCell: (row: POItemDetail) => `${formatNumber(row.qty, 2)} ${row.unit ?? ""}` },
+    { key: "total_terkirim", header: "Terkirim", width: pixel(120), renderCell: (row: POItemDetail) => `${formatNumber(row.total_terkirim, 2)} ${row.unit ?? ""}` },
+    { key: "sisa", header: "Sisa", width: pixel(120), renderCell: (row: POItemDetail) => `${formatNumber(row.sisa, 2)} ${row.unit ?? ""}` },
+    { key: "subtotal", header: "Total Harga", width: pixel(150), renderCell: (row: POItemDetail) => <Text weight="medium">{formatRupiah((row.qty || 0) * (row.price || 0))}</Text> },
   ];
 
   const deliveryColumns = [
@@ -88,7 +86,7 @@ function PODetailPage() {
         <VStack gap={2}>
           <HStack gap={2} justify="between" align="center">
             <Heading level={3}>Log Penerimaan Lapangan (Surat Jalan)</Heading>
-            <Button size="sm" variant="secondary" label="+ Input Pengiriman Baru" onClick={() => navigate({ to: "/delivery/new", search: { po: String(po.po_id) } })} />
+            <Button size="sm" variant="secondary" label="Input Pengiriman Baru" onClick={() => navigate({ to: "/delivery/new", search: { po: String(po.po_id) } })} />
           </HStack>
           <Card padding={0}>
             <Table
