@@ -5,10 +5,6 @@ interface AppStore {
   selectedProjectId: number | null;
   setSelectedProjectId: (id: number | null) => void;
 
-  // SideNav collapse state
-  sideNavCollapsed: boolean;
-  setSideNavCollapsed: (collapsed: boolean) => void;
-
   // Global loading state for DB init
   dbReady: boolean;
   setDbReady: (ready: boolean) => void;
@@ -21,9 +17,6 @@ interface AppStore {
 export const useAppStore = create<AppStore>((set) => ({
   selectedProjectId: null,
   setSelectedProjectId: (id) => set({ selectedProjectId: id }),
-
-  sideNavCollapsed: false,
-  setSideNavCollapsed: (collapsed) => set({ sideNavCollapsed: collapsed }),
 
   dbReady: false,
   setDbReady: (ready) => set({ dbReady: ready }),

@@ -4,12 +4,11 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { itemRepo, itemCategoryRepo, unitRepo, type ItemWithDetails, type ItemCategory, type Unit } from "@/db/repositories";
+import type { ItemWithDetails } from "@/db/repositories";
+import { useMasterStore } from "@/store/useMasterStore";
 
 export function MasterTabItem() {
-  const [items, setItems] = useState<ItemWithDetails[]>([]);
-  const [categories, setCategories] = useState<ItemCategory[]>([]);
-  const [units, setUnits] = useState<Unit[]>([]);
+  const { items, categories, units, createItem, updateItem, deleteItem } = useMasterStore();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ItemWithDetails | null>(null);
@@ -23,19 +22,6 @@ export function MasterTabItem() {
   const [itemName, setItemName] = useState("");
   const [itemCategory, setItemCategory] = useState<string>("");
   const [itemUnit, setItemUnit] = useState<string>("");
-
-  async function loadData() {
-    const [nextItems, nextCategories, nextUnits] = await Promise.all([
-      itemRepo.findAll(),
-      itemCategoryRepo.findAllSorted(),
-      unitRepo.findAllSorted(),
-    ]);
-    setItems(nextItems);
-    setCategories(nextCategories);
-    setUnits(nextUnits);
-  }
-
-  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     const handleOpen = () => openCreate();
@@ -61,8 +47,6 @@ export function MasterTabItem() {
     setIsDialogOpen(true);
   }
 
-
-
   async function handleSave() {
     setErrorMsg(null);
     setSaving(true);
@@ -73,16 +57,15 @@ export function MasterTabItem() {
         unit_id: parseInt(itemUnit)
       };
       if (editTarget) {
-        await itemRepo.update(editTarget.item_id, data);
+        await updateItem(editTarget.item_id, data);
         showToast({ body: "Item dan harga berhasil diubah", type: "info" });
       } else {
-        await itemRepo.create(data);
+        await createItem(data);
         showToast({ body: "Item dan harga berhasil ditambahkan", type: "info" });
       }
 
       setIsDialogOpen(false);
       setEditTarget(null);
-      await loadData();
     } catch (err: any) {
       setErrorMsg(err.message || "Gagal menyimpan item");
     } finally {
@@ -94,10 +77,9 @@ export function MasterTabItem() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await itemRepo.delete(deleteTarget.id);
+      await deleteItem(deleteTarget.id);
       showToast({ body: "Item berhasil dihapus", type: "info" });
       setDeleteTarget(null);
-      await loadData();
     } catch (err: any) {
       showToast({ body: err.message || "Gagal menghapus item", type: "error" });
     } finally {

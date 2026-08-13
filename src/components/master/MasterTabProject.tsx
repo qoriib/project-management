@@ -6,9 +6,10 @@ import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { projectRepo, type Project, type ProjectWithStages } from "@/db/repositories";
+import { useMasterStore } from "@/store/useMasterStore";
 
 export function MasterTabProject() {
-  const [projects, setProjects] = useState<ProjectWithStages[]>([]);
+  const { projects, createProject, updateProject, deleteProject } = useMasterStore();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Project | null>(null);
@@ -26,13 +27,6 @@ export function MasterTabProject() {
   // Stages Management State
   const [stages, setStages] = useState<{ stage_id?: number, stage_name: string, has_relation?: boolean }[]>([]);
   const [loadingStages, setLoadingStages] = useState(false);
-
-  async function loadData() {
-    const nextProjects = await projectRepo.findAllWithStages();
-    setProjects(nextProjects);
-  }
-
-  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     const handleOpen = () => openCreate();
@@ -76,24 +70,18 @@ export function MasterTabProject() {
         company_name: companyName,
         fiscal_year: fiscalYear || 0,
       };
-      let projectId: number;
+      const validStages = stages.filter(s => s.stage_name.trim() !== "");
+      
       if (editTarget) {
-        await projectRepo.update(editTarget.project_id, data);
-        projectId = editTarget.project_id;
+        await updateProject(editTarget.project_id, data, validStages);
         showToast({ body: "Project berhasil diubah", type: "info" });
       } else {
-        projectId = await projectRepo.create(data);
+        await createProject(data, validStages);
         showToast({ body: "Project berhasil ditambahkan", type: "info" });
-      }
-
-      const validStages = stages.filter(s => s.stage_name.trim() !== "");
-      if (validStages.length > 0) {
-        await projectRepo.saveStages(projectId, validStages);
       }
 
       setIsDialogOpen(false);
       setEditTarget(null);
-      await loadData();
     } catch (err: any) {
       setErrorMsg(err.message || "Gagal menyimpan project");
     } finally {
@@ -105,10 +93,9 @@ export function MasterTabProject() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await projectRepo.delete(deleteTarget.id);
+      await deleteProject(deleteTarget.id);
       showToast({ body: "Project berhasil dihapus", type: "info" });
       setDeleteTarget(null);
-      await loadData();
     } catch (err: any) {
       showToast({ body: err.message || "Gagal menghapus project", type: "error" });
     } finally {

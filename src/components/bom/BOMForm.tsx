@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { VStack, HStack, Button, Selector, Heading } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import {
-  itemRepo,
   bomRepo,
-  ItemWithDetails,
   type BillOfMaterial,
   type BOMDetail,
 } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
+import { useMasterStore } from "@/store/useMasterStore";
 
 interface BOMFormProps {
   stageId?: number;
@@ -20,7 +19,7 @@ interface BOMFormProps {
 
 export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }: BOMFormProps) {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const [items, setItems] = useState<ItemWithDetails[]>([]);
+  const { items } = useMasterStore();
   const [existingBoms, setExistingBoms] = useState<BillOfMaterial[]>([]);
   const [stages, setStages] = useState<{ value: string; label: string }[]>([]);
   const [saving, setSaving] = useState(false);
@@ -46,7 +45,6 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
   }, [initialData, stageId]);
 
   useEffect(() => {
-    itemRepo.findAll().then(setItems);
     if (selectedProjectId) {
       bomRepo.findStagesByProject(selectedProjectId).then(data => {
         setStages(data.map(d => ({ value: String(d.stage_id), label: d.stage_name })));

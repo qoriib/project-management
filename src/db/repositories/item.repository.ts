@@ -28,8 +28,8 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
       const qb = new QueryBuilder()
         .select("i.*", "c.category_name", "u.unit_name")
         .from("items i")
-        .join("LEFT JOIN", "item_categories c", "i.category_id = c.category_id")
-        .join("LEFT JOIN", "units u", "i.unit_id = u.unit_id")
+        .leftJoin("item_categories c", "i.category_id = c.category_id")
+        .leftJoin("units u", "i.unit_id = u.unit_id")
         .where("i.deleted_at", "IS NULL")
         .orderBy("i.item_name", "ASC");
 

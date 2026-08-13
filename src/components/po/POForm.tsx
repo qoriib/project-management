@@ -4,10 +4,11 @@ import { VStack, HStack, Button, Selector, Table, Text, Divider, Heading, Card }
 import { DateInput } from "@astryxdesign/core/DateInput";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { purchaseOrderRepo, vendorRepo, type Vendor } from "@/db/repositories";
+import { purchaseOrderRepo } from "@/db/repositories";
 import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/services";
 import { formatRupiah, todayISO } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
+import { useMasterStore } from "@/store/useMasterStore";
 
 interface POFormProps {
   initialEditId?: number;
@@ -18,7 +19,7 @@ interface POFormProps {
 export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
   const isEdit = !!initialEditId;
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const { vendors } = useMasterStore();
   const [bomData, setBomData] = useState<DashboardBOMReportItem[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -70,8 +71,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         return;
       }
 
-      const [v, bom] = await Promise.all([vendorRepo.findAllSorted(), getDashboardBOMReport(selectedProjectId)]);
-      setVendors(v);
+      const bom = await getDashboardBOMReport(selectedProjectId);
       setBomData(bom);
 
       if (isEdit) {

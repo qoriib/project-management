@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { unitRepo, itemRepo, type Unit, type ItemWithDetails } from "@/db/repositories";
+import type { Unit } from "@/db/repositories";
+import { useMasterStore } from "@/store/useMasterStore";
 
 export function MasterTabUnit() {
-  const [units, setUnits] = useState<Unit[]>([]);
-  const [items, setItems] = useState<ItemWithDetails[]>([]);
+  const { units, items, createUnit, updateUnit, deleteUnit } = useMasterStore();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Unit | null>(null);
@@ -15,17 +15,6 @@ export function MasterTabUnit() {
   const [deleting, setDeleting] = useState(false);
 
   const [unitName, setUnitName] = useState("");
-
-  async function loadData() {
-    const [nextUnits, nextItems] = await Promise.all([
-      unitRepo.findAllSorted(),
-      itemRepo.findAll(),
-    ]);
-    setUnits(nextUnits);
-    setItems(nextItems);
-  }
-
-  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     const handleOpen = () => openCreate();
@@ -50,13 +39,12 @@ export function MasterTabUnit() {
     try {
       const data = { unit_name: unitName };
       if (editTarget) {
-        await unitRepo.update(editTarget.unit_id, data);
+        await updateUnit(editTarget.unit_id, data);
       } else {
-        await unitRepo.create(data);
+        await createUnit(data);
       }
       setIsDialogOpen(false);
       setEditTarget(null);
-      await loadData();
     } finally {
       setSaving(false);
     }
@@ -66,9 +54,8 @@ export function MasterTabUnit() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await unitRepo.delete(deleteTarget.id);
+      await deleteUnit(deleteTarget.id);
       setDeleteTarget(null);
-      await loadData();
     } finally {
       setDeleting(false);
     }

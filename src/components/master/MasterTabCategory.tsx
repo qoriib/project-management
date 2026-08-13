@@ -4,11 +4,11 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { itemCategoryRepo, itemRepo, type ItemCategory, type ItemWithDetails } from "@/db/repositories";
+import type { ItemCategory } from "@/db/repositories";
+import { useMasterStore } from "@/store/useMasterStore";
 
 export function MasterTabCategory() {
-  const [categories, setCategories] = useState<ItemCategory[]>([]);
-  const [items, setItems] = useState<ItemWithDetails[]>([]);
+  const { categories, items, createCategory, updateCategory, deleteCategory } = useMasterStore();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ItemCategory | null>(null);
@@ -20,17 +20,6 @@ export function MasterTabCategory() {
   const showToast = useToast();
 
   const [categoryName, setCategoryName] = useState("");
-
-  async function loadData() {
-    const [nextCategories, nextItems] = await Promise.all([
-      itemCategoryRepo.findAllSorted(),
-      itemRepo.findAll(),
-    ]);
-    setCategories(nextCategories);
-    setItems(nextItems);
-  }
-
-  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     const handleOpen = () => openCreate();
@@ -58,15 +47,14 @@ export function MasterTabCategory() {
     try {
       const data = { category_name: categoryName };
       if (editTarget) {
-        await itemCategoryRepo.update(editTarget.category_id, data);
+        await updateCategory(editTarget.category_id, data);
         showToast({ body: "Kategori berhasil diubah", type: "info" });
       } else {
-        await itemCategoryRepo.create(data);
+        await createCategory(data);
         showToast({ body: "Kategori berhasil ditambahkan", type: "info" });
       }
       setIsDialogOpen(false);
       setEditTarget(null);
-      await loadData();
     } catch (err: any) {
       setErrorMsg(err.message || "Gagal menyimpan kategori");
     } finally {
@@ -78,10 +66,9 @@ export function MasterTabCategory() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await itemCategoryRepo.delete(deleteTarget.id);
+      await deleteCategory(deleteTarget.id);
       showToast({ body: "Kategori berhasil dihapus", type: "info" });
       setDeleteTarget(null);
-      await loadData();
     } catch (err: any) {
       showToast({ body: err.message || "Gagal menghapus kategori", type: "error" });
     } finally {

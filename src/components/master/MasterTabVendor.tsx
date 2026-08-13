@@ -4,10 +4,11 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { vendorRepo, type Vendor } from "@/db/repositories";
+import type { Vendor } from "@/db/repositories";
+import { useMasterStore } from "@/store/useMasterStore";
 
 export function MasterTabVendor() {
-  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const { vendors, createVendor, updateVendor, deleteVendor } = useMasterStore();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Vendor | null>(null);
@@ -21,13 +22,6 @@ export function MasterTabVendor() {
   const [vendorName, setVendorName] = useState("");
   const [vendorPhone, setVendorPhone] = useState("");
   const [vendorAddress, setVendorAddress] = useState("");
-
-  async function loadData() {
-    const nextVendors = await vendorRepo.findAllSorted();
-    setVendors(nextVendors);
-  }
-
-  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     const handleOpen = () => openCreate();
@@ -57,15 +51,14 @@ export function MasterTabVendor() {
     try {
       const data = { vendor_name: vendorName, phone: vendorPhone, address: vendorAddress };
       if (editTarget) {
-        await vendorRepo.update(editTarget.vendor_id, data);
+        await updateVendor(editTarget.vendor_id, data);
         showToast({ body: "Vendor berhasil diubah", type: "info" });
       } else {
-        await vendorRepo.create(data);
+        await createVendor(data);
         showToast({ body: "Vendor berhasil ditambahkan", type: "info" });
       }
       setIsDialogOpen(false);
       setEditTarget(null);
-      await loadData();
     } catch (err: any) {
       setErrorMsg(err.message || "Gagal menyimpan vendor");
     } finally {
@@ -77,10 +70,9 @@ export function MasterTabVendor() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await vendorRepo.delete(deleteTarget.id);
+      await deleteVendor(deleteTarget.id);
       showToast({ body: "Vendor berhasil dihapus", type: "info" });
       setDeleteTarget(null);
-      await loadData();
     } catch (err: any) {
       showToast({ body: err.message || "Gagal menghapus vendor", type: "error" });
     } finally {
