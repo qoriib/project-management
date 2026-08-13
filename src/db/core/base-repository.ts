@@ -329,4 +329,51 @@ export abstract class BaseRepository<
       throw wrapDbError(error, this.model.tableName);
     }
   }
+  /**
+   * Execute operations within a database transaction.
+   * This drastically improves performance for bulk inserts/updates.
+   */
+  protected async transaction<T>(operation: () => Promise<T>): Promise<T> {
+    const db = await this.db();
+    await db.execute("BEGIN TRANSACTION");
+    try {
+      const result = await operation();
+      await db.execute("COMMIT");
+      return result;
+    } catch (error) {
+      await db.execute("ROLLBACK");
+      throw wrapDbError(error, this.model.tableName);
+    }
+  }
+
+  /**
+   * Bulk insert multiple rows in a single query.
+   * Reduces IPC calls from O(N) to O(1).
+   */
+  protected async bulkInsert(table: string, columns: string[], data: unknown[][]): Promise<void> {
+    if (data.length === 0) return;
+    
+    // SQLite has a limit on bind parameters. Process in chunks.
+    const chunkSize = 200; 
+    const db = await this.db();
+    
+    for (let i = 0; i < data.length; i += chunkSize) {
+      const chunk = data.slice(i, i + chunkSize);
+      const placeholders: string[] = [];
+      const params: unknown[] = [];
+      
+      let paramIdx = 1;
+      for (const row of chunk) {
+        const rowPlaceholders = [];
+        for (const val of row) {
+          rowPlaceholders.push(`$${paramIdx++}`);
+          params.push(val ?? null);
+        }
+        placeholders.push(`(${rowPlaceholders.join(", ")})`);
+      }
+      
+      const sql = `INSERT INTO ${table} (${columns.join(", ")}) VALUES ${placeholders.join(", ")}`;
+      await db.execute(sql, params);
+    }
+  }
 }

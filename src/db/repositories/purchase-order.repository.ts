@@ -150,20 +150,14 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
     po: CreatePurchaseOrder,
     items: Omit<POItemInput, "po_item_id">[]
   ): Promise<number> {
-    try {
+    return this.transaction(async () => {
       const poId = await this.create(po);
-
-      for (const item of items) {
-        await this.rawExecute(
-          "INSERT INTO po_items (po_id, item_id, vendor_id, price, qty) VALUES ($1, $2, $3, $4, $5)",
-          [poId, item.item_id ?? null, item.vendor_id ?? null, item.price, item.qty]
-        );
-      }
+      
+      const rows = items.map(it => [poId, it.item_id ?? null, it.vendor_id ?? null, it.price, it.qty]);
+      await this.bulkInsert("po_items", ["po_id", "item_id", "vendor_id", "price", "qty"], rows);
 
       return poId;
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
+    });
   }
 
   /**
@@ -174,7 +168,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
     po: UpdatePurchaseOrder,
     items: POItemInput[]
   ): Promise<void> {
-    try {
+    return this.transaction(async () => {
       // Update PO header
       await this.update(poId, po);
 
@@ -186,28 +180,26 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
       const newIds = new Set(items.map((i) => i.po_item_id).filter(Boolean));
       const idsToDelete = existing.map((ex) => ex.po_item_id).filter((id) => !newIds.has(id));
 
-      // Delete removed items
-      for (const id of idsToDelete) {
-        await this.rawExecute("DELETE FROM po_items WHERE po_item_id = $1", [id]);
+      if (idsToDelete.length > 0) {
+        const placeholders = idsToDelete.map((_, i) => `$${i + 1}`).join(",");
+        await this.rawExecute(`DELETE FROM po_items WHERE po_item_id IN (${placeholders})`, idsToDelete);
       }
 
-      // Upsert items
-      for (const item of items) {
-        if (!item.po_item_id) {
-          await this.rawExecute(
-            "INSERT INTO po_items (po_id, item_id, vendor_id, price, qty) VALUES ($1, $2, $3, $4, $5)",
-            [poId, item.item_id ?? null, item.vendor_id ?? null, item.price, item.qty]
-          );
-        } else {
-          await this.rawExecute(
-            "UPDATE po_items SET item_id = $1, vendor_id = $2, price = $3, qty = $4 WHERE po_item_id = $5",
-            [item.item_id ?? null, item.vendor_id ?? null, item.price, item.qty, item.po_item_id]
-          );
-        }
+      const newItems = items.filter(it => !it.po_item_id);
+      const existingItems = items.filter(it => it.po_item_id);
+
+      if (newItems.length > 0) {
+        const rows = newItems.map(it => [poId, it.item_id ?? null, it.vendor_id ?? null, it.price, it.qty]);
+        await this.bulkInsert("po_items", ["po_id", "item_id", "vendor_id", "price", "qty"], rows);
       }
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
+
+      for (const item of existingItems) {
+        await this.rawExecute(
+          "UPDATE po_items SET item_id = $1, vendor_id = $2, price = $3, qty = $4 WHERE po_item_id = $5",
+          [item.item_id ?? null, item.vendor_id ?? null, item.price, item.qty, item.po_item_id]
+        );
+      }
+    });
   }
 }
 

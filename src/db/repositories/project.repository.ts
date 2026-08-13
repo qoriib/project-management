@@ -89,7 +89,7 @@ class ProjectRepository extends BaseRepository<Project, CreateProject, UpdatePro
    * Sync project stages: update existing, create new, delete removed (if no BOM relations).
    */
   async saveStages(projectId: number, stages: StageInput[]): Promise<void> {
-    try {
+    return this.transaction(async () => {
       // Get existing stage IDs
       const existing = await this.rawSelect<{ stage_id: number }>(
         "SELECT stage_id FROM project_stages WHERE project_id = $1",
@@ -111,22 +111,21 @@ class ProjectRepository extends BaseRepository<Project, CreateProject, UpdatePro
       }
 
       // Upsert stages
-      for (const stage of stages) {
-        if (stage.stage_id) {
-          await this.rawExecute(
-            "UPDATE project_stages SET stage_name = $1 WHERE stage_id = $2",
-            [stage.stage_name, stage.stage_id]
-          );
-        } else {
-          await this.rawExecute(
-            "INSERT INTO project_stages (project_id, stage_name) VALUES ($1, $2)",
-            [projectId, stage.stage_name]
-          );
-        }
+      const newStages = stages.filter(s => !s.stage_id);
+      const existingStages = stages.filter(s => s.stage_id);
+
+      if (newStages.length > 0) {
+        const rows = newStages.map(s => [projectId, s.stage_name]);
+        await this.bulkInsert("project_stages", ["project_id", "stage_name"], rows);
       }
-    } catch (error) {
-      throw wrapDbError(error, "project_stages");
-    }
+
+      for (const stage of existingStages) {
+        await this.rawExecute(
+          "UPDATE project_stages SET stage_name = $1 WHERE stage_id = $2",
+          [stage.stage_name, stage.stage_id]
+        );
+      }
+    });
   }
 }
 

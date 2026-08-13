@@ -137,23 +137,18 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
     header: { po_id: number; delivery_date: string },
     items: DeliveryItemInput[]
   ): Promise<void> {
-    try {
+    return this.transaction(async () => {
       const deliveryId = await this.create({
         po_id: header.po_id,
         delivery_date: header.delivery_date,
       });
 
-      for (const item of items) {
-        if (item.qty > 0) {
-          await this.rawExecute(
-            "INSERT INTO delivery_items (delivery_id, po_item_id, qty) VALUES ($1, $2, $3)",
-            [deliveryId, item.po_item_id, item.qty]
-          );
-        }
+      const itemsToInsert = items.filter(it => it.qty > 0);
+      if (itemsToInsert.length > 0) {
+        const rows = itemsToInsert.map(it => [deliveryId, it.po_item_id, it.qty]);
+        await this.bulkInsert("delivery_items", ["delivery_id", "po_item_id", "qty"], rows);
       }
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
+    });
   }
 }
 
