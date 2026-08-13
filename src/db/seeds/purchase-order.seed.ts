@@ -1,7 +1,8 @@
-import { purchaseOrderRepo, projectRepo, vendorRepo, itemRepo } from "@/db/repositories";
+import { purchaseOrderRepo, projectRepo, vendorRepo, itemRepo, itemPriceRepo } from "@/db/repositories";
 
 interface SeedPOItemRaw {
   item_name: string;
+  /** Used to find matching item_price_id */
   price: number;
   qty: number;
 }
@@ -134,6 +135,9 @@ export async function seedPurchaseOrders(): Promise<void> {
   const vendMap = new Map(vendors.map(v => [v.vendor_name, v.vendor_id]));
   const itemMap = new Map(items.map(i => [i.item_name, i.item_id]));
 
+  // Cache item prices
+  const itemPriceCache = new Map<number, { item_price_id: number; price: number }[]>();
+
   for (const po of pos) {
     const projectId = projMap.get(po.project_name);
     const vendorId = vendMap.get(po.vendor_name);
@@ -143,13 +147,26 @@ export async function seedPurchaseOrders(): Promise<void> {
       project_id: projectId,
       po_date: po.po_date
     }, true);
-    
+
     if (!exists) {
-      const dbItems = po.items.map(it => {
+      const dbItems = await Promise.all(po.items.map(async it => {
         const itemId = itemMap.get(it.item_name);
         if (!itemId) throw new Error(`Item ${it.item_name} not found`);
-        return { item_id: itemId, price: it.price, qty: it.qty, vendor_id: vendorId };
-      });
+
+        // Get/cache prices for this item
+        if (!itemPriceCache.has(itemId)) {
+          const prices = await itemPriceRepo.findByItem(itemId);
+          itemPriceCache.set(itemId, prices.map(p => ({ item_price_id: p.item_price_id, price: p.price })));
+        }
+        const prices = itemPriceCache.get(itemId)!;
+
+        // Match closest price; fallback to first
+        const matched = prices.find(p => p.price === it.price) ?? prices[0];
+        if (!matched) throw new Error(`No item_prices found for item ${it.item_name}`);
+
+        return { item_id: itemId, item_price_id: matched.item_price_id, qty: it.qty, vendor_id: vendorId };
+      }));
+
       await purchaseOrderRepo.createWithItems(
         { project_id: projectId, po_date: po.po_date },
         dbItems

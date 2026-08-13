@@ -4,7 +4,7 @@ import { VStack, HStack, Button, Selector, Table, Text, Divider, Heading, Card }
 import { DateInput } from "@astryxdesign/core/DateInput";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { purchaseOrderRepo } from "@/db/repositories";
+import { purchaseOrderRepo, itemPriceRepo, type ItemPrice } from "@/db/repositories";
 import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/services";
 import { formatRupiah, todayISO } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
@@ -20,7 +20,7 @@ const poSchema = v.object({
         po_item_id: v.number(),
         item_id: v.pipe(v.number(), v.minValue(1, "Material harus dipilih.")),
         vendor_id: v.pipe(v.string(), v.nonEmpty("Vendor harus dipilih.")),
-        price: v.pipe(v.number(), v.minValue(0, "Harga tidak valid.")),
+        item_price_id: v.pipe(v.string(), v.nonEmpty("Pilih variasi harga.")),
         qty: v.pipe(v.number(), v.minValue(0.001, "Volume tidak valid.")),
       })
     ),
@@ -40,6 +40,8 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
   const { vendors } = useMasterStore();
   const [bomData, setBomData] = useState<DashboardBOMReportItem[]>([]);
   const [loading, setLoading] = useState(true);
+  /** item_id → ItemPrice[] cache to avoid re-fetching */
+  const [priceCache, setPriceCache] = useState<Map<number, ItemPrice[]>>(new Map());
 
   const form = useForm({
     defaultValues: {
@@ -48,7 +50,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         po_item_id: number;
         item_id: number;
         vendor_id: string;
-        price: number;
+        item_price_id: string;
         qty: number;
       }[],
     },
@@ -61,10 +63,10 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         project_id: selectedProjectId!,
       };
       const poItems = value.items.map((it) => ({
-        po_item_id: it.po_item_id || undefined, // For update
+        po_item_id: it.po_item_id || undefined,
         item_id: it.item_id,
         vendor_id: Number(it.vendor_id),
-        price: it.price,
+        item_price_id: Number(it.item_price_id),
         qty: it.qty,
       }));
 
@@ -76,6 +78,14 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
       onSuccess();
     },
   });
+
+  /** Load and cache price variants for an item */
+  async function getPricesForItem(itemId: number): Promise<ItemPrice[]> {
+    if (priceCache.has(itemId)) return priceCache.get(itemId)!;
+    const prices = await itemPriceRepo.findByItem(itemId);
+    setPriceCache(prev => new Map(prev).set(itemId, prices));
+    return prices;
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -92,18 +102,24 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         const poItems = await purchaseOrderRepo.findItems(initialEditId);
         if (po) {
           form.setFieldValue("poDate", po.po_date);
-          form.setFieldValue("items", poItems.map(p => {
-            return {
-              po_item_id: p.po_item_id,
-              item_id: p.item_id || 0,
-              vendor_id: String(p.vendor_id || ""),
-              price: p.price,
-              qty: p.qty,
-            };
+          // Pre-load price variants for all items
+          const allItemIds = [...new Set(poItems.map(p => p.item_id).filter(Boolean) as number[])];
+          const cache = new Map<number, ItemPrice[]>();
+          await Promise.all(allItemIds.map(async id => {
+            const prices = await itemPriceRepo.findByItem(id);
+            cache.set(id, prices);
           }));
+          setPriceCache(cache);
+
+          form.setFieldValue("items", poItems.map(p => ({
+            po_item_id: p.po_item_id,
+            item_id: p.item_id || 0,
+            vendor_id: String(p.vendor_id || ""),
+            item_price_id: String(p.item_price_id || ""),
+            qty: p.qty,
+          })));
         }
       } else {
-        // Form kosong, user tambah manual
         form.setFieldValue("items", []);
       }
       setLoading(false);
@@ -124,11 +140,13 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           // Resolve full item objects for rendering
           const resolvedItems = items.map(it => {
             const b = bomData.find(bom => bom.item_id === it.item_id);
+            const prices = priceCache.get(it.item_id) ?? [];
+            const selectedPrice = prices.find(p => String(p.item_price_id) === it.item_price_id);
             return {
               ...it,
               item_name: b?.item_name || "",
               unit: b?.unit || "",
-              price: b?.price || 0,
+              price: selectedPrice?.price ?? 0,
               planned_volume: b?.planned_volume || 0,
               total_ordered: b?.total_ordered || 0,
             };
@@ -187,13 +205,12 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                                     ...bomOptions.map(b => ({ value: String(b.item_id), label: `${b.item_name} (${b.unit})` }))
                                   ]}
                                   value={String(field.state.value)}
-                                  onChange={(v) => {
+                                  onChange={async (v) => {
                                     const id = Number(v);
                                     field.handleChange(id);
-                                    const bom = bomData.find(b => b.item_id === id);
-                                    if (bom) {
-                                      form.setFieldValue(`items[${idx}].price`, bom.price);
-                                    }
+                                    // Reset item_price_id when item changes
+                                    form.setFieldValue(`items[${idx}].item_price_id`, "");
+                                    if (id) await getPricesForItem(id);
                                   }}
                                   onBlur={field.handleBlur}
                                   statusVariant="attached"
@@ -219,6 +236,34 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                               <Text size="sm" color="secondary">Rencana: {row.planned_volume} {row.unit}</Text>
                             </VStack>
                           );
+                        }
+                      },
+                      {
+                        key: "price", header: "Variasi Harga", width: proportional(1.8),
+                        renderCell: (row: any) => {
+                          const idx = resolvedItems.indexOf(row);
+                          const itemId = row.item_id;
+                          const prices = itemId ? (priceCache.get(itemId) ?? []) : [];
+                          return (
+                            <form.Field name={`items[${idx}].item_price_id`}>
+                              {(field) => (
+                                <Selector
+                                  label="Harga"
+                                  isLabelHidden
+                                  options={[
+                                    { value: "", label: itemId ? (prices.length === 0 ? "Belum ada harga" : "Pilih harga...") : "Pilih item dahulu..." },
+                                    ...prices.map(p => ({ value: String(p.item_price_id), label: formatRupiah(p.price) }))
+                                  ]}
+                                  value={field.state.value}
+                                  onChange={(v) => field.handleChange(v)}
+                                  onBlur={field.handleBlur}
+                                  statusVariant="attached"
+                                  status={getFieldError(field.state.meta.errors)}
+                                  isDisabled={!itemId || prices.length === 0}
+                                />
+                              )}
+                            </form.Field>
+                          )
                         }
                       },
                       {
@@ -265,27 +310,6 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                         }
                       },
                       {
-                        key: "price", header: "Harga Realisasi (Rp)", width: pixel(180),
-                        renderCell: (row: any) => {
-                          const idx = resolvedItems.indexOf(row);
-                          return (
-                            <form.Field name={`items[${idx}].price`}>
-                              {(field) => (
-                                <NumberInput
-                                  label="Harga"
-                                  isLabelHidden
-                                  value={field.state.value}
-                                  onChange={(v) => field.handleChange(v || 0)}
-                                  onBlur={field.handleBlur}
-                                  statusVariant="attached"
-                                  status={getFieldError(field.state.meta.errors)}
-                                />
-                              )}
-                            </form.Field>
-                          )
-                        }
-                      },
-                      {
                         key: "subtotal_item", header: "Subtotal", width: pixel(140),
                         renderCell: (row: any) => row.item_id ? <Text size="sm">{formatRupiah(row.qty * row.price)}</Text> : null
                       },
@@ -308,7 +332,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
 
                   <form.Field name="items">
                     {(field) => (
-                      <Button size="sm" variant="secondary" label="+ Tambah Item" type="button" onClick={() => field.pushValue({ po_item_id: 0, item_id: 0, vendor_id: "", price: 0, qty: 0 })} />
+                      <Button size="sm" variant="secondary" label="+ Tambah Item" type="button" onClick={() => field.pushValue({ po_item_id: 0, item_id: 0, vendor_id: "", item_price_id: "", qty: 0 })} />
                     )}
                   </form.Field>
 

@@ -2,16 +2,20 @@ import { create } from 'zustand';
 import {
   itemRepo,
   itemCategoryRepo,
+  itemPriceRepo,
   projectRepo,
   unitRepo,
   vendorRepo,
   type ItemWithDetails,
+  type ItemPrice,
   type ItemCategory,
   type ProjectWithStages,
   type Unit,
   type Vendor,
   type CreateItem,
   type UpdateItem,
+  type CreateItemPrice,
+  type UpdateItemPrice,
   type CreateItemCategory,
   type UpdateItemCategory,
   type CreateProject,
@@ -31,6 +35,8 @@ interface MasterStore {
   projects: ProjectWithStages[];
   units: Unit[];
   vendors: Vendor[];
+  /** item_price_id → ItemPrice[], keyed by item_id for fast lookup */
+  itemPricesMap: Map<number, ItemPrice[]>;
 
   // ── Load Actions ───────────────────────────────────────────────────────────
   loadAllMasters: () => Promise<void>;
@@ -39,13 +45,20 @@ interface MasterStore {
   reloadProjects: () => Promise<void>;
   reloadUnits: () => Promise<void>;
   reloadVendors: () => Promise<void>;
+  /** Load/reload price variants for a specific item */
+  loadItemPrices: (itemId: number) => Promise<ItemPrice[]>;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
-  
+
   // Items
   createItem: (data: CreateItem) => Promise<void>;
   updateItem: (id: number, data: UpdateItem) => Promise<void>;
   deleteItem: (id: number) => Promise<void>;
+
+  // Item Prices
+  createItemPrice: (data: CreateItemPrice) => Promise<void>;
+  updateItemPrice: (id: number, data: UpdateItemPrice) => Promise<void>;
+  deleteItemPrice: (id: number, itemId: number) => Promise<void>;
 
   // Categories
   createCategory: (data: CreateItemCategory) => Promise<void>;
@@ -75,6 +88,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
   projects: [],
   units: [],
   vendors: [],
+  itemPricesMap: new Map(),
 
   loadAllMasters: async () => {
     if (get().isLoaded) return;
@@ -113,6 +127,16 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     set({ vendors });
   },
 
+  loadItemPrices: async (itemId) => {
+    const prices = await itemPriceRepo.findByItem(itemId);
+    set(state => {
+      const newMap = new Map(state.itemPricesMap);
+      newMap.set(itemId, prices);
+      return { itemPricesMap: newMap };
+    });
+    return prices;
+  },
+
   // ── Items CRUD ──
   createItem: async (data) => {
     await itemRepo.create(data);
@@ -125,6 +149,27 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
   deleteItem: async (id) => {
     await itemRepo.delete(id);
     await get().reloadItems();
+  },
+
+  // ── Item Prices CRUD ──
+  createItemPrice: async (data) => {
+    await itemPriceRepo.create(data);
+    await get().loadItemPrices(data.item_id);
+  },
+  updateItemPrice: async (id, data) => {
+    await itemPriceRepo.update(id, data);
+    // Reload prices for all items currently in map that might match
+    const { itemPricesMap } = get();
+    for (const [itemId, prices] of itemPricesMap) {
+      if (prices.some(p => p.item_price_id === id)) {
+        await get().loadItemPrices(itemId);
+        break;
+      }
+    }
+  },
+  deleteItemPrice: async (id, itemId) => {
+    await itemPriceRepo.delete(id);
+    await get().loadItemPrices(itemId);
   },
 
   // ── Categories CRUD ──

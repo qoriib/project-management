@@ -1,22 +1,24 @@
 import { useEffect, useState } from "react";
-import { VStack, HStack, Button, Selector, Heading } from "@astryxdesign/core";
+import { VStack, HStack, Button, Selector, Heading, Text } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
 import * as v from "valibot";
 import {
   bomRepo,
+  itemPriceRepo,
   type BillOfMaterial,
   type BOMDetail,
 } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
+import { formatRupiah } from "@/utils/formatters";
 
 const bomSchema = v.object({
   stage_id: v.pipe(v.string(), v.nonEmpty("Tahap proyek harus dipilih.")),
   item_id: v.pipe(v.string(), v.nonEmpty("Material harus dipilih.")),
   qty: v.pipe(v.number(), v.minValue(0.001, "Volume harus lebih dari 0.")),
-  price: v.pipe(v.number(), v.minValue(0, "Harga tidak boleh negatif.")),
+  item_price_id: v.pipe(v.string(), v.nonEmpty("Pilih harga terlebih dahulu.")),
 });
 
 interface BOMFormProps {
@@ -32,26 +34,27 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
   const { items } = useMasterStore();
   const [existingBoms, setExistingBoms] = useState<BillOfMaterial[]>([]);
   const [stages, setStages] = useState<{ value: string; label: string }[]>([]);
-  
+  const [priceOptions, setPriceOptions] = useState<{ value: string; label: string }[]>([]);
+
   const form = useForm({
     defaultValues: {
       stage_id: initialData?.stage_id ? String(initialData.stage_id) : (stageId ? String(stageId) : ""),
       item_id: initialData?.item_id ? String(initialData.item_id) : "",
       qty: initialData?.qty ? Number(initialData.qty) : 0,
-      price: initialData?.price ? Number(initialData.price) : 0,
+      item_price_id: initialData?.item_price_id ? String(initialData.item_price_id) : "",
     },
     validators: {
       onChange: bomSchema,
     },
     onSubmit: async ({ value }) => {
       if (!selectedProjectId) return;
-      
+
       const data = {
         project_id: selectedProjectId,
         item_id: Number(value.item_id),
         stage_id: Number(value.stage_id),
         qty: value.qty,
-        price: value.price,
+        item_price_id: Number(value.item_price_id),
       };
 
       if (initialData) {
@@ -61,12 +64,31 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
         if (isInline) {
           form.setFieldValue("item_id", "");
           form.setFieldValue("qty", 0);
-          form.setFieldValue("price", 0);
+          form.setFieldValue("item_price_id", "");
+          setPriceOptions([]);
         }
       }
       onSuccess();
     }
   });
+
+  // Load price options when item_id changes
+  async function loadPricesForItem(itemId: string) {
+    if (!itemId) {
+      setPriceOptions([]);
+      form.setFieldValue("item_price_id", "");
+      return;
+    }
+    const prices = await itemPriceRepo.findByItem(Number(itemId));
+    const opts = prices.map(p => ({ value: String(p.item_price_id), label: formatRupiah(p.price) }));
+    setPriceOptions(opts);
+
+    // Auto-select first option if no current selection
+    const currentPriceId = form.getFieldValue("item_price_id");
+    if (!currentPriceId && prices.length > 0) {
+      form.setFieldValue("item_price_id", String(prices[0].item_price_id));
+    }
+  }
 
   // Watch for external prop changes
   useEffect(() => {
@@ -74,12 +96,14 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
       form.setFieldValue("stage_id", String(initialData.stage_id));
       form.setFieldValue("item_id", String(initialData.item_id));
       form.setFieldValue("qty", Number(initialData.qty));
-      form.setFieldValue("price", Number(initialData.price));
+      form.setFieldValue("item_price_id", String(initialData.item_price_id));
+      loadPricesForItem(String(initialData.item_id));
     } else if (stageId) {
       form.setFieldValue("stage_id", String(stageId));
       form.setFieldValue("item_id", "");
       form.setFieldValue("qty", 0);
-      form.setFieldValue("price", 0);
+      form.setFieldValue("item_price_id", "");
+      setPriceOptions([]);
     }
   }, [initialData, stageId]); // intentionally omitting `form`
 
@@ -94,9 +118,9 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
   return (
     <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
       <form.Subscribe
-        selector={(state) => [state.values.stage_id, state.canSubmit, state.isSubmitting] as const}
-        children={([formStageId, canSubmit, isSubmitting]) => {
-          
+        selector={(state) => [state.values.stage_id, state.values.item_id, state.canSubmit, state.isSubmitting] as const}
+        children={([formStageId, formItemId, canSubmit, isSubmitting]) => {
+
           // Fetch existing BOMs for this stage whenever it changes
           useEffect(() => {
             if (selectedProjectId && formStageId) {
@@ -117,7 +141,10 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                         label="Material / Alat"
                         hasSearch
                         value={field.state.value}
-                        onChange={(val) => field.handleChange(val)}
+                        onChange={(val) => {
+                          field.handleChange(val);
+                          loadPricesForItem(val);
+                        }}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
                         status={getFieldError(field.state.meta.errors)}
@@ -149,27 +176,31 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                 </div>
                 <div style={{ flex: 2 }}>
                   <form.Field
-                    name="price"
+                    name="item_price_id"
                     children={(field) => (
-                      <NumberInput
-                        label="Harga Rencana (Rp)"
-                        placeholder="Contoh: 50000"
-                        value={field.state.value || null}
-                        onChange={(val) => field.handleChange(val || 0)}
+                      <Selector
+                        label="Harga"
+                        value={field.state.value}
+                        onChange={(val) => field.handleChange(val)}
                         onBlur={field.handleBlur}
                         statusVariant="attached"
                         status={getFieldError(field.state.meta.errors)}
+                        options={[
+                          { value: "", label: priceOptions.length === 0 ? "Pilih item dahulu..." : "Pilih harga..." },
+                          ...priceOptions,
+                        ]}
+                        isDisabled={!formItemId || priceOptions.length === 0}
                       />
                     )}
                   />
                 </div>
                 <div style={{ paddingTop: '28px' }}>
-                  <Button 
-                    variant="primary" 
-                    label={initialData ? "Simpan Edit" : "Tambah BOM"} 
+                  <Button
+                    variant="primary"
+                    label={initialData ? "Simpan Edit" : "Tambah BOM"}
                     type="submit"
-                    isLoading={isSubmitting} 
-                    isDisabled={!canSubmit || !selectedProjectId} 
+                    isLoading={isSubmitting}
+                    isDisabled={!canSubmit || !selectedProjectId}
                   />
                   {initialData && <Button variant="ghost" label="Batal" onClick={onCancel} style={{ marginLeft: 8 }} />}
                 </div>
@@ -208,7 +239,10 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                       isRequired
                       hasSearch
                       value={field.state.value}
-                      onChange={(val) => field.handleChange(val)}
+                      onChange={(val) => {
+                        field.handleChange(val);
+                        loadPricesForItem(val);
+                      }}
                       onBlur={field.handleBlur}
                       statusVariant="attached"
                       status={getFieldError(field.state.meta.errors)}
@@ -242,32 +276,43 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                   </div>
                   <div style={{ flex: 1 }}>
                     <form.Field
-                      name="price"
+                      name="item_price_id"
                       children={(field) => (
-                        <NumberInput
-                          label="Harga Rencana (Rp)"
+                        <Selector
+                          label="Harga"
                           isRequired
-                          placeholder="Contoh: 50000"
-                          value={field.state.value || null}
-                          onChange={(val) => field.handleChange(val || 0)}
+                          value={field.state.value}
+                          onChange={(val) => {
+                            field.handleChange(val);
+                          }}
                           onBlur={field.handleBlur}
                           statusVariant="attached"
                           status={getFieldError(field.state.meta.errors)}
+                          options={[
+                            { value: "", label: priceOptions.length === 0 ? "Pilih item dahulu..." : "Pilih harga..." },
+                            ...priceOptions,
+                          ]}
+                          isDisabled={!formItemId || priceOptions.length === 0}
                         />
                       )}
                     />
+                    {formItemId && priceOptions.length === 0 && (
+                      <Text size="sm" style={{ marginTop: 4, color: "var(--color-status-warning)" }}>
+                        Item ini belum memiliki harga. Tambahkan di Master Item → Kelola Harga.
+                      </Text>
+                    )}
                   </div>
                 </HStack>
               </VStack>
 
               <HStack gap={2} justify="end" style={{ marginTop: 16 }}>
                 <Button variant="ghost" label="Batal" type="button" onClick={onCancel} />
-                <Button 
-                  variant="primary" 
-                  label="Simpan" 
+                <Button
+                  variant="primary"
+                  label="Simpan"
                   type="submit"
-                  isLoading={isSubmitting} 
-                  isDisabled={!canSubmit || !selectedProjectId} 
+                  isLoading={isSubmitting}
+                  isDisabled={!canSubmit || !selectedProjectId}
                 />
               </HStack>
             </VStack>

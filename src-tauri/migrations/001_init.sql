@@ -27,16 +27,6 @@ CREATE TABLE `vendors` (
 	`deleted_at` text DEFAULT NULL
 );
 
-CREATE TABLE `items` (
-	`item_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`item_name` text NOT NULL,
-	`category_id` integer NOT NULL,
-	`unit_id` integer NOT NULL,
-	`deleted_at` text DEFAULT NULL,
-	FOREIGN KEY (`category_id`) REFERENCES `item_categories`(`category_id`) ON UPDATE no action ON DELETE restrict,
-	FOREIGN KEY (`unit_id`) REFERENCES `units`(`unit_id`) ON UPDATE no action ON DELETE restrict
-);
-
 CREATE TABLE `item_categories` (
 	`category_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`category_name` text NOT NULL,
@@ -49,19 +39,39 @@ CREATE TABLE `units` (
 	`deleted_at` text DEFAULT NULL
 );
 
+CREATE TABLE `items` (
+	`item_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`item_name` text NOT NULL,
+	`category_id` integer NOT NULL,
+	`unit_id` integer NOT NULL,
+	`deleted_at` text DEFAULT NULL,
+	FOREIGN KEY (`category_id`) REFERENCES `item_categories`(`category_id`) ON UPDATE no action ON DELETE restrict,
+	FOREIGN KEY (`unit_id`) REFERENCES `units`(`unit_id`) ON UPDATE no action ON DELETE restrict
+);
+
+-- Variasi harga per item (master harga)
+CREATE TABLE `item_prices` (
+	`item_price_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`item_id` integer NOT NULL,
+	`price` real NOT NULL,
+	`deleted_at` text DEFAULT NULL,
+	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE cascade
+);
+
 -- TAHAP PERSIAPAN: TAHAPAN PROYEK & BOM (RAB)
 CREATE TABLE `bill_of_materials` (
 	`bom_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`project_id` integer NOT NULL,
 	`stage_id` integer NOT NULL,
 	`item_id` integer NOT NULL,
-	`price` real NOT NULL,
+	`item_price_id` integer NOT NULL,
 	`qty` real NOT NULL,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL,
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`stage_id`) REFERENCES `project_stages`(`stage_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict
+	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict,
+	FOREIGN KEY (`item_price_id`) REFERENCES `item_prices`(`item_price_id`) ON UPDATE no action ON DELETE restrict
 );
 
 -- TAHAP PELAKSANAAN: PO & PENERIMAAN
@@ -79,11 +89,12 @@ CREATE TABLE `po_items` (
 	`po_id` integer NOT NULL,
 	`item_id` integer NOT NULL,
 	`vendor_id` integer NOT NULL,
-	`price` real NOT NULL,
+	`item_price_id` integer NOT NULL,
 	`qty` real NOT NULL,
 	FOREIGN KEY (`po_id`) REFERENCES `purchase_orders`(`po_id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict,
-	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`vendor_id`) ON UPDATE no action ON DELETE restrict
+	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`vendor_id`) ON UPDATE no action ON DELETE restrict,
+	FOREIGN KEY (`item_price_id`) REFERENCES `item_prices`(`item_price_id`) ON UPDATE no action ON DELETE restrict
 );
 
 CREATE TABLE `deliveries` (

@@ -1,9 +1,10 @@
-import { bomRepo, projectRepo, itemRepo } from "@/db/repositories";
+import { bomRepo, projectRepo, itemRepo, itemPriceRepo } from "@/db/repositories";
 
 interface SeedBOMRaw {
   project_name: string;
   stage_name: string;
   item_name: string;
+  /** Used to match against item_prices.price to find the correct item_price_id */
   price: number;
   qty: number;
 }
@@ -52,22 +53,16 @@ export async function seedBOMs(): Promise<void> {
     { project_name: p1, stage_name: "Pekerjaan Pengecatan & Finishing", item_name: "Waterproofing 20kg", price: 750000, qty: 5 },
 
     // PROYEK 2: Interior Kantor PT. xyz
-    // Tahap 8: Pembongkaran
     { project_name: p2, stage_name: "Pekerjaan Pembongkaran (Demolisi)", item_name: "Tukang Batu / Pekerja", price: 150000, qty: 20 },
-    // Tahap 9: Partisi Kaca & Gypsum
     { project_name: p2, stage_name: "Pekerjaan Partisi Kaca & Gypsum", item_name: "Triplek / Multiplek 12mm", price: 145000, qty: 60 },
-    // Tahap 10: ME
     { project_name: p2, stage_name: "Pekerjaan ME (Mechanical Electrical)", item_name: "Kabel NYM 3x2.5mm", price: 650000, qty: 10 },
     { project_name: p2, stage_name: "Pekerjaan ME (Mechanical Electrical)", item_name: "Lampu Downlight LED 12W", price: 55000, qty: 50 },
-    // Tahap 11: Custom Furniture
     { project_name: p2, stage_name: "Pekerjaan Custom Furniture", item_name: "Triplek / Multiplek 12mm", price: 145000, qty: 100 },
     { project_name: p2, stage_name: "Pekerjaan Custom Furniture", item_name: "Cat Tembok Interior 25kg (Pail)", price: 850000, qty: 5 },
 
     // PROYEK 3: Gudang Logistik Cikarang
-    // Tahap 12: Tanah & Cut and Fill
     { project_name: p3, stage_name: "Pekerjaan Tanah & Cut and Fill", item_name: "Sewa Excavator PC100", price: 200000, qty: 120 },
     { project_name: p3, stage_name: "Pekerjaan Tanah & Cut and Fill", item_name: "Pasir Pasang", price: 250000, qty: 50 },
-    // Tahap 13: Struktur Baja (Warehouse)
     { project_name: p3, stage_name: "Pekerjaan Struktur Baja (Warehouse)", item_name: "Besi Beton Ulir 16mm x 12m", price: 165000, qty: 500 },
     { project_name: p3, stage_name: "Pekerjaan Struktur Baja (Warehouse)", item_name: "Sewa Concrete Pump", price: 4500000, qty: 5 }
   ];
@@ -75,21 +70,20 @@ export async function seedBOMs(): Promise<void> {
   const projects = await projectRepo.findAll();
   const items = await itemRepo.findAll();
 
-  // Create lookup maps
   const projMap = new Map(projects.map(p => [p.project_name, p.project_id]));
   const itemMap = new Map(items.map(i => [i.item_name, i.item_id]));
-  
-  // Since stages are per project, we can just fetch all stages or fetch them on the fly
-  // For simplicity, let's fetch all stages
+
   const db = (await import("../index")).getDB();
   const allStages = await (await db).select<any[]>("SELECT stage_id, project_id, stage_name FROM project_stages");
-  
   const stageMap = new Map(allStages.map(s => [`${s.project_id}-${s.stage_name}`, s.stage_id]));
+
+  // Cache item prices to avoid repeated DB calls
+  const itemPriceCache = new Map<number, { item_price_id: number; price: number }[]>();
 
   for (const b of rawBoms) {
     const projectId = projMap.get(b.project_name);
     const itemId = itemMap.get(b.item_name);
-    
+
     if (!projectId || !itemId) {
       console.warn(`Could not find project '${b.project_name}' or item '${b.item_name}'. Skipping BOM.`);
       continue;
@@ -101,11 +95,25 @@ export async function seedBOMs(): Promise<void> {
       continue;
     }
 
+    // Get item prices, use cache
+    if (!itemPriceCache.has(itemId)) {
+      const prices = await itemPriceRepo.findByItem(itemId);
+      itemPriceCache.set(itemId, prices.map(p => ({ item_price_id: p.item_price_id, price: p.price })));
+    }
+    const prices = itemPriceCache.get(itemId)!;
+
+    // Find best matching price (closest to seed price), fallback to first
+    let matchedPrice = prices.find(p => p.price === b.price) ?? prices[0];
+    if (!matchedPrice) {
+      console.warn(`No item_prices found for item '${b.item_name}'. Skipping BOM.`);
+      continue;
+    }
+
     const exists = await bomRepo.exists({
       project_id: projectId,
       stage_id: stageId,
       item_id: itemId,
-      price: b.price
+      item_price_id: matchedPrice.item_price_id,
     }, true);
 
     if (!exists) {
@@ -113,10 +121,9 @@ export async function seedBOMs(): Promise<void> {
         project_id: projectId,
         stage_id: stageId,
         item_id: itemId,
-        price: b.price,
-        qty: b.qty
+        item_price_id: matchedPrice.item_price_id,
+        qty: b.qty,
       });
     }
   }
 }
-

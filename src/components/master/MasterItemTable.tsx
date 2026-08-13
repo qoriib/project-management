@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, Button, Table, Badge, HStack, Text, VStack } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import type { ItemWithDetails } from "@/db/repositories";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -14,6 +15,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   const { items, deleteItem } = useMasterStore();
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [priceItem, setPriceItem] = useState<ItemWithDetails | null>(null);
   const showToast = useToast();
 
   async function handleDelete() {
@@ -44,9 +46,10 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       renderCell: (row: ItemWithDetails) => <Badge variant="neutral" label={row.category_name || "—"} />,
     },
     {
-      key: "actions", header: "", width: pixel(220),
+      key: "actions", header: "", width: pixel(300),
       renderCell: (row: ItemWithDetails) => (
         <HStack gap={1}>
+          <Button size="sm" variant="ghost" label="Kelola Harga" onClick={() => setPriceItem(row)} />
           <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row)} />
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })} />
         </HStack>
@@ -73,6 +76,12 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
         title="Hapus Master Data"
         message={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
         isLoading={deleting}
+      />
+
+      <MasterItemPriceDialog
+        isOpen={!!priceItem}
+        onClose={() => setPriceItem(null)}
+        item={priceItem}
       />
     </>
   );

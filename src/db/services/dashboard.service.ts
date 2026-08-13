@@ -17,7 +17,9 @@ export interface DashboardBOMReportItem {
   item_name: string;
   category: string;
   unit: string;
+  /** Price resolved from the linked item_price variant */
   price: number;
+  item_price_id: number;
   planned_volume: number;
   planned_budget: number;
   total_ordered: number;
@@ -38,19 +40,20 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
   try {
     const db = await getDB();
 
-    // 1. Fetch BOMs with joined details
+    // 1. Fetch BOMs with joined details (price resolved from item_prices)
     const bomQb = new QueryBuilder()
       .select(
-        "b.item_id",
+        "b.item_id", "b.item_price_id",
         "ps.stage_name",
         "i.item_name", "c.category_name as category", "u.unit_name as unit",
-        "b.price",
+        "ip.price",
       )
       .selectRaw("b.qty as planned_volume")
-      .selectRaw("(b.qty * b.price) as planned_budget")
+      .selectRaw("(b.qty * ip.price) as planned_budget")
       .from("bill_of_materials", "b")
       .join("project_stages", "ps", "ps.stage_id = b.stage_id")
       .join("items", "i", "i.item_id = b.item_id")
+      .join("item_prices", "ip", "ip.item_price_id = b.item_price_id")
       .leftJoin("item_categories", "c", "i.category_id = c.category_id")
       .leftJoin("units", "u", "i.unit_id = u.unit_id")
       .where("b.project_id", "=", projectId)
@@ -62,14 +65,15 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
     const { sql: bomSql, params: bomParams } = bomQb.build();
     const boms = await db.select<DashboardBOMReportItem[]>(bomSql, bomParams);
 
-    // 2. Fetch PO Aggregates
+    // 2. Fetch PO Aggregates (join item_prices for price)
     const poQb = new QueryBuilder()
       .select("poi.item_id")
       .selectRaw("SUM(poi.qty) as total_ordered")
       .selectRaw("SUM(d.total_delivered) as total_delivered")
-      .selectRaw("COALESCE(SUM(poi.qty * poi.price) / NULLIF(SUM(poi.qty), 0), 0) as avg_po_price")
+      .selectRaw("COALESCE(SUM(poi.qty * ip.price) / NULLIF(SUM(poi.qty), 0), 0) as avg_po_price")
       .from("po_items", "poi")
       .join("purchase_orders", "po", "po.po_id = poi.po_id")
+      .join("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
       .leftJoin(
         "(SELECT po_item_id, SUM(qty) as total_delivered FROM delivery_items GROUP BY po_item_id)",
         "d",

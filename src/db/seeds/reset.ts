@@ -16,6 +16,7 @@ export async function resetDatabase(): Promise<void> {
       "bill_of_materials",
       "project_stages",
       "projects",
+      "item_prices",
       "items",
       "item_categories",
       "units",

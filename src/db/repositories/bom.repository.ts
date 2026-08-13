@@ -25,6 +25,8 @@ export type BOMDetail = BillOfMaterial & {
   project_name?: string;
   stage_name?: string;
   category?: string;
+  /** Resolved price value from item_prices join */
+  price?: number;
   total_estimasi?: number;
 };
 
@@ -56,19 +58,21 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
   }
 
   /**
-   * Get all BOMs with joined details (item, price, project, stage).
+   * Get all BOMs with joined details (item, price variant, project, stage).
    */
   async findAllWithDetails(filters?: BOMFilters): Promise<BOMDetail[]> {
     try {
       const qb = new QueryBuilder()
         .select(
           "b.bom_id", "b.project_id", "b.stage_id", "b.item_id",
-          "b.price", "b.qty", "b.created_at",
+          "b.item_price_id", "b.qty", "b.created_at",
+          "ip.price",
           "i.item_name", "u.unit_name as unit", "c.category_name as category",
           "p.project_name", "ps.stage_name",
         )
-        .selectRaw("(b.qty * b.price) as total_estimasi")
+        .selectRaw("(b.qty * ip.price) as total_estimasi")
         .from("bill_of_materials", "b")
+        .leftJoin("item_prices", "ip", "ip.item_price_id = b.item_price_id")
         .leftJoin("items", "i", "i.item_id = b.item_id")
         .leftJoin("item_categories", "c", "i.category_id = c.category_id")
         .leftJoin("units", "u", "i.unit_id = u.unit_id")

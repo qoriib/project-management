@@ -16,6 +16,7 @@ export { projectRepo } from "./project.repository";
 export { vendorRepo } from "./vendor.repository";
 export { itemRepo } from "./item.repository";
 export { itemCategoryRepo } from "./item-category.repository";
+export { itemPriceRepo } from "./item-price.repository";
 export { unitRepo } from "./unit.repository";
 export { purchaseOrderRepo } from "./purchase-order.repository";
 export { bomRepo } from "./bom.repository";
@@ -36,6 +37,7 @@ export type {
   ProjectStage, CreateProjectStage, UpdateProjectStage,
   Vendor, CreateVendor, UpdateVendor,
   Item, CreateItem, UpdateItem,
+  ItemPrice, CreateItemPrice, UpdateItemPrice,
   ItemCategory, CreateItemCategory, UpdateItemCategory,
   Unit, CreateUnit, UpdateUnit,
   PurchaseOrder, CreatePurchaseOrder, UpdatePurchaseOrder,
