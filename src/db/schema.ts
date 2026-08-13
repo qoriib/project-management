@@ -82,44 +82,6 @@ export interface Delivery {
   notes: string | null;
 }
 
-export interface EquipmentLog {
-  equip_log_id: number;
-  project_id: number | null;
-  vendor_id: number | null;
-  equipment_name: string;
-  operator_name: string | null;
-  work_date_start: string;
-  work_date_end: string | null;
-  duration_value: number;
-  duration_unit: string;
-  rate_per_unit: number;
-  total_cost: number;
-  activity_description: string | null;
-}
-
-export interface Invoice {
-  invoice_id: number;
-  project_id: number | null;
-  vendor_id: number | null;
-  invoice_number: string | null;
-  invoice_date: string;
-  total_amount: number;
-  paid_amount: number;
-  remaining_balance: number;
-  payment_status: InvoiceStatus;
-  ownership_type: OwnershipType;
-  created_at: string;
-}
-
-export interface InvoiceItem {
-  inv_item_id: number;
-  invoice_id: number | null;
-  po_item_id: number | null;
-  equip_log_id: number | null;
-  description: string;
-  amount: number;
-}
-
 export interface ProjectStage {
   stage_id: number;
   project_id: number;
@@ -132,7 +94,7 @@ export interface BillOfMaterial {
   project_id: number;
   stage_id: number;
   item_id: number;
-  planned_volume: number;
-  estimated_unit_price: number;
+  item_price_id: number;
+  qty: number;
   created_at: string;
 }

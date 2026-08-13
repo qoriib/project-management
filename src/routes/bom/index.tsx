@@ -47,18 +47,11 @@ function BOMPage() {
 
   return (
     <Section padding={6}>
-      <VStack gap={4}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 48px)' }}>
+        <VStack gap={4} style={{ flex: 1 }}>
         <PageHeader
           title="Rencana Kebutuhan (BOM)"
           subtitle="Rincian material dan alat yang dibutuhkan untuk proyek ini."
-          actions={
-            <Button 
-              variant="primary" 
-              label="+ Tambah Rincian" 
-              onClick={() => { setEditData(undefined); setIsDialogOpen(true); }} 
-              isDisabled={!selectedProjectId}
-            />
-          }
         />
 
         <TabList value={activeTab} onChange={setActiveTab} hasDivider>
@@ -75,14 +68,34 @@ function BOMPage() {
         />
       </VStack>
 
-      <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && handleClose()} width={550}>
+      <Dialog isOpen={isDialogOpen && !!editData} onOpenChange={(open) => !open && handleClose()} width={550}>
         <BOMForm 
-          stageId={activeTab === "all" ? undefined : Number(activeTab)}
+          stageId={editData?.stage_id || (activeTab === "all" ? undefined : Number(activeTab))}
           initialData={editData}
           onSuccess={handleSuccess} 
           onCancel={handleClose} 
         />
       </Dialog>
+
+      {activeTab !== "all" && (
+        <div style={{ 
+          position: "sticky", 
+          bottom: -24, 
+          padding: "16px 24px", 
+          background: "var(--color-bg-elevated)", 
+          borderTop: "1px solid var(--color-border)",
+          margin: "16px -24px -24px -24px",
+          zIndex: 10
+        }}>
+          <BOMForm 
+            stageId={Number(activeTab)} 
+            isInline 
+            onSuccess={() => setRefreshTrigger(r => r + 1)} 
+            onCancel={() => {}} 
+          />
+        </div>
+      )}
+      </div>
     </Section>
   );
 }

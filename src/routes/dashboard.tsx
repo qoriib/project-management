@@ -5,14 +5,12 @@ import {
 } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
 import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/queries/dashboard";
-import { getDebtSummary } from "@/db/queries/billing";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 
 function Dashboard() {
   const [report, setReport] = useState<DashboardBOMReportItem[]>([]);
-  const [saldoUtang, setSaldoUtang] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
@@ -21,19 +19,14 @@ function Dashboard() {
     async function load() {
       if (!selectedProjectId) {
         setReport([]);
-        setSaldoUtang(0);
         setLoading(false);
         return;
       }
       
       setLoading(true);
       try {
-        const [rep, debt] = await Promise.all([
-          getDashboardBOMReport(selectedProjectId),
-          getDebtSummary({ project_id: selectedProjectId })
-        ]);
+        const rep = await getDashboardBOMReport(selectedProjectId);
         setReport(rep);
-        setSaldoUtang(debt.reduce((acc, curr) => acc + curr.saldo_utang, 0));
       } finally {
         setLoading(false);
       }
@@ -60,7 +53,7 @@ function Dashboard() {
           </VStack>
         ) : (
           <>
-            <Grid gap={4} columns={{ minWidth: 250, max: 3 }}>
+            <Grid gap={4} columns={{ minWidth: 250, max: 2 }}>
               <GridSpan columns={1}>
                 <Card padding={4}>
                   <VStack gap={2}>
@@ -74,14 +67,6 @@ function Dashboard() {
                   <VStack gap={2}>
                     <Text size="sm" color="secondary">Total Nilai Terpesan (PO)</Text>
                     <Heading level={2}>{loading ? "…" : formatRupiah(totalPO)}</Heading>
-                  </VStack>
-                </Card>
-              </GridSpan>
-              <GridSpan columns={1}>
-                <Card padding={4}>
-                  <VStack gap={2}>
-                    <Text size="sm" color="secondary">Total Saldo Utang Vendor</Text>
-                    <Heading level={2}>{loading ? "…" : formatRupiah(saldoUtang)}</Heading>
                   </VStack>
                 </Card>
               </GridSpan>

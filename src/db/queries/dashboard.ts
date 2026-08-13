@@ -37,14 +37,15 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
       i.item_name,
       i.category,
       i.unit,
-      b.planned_volume,
-      (b.planned_volume * b.estimated_unit_price) as planned_budget,
+      b.qty as planned_volume,
+      (b.qty * ip.price) as planned_budget,
       COALESCE(poa.total_ordered, 0) as total_ordered,
       COALESCE(poa.total_delivered, 0) as total_delivered,
       COALESCE(poa.total_po_price, 0) as total_po_price
     FROM bill_of_materials b
     JOIN project_stages ps ON ps.stage_id = b.stage_id
     JOIN items i ON i.item_id = b.item_id
+    JOIN item_prices ip ON ip.price_id = b.item_price_id
     LEFT JOIN po_agg poa ON poa.project_id = b.project_id AND poa.item_id = b.item_id
     WHERE b.project_id = $1
     ORDER BY ps.stage_id ASC, i.category ASC, i.item_name ASC

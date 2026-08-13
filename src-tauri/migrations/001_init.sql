@@ -61,12 +61,13 @@ CREATE TABLE `bill_of_materials` (
 	`project_id` integer NOT NULL,
 	`stage_id` integer NOT NULL,
 	`item_id` integer NOT NULL,
-	`planned_volume` real NOT NULL,
-	`estimated_unit_price` real DEFAULT 0,
+	`item_price_id` integer NOT NULL,
+	`qty` real NOT NULL,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`stage_id`) REFERENCES `project_stages`(`stage_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict
+	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict,
+	FOREIGN KEY (`item_price_id`) REFERENCES `item_prices`(`price_id`) ON UPDATE no action ON DELETE restrict
 );
 
 -- 5. TAHAP 1: PURCHASE ORDER (PO / PEMESANAN)
@@ -111,52 +112,4 @@ CREATE TABLE `deliveries` (
 	FOREIGN KEY (`po_item_id`) REFERENCES `po_items`(`po_item_id`) ON UPDATE no action ON DELETE cascade
 );
 
--- 7. DUKUNGAN OPERASIONAL: JADWAL & LOG ALAT BERAT / SOLAR
-CREATE TABLE `equipment_logs` (
-	`equip_log_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`project_id` integer,
-	`vendor_id` integer,
-	`equipment_name` text NOT NULL,
-	`operator_name` text,
-	`work_date_start` text NOT NULL,
-	`work_date_end` text,
-	`duration_value` real NOT NULL,
-	`duration_unit` text NOT NULL,
-	`rate_per_unit` real NOT NULL,
-	`total_cost` real GENERATED ALWAYS AS (duration_value * rate_per_unit) STORED,
-	`activity_description` text,
-	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`vendor_id`) ON UPDATE no action ON DELETE set null
-);
 
--- 8. TAHAP 3: PENAGIHAN & REKONSILIASI (INVOICING & PAYMENTS)
-CREATE TABLE `invoices` (
-	`invoice_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`project_id` integer,
-	`vendor_id` integer,
-	`invoice_number` text,
-	`invoice_date` text NOT NULL,
-	`total_amount` real NOT NULL,
-	`paid_amount` real DEFAULT 0,
-	`remaining_balance` real GENERATED ALWAYS AS (total_amount - paid_amount) STORED,
-	`payment_status` text DEFAULT 'UNPAID',
-	`ownership_type` text DEFAULT 'INTERNAL',
-	`created_at` text DEFAULT (datetime('now', 'localtime')),
-	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`vendor_id`) ON UPDATE no action ON DELETE restrict
-);
-
-CREATE UNIQUE INDEX `invoices_invoice_number_unique` ON `invoices` (`invoice_number`);
-
--- Rincian item tagihan yang mencakup gabungan PO / Alat Berat
-CREATE TABLE `invoice_items` (
-	`inv_item_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`invoice_id` integer,
-	`po_item_id` integer,
-	`equip_log_id` integer,
-	`description` text NOT NULL,
-	`amount` real NOT NULL,
-	FOREIGN KEY (`invoice_id`) REFERENCES `invoices`(`invoice_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`po_item_id`) REFERENCES `po_items`(`po_item_id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`equip_log_id`) REFERENCES `equipment_logs`(`equip_log_id`) ON UPDATE no action ON DELETE set null
-);

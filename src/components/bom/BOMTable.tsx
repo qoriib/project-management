@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { HStack, Button, Table, Text, VStack, Heading } from "@astryxdesign/core";
+import { HStack, Button, Table, Text, VStack, Heading, Card } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { getBOMs, deleteBOM, type BillOfMaterial } from "@/db/queries/bom";
@@ -48,10 +48,10 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
   const columns = [
     { key: "item_name", header: "Material/Alat", width: proportional(1.5) },
     { 
-      key: "planned_volume", header: "Volume Rencana", width: pixel(140),
-      renderCell: (row: BillOfMaterial) => `${formatNumber(row.planned_volume, 2)} ${row.unit || ""}`
+      key: "qty", header: "Volume Rencana", width: pixel(140),
+      renderCell: (row: BillOfMaterial) => `${formatNumber(row.qty, 2)} ${row.unit || ""}`
     },
-    { 
+    {
       key: "estimated_unit_price", header: "Harga Satuan Est.", width: pixel(150),
       renderCell: (row: BillOfMaterial) => formatRupiah(row.estimated_unit_price)
     },
@@ -59,7 +59,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
       key: "total_estimasi", header: "Total Estimasi", width: pixel(160),
       renderCell: (row: BillOfMaterial) => <Text size="sm" weight="semibold">{formatRupiah(row.total_estimasi || 0)}</Text>,
     },
-    {
+    ...(stageId ? [{
       key: "actions", header: "", width: pixel(140),
       renderCell: (row: BillOfMaterial) => (
         <HStack gap={1}>
@@ -67,29 +67,43 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget(row.bom_id)} />
         </HStack>
       ),
-    },
+    }] : []),
   ];
 
-  const groupedBoms = boms.reduce((acc, curr) => {
+  // Process BOMs: if no stageId (Semua tab), aggregate by item_price_id
+  const processedBoms = stageId ? boms : Object.values(boms.reduce((acc, curr) => {
+    const key = `${curr.item_price_id}`;
+    if (!acc[key]) {
+      acc[key] = { ...curr };
+    } else {
+      acc[key].qty += curr.qty;
+      acc[key].total_estimasi = (acc[key].total_estimasi || 0) + (curr.total_estimasi || 0);
+    }
+    return acc;
+  }, {} as Record<string, BillOfMaterial>));
+
+  const groupedBoms = processedBoms.reduce((acc, curr) => {
     const cat = curr.category || "LAINNYA";
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(curr);
     return acc;
   }, {} as Record<string, BillOfMaterial[]>);
 
-  if (boms.length === 0) {
+  if (processedBoms.length === 0) {
     return (
-      <VStack align="center" padding={8}>
-        <Text color="secondary">
-          {!selectedProjectId 
-            ? "Pilih Proyek Aktif di menu samping terlebih dahulu."
-            : "Belum ada rencana material di tahap ini. Klik '+ Tambah Rincian' untuk memulai."}
-        </Text>
-      </VStack>
+      <Card padding={8}>
+        <VStack align="center">
+          <Text color="secondary">
+            {!selectedProjectId
+              ? "Pilih Proyek Aktif di menu samping terlebih dahulu."
+              : "Belum ada rencana material di tahap ini. Isi form di bawah untuk mulai menambahkan."}
+          </Text>
+        </VStack>
+      </Card>
     );
   }
 
-  const grandTotal = boms.reduce((acc, curr) => acc + (curr.total_estimasi || 0), 0);
+  const grandTotal = processedBoms.reduce((acc, curr) => acc + (curr.total_estimasi || 0), 0);
 
   return (
     <VStack gap={6}>
@@ -97,19 +111,18 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
         const subtotal = items.reduce((acc, curr) => acc + (curr.total_estimasi || 0), 0);
         return (
           <VStack key={category} gap={3}>
-            <Heading level={4}>{category}</Heading>
-            <Table
-              columns={columns as any}
-              data={items as any}
-              idKey="bom_id"
-              hasHover
-            />
-            <HStack justify="end" style={{ padding: "0 16px" }}>
-              <Text weight="semibold">Subtotal {category}:</Text>
-              <Text weight="bold" color="primary" style={{ marginLeft: 16, width: 140 }}>
-                {formatRupiah(subtotal)}
-              </Text>
+            <HStack justify="between" align="center">
+              <Heading level={4}>{category}</Heading>
+              <Text weight="bold" color="primary">{formatRupiah(subtotal)}</Text>
             </HStack>
+            <Card padding={0}>
+              <Table
+                columns={columns as any}
+                data={items as any}
+                idKey="bom_id"
+                hasHover
+              />
+            </Card>
           </VStack>
         );
       })}

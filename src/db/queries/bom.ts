@@ -12,6 +12,7 @@ export type BillOfMaterial = BaseBOM & {
   stage_name?: string;
   category?: string;
   total_estimasi?: number;
+  estimated_unit_price?: number;
 };
 
 // ── Project Stages ───────────────────────────────────────────────────────────
@@ -89,11 +90,13 @@ export async function getBOMs(filters?: {
 
   const query = `
     SELECT 
-      b.bom_id, b.project_id, b.stage_id, b.item_id, b.planned_volume, 
-      b.estimated_unit_price, b.created_at,
-      (b.planned_volume * b.estimated_unit_price) as total_estimasi,
+      b.bom_id, b.project_id, b.stage_id, b.item_id, b.item_price_id, b.qty, 
+      b.created_at,
+      (b.qty * ip.price) as total_estimasi,
+      ip.price as estimated_unit_price,
       i.item_name, i.unit, i.category, p.project_name, ps.stage_name
     FROM bill_of_materials b
+    LEFT JOIN item_prices ip ON ip.price_id = b.item_price_id
     LEFT JOIN items i ON i.item_id = b.item_id
     LEFT JOIN projects p ON p.project_id = b.project_id
     LEFT JOIN project_stages ps ON ps.stage_id = b.stage_id
@@ -105,19 +108,19 @@ export async function getBOMs(filters?: {
 }
 
 export async function createBOM(
-  data: Omit<BillOfMaterial, "bom_id" | "item_name" | "unit" | "project_name" | "stage_name" | "total_estimasi" | "created_at">
+  data: Omit<BillOfMaterial, "bom_id" | "item_name" | "unit" | "project_name" | "stage_name" | "total_estimasi" | "estimated_unit_price" | "created_at">
 ): Promise<void> {
   const db = await getDB();
   await db.execute(
-    `INSERT INTO bill_of_materials (project_id, stage_id, item_id, planned_volume, estimated_unit_price) 
+    `INSERT INTO bill_of_materials (project_id, stage_id, item_id, item_price_id, qty) 
      VALUES ($1, $2, $3, $4, $5)`,
-    [data.project_id, data.stage_id, data.item_id, data.planned_volume, data.estimated_unit_price]
+    [data.project_id, data.stage_id, data.item_id, data.item_price_id, data.qty]
   );
 }
 
 export async function updateBOM(
   id: number,
-  data: Partial<Omit<BillOfMaterial, "bom_id" | "item_name" | "unit" | "project_name" | "stage_name" | "total_estimasi" | "created_at">>
+  data: Partial<Omit<BillOfMaterial, "bom_id" | "item_name" | "unit" | "project_name" | "stage_name" | "total_estimasi" | "estimated_unit_price" | "created_at">>
 ): Promise<void> {
   const db = await getDB();
   const updates: string[] = [];
