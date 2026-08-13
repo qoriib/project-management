@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, Button, Table, HStack, Text, VStack } from "@astryxdesign/core";
-import { proportional, pixel } from "@astryxdesign/core/Table";
+import { proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import type { Unit } from "@/db/repositories";
@@ -37,9 +37,9 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
 
   const columns = [
     { key: "unit_name", header: "Satuan", width: proportional(1) },
-    { key: "count", header: "Jumlah Item", width: pixel(140), renderCell: (row: { count: number }) => String(row.count) },
+    { key: "count", header: "Jumlah Item", width: proportional(1), renderCell: (row: { count: number }) => String(row.count) },
     {
-      key: "actions", header: "", width: pixel(150),
+      key: "actions", header: "", width: proportional(1),
       renderCell: (row: Unit & { count: number }) => (
         <HStack gap={1}>
           <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row)} />

@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import {
-  Dialog, VStack, HStack, Button, Heading, Text, Table, Badge,
-} from "@astryxdesign/core";
+import { Dialog, VStack, HStack, Button, Text, Table, Badge } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { useMasterStore } from "@/store/useMasterStore";
-import { proportional, pixel } from "@astryxdesign/core/Table";
+import { proportional } from "@astryxdesign/core/Table";
 import { formatRupiah } from "@/utils/formatters";
+import { itemPriceRepo, type ItemPriceWithRelation } from "@/db/repositories";
 import type { ItemPrice, ItemWithDetails } from "@/db/repositories";
 
 interface MasterItemPriceDialogProps {
@@ -17,26 +15,35 @@ interface MasterItemPriceDialogProps {
 }
 
 export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPriceDialogProps) {
-  const { itemPricesMap, loadItemPrices, createItemPrice, updateItemPrice, deleteItemPrice } = useMasterStore();
   const showToast = useToast();
 
   const [priceInput, setPriceInput] = useState<number | null>(null);
-  const [editTarget, setEditTarget] = useState<ItemPrice | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<ItemPrice | null>(null);
+  const [editTarget, setEditTarget] = useState<ItemPriceWithRelation | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const prices = item ? (itemPricesMap.get(item.item_id) ?? []) : [];
+  const [prices, setPrices] = useState<ItemPriceWithRelation[]>([]);
+
+  async function loadPrices() {
+    if (!item) return;
+    try {
+      const data = await itemPriceRepo.findByItemWithRelation(item.item_id);
+      setPrices(data);
+    } catch {
+      setPrices([]);
+    }
+  }
 
   useEffect(() => {
     if (isOpen && item) {
-      loadItemPrices(item.item_id);
       setPriceInput(null);
       setEditTarget(null);
+      loadPrices();
     }
   }, [isOpen, item]);
 
-  function startEdit(price: ItemPrice) {
+  function startEdit(price: ItemPriceWithRelation) {
     setEditTarget(price);
     setPriceInput(price.price);
   }
@@ -56,14 +63,15 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     setSaving(true);
     try {
       if (editTarget) {
-        await updateItemPrice(editTarget.item_price_id, { price: priceInput });
+        await itemPriceRepo.update(editTarget.item_price_id, { price: priceInput });
         showToast({ body: "Harga berhasil diubah.", type: "info" });
       } else {
-        await createItemPrice({ item_id: item.item_id, price: priceInput });
+        await itemPriceRepo.create({ item_id: item.item_id, price: priceInput });
         showToast({ body: "Harga berhasil ditambahkan.", type: "info" });
       }
       setPriceInput(null);
       setEditTarget(null);
+      await loadPrices();
     } catch (err: any) {
       showToast({ body: err.message || "Gagal menyimpan harga.", type: "error" });
     } finally {
@@ -75,9 +83,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     if (!deleteTarget || !item) return;
     setDeleting(true);
     try {
-      await deleteItemPrice(deleteTarget.item_price_id, item.item_id);
+      await itemPriceRepo.delete(deleteTarget.item_price_id);
       showToast({ body: "Harga berhasil dihapus.", type: "info" });
       setDeleteTarget(null);
+      await loadPrices();
     } catch (err: any) {
       showToast({ body: err.message || "Gagal menghapus harga.", type: "error" });
     } finally {
@@ -89,7 +98,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     {
       key: "item_price_id",
       header: "#",
-      width: pixel(60),
+      width: proportional(0.5),
       renderCell: (row: ItemPrice) => (
         <Text size="sm" color="secondary">{String(row.item_price_id).padStart(3, "0")}</Text>
       ),
@@ -98,25 +107,32 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       key: "price",
       header: "Harga (Rp)",
       width: proportional(1),
-      renderCell: (row: ItemPrice) => (
-        <Badge variant="neutral" label={formatRupiah(row.price)} />
+      renderCell: (row: ItemPriceWithRelation) => (
+        <HStack gap={2} align="center">
+          <Badge variant="neutral" label={formatRupiah(row.price)} />
+          {row.has_relation && <Badge variant="info" label="Digunakan" />}
+        </HStack>
       ),
     },
     {
       key: "actions",
       header: "",
-      width: pixel(160),
-      renderCell: (row: ItemPrice) => (
-        <HStack gap={1}>
-          <Button size="sm" variant="ghost" label="Edit" onClick={() => startEdit(row)} />
-          <Button
-            size="sm"
-            variant="destructive"
-            label="Hapus"
-            onClick={() => setDeleteTarget(row)}
-          />
-        </HStack>
-      ),
+      width: proportional(1.5),
+      renderCell: (row: ItemPriceWithRelation) => {
+        const locked = row.has_relation;
+        return (
+          <HStack gap={1}>
+            <Button size="sm" variant="ghost" label="Edit" onClick={() => startEdit(row)} isDisabled={locked} />
+            <Button
+              size="sm"
+              variant="destructive"
+              label="Hapus"
+              onClick={() => setDeleteTarget(row)}
+              isDisabled={locked}
+            />
+          </HStack>
+        );
+      },
     },
   ];
 
@@ -124,20 +140,8 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     <>
       <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
         <VStack gap={4}>
-          <VStack gap={1}>
-            <Heading level={3}>Variasi Harga</Heading>
-            {item && (
-              <Text color="secondary" size="sm">
-                Item: <strong>{item.item_name}</strong> ({item.unit_name})
-              </Text>
-            )}
-          </VStack>
-
           {/* Inline form for add / edit */}
-          <VStack gap={2} style={{ padding: "var(--spacing-3)", background: "var(--color-surface-raised)", borderRadius: "var(--radius-md)" }}>
-            <Text weight="semibold" size="sm">
-              {editTarget ? `Edit Harga #${String(editTarget.item_price_id).padStart(3, "0")}` : "Tambah Harga"}
-            </Text>
+          <VStack gap={2}>
             <HStack gap={3} align="end">
               <div style={{ flex: 1 }}>
                 <NumberInput
@@ -149,7 +153,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                   min={0}
                 />
               </div>
-              <HStack gap={1} style={{ paddingBottom: "2px" }}>
+              <HStack gap={2}>
                 <Button
                   variant="primary"
                   label={editTarget ? "Simpan" : "Tambah"}

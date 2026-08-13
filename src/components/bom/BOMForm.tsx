@@ -298,7 +298,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                     />
                     {formItemId && priceOptions.length === 0 && (
                       <Text size="sm" style={{ marginTop: 4, color: "var(--color-status-warning)" }}>
-                        Item ini belum memiliki harga. Tambahkan di Master Item → Kelola Harga.
+                        Item ini belum memiliki harga. Tambahkan di Master Item → Harga.
                       </Text>
                     )}
                   </div>

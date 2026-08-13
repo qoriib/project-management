@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, Button, Table, Badge, HStack, Text, VStack } from "@astryxdesign/core";
-import { proportional, pixel } from "@astryxdesign/core/Table";
+import { proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -36,21 +36,21 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
     {
       key: "item_id",
       header: "Kode",
-      width: pixel(120),
+      width: proportional(0.8),
       renderCell: (row: ItemWithDetails) => String(row.item_id).padStart(4, '0')
     },
     { key: "item_name", header: "Nama Item", width: proportional(1.5) },
-    { key: "unit", header: "Satuan", width: pixel(100), renderCell: (row: ItemWithDetails) => row.unit_name },
+    { key: "unit", header: "Satuan", width: proportional(0.8), renderCell: (row: ItemWithDetails) => row.unit_name },
     {
-      key: "category", header: "Kategori", width: pixel(180),
+      key: "category", header: "Kategori", width: proportional(1),
       renderCell: (row: ItemWithDetails) => <Badge variant="neutral" label={row.category_name || "—"} />,
     },
     {
-      key: "actions", header: "", width: pixel(300),
+      key: "actions", header: "", width: proportional(2),
       renderCell: (row: ItemWithDetails) => (
         <HStack gap={1}>
-          <Button size="sm" variant="ghost" label="Kelola Harga" onClick={() => setPriceItem(row)} />
-          <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row)} />
+          <Button size="sm" variant="secondary" label="Harga" onClick={() => setPriceItem(row)} />
+          <Button size="sm" variant="secondary" label="Edit" onClick={() => onEdit(row)} />
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })} />
         </HStack>
       ),

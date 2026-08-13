@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, Button, Table, HStack, Text, VStack } from "@astryxdesign/core";
-import { proportional, pixel } from "@astryxdesign/core/Table";
+import { proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -39,13 +39,13 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
     {
       key: "category_id",
       header: "Kode Kategori",
-      width: pixel(180),
+      width: proportional(1),
       renderCell: (row: ItemCategory) => String(row.category_id).padStart(4, '0')
     },
     { key: "category_name", header: "Nama Kategori", width: proportional(1) },
-    { key: "count", header: "Jumlah Item", width: pixel(140), renderCell: (row: { count: number }) => String(row.count) },
+    { key: "count", header: "Jumlah Item", width: proportional(1), renderCell: (row: { count: number }) => String(row.count) },
     {
-      key: "actions", header: "", width: pixel(150),
+      key: "actions", header: "", width: proportional(1),
       renderCell: (row: ItemCategory & { count: number }) => (
         <HStack gap={1}>
           <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row)} />

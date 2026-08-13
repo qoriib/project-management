@@ -11,14 +11,8 @@ import * as v from "valibot";
 
 const itemSchema = v.object({
   item_name: v.pipe(v.string(), v.nonEmpty("Nama item harus diisi.")),
-  category_id: v.pipe(
-    v.string(),
-    v.nonEmpty("Pilih kategori terlebih dahulu.")
-  ),
-  unit_id: v.pipe(
-    v.string(),
-    v.nonEmpty("Pilih satuan terlebih dahulu.")
-  )
+  category_id: v.pipe(v.string(), v.nonEmpty("Pilih kategori terlebih dahulu.")),
+  unit_id: v.pipe(v.string(), v.nonEmpty("Pilih satuan terlebih dahulu."))
 });
 
 interface MasterItemFormProps {
@@ -54,7 +48,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
           showToast({ body: "Item berhasil diubah", type: "info" });
         } else {
           await createItem(data);
-          showToast({ body: "Item berhasil ditambahkan", type: "info" });
+          showToast({ body: "Item berhasil ditambahkan. Gunakan 'Harga' di tabel untuk menambahkan harga.", type: "info" });
         }
         onClose();
       } catch (err: any) {

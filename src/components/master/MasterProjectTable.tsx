@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Card, Button, Table, Badge, HStack, Text, VStack } from "@astryxdesign/core";
-import { proportional, pixel } from "@astryxdesign/core/Table";
+import { proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { MasterProjectStageDialog } from "@/components/master/MasterProjectStageDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import type { Project, ProjectWithStages } from "@/db/repositories";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -14,6 +15,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   const { projects, deleteProject } = useMasterStore();
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [stageProject, setStageProject] = useState<Project | null>(null);
   const showToast = useToast();
 
   async function handleDelete() {
@@ -34,12 +36,12 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
     {
       key: "project_id",
       header: "Kode",
-      width: pixel(120),
+      width: proportional(0.5),
       renderCell: (row: Project) => String(row.project_id).padStart(4, '0')
     },
     { key: "project_name", header: "Nama Project", width: proportional(1.3) },
     { key: "company_name", header: "Nama Perusahaan", width: proportional(1) },
-    { key: "fiscal_year", header: "Tahun", width: pixel(100) },
+    { key: "fiscal_year", header: "Tahun", width: proportional(0.5) },
     {
       key: "stages", header: "Tahapan", width: proportional(1.5),
       renderCell: (row: ProjectWithStages) => (
@@ -51,9 +53,10 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       )
     },
     {
-      key: "actions", header: "", width: pixel(150),
+      key: "actions", header: "", width: proportional(1.5),
       renderCell: (row: Project) => (
         <HStack gap={1}>
+          <Button size="sm" variant="ghost" label="Tahap" onClick={() => setStageProject(row)} />
           <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row)} />
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.project_id, label: row.project_name })} />
         </HStack>
@@ -80,6 +83,12 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
         title="Hapus Master Data"
         message={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
         isLoading={deleting}
+      />
+
+      <MasterProjectStageDialog
+        isOpen={!!stageProject}
+        onClose={() => setStageProject(null)}
+        project={stageProject}
       />
     </>
   );

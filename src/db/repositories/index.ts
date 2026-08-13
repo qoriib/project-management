@@ -29,6 +29,7 @@ export type { ItemWithDetails } from "./item.repository";
 export type { POWithSummary, POItemDetail, POFilters, POItemInput } from "./purchase-order.repository";
 export type { ProjectStageWithProject, BOMDetail, BOMFilters } from "./bom.repository";
 export type { DeliverySummary, DeliveryItemDetail, DeliveryItemByPO, DeliveryFilters, DeliveryItemInput } from "./delivery.repository";
+export type { ItemPriceWithRelation } from "./item-price.repository";
 
 // ── Model Types ──────────────────────────────────────────────────────────────
 

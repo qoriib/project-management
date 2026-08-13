@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, Button, Table, HStack, Text, VStack } from "@astryxdesign/core";
-import { proportional, pixel } from "@astryxdesign/core/Table";
+import { proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import type { Vendor } from "@/db/repositories";
@@ -32,10 +32,10 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
 
   const columns = [
     { key: "vendor_name", header: "Nama Vendor", width: proportional(1.5) },
-    { key: "phone", header: "Telepon", width: pixel(150) },
+    { key: "phone", header: "Telepon", width: proportional(1) },
     { key: "address", header: "Alamat", width: proportional(1.5) },
     {
-      key: "actions", header: "", width: pixel(150),
+      key: "actions", header: "", width: proportional(1),
       renderCell: (row: Vendor) => (
         <HStack gap={1}>
           <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row)} />
