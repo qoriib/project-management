@@ -4,11 +4,11 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { itemCategoryRepo, itemRepo, type ItemCategory, type Item } from "@/db/repositories";
+import { itemCategoryRepo, itemRepo, type ItemCategory, type ItemWithDetails } from "@/db/repositories";
 
 export function MasterTabCategory() {
   const [categories, setCategories] = useState<ItemCategory[]>([]);
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ItemWithDetails[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ItemCategory | null>(null);
@@ -24,7 +24,7 @@ export function MasterTabCategory() {
   async function loadData() {
     const [nextCategories, nextItems] = await Promise.all([
       itemCategoryRepo.findAllSorted(),
-      itemRepo.findAllWithPrices(),
+      itemRepo.findAll(),
     ]);
     setCategories(nextCategories);
     setItems(nextItems);
@@ -91,7 +91,7 @@ export function MasterTabCategory() {
 
   const categoryRows = categories.map((category) => ({
     ...category,
-    count: items.filter((item) => item.category === category.category_name).length,
+    count: items.filter((item) => item.category_id === category.category_id).length,
   }));
 
   const columns = [

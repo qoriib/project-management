@@ -38,7 +38,7 @@ function PODetailPage() {
 
   const itemColumns = [
     { key: "item_name", header: "Barang / Material", width: proportional(1.5), renderCell: (row: POItemDetail) => row.item_name },
-    { key: "vendor_name", header: "Vendor", width: proportional(1.5), renderCell: (row: POItemDetail) => row.vendor_name || "—" },
+    { key: "vendor_name", header: "Vendor", width: proportional(1), renderCell: (row: POItemDetail) => row.vendor_name || "—" },
     { key: "price", header: "Harga Satuan", width: pixel(140), renderCell: (row: POItemDetail) => formatRupiah(row.price) },
     { key: "qty", header: "Vol. Kontrak", width: pixel(120), renderCell: (row: POItemDetail) => `${formatNumber(row.qty, 2)} ${row.unit ?? ""}` },
     { key: "total_terkirim", header: "Terkirim", width: pixel(120), renderCell: (row: POItemDetail) => `${formatNumber(row.total_terkirim, 2)} ${row.unit ?? ""}` },
@@ -49,7 +49,6 @@ function PODetailPage() {
   const deliveryColumns = [
     { key: "delivery_date", header: "Tanggal Kirim", width: pixel(140), renderCell: (row: any) => formatDate(row.delivery_date) },
     { key: "item_name", header: "Barang / Material", width: proportional(2), renderCell: (row: any) => row.item_name },
-    { key: "vendor_name", header: "Vendor Pemasok", width: proportional(1.5), renderCell: (row: any) => row.vendor_name || "—" },
     { key: "qty", header: "Volume Diterima", width: pixel(180), renderCell: (row: any) => `${formatNumber(row.qty, 2)} ${row.unit ?? ""}` },
   ];
 
@@ -58,7 +57,7 @@ function PODetailPage() {
       <VStack gap={6}>
         <PageHeader
           title={`Detail PO-${po.po_id}`}
-          subtitle={`Proyek: ${po.project_name ?? "—"} • Dibuat pada ${formatDate(po.po_date)} • Estimasi Total: ${formatRupiah(po.total_price)}`}
+          subtitle={`Proyek: ${po.project_name ?? "—"} • Vendor: ${po.vendor_names ?? "—"} • Dibuat pada ${formatDate(po.po_date)} • Estimasi Total: ${formatRupiah(po.total_price)}`}
           actions={
             <HStack gap={2}>
               <Button variant="ghost" label="← Kembali" onClick={() => navigate({ to: "/po" })} />

@@ -13,7 +13,6 @@ import { wrapDbError, DbError } from "@/db/core/errors";
 
 export interface DashboardBOMReportItem {
   item_id: number;
-  item_price_id: number;
   stage_name: string;
   item_name: string;
   category: string;
@@ -42,21 +41,22 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
     // 1. Fetch BOMs with joined details
     const bomQb = new QueryBuilder()
       .select(
-        "b.item_id", "b.item_price_id",
+        "b.item_id",
         "ps.stage_name",
-        "i.item_name", "i.category", "i.unit",
-        "ip.price",
+        "i.item_name", "c.category_name as category", "u.unit_name as unit",
+        "b.price",
       )
       .selectRaw("b.qty as planned_volume")
-      .selectRaw("(b.qty * ip.price) as planned_budget")
+      .selectRaw("(b.qty * b.price) as planned_budget")
       .from("bill_of_materials", "b")
       .join("project_stages", "ps", "ps.stage_id = b.stage_id")
       .join("items", "i", "i.item_id = b.item_id")
-      .join("item_prices", "ip", "ip.price_id = b.item_price_id")
+      .leftJoin("item_categories", "c", "i.category_id = c.category_id")
+      .leftJoin("units", "u", "i.unit_id = u.unit_id")
       .where("b.project_id", "=", projectId)
       .withSoftDelete("b")
       .orderBy("ps.stage_id", "ASC")
-      .orderBy("i.category", "ASC")
+      .orderBy("c.category_name", "ASC")
       .orderBy("i.item_name", "ASC");
 
     const { sql: bomSql, params: bomParams } = bomQb.build();
@@ -67,6 +67,7 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
       .select("poi.item_id")
       .selectRaw("SUM(poi.qty) as total_ordered")
       .selectRaw("SUM(d.total_delivered) as total_delivered")
+      .selectRaw("COALESCE(SUM(poi.qty * poi.price) / NULLIF(SUM(poi.qty), 0), 0) as avg_po_price")
       .from("po_items", "poi")
       .join("purchase_orders", "po", "po.po_id = poi.po_id")
       .leftJoin(
@@ -79,14 +80,15 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
       .groupBy("poi.item_id");
 
     const { sql: poSql, params: poParams } = poQb.build();
-    const poAggs = await db.select<{ item_id: number; total_ordered: number; total_delivered: number }[]>(poSql, poParams);
+    const poAggs = await db.select<{ item_id: number; total_ordered: number; total_delivered: number; avg_po_price: number }[]>(poSql, poParams);
 
     // 3. Build remaining map
-    const itemRemaining = new Map<number, { ordered: number; delivered: number }>();
+    const itemRemaining = new Map<number, { ordered: number; delivered: number; avgPrice: number }>();
     for (const agg of poAggs) {
       itemRemaining.set(agg.item_id, {
         ordered: agg.total_ordered || 0,
         delivered: agg.total_delivered || 0,
+        avgPrice: agg.avg_po_price || 0,
       });
     }
 
@@ -121,7 +123,7 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
       row.total_delivered = allocateDelivered;
       remain.delivered -= allocateDelivered;
 
-      row.total_po_price = allocateOrdered * row.price;
+      row.total_po_price = allocateOrdered * remain.avgPrice;
     }
 
     return boms;

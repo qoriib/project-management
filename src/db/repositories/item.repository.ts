@@ -3,8 +3,6 @@
  */
 
 import { BaseRepository } from "@/db/core/base-repository";
-import { QueryBuilder } from "@/db/core/query-builder";
-import { wrapDbError } from "@/db/core/errors";
 import {
   ItemModel,
   type Item,
@@ -12,46 +10,33 @@ import {
   type UpdateItem,
 } from "@/db/models";
 
-// ── Extended Types ───────────────────────────────────────────────────────────
+import { QueryBuilder } from "@/db/core/query-builder";
+import { wrapDbError } from "@/db/core/errors";
 
-export type ItemWithPrices = Item & { prices: number[] };
-
-// ── Repository ───────────────────────────────────────────────────────────────
+export type ItemWithDetails = Item & {
+  category_name?: string;
+  unit_name?: string;
+};
 
 class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
   constructor() {
     super(ItemModel);
   }
 
-  /**
-   * Get all items with their price variants attached.
-   */
-  async findAllWithPrices(): Promise<ItemWithPrices[]> {
+  async findAll(): Promise<ItemWithDetails[]> {
     try {
-      const items = await this.findAll({
-        orderBy: [
-          { column: "category", direction: "ASC" },
-          { column: "item_name", direction: "ASC" },
-        ],
-      });
-
-      const { sql, params } = new QueryBuilder()
-        .select("ip.item_id", "ip.price")
-        .from("item_prices", "ip")
-        .join("items", "i", "i.item_id = ip.item_id")
+      const qb = new QueryBuilder()
+        .select("i.*", "c.category_name", "u.unit_name")
+        .from("items i")
+        .join("LEFT JOIN", "item_categories c", "i.category_id = c.category_id")
+        .join("LEFT JOIN", "units u", "i.unit_id = u.unit_id")
         .where("i.deleted_at", "IS NULL")
-        .build();
+        .orderBy("i.item_name", "ASC");
 
-      const prices = await this.rawSelect<{ item_id: number; price: number }>(sql, params);
-
-      return items.map((item) => ({
-        ...item,
-        prices: prices
-          .filter((p) => p.item_id === item.item_id)
-          .map((p) => p.price),
-      }));
+      const { sql, params } = qb.build();
+      return await this.rawSelect<ItemWithDetails>(sql, params);
     } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
+      throw wrapDbError(error, "Failed to get items with details");
     }
   }
 }

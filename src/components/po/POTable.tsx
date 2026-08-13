@@ -48,13 +48,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
     { key: "po_date", header: "Tanggal", width: pixel(150), renderCell: (row: any) => formatDate(row.po_date) },
     {
       key: "vendor_names", header: "Vendor Pemasok", width: proportional(2),
-      renderCell: (row: any) => (
-        <HStack gap={1} style={{ flexWrap: 'wrap' }}>
-          {row.vendor_names ? row.vendor_names.split(',').map((v: string, i: number) => (
-            <Badge key={i} variant="neutral" label={v.trim()} />
-          )) : "—"}
-        </HStack>
-      )
+      renderCell: (row: any) => row.vendor_names ? <Badge variant="neutral" label={row.vendor_names} /> : "—"
     },
     { key: "item_count", header: "Total Item", width: pixel(130), renderCell: (row: any) => `${row.item_count} Item` },
     {

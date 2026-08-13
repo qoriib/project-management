@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
 import { Card, Button, Table, Badge, Dialog, TextInput, Selector, VStack, HStack, Text, Heading } from "@astryxdesign/core";
-import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { itemRepo, itemPriceRepo, itemCategoryRepo, unitRepo, type Item, type ItemCategory, type Unit, type ItemWithPrices, type ItemPriceWithRelation } from "@/db/repositories";
+import { itemRepo, itemCategoryRepo, unitRepo, type ItemWithDetails, type ItemCategory, type Unit } from "@/db/repositories";
 
 export function MasterTabItem() {
-  const [items, setItems] = useState<ItemWithPrices[]>([]);
+  const [items, setItems] = useState<ItemWithDetails[]>([]);
   const [categories, setCategories] = useState<ItemCategory[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<Item | null>(null);
+  const [editTarget, setEditTarget] = useState<ItemWithDetails | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -22,16 +21,12 @@ export function MasterTabItem() {
   const showToast = useToast();
 
   const [itemName, setItemName] = useState("");
-  const [itemCategory, setItemCategory] = useState("MATERIAL");
-  const [itemUnit, setItemUnit] = useState("m3");
-
-  // Price Management State
-  const [prices, setPrices] = useState<Partial<ItemPriceWithRelation>[]>([]);
-  const [loadingPrices, setLoadingPrices] = useState(false);
+  const [itemCategory, setItemCategory] = useState<string>("");
+  const [itemUnit, setItemUnit] = useState<string>("");
 
   async function loadData() {
     const [nextItems, nextCategories, nextUnits] = await Promise.all([
-      itemRepo.findAllWithPrices(),
+      itemRepo.findAll(),
       itemCategoryRepo.findAllSorted(),
       unitRepo.findAllSorted(),
     ]);
@@ -49,30 +44,21 @@ export function MasterTabItem() {
   }, []);
 
   function openCreate() {
-    setItemName(""); setItemCategory("MATERIAL"); setItemUnit("m3");
+    setItemName("");
+    setItemCategory(categories.length > 0 ? String(categories[0].category_id) : "");
+    setItemUnit(units.length > 0 ? String(units[0].unit_id) : "");
     setEditTarget(null);
-    setPrices([{ price: 0 }]);
     setErrorMsg(null);
     setIsDialogOpen(true);
   }
 
-  async function openEdit(item: Item) {
+  async function openEdit(item: ItemWithDetails) {
     setEditTarget(item);
     setItemName(item.item_name);
-    setItemCategory(item.category);
-    setItemUnit(item.unit);
+    setItemCategory(String(item.category_id));
+    setItemUnit(String(item.unit_id));
     setErrorMsg(null);
     setIsDialogOpen(true);
-
-    setLoadingPrices(true);
-    try {
-      const fetched = await itemPriceRepo.findByItemWithRelation(item.item_id);
-      setPrices(fetched.length > 0 ? fetched : [{ price: 0 }]);
-    } catch (error) {
-      setPrices([{ price: 0 }]);
-    } finally {
-      setLoadingPrices(false);
-    }
   }
 
 
@@ -81,18 +67,19 @@ export function MasterTabItem() {
     setErrorMsg(null);
     setSaving(true);
     try {
-      const data = { item_name: itemName, category: itemCategory as any, unit: itemUnit };
-      let itemId: number;
+      const data = {
+        item_name: itemName,
+        category_id: parseInt(itemCategory),
+        unit_id: parseInt(itemUnit)
+      };
       if (editTarget) {
         await itemRepo.update(editTarget.item_id, data);
-        itemId = editTarget.item_id;
         showToast({ body: "Item dan harga berhasil diubah", type: "info" });
       } else {
-        itemId = await itemRepo.create(data);
+        await itemRepo.create(data);
         showToast({ body: "Item dan harga berhasil ditambahkan", type: "info" });
       }
 
-      await itemPriceRepo.syncPrices(itemId, prices as { price_id?: number, price: number }[]);
       setIsDialogOpen(false);
       setEditTarget(null);
       await loadData();
@@ -123,27 +110,17 @@ export function MasterTabItem() {
       key: "item_id",
       header: "Kode",
       width: pixel(120),
-      renderCell: (row: Item) => String(row.item_id).padStart(4, '0')
+      renderCell: (row: ItemWithDetails) => String(row.item_id).padStart(4, '0')
     },
     { key: "item_name", header: "Nama Item", width: proportional(1.5) },
-    { key: "unit", header: "Satuan", width: pixel(100) },
-    {
-      key: "prices", header: "Harga (Rp)", width: proportional(1),
-      renderCell: (row: ItemWithPrices) => (
-        <HStack gap={1} style={{ flexWrap: 'wrap' }}>
-          {row.prices?.length > 0 ? row.prices.map((p, idx) => (
-            <Badge key={idx} variant="neutral" label={new Intl.NumberFormat('id-ID').format(p)} />
-          )) : "-"}
-        </HStack>
-      )
-    },
+    { key: "unit", header: "Satuan", width: pixel(100), renderCell: (row: ItemWithDetails) => row.unit_name },
     {
       key: "category", header: "Kategori", width: pixel(180),
-      renderCell: (row: Item) => <Badge variant="neutral" label={row.category} />,
+      renderCell: (row: ItemWithDetails) => <Badge variant="neutral" label={row.category_name || "—"} />,
     },
     {
       key: "actions", header: "", width: pixel(220),
-      renderCell: (row: Item) => (
+      renderCell: (row: ItemWithDetails) => (
         <HStack gap={1}>
           <Button size="sm" variant="ghost" label="Edit" onClick={() => openEdit(row)} />
           <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })} />
@@ -153,12 +130,12 @@ export function MasterTabItem() {
   ];
 
   const categoryOptions = categories.map((category) => ({
-    value: category.category_name,
+    value: String(category.category_id),
     label: category.category_name,
   }));
 
   const unitOptions = units.map((unit) => ({
-    value: unit.unit_name,
+    value: String(unit.unit_id),
     label: unit.unit_name,
   }));
 
@@ -184,48 +161,9 @@ export function MasterTabItem() {
           <Selector label="Kategori" value={itemCategory} onChange={setItemCategory} options={categoryOptions} />
           <Selector label="Satuan" value={itemUnit} onChange={setItemUnit} options={unitOptions} />
 
-          <Heading level={4} style={{ marginTop: '1rem' }}>Variasi Harga</Heading>
-          {loadingPrices ? (
-            <Text color="secondary">Memuat data harga...</Text>
-          ) : (
-            <VStack gap={3}>
-              {prices.map((p, idx) => (
-                <HStack key={idx} gap={2} align="end">
-                  <NumberInput
-                    label="Harga (Rp)"
-                    value={p.price}
-                    onChange={(val) => {
-                      const newPrices = [...prices];
-                      newPrices[idx].price = val || 0;
-                      setPrices(newPrices);
-                    }}
-                    width={180}
-                    isDisabled={p.has_relation}
-                  />
-                  {!p.has_relation && prices.length > 1 && (
-                    <Button
-                      variant="destructive"
-                      label="✕"
-                      onClick={() => setPrices(prices.filter((_, i) => i !== idx))}
-                    />
-                  )}
-                </HStack>
-              ))}
-
-              <HStack>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  label="+ Tambah Variasi Harga"
-                  onClick={() => setPrices([...prices, { price: 0 }])}
-                />
-              </HStack>
-            </VStack>
-          )}
-
           <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
             <Button variant="ghost" label="Batal" onClick={() => setIsDialogOpen(false)} />
-            <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} isDisabled={loadingPrices} />
+            <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} />
           </HStack>
         </VStack>
       </Dialog>

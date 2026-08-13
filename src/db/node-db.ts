@@ -25,7 +25,7 @@ class NodeDatabaseWrapper {
     const result = statement.run(...params);
     return {
       lastInsertId: Number(result.lastInsertRowid),
-      rowsAffected: result.changes,
+      rowsAffected: Number(result.changes),
     };
   }
 }
@@ -35,7 +35,7 @@ let _nodeDb: NodeDatabaseWrapper | null = null;
 export function getLocalNodeDb(): NodeDatabaseWrapper {
   if (_nodeDb) return _nodeDb;
 
-  const appIdentifier = "com.asus.project-management";
+  const appIdentifier = "com.laman.project";
   let baseDir = "";
 
   if (process.platform === "win32") {

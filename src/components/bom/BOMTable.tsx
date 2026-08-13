@@ -52,8 +52,8 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
       renderCell: (row: BOMDetail) => `${formatNumber(row.qty, 2)} ${row.unit || ""}`
     },
     {
-      key: "estimated_unit_price", header: "Harga Satuan Est.", width: pixel(150),
-      renderCell: (row: BOMDetail) => formatRupiah(row.estimated_unit_price)
+      key: "price", header: "Harga Rencana", width: pixel(150),
+      renderCell: (row: BOMDetail) => formatRupiah(row.price)
     },
     {
       key: "total_estimasi", header: "Total Estimasi", width: pixel(160),
@@ -72,7 +72,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
 
   // Process BOMs: if no stageId (Semua tab), aggregate by item_price_id
   const processedBoms = stageId ? boms : Object.values(boms.reduce((acc, curr) => {
-    const key = `${curr.item_price_id}`;
+    const key = `${curr.item_id}-${curr.price}`;
     if (!acc[key]) {
       acc[key] = { ...curr };
     } else {

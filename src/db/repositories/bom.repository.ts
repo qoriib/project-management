@@ -26,7 +26,6 @@ export type BOMDetail = BillOfMaterial & {
   stage_name?: string;
   category?: string;
   total_estimasi?: number;
-  estimated_unit_price?: number;
 };
 
 export interface BOMFilters {
@@ -64,14 +63,12 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
       const qb = new QueryBuilder()
         .select(
           "b.bom_id", "b.project_id", "b.stage_id", "b.item_id",
-          "b.item_price_id", "b.qty", "b.created_at",
+          "b.price", "b.qty", "b.created_at",
           "i.item_name", "i.unit", "i.category",
           "p.project_name", "ps.stage_name",
         )
-        .selectRaw("(b.qty * ip.price) as total_estimasi")
-        .selectRaw("ip.price as estimated_unit_price")
+        .selectRaw("(b.qty * b.price) as total_estimasi")
         .from("bill_of_materials", "b")
-        .leftJoin("item_prices", "ip", "ip.price_id = b.item_price_id")
         .leftJoin("items", "i", "i.item_id = b.item_id")
         .leftJoin("projects", "p", "p.project_id = b.project_id")
         .leftJoin("project_stages", "ps", "ps.stage_id = b.stage_id")

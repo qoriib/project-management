@@ -9,18 +9,6 @@ pub fn run() {
             description: "init_schema",
             sql: include_str!("../migrations/001_init.sql"),
             kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 2,
-            description: "seed_master_data",
-            sql: include_str!("../migrations/002_seed.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 3,
-            description: "soft_delete",
-            sql: include_str!("../migrations/003_soft_delete.sql"),
-            kind: MigrationKind::Up,
         }
     ];
 

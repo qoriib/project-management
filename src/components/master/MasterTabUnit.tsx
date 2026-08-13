@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { unitRepo, itemRepo, type Unit, type Item } from "@/db/repositories";
+import { unitRepo, itemRepo, type Unit, type ItemWithDetails } from "@/db/repositories";
 
 export function MasterTabUnit() {
   const [units, setUnits] = useState<Unit[]>([]);
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ItemWithDetails[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Unit | null>(null);
@@ -19,7 +19,7 @@ export function MasterTabUnit() {
   async function loadData() {
     const [nextUnits, nextItems] = await Promise.all([
       unitRepo.findAllSorted(),
-      itemRepo.findAllWithPrices(),
+      itemRepo.findAll(),
     ]);
     setUnits(nextUnits);
     setItems(nextItems);
@@ -76,7 +76,7 @@ export function MasterTabUnit() {
 
   const unitRows = units.map((unit) => ({
     ...unit,
-    count: items.filter((item) => item.unit === unit.unit_name).length,
+    count: items.filter((item) => item.unit_id === unit.unit_id).length,
   }));
 
   const columns = [

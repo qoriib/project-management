@@ -1,111 +1,104 @@
-PRAGMA foreign_keys = ON;
+-- 001_init.sql
+-- Initialize core database schema with soft delete structure
 
--- MASTER DATA: PROYEK
 CREATE TABLE `projects` (
-	`project_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`project_id` text PRIMARY KEY NOT NULL,
 	`project_name` text NOT NULL,
 	`company_name` text NOT NULL,
 	`fiscal_year` integer NOT NULL,
-	`created_at` text DEFAULT (datetime('now', 'localtime'))
+	`created_at` text DEFAULT (datetime('now', 'localtime')),
+	`deleted_at` text DEFAULT NULL
 );
 
 CREATE TABLE `project_stages` (
 	`stage_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`project_id` integer NOT NULL,
+	`project_id` text NOT NULL,
 	`stage_name` text NOT NULL,
-	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade
 );
 
--- MASTER DATA: VENDOR / PEMASOK / TOKO / PENYEDIA SEWA
 CREATE TABLE `vendors` (
 	`vendor_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`vendor_name` text NOT NULL,
-	`phone` text,
-	`address` text,
-	`created_at` text DEFAULT (datetime('now', 'localtime'))
+	`vendor_phone` text,
+	`vendor_address` text,
+	`created_at` text DEFAULT (datetime('now', 'localtime')),
+	`deleted_at` text DEFAULT NULL
 );
-
-CREATE UNIQUE INDEX `vendors_vendor_name_unique` ON `vendors` (`vendor_name`);
-
--- MASTER DATA: KATALOG MATERIAL & ALAT
-CREATE TABLE `units` (
-	`unit_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`unit_name` text NOT NULL
-);
-
-CREATE UNIQUE INDEX `units_unit_name_unique` ON `units` (`unit_name`);
 
 CREATE TABLE `items` (
 	`item_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`item_name` text NOT NULL,
-	`category` text NOT NULL,
-	`unit` text NOT NULL
+	`category_id` integer NOT NULL,
+	`unit_id` integer NOT NULL,
+	`deleted_at` text DEFAULT NULL,
+	FOREIGN KEY (`category_id`) REFERENCES `item_categories`(`category_id`) ON UPDATE no action ON DELETE restrict,
+	FOREIGN KEY (`unit_id`) REFERENCES `units`(`unit_id`) ON UPDATE no action ON DELETE restrict
 );
 
 CREATE TABLE `item_categories` (
 	`category_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`category_name` text NOT NULL
+	`category_name` text NOT NULL,
+	`deleted_at` text DEFAULT NULL
 );
 
-CREATE TABLE `item_prices` (
-	`price_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`item_id` integer NOT NULL,
-	`price` real NOT NULL,
-	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE cascade
+CREATE TABLE `units` (
+	`unit_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`unit_name` text NOT NULL,
+	`deleted_at` text DEFAULT NULL
 );
 
 -- TAHAP PERSIAPAN: TAHAPAN PROYEK & BOM (RAB)
 CREATE TABLE `bill_of_materials` (
 	`bom_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`project_id` integer NOT NULL,
+	`project_id` text NOT NULL,
 	`stage_id` integer NOT NULL,
 	`item_id` integer NOT NULL,
-	`item_price_id` integer NOT NULL,
+	`price` real NOT NULL,
 	`qty` real NOT NULL,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
+	`deleted_at` text DEFAULT NULL,
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`stage_id`) REFERENCES `project_stages`(`stage_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict,
-	FOREIGN KEY (`item_price_id`) REFERENCES `item_prices`(`price_id`) ON UPDATE no action ON DELETE restrict
+	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict
 );
 
--- TAHAP 1: PURCHASE ORDER (PO / PEMESANAN)
+-- TAHAP PELAKSANAAN: PO & PENERIMAAN
 CREATE TABLE `purchase_orders` (
 	`po_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`project_id` integer,
+	`project_id` text NOT NULL,
 	`po_date` text NOT NULL,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
+	`deleted_at` text DEFAULT NULL,
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade
 );
 
--- Rincian Item Barang yang ada di dalam 1 PO
 CREATE TABLE `po_items` (
 	`po_item_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`po_id` integer,
-	`item_id` integer,
-	`item_price_id` integer,
-	`vendor_id` integer,
+	`po_id` integer NOT NULL,
+	`item_id` integer NOT NULL,
+	`vendor_id` integer NOT NULL,
+	`price` real NOT NULL,
 	`qty` real NOT NULL,
 	FOREIGN KEY (`po_id`) REFERENCES `purchase_orders`(`po_id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict,
-	FOREIGN KEY (`item_price_id`) REFERENCES `item_prices`(`price_id`) ON UPDATE no action ON DELETE restrict,
 	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`vendor_id`) ON UPDATE no action ON DELETE restrict
 );
 
--- TAHAP 2: PENGIRIMAN (DELIVERY / REALISASI FISIK LAPANGAN)
 CREATE TABLE `deliveries` (
 	`delivery_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`po_id` integer,
+	`po_id` integer NOT NULL,
 	`delivery_date` text NOT NULL,
+	`created_at` text DEFAULT (datetime('now', 'localtime')),
+	`deleted_at` text DEFAULT NULL,
 	FOREIGN KEY (`po_id`) REFERENCES `purchase_orders`(`po_id`) ON UPDATE no action ON DELETE cascade
 );
 
 CREATE TABLE `delivery_items` (
 	`delivery_item_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`delivery_id` integer,
-	`po_item_id` integer,
+	`delivery_id` integer NOT NULL,
+	`po_item_id` integer NOT NULL,
 	`qty` real NOT NULL,
 	FOREIGN KEY (`delivery_id`) REFERENCES `deliveries`(`delivery_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`po_item_id`) REFERENCES `po_items`(`po_item_id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`po_item_id`) REFERENCES `po_items`(`po_item_id`) ON UPDATE no action ON DELETE restrict
 );

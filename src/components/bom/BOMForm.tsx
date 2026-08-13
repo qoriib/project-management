@@ -3,15 +3,12 @@ import { VStack, HStack, Button, Selector, Heading } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import {
   itemRepo,
-  itemPriceRepo,
   bomRepo,
-  type Item,
-  type ItemPrice,
+  ItemWithDetails,
   type BillOfMaterial,
   type BOMDetail,
 } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
-import { formatRupiah } from "@/utils/formatters";
 
 interface BOMFormProps {
   stageId?: number;
@@ -23,16 +20,15 @@ interface BOMFormProps {
 
 export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }: BOMFormProps) {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ItemWithDetails[]>([]);
   const [existingBoms, setExistingBoms] = useState<BillOfMaterial[]>([]);
-  const [itemPrices, setItemPrices] = useState<ItemPrice[]>([]);
   const [stages, setStages] = useState<{ value: string; label: string }[]>([]);
   const [saving, setSaving] = useState(false);
 
   const [formStageId, setFormStageId] = useState(initialData?.stage_id ? String(initialData.stage_id) : (stageId ? String(stageId) : ""));
   const [itemId, setItemId] = useState(initialData?.item_id ? String(initialData.item_id) : "");
   const [qty, setQty] = useState<number | null>(initialData?.qty ? Number(initialData.qty) : null);
-  const [itemPriceId, setItemPriceId] = useState(initialData?.item_price_id ? String(initialData.item_price_id) : "");
+  const [price, setPrice] = useState<number | null>(initialData?.price ? Number(initialData.price) : null);
 
   // Update state when initialData or stageId changes (important for inline forms that don't unmount)
   useEffect(() => {
@@ -40,12 +36,12 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
       setFormStageId(String(initialData.stage_id));
       setItemId(String(initialData.item_id));
       setQty(Number(initialData.qty));
-      setItemPriceId(String(initialData.item_price_id));
+      setPrice(Number(initialData.price));
     } else if (stageId) {
       setFormStageId(String(stageId));
       setItemId("");
       setQty(null);
-      setItemPriceId("");
+      setPrice(null);
     }
   }, [initialData, stageId]);
 
@@ -66,21 +62,6 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
     }
   }, [selectedProjectId, formStageId]);
 
-  useEffect(() => {
-    if (itemId) {
-      itemPriceRepo.findAll({ where: { item_id: Number(itemId) } }).then(prices => {
-        setItemPrices(prices);
-        if (prices.length > 0) {
-          // Auto-select first price if not currently editing a specific price
-          setItemPriceId(prev => prev || String(prices[0].price_id));
-        }
-      });
-    } else {
-      setItemPrices([]);
-      setItemPriceId("");
-    }
-  }, [itemId]);
-
   async function handleSave() {
     if (!selectedProjectId || !itemId || !qty || !formStageId) return;
     setSaving(true);
@@ -91,7 +72,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
         item_id: Number(itemId),
         stage_id: Number(formStageId),
         qty: qty || 0,
-        item_price_id: Number(itemPriceId) || 0,
+        price: price || 0,
       };
 
       if (initialData) {
@@ -101,7 +82,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
         if (isInline) {
           setItemId("");
           setQty(null);
-          setItemPriceId("");
+          setPrice(null);
         }
       }
       onSuccess();
@@ -120,7 +101,6 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
             value={itemId}
             onChange={(val) => {
               setItemId(val);
-              setItemPriceId("");
             }}
             options={[
               { value: "", label: "Pilih Material/Alat..." },
@@ -130,7 +110,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                   (initialData?.item_id === i.item_id) || 
                   !existingBoms.some(b => b.item_id === i.item_id)
                 )
-                .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit})` })),
+                .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit_name})` })),
             ]}
           />
         </div>
@@ -143,20 +123,11 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
           />
         </div>
         <div style={{ flex: 2 }}>
-          <Selector
-            label="Varian Harga Satuan"
-            value={itemPriceId}
-            onChange={setItemPriceId}
-            options={[
-              { value: "", label: itemPrices.length > 0 ? "Pilih Harga..." : "Belum ada varian harga" },
-              ...(initialData?.item_price_id && !itemPrices.find(p => p.price_id === initialData.item_price_id) 
-                ? [{ value: String(initialData.item_price_id), label: `Saat Ini: ${formatRupiah(initialData.estimated_unit_price || 0)}` }] 
-                : []),
-              ...itemPrices.map((p) => ({ 
-                value: String(p.price_id), 
-                label: formatRupiah(p.price) 
-              })),
-            ]}
+          <NumberInput
+            label="Harga Rencana (Rp)"
+            placeholder="Contoh: 50000"
+            value={price}
+            onChange={setPrice}
           />
         </div>
         <Button 
@@ -192,7 +163,6 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
           value={itemId}
           onChange={(val) => {
             setItemId(val);
-            setItemPriceId("");
           }}
           options={[
             { value: "", label: "Pilih Material/Alat..." },
@@ -201,7 +171,7 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
                 (initialData?.item_id === i.item_id) || 
                 !existingBoms.some(b => b.item_id === i.item_id)
               )
-              .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit})` })),
+              .map((i) => ({ value: String(i.item_id), label: `${i.item_name} (${i.unit_name})` })),
           ]}
         />
 
@@ -216,20 +186,12 @@ export function BOMForm({ stageId, initialData, isInline, onSuccess, onCancel }:
             />
           </div>
           <div style={{ flex: 1 }}>
-            <Selector
-              label="Varian Harga Satuan"
-              value={itemPriceId}
-              onChange={setItemPriceId}
-              options={[
-                { value: "", label: itemPrices.length > 0 ? "Pilih Harga..." : "Belum ada varian harga" },
-                ...(initialData?.item_price_id && !itemPrices.find(p => p.price_id === initialData.item_price_id) 
-                  ? [{ value: String(initialData.item_price_id), label: `Saat Ini: ${formatRupiah(initialData.estimated_unit_price || 0)}` }] 
-                  : []),
-                ...itemPrices.map((p) => ({ 
-                  value: String(p.price_id), 
-                  label: formatRupiah(p.price) 
-                })),
-              ]}
+            <NumberInput
+              label="Harga Rencana (Rp)"
+              isRequired
+              placeholder="Contoh: 50000"
+              value={price}
+              onChange={setPrice}
             />
           </div>
         </HStack>

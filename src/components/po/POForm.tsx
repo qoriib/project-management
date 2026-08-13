@@ -29,9 +29,9 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
       items: [] as {
         po_item_id: number;
         item_id: number;
-        item_price_id: number;
+        vendor_id: string;
+        price: number;
         qty: number;
-        vendor_id: string; // Dari Dropdown
       }[],
     },
     onSubmit: async ({ value }) => {
@@ -46,8 +46,8 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           .map((it) => ({
             po_item_id: it.po_item_id || undefined, // For update
             item_id: it.item_id,
-            item_price_id: it.item_price_id,
-            vendor_id: it.vendor_id ? Number(it.vendor_id) : null,
+            vendor_id: Number(it.vendor_id),
+            price: it.price,
             qty: it.qty,
           }));
 
@@ -79,14 +79,13 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         const poItems = await purchaseOrderRepo.findItems(initialEditId);
         if (po) {
           form.setFieldValue("poDate", po.po_date);
-
           form.setFieldValue("items", poItems.map(p => {
             return {
               po_item_id: p.po_item_id,
               item_id: p.item_id || 0,
-              item_price_id: p.item_price_id || 0,
+              vendor_id: String(p.vendor_id || ""),
+              price: p.price,
               qty: p.qty,
-              vendor_id: p.vendor_id ? String(p.vendor_id) : "",
             };
           }));
         }
@@ -123,7 +122,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           });
 
           const total = resolvedItems.reduce((sum, it) => sum + (it.qty * it.price), 0);
-          const hasOrderedItems = items.some(it => it.qty > 0 && it.vendor_id !== "" && it.item_id !== 0);
+          const hasOrderedItems = items.some(it => it.qty > 0 && it.item_id !== 0 && it.vendor_id !== "");
           const isValid = hasOrderedItems;
 
           return (
@@ -170,7 +169,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                                     field.handleChange(id);
                                     const bom = bomData.find(b => b.item_id === id);
                                     if (bom) {
-                                      form.setFieldValue(`items[${idx}].item_price_id`, bom.item_price_id);
+                                      form.setFieldValue(`items[${idx}].price`, bom.price);
                                     }
                                   }}
                                 />
@@ -204,11 +203,11 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                             <form.Field name={`items[${idx}].vendor_id`}>
                               {(field) => (
                                 <Selector
-                                  isLabelHidden
                                   label="Vendor"
+                                  isLabelHidden
                                   options={[{ value: "", label: "Pilih vendor..." }, ...vendors.map(v => ({ value: String(v.vendor_id), label: v.vendor_name }))]}
                                   value={field.state.value}
-                                  onChange={(v) => field.handleChange(v as string)}
+                                  onChange={(v) => field.handleChange(v)}
                                 />
                               )}
                             </form.Field>
@@ -227,8 +226,15 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                         }
                       },
                       {
-                        key: "price", header: "Harga Satuan (Rp)", width: pixel(150),
-                        renderCell: (row: any) => row.item_id ? <Text size="sm">{formatRupiah(row.price)}</Text> : null
+                        key: "price", header: "Harga Realisasi (Rp)", width: pixel(180),
+                        renderCell: (row: any) => {
+                          const idx = resolvedItems.indexOf(row);
+                          return (
+                            <form.Field name={`items[${idx}].price`}>
+                              {(field) => <NumberInput label="Harga" isLabelHidden value={field.state.value} onChange={(v) => field.handleChange(v || 0)} />}
+                            </form.Field>
+                          )
+                        }
                       },
                       {
                         key: "subtotal_item", header: "Subtotal", width: pixel(140),
@@ -253,7 +259,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
 
                   <form.Field name="items">
                     {(field) => (
-                      <Button size="sm" variant="secondary" label="+ Tambah Item" type="button" onClick={() => field.pushValue({ po_item_id: 0, item_id: 0, item_price_id: 0, qty: 0, vendor_id: "" })} />
+                      <Button size="sm" variant="secondary" label="+ Tambah Item" type="button" onClick={() => field.pushValue({ po_item_id: 0, item_id: 0, vendor_id: "", price: 0, qty: 0 })} />
                     )}
                   </form.Field>
 
