@@ -1,82 +1,149 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import {
-  Grid, GridSpan, VStack, HStack, Card, Heading, Text, Button, Section
+  VStack, HStack, Card, Heading, Text, Section, Table, StatusDot, Grid, GridSpan
 } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
-import { getPurchaseOrders } from "@/db/queries/po";
+import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/queries/dashboard";
 import { getDebtSummary } from "@/db/queries/billing";
-import { formatRupiah, formatDate } from "@/utils/formatters";
-import type { PurchaseOrder } from "@/db/queries/po";
+import { formatRupiah, formatNumber } from "@/utils/formatters";
+import { useAppStore } from "@/store/useAppStore";
+import { proportional, pixel } from "@astryxdesign/core/Table";
 
 function Dashboard() {
-  const navigate = useNavigate();
-  const [recentPOs, setRecentPOs] = useState<PurchaseOrder[]>([]);
+  const [report, setReport] = useState<DashboardBOMReportItem[]>([]);
   const [saldoUtang, setSaldoUtang] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
   useEffect(() => {
     async function load() {
+      if (!selectedProjectId) {
+        setReport([]);
+        setSaldoUtang(0);
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
       try {
-        const [pos, debt] = await Promise.all([
-          getPurchaseOrders(),
-          getDebtSummary()
+        const [rep, debt] = await Promise.all([
+          getDashboardBOMReport(selectedProjectId),
+          getDebtSummary({ project_id: selectedProjectId })
         ]);
-        setRecentPOs(pos.slice(0, 5));
+        setReport(rep);
         setSaldoUtang(debt.reduce((acc, curr) => acc + curr.saldo_utang, 0));
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, []);
+  }, [selectedProjectId]);
+
+  const stages = Array.from(new Set(report.map(r => r.stage_name)));
+  
+  const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0);
+  const totalPO = report.reduce((sum, r) => sum + r.total_po_price, 0);
 
   return (
     <Section padding={6}>
       <VStack gap={6}>
         <PageHeader
-          title="Dashboard"
-          subtitle="Ringkasan operasional proyek konstruksi"
+          title="Dashboard Laporan Kebutuhan & Realisasi"
+          subtitle="Ringkasan pemenuhan Bill of Materials terhadap pemesanan (PO) dan penerimaan (Delivery)"
         />
 
-        <Grid gap={4} columns={{ minWidth: 300, max: 2 }}>
-          <GridSpan columns={1}>
-             <Card padding={4}>
-               <VStack gap={2}>
-                 <Text size="sm" color="secondary">Total Saldo Utang Vendor</Text>
-                 <Heading level={2}>{loading ? "…" : formatRupiah(saldoUtang)}</Heading>
-               </VStack>
-             </Card>
-          </GridSpan>
-
-          <GridSpan columns={1}>
-            <Card padding={4}>
-              <VStack gap={4}>
-                <HStack align="center" justify="between">
-                  <Heading level={3}>PO Terbaru</Heading>
-                  <Button size="sm" label="Lihat Semua" variant="ghost" onClick={() => navigate({ to: "/po" })} />
-                </HStack>
-                {recentPOs.length === 0 ? (
-                  <Text color="secondary" size="sm">Belum ada PO.</Text>
-                ) : (
+        {!selectedProjectId ? (
+          <VStack align="center" padding={12}>
+            <Text color="secondary">Silakan pilih Proyek Aktif di menu samping untuk melihat laporan.</Text>
+          </VStack>
+        ) : (
+          <>
+            <Grid gap={4} columns={{ minWidth: 250, max: 3 }}>
+              <GridSpan columns={1}>
+                <Card padding={4}>
                   <VStack gap={2}>
-                    {recentPOs.map((po) => (
-                      <HStack key={po.po_id} gap={3} align="center" style={{ cursor: "pointer" }} onClick={() => navigate({ to: `/po/${po.po_id}` })}>
-                        <VStack gap={0}>
-                          <Text size="sm" weight="medium">{po.po_number}</Text>
-                          <Text size="2xs" color="secondary">{po.vendor_name} · {formatDate(po.po_date)}</Text>
-                        </VStack>
-                        <Text size="2xs" color="secondary" style={{ marginLeft: "auto" }}>
-                          {formatRupiah(po.total_price || 0)}
-                        </Text>
-                      </HStack>
-                    ))}
+                    <Text size="sm" color="secondary">Total Rencana Anggaran (BOM)</Text>
+                    <Heading level={2}>{loading ? "…" : formatRupiah(totalBudget)}</Heading>
                   </VStack>
-                )}
+                </Card>
+              </GridSpan>
+              <GridSpan columns={1}>
+                <Card padding={4}>
+                  <VStack gap={2}>
+                    <Text size="sm" color="secondary">Total Nilai Terpesan (PO)</Text>
+                    <Heading level={2}>{loading ? "…" : formatRupiah(totalPO)}</Heading>
+                  </VStack>
+                </Card>
+              </GridSpan>
+              <GridSpan columns={1}>
+                <Card padding={4}>
+                  <VStack gap={2}>
+                    <Text size="sm" color="secondary">Total Saldo Utang Vendor</Text>
+                    <Heading level={2}>{loading ? "…" : formatRupiah(saldoUtang)}</Heading>
+                  </VStack>
+                </Card>
+              </GridSpan>
+            </Grid>
+
+            {stages.length === 0 && !loading && (
+              <VStack align="center" padding={12}>
+                <Text color="secondary">Belum ada Rencana Kebutuhan (BOM) untuk proyek ini.</Text>
               </VStack>
-            </Card>
-          </GridSpan>
-        </Grid>
+            )}
+
+            {stages.map(stage => {
+              const stageData = report.filter(r => r.stage_name === stage);
+              return (
+                <Card key={stage} padding={0}>
+                  <VStack gap={0}>
+                    <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--color-border-subtle)" }}>
+                      <Heading level={4}>{stage}</Heading>
+                    </div>
+                    <Table
+                      columns={[
+                        { key: "item", header: "Material / Alat", width: proportional(1.5), renderCell: (r: DashboardBOMReportItem) => <Text weight="medium">{r.item_name}</Text> },
+                        { key: "planned", header: "BOM (Rencana)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => (
+                          <VStack gap={0}>
+                            <Text size="sm">{formatNumber(r.planned_volume, 2)} {r.unit}</Text>
+                            <Text size="2xs" color="secondary">{formatRupiah(r.planned_budget)}</Text>
+                          </VStack>
+                        )},
+                        { key: "ordered", header: "PO (Dipesan)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => {
+                          const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
+                          const isOver = percent > 100;
+                          return (
+                            <VStack gap={0}>
+                              <HStack gap={2} align="center">
+                                <StatusDot variant={isOver ? "warning" : percent === 100 ? "success" : percent > 0 ? "info" : "neutral"} />
+                                <Text size="sm">{formatNumber(r.total_ordered, 2)} {r.unit}</Text>
+                              </HStack>
+                              <Text size="2xs" color="secondary">{percent.toFixed(1)}% Terpenuhi</Text>
+                            </VStack>
+                          );
+                        }},
+                        { key: "delivered", header: "Delivery (Terkirim)", width: pixel(180), renderCell: (r: DashboardBOMReportItem) => {
+                          const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
+                          return (
+                            <VStack gap={0}>
+                              <Text size="sm">{formatNumber(r.total_delivered, 2)} {r.unit}</Text>
+                              <Text size="2xs" color="secondary">
+                                {r.total_ordered === 0 ? "Belum dipesan" : `${percent.toFixed(1)}% dari PO`}
+                              </Text>
+                            </VStack>
+                          );
+                        }},
+                      ]}
+                      data={stageData}
+                      idKey="item_name"
+                    />
+                  </VStack>
+                </Card>
+              );
+            })}
+          </>
+        )}
       </VStack>
     </Section>
   );

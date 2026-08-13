@@ -3,18 +3,20 @@
 pub fn run() {
     use tauri_plugin_sql::{Migration, MigrationKind};
 
-    let migrations = vec![Migration {
-        version: 1,
-        description: "init_schema",
-        sql: include_str!("../drizzle/0000_init.sql"),
-        kind: MigrationKind::Up,
-    }];
+    let migrations = vec![
+        Migration {
+            version: 1,
+            description: "init_schema",
+            sql: include_str!("../migrations/001_init.sql"),
+            kind: MigrationKind::Up,
+        }
+    ];
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
-                .add_migrations("sqlite:proyek.db", migrations)
+                .add_migrations("sqlite:proyek_v4.db", migrations)
                 .build(),
         )
         .plugin(tauri_plugin_dialog::init())

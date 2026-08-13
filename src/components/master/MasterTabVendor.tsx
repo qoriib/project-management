@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { Button, Table, Badge, Dialog, TextInput, Selector, TextArea, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { Card, Button, Table, Badge, Dialog, TextInput, TextArea, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { useToast } from "@astryxdesign/core/Toast";
+import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   getVendors, createVendor, updateVendor, deleteVendor,
   type Vendor,
 } from "@/db/queries/master";
-import { VENDOR_TIPE_LABELS, VENDOR_TIPE_OPTIONS } from "@/utils/formatters";
 
-type VendorType = Vendor["vendor_type"];
 
 export function MasterTabVendor() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -18,9 +18,11 @@ export function MasterTabVendor() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const showToast = useToast();
 
   const [vendorName, setVendorName] = useState("");
-  const [vendorType, setVendorType] = useState<VendorType>("MATERIAL_SUPPLIER");
   const [vendorPhone, setVendorPhone] = useState("");
   const [vendorAddress, setVendorAddress] = useState("");
 
@@ -31,33 +33,45 @@ export function MasterTabVendor() {
 
   useEffect(() => { loadData(); }, []);
 
+  useEffect(() => {
+    const handleOpen = () => openCreate();
+    window.addEventListener('openMasterCreate', handleOpen);
+    return () => window.removeEventListener('openMasterCreate', handleOpen);
+  }, []);
+
   function openCreate() {
-    setVendorName(""); setVendorType("MATERIAL_SUPPLIER"); setVendorPhone(""); setVendorAddress("");
+    setVendorName(""); setVendorPhone(""); setVendorAddress("");
     setEditTarget(null);
+    setErrorMsg(null);
     setIsDialogOpen(true);
   }
 
   function openEdit(vendor: Vendor) {
     setEditTarget(vendor);
     setVendorName(vendor.vendor_name);
-    setVendorType(vendor.vendor_type);
     setVendorPhone(vendor.phone ?? "");
     setVendorAddress(vendor.address ?? "");
+    setErrorMsg(null);
     setIsDialogOpen(true);
   }
 
   async function handleSave() {
+    setErrorMsg(null);
     setSaving(true);
     try {
-      const data = { vendor_name: vendorName, vendor_type: vendorType, phone: vendorPhone, address: vendorAddress };
+      const data = { vendor_name: vendorName, phone: vendorPhone, address: vendorAddress };
       if (editTarget) {
         await updateVendor(editTarget.vendor_id, data);
+        showToast({ body: "Vendor berhasil diubah", type: "info" });
       } else {
         await createVendor(data);
+        showToast({ body: "Vendor berhasil ditambahkan", type: "info" });
       }
       setIsDialogOpen(false);
       setEditTarget(null);
       await loadData();
+    } catch (err: any) {
+      setErrorMsg(err.message || "Gagal menyimpan vendor");
     } finally {
       setSaving(false);
     }
@@ -68,8 +82,11 @@ export function MasterTabVendor() {
     setDeleting(true);
     try {
       await deleteVendor(deleteTarget.id);
+      showToast({ body: "Vendor berhasil dihapus", type: "info" });
       setDeleteTarget(null);
       await loadData();
+    } catch (err: any) {
+      showToast({ body: err.message || "Gagal menghapus vendor", type: "error" });
     } finally {
       setDeleting(false);
     }
@@ -77,10 +94,6 @@ export function MasterTabVendor() {
 
   const columns = [
     { key: "vendor_name", header: "Nama Vendor", width: proportional(1.5) },
-    {
-      key: "vendor_type", header: "Tipe", width: pixel(180),
-      renderCell: (row: Vendor) => <Badge variant="neutral" label={VENDOR_TIPE_LABELS[row.vendor_type] ?? row.vendor_type} />,
-    },
     { key: "phone", header: "Telepon", width: pixel(150) },
     { key: "address", header: "Alamat", width: proportional(1.5) },
     {
@@ -96,21 +109,23 @@ export function MasterTabVendor() {
 
   return (
     <VStack gap={4}>
-      <HStack justify="end">
-        <Button variant="primary" label="+ Tambah Vendor" onClick={openCreate} />
-      </HStack>
-      <Table
+      <Card padding={0}>
+        <Table
+        textOverflow="truncate"
         columns={columns as any}
         data={vendors as any}
         idKey="vendor_id"
         emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada vendor.</Text></VStack>}
       />
+      </Card>
 
       <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={520}>
         <VStack gap={3}>
           <Heading level={3}>{editTarget ? "Edit Vendor" : "Tambah Vendor"}</Heading>
+          
+          {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
+          
           <TextInput label="Nama Vendor" value={vendorName} onChange={setVendorName} isRequired />
-          <Selector label="Tipe Vendor" value={vendorType} onChange={(value) => setVendorType(value as VendorType)} options={VENDOR_TIPE_OPTIONS} />
           <TextInput label="Telepon" value={vendorPhone} onChange={setVendorPhone} />
           <TextArea label="Alamat" value={vendorAddress} onChange={setVendorAddress} />
           

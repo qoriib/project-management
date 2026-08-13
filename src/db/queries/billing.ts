@@ -1,15 +1,14 @@
 import { getDB } from "@/db/index";
-import * as schema from "@/db/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import type { Invoice as BaseInvoice, InvoiceItem as BaseInvoiceItem } from "@/db/schema";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type Invoice = typeof schema.invoices.$inferSelect & {
+export type Invoice = BaseInvoice & {
   vendor_name?: string;
   project_name?: string;
 };
 
-export type InvoiceItem = typeof schema.invoiceItems.$inferSelect;
+export type InvoiceItem = BaseInvoiceItem;
 
 export interface DebtSummaryRow {
   vendor_id: number;
@@ -25,41 +24,53 @@ export interface DebtSummaryRow {
 
 export async function getInvoices(filters?: {
   vendor_id?: number;
+  project_id?: number;
   payment_status?: string;
   tanggal_dari?: string;
   tanggal_sampai?: string;
 }): Promise<Invoice[]> {
   const db = await getDB();
-  const conditions = [];
+  const conditions: string[] = [];
+  const params: any[] = [];
+  let paramIdx = 1;
 
-  if (filters?.vendor_id) conditions.push(eq(schema.invoices.vendor_id, filters.vendor_id));
-  if (filters?.payment_status) conditions.push(eq(schema.invoices.payment_status, filters.payment_status as any));
-  if (filters?.tanggal_dari) conditions.push(sql`${schema.invoices.invoice_date} >= ${filters.tanggal_dari}`);
-  if (filters?.tanggal_sampai) conditions.push(sql`${schema.invoices.invoice_date} <= ${filters.tanggal_sampai}`);
+  if (filters?.vendor_id) {
+    conditions.push(`i.vendor_id = $${paramIdx++}`);
+    params.push(filters.vendor_id);
+  }
+  if (filters?.project_id) {
+    conditions.push(`i.project_id = $${paramIdx++}`);
+    params.push(filters.project_id);
+  }
+  if (filters?.payment_status) {
+    conditions.push(`i.payment_status = $${paramIdx++}`);
+    params.push(filters.payment_status);
+  }
+  if (filters?.tanggal_dari) {
+    conditions.push(`i.invoice_date >= $${paramIdx++}`);
+    params.push(filters.tanggal_dari);
+  }
+  if (filters?.tanggal_sampai) {
+    conditions.push(`i.invoice_date <= $${paramIdx++}`);
+    params.push(filters.tanggal_sampai);
+  }
 
-  const rows = await db
-    .select({
-      invoice_id: schema.invoices.invoice_id,
-      project_id: schema.invoices.project_id,
-      vendor_id: schema.invoices.vendor_id,
-      invoice_number: schema.invoices.invoice_number,
-      invoice_date: schema.invoices.invoice_date,
-      total_amount: schema.invoices.total_amount,
-      paid_amount: schema.invoices.paid_amount,
-      remaining_balance: schema.invoices.remaining_balance,
-      payment_status: schema.invoices.payment_status,
-      ownership_type: schema.invoices.ownership_type,
-      created_at: schema.invoices.created_at,
-      vendor_name: schema.vendors.vendor_name,
-      project_name: schema.projects.project_name,
-    })
-    .from(schema.invoices)
-    .leftJoin(schema.vendors, eq(schema.vendors.vendor_id, schema.invoices.vendor_id))
-    .leftJoin(schema.projects, eq(schema.projects.project_id, schema.invoices.project_id))
-    .where(and(...conditions))
-    .orderBy(desc(schema.invoices.invoice_date), desc(schema.invoices.invoice_id));
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  return rows as Invoice[];
+  const query = `
+    SELECT 
+      i.invoice_id, i.project_id, i.vendor_id, i.invoice_number, i.invoice_date,
+      i.total_amount, i.paid_amount, i.remaining_balance, i.payment_status,
+      i.ownership_type, i.created_at,
+      v.vendor_name, p.project_name
+    FROM invoices i
+    LEFT JOIN vendors v ON v.vendor_id = i.vendor_id
+    LEFT JOIN projects p ON p.project_id = i.project_id
+    ${whereClause}
+    ORDER BY i.invoice_date DESC, i.invoice_id DESC
+  `;
+
+  return db.select<Invoice[]>(query, params);
 }
 
 export async function createInvoice(
@@ -68,28 +79,37 @@ export async function createInvoice(
 ): Promise<number> {
   const db = await getDB();
   
-  const invoiceResult = await db.insert(schema.invoices).values({
-    project_id: invoice.project_id ?? null,
-    vendor_id: invoice.vendor_id,
-    invoice_number: invoice.invoice_number ?? null,
-    invoice_date: invoice.invoice_date,
-    total_amount: invoice.total_amount,
-    paid_amount: invoice.paid_amount || 0,
-    payment_status: invoice.payment_status || "UNPAID",
-    ownership_type: invoice.ownership_type || "INTERNAL",
-  }).returning({ invoice_id: schema.invoices.invoice_id });
+  const result = await db.execute(
+    `INSERT INTO invoices (project_id, vendor_id, invoice_number, invoice_date, total_amount, paid_amount, payment_status, ownership_type)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [
+      invoice.project_id ?? null,
+      invoice.vendor_id ?? null,
+      invoice.invoice_number ?? null,
+      invoice.invoice_date,
+      invoice.total_amount,
+      invoice.paid_amount || 0,
+      invoice.payment_status || "UNPAID",
+      invoice.ownership_type || "INTERNAL"
+    ]
+  );
 
-  const invoiceId = invoiceResult[0].invoice_id;
+  const invoiceId = result.lastInsertId as number;
 
   if (items.length > 0) {
-    const itemValues = items.map(item => ({
-      invoice_id: invoiceId,
-      po_item_id: item.po_item_id ?? null,
-      equip_log_id: item.equip_log_id ?? null,
-      description: item.description,
-      amount: item.amount,
-    }));
-    await db.insert(schema.invoiceItems).values(itemValues);
+    for (const item of items) {
+      await db.execute(
+        `INSERT INTO invoice_items (invoice_id, po_item_id, equip_log_id, description, amount)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          invoiceId,
+          item.po_item_id ?? null,
+          item.equip_log_id ?? null,
+          item.description,
+          item.amount
+        ]
+      );
+    }
   }
 
   return invoiceId;
@@ -97,42 +117,46 @@ export async function createInvoice(
 
 export async function addPaymentDirect(invoiceId: number, amountPaid: number): Promise<void> {
   const db = await getDB();
-  const rows = await db.select().from(schema.invoices).where(eq(schema.invoices.invoice_id, invoiceId));
+  const rows = await db.select<Invoice[]>("SELECT * FROM invoices WHERE invoice_id = $1", [invoiceId]);
   
   if (rows.length === 0) return;
   const inv = rows[0];
-  const newPaid = inv.paid_amount! + amountPaid;
+  const newPaid = (inv.paid_amount || 0) + amountPaid;
   const status = newPaid >= inv.total_amount ? "PAID" : newPaid > 0 ? "PARTIAL" : "UNPAID";
 
-  await db.update(schema.invoices).set({
-    paid_amount: newPaid,
-    payment_status: status
-  }).where(eq(schema.invoices.invoice_id, invoiceId));
+  await db.execute(
+    "UPDATE invoices SET paid_amount = $1, payment_status = $2 WHERE invoice_id = $3",
+    [newPaid, status, invoiceId]
+  );
 }
 
 export async function getInvoiceItems(invoiceId: number): Promise<InvoiceItem[]> {
   const db = await getDB();
-  return db.select().from(schema.invoiceItems).where(eq(schema.invoiceItems.invoice_id, invoiceId));
+  return db.select<InvoiceItem[]>("SELECT * FROM invoice_items WHERE invoice_id = $1", [invoiceId]);
 }
 
 // ── Debt Summary ─────────────────────────────────────────────────────────────
 
-export async function getDebtSummary(): Promise<DebtSummaryRow[]> {
+export async function getDebtSummary(filters?: { project_id?: number }): Promise<DebtSummaryRow[]> {
   const db = await getDB();
-  const rows = await db
-    .select({
-      vendor_id: schema.vendors.vendor_id,
-      vendor_name: schema.vendors.vendor_name,
-      vendor_type: schema.vendors.vendor_type,
-      jumlah_invoice: sql<number>`COUNT(DISTINCT ${schema.invoices.invoice_id})`,
-      total_tagihan: sql<number>`COALESCE(SUM(${schema.invoices.total_amount}), 0)`,
-      total_bayar: sql<number>`COALESCE(SUM(${schema.invoices.paid_amount}), 0)`,
-      saldo_utang: sql<number>`COALESCE(SUM(${schema.invoices.remaining_balance}), 0)`,
-    })
-    .from(schema.vendors)
-    .leftJoin(schema.invoices, eq(schema.invoices.vendor_id, schema.vendors.vendor_id))
-    .groupBy(schema.vendors.vendor_id)
-    .orderBy(desc(sql<number>`COALESCE(SUM(${schema.invoices.remaining_balance}), 0)`));
-
-  return rows as DebtSummaryRow[];
+  const params: any[] = [];
+  let joinCondition = "";
+  if (filters?.project_id) {
+    joinCondition = "AND i.project_id = $1";
+    params.push(filters.project_id);
+  }
+  
+  const query = `
+    SELECT 
+      v.vendor_id, v.vendor_name, v.vendor_type,
+      COUNT(DISTINCT i.invoice_id) as jumlah_invoice,
+      COALESCE(SUM(i.total_amount), 0) as total_tagihan,
+      COALESCE(SUM(i.paid_amount), 0) as total_bayar,
+      COALESCE(SUM(i.remaining_balance), 0) as saldo_utang
+    FROM vendors v
+    LEFT JOIN invoices i ON i.vendor_id = v.vendor_id ${joinCondition}
+    GROUP BY v.vendor_id
+    ORDER BY saldo_utang DESC
+  `;
+  return db.select<DebtSummaryRow[]>(query, params);
 }

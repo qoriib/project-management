@@ -1,34 +1,19 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from "react";
-import { Section, VStack, Button, Dialog } from "@astryxdesign/core";
+import { Section, VStack, Button } from "@astryxdesign/core";
 import { PageHeader } from "@/components/PageHeader";
 import { POTable } from "@/components/po/POTable";
-import { POForm } from "@/components/po/POForm";
 
 function POListPage() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editId, setEditId] = useState<number | undefined>(undefined);
+  const navigate = useNavigate();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  function handleSuccess() {
-    setIsDialogOpen(false);
-    setEditId(undefined);
-    setRefreshTrigger((r) => r + 1);
-  }
-
   function openNew() {
-    setEditId(undefined);
-    setIsDialogOpen(true);
+    navigate({ to: "/po/new" });
   }
 
   function openEdit(id: number) {
-    setEditId(id);
-    setIsDialogOpen(true);
-  }
-
-  function handleClose() {
-    setIsDialogOpen(false);
-    setEditId(undefined);
+    navigate({ to: `/po/${id}/edit` });
   }
 
   return (
@@ -42,14 +27,6 @@ function POListPage() {
 
         <POTable refreshTrigger={refreshTrigger} onEdit={openEdit} />
       </VStack>
-
-      <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && handleClose()} width={950}>
-        <POForm 
-          initialEditId={editId}
-          onSuccess={handleSuccess} 
-          onCancel={handleClose} 
-        />
-      </Dialog>
     </Section>
   );
 }

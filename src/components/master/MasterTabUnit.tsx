@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
@@ -30,6 +30,12 @@ export function MasterTabUnit() {
   }
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    const handleOpen = () => openCreate();
+    window.addEventListener('openMasterCreate', handleOpen);
+    return () => window.removeEventListener('openMasterCreate', handleOpen);
+  }, []);
 
   function openCreate() {
     setUnitName("");
@@ -93,15 +99,15 @@ export function MasterTabUnit() {
 
   return (
     <VStack gap={4}>
-      <HStack justify="end">
-        <Button variant="primary" label="+ Tambah Satuan" onClick={openCreate} />
-      </HStack>
-      <Table
+      <Card padding={0}>
+        <Table
+        textOverflow="truncate"
         columns={columns as any}
         data={unitRows as any}
         idKey="unit_id"
         emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada satuan.</Text></VStack>}
       />
+      </Card>
 
       <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={520}>
         <VStack gap={3}>

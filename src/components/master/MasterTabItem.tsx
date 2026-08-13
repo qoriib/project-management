@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { Button, Table, Badge, Dialog, TextInput, Selector, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { Card, Button, Table, Badge, Dialog, TextInput, Selector, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { useToast } from "@astryxdesign/core/Toast";
+import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   getItems, createItem, updateItem, deleteItem,
   getItemCategories, getUnits,
-  type Item, type ItemCategory, type Unit,
+  getItemPrices, saveItemPrices,
+  type Item, type ItemCategory, type Unit, type ItemPrice,
 } from "@/db/queries/master";
 
 export function MasterTabItem() {
@@ -18,11 +21,17 @@ export function MasterTabItem() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const [itemCode, setItemCode] = useState("");
+  const showToast = useToast();
+
   const [itemName, setItemName] = useState("");
   const [itemCategory, setItemCategory] = useState("MATERIAL");
   const [itemUnit, setItemUnit] = useState("m3");
+
+  // Price Management State
+  const [prices, setPrices] = useState<{ price: number }[]>([]);
+  const [loadingPrices, setLoadingPrices] = useState(false);
 
   async function loadData() {
     const [nextItems, nextCategories, nextUnits] = await Promise.all([
@@ -37,33 +46,62 @@ export function MasterTabItem() {
 
   useEffect(() => { loadData(); }, []);
 
+  useEffect(() => {
+    const handleOpen = () => openCreate();
+    window.addEventListener('openMasterCreate', handleOpen);
+    return () => window.removeEventListener('openMasterCreate', handleOpen);
+  }, []);
+
   function openCreate() {
-    setItemCode(""); setItemName(""); setItemCategory("MATERIAL"); setItemUnit("m3");
+    setItemName(""); setItemCategory("MATERIAL"); setItemUnit("m3");
     setEditTarget(null);
+    setPrices([{ price: 0 }]);
+    setErrorMsg(null);
     setIsDialogOpen(true);
   }
 
-  function openEdit(item: Item) {
+  async function openEdit(item: Item) {
     setEditTarget(item);
-    setItemCode(item.item_code ?? "");
     setItemName(item.item_name);
     setItemCategory(item.category);
     setItemUnit(item.unit);
+    setErrorMsg(null);
     setIsDialogOpen(true);
+    
+    setLoadingPrices(true);
+    try {
+      const fetched = await getItemPrices(item.item_id);
+      setPrices(fetched.length > 0 ? fetched : [{ price: 0 }]);
+    } catch (error) {
+      setPrices([{ price: 0 }]);
+    } finally {
+      setLoadingPrices(false);
+    }
   }
 
+
+
   async function handleSave() {
+    setErrorMsg(null);
     setSaving(true);
     try {
-      const data = { item_code: itemCode || null, item_name: itemName, category: itemCategory as any, unit: itemUnit };
+      const data = { item_name: itemName, category: itemCategory as any, unit: itemUnit };
+      let itemId: number;
       if (editTarget) {
         await updateItem(editTarget.item_id, data);
+        itemId = editTarget.item_id;
+        showToast({ body: "Item dan harga berhasil diubah", type: "info" });
       } else {
-        await createItem(data);
+        itemId = await createItem(data);
+        showToast({ body: "Item dan harga berhasil ditambahkan", type: "info" });
       }
+      
+      await saveItemPrices(itemId, prices);
       setIsDialogOpen(false);
       setEditTarget(null);
       await loadData();
+    } catch (err: any) {
+      setErrorMsg(err.message || "Gagal menyimpan item");
     } finally {
       setSaving(false);
     }
@@ -74,23 +112,31 @@ export function MasterTabItem() {
     setDeleting(true);
     try {
       await deleteItem(deleteTarget.id);
+      showToast({ body: "Item berhasil dihapus", type: "info" });
       setDeleteTarget(null);
       await loadData();
+    } catch (err: any) {
+      showToast({ body: err.message || "Gagal menghapus item", type: "error" });
     } finally {
       setDeleting(false);
     }
   }
 
   const columns = [
-    { key: "item_code", header: "Kode", width: pixel(120) },
+    { 
+      key: "item_id", 
+      header: "Kode", 
+      width: pixel(120),
+      renderCell: (row: Item) => String(row.item_id).padStart(4, '0')
+    },
     { key: "item_name", header: "Nama Item", width: proportional(1.5) },
     { key: "unit", header: "Satuan", width: pixel(100) },
     {
       key: "category", header: "Kategori", width: pixel(180),
-      renderCell: (row: Item) => <Badge variant="neutral" label={categories.find((category) => category.category_code === row.category)?.category_name ?? row.category} />,
+      renderCell: (row: Item) => <Badge variant="neutral" label={row.category} />,
     },
     {
-      key: "actions", header: "", width: pixel(150),
+      key: "actions", header: "", width: pixel(220),
       renderCell: (row: Item) => (
         <HStack gap={1}>
           <Button size="sm" variant="ghost" label="Edit" onClick={() => openEdit(row)} />
@@ -101,7 +147,7 @@ export function MasterTabItem() {
   ];
 
   const categoryOptions = categories.map((category) => ({
-    value: category.category_code,
+    value: category.category_name,
     label: category.category_name,
   }));
 
@@ -112,27 +158,67 @@ export function MasterTabItem() {
 
   return (
     <VStack gap={4}>
-      <HStack justify="end">
-        <Button variant="primary" label="+ Tambah Item" onClick={openCreate} />
-      </HStack>
-      <Table
+      <Card padding={0}>
+        <Table
+        textOverflow="truncate"
         columns={columns as any}
         data={items as any}
         idKey="item_id"
         emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada item.</Text></VStack>}
       />
+      </Card>
 
       <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={520}>
         <VStack gap={3}>
           <Heading level={3}>{editTarget ? "Edit Item" : "Tambah Item"}</Heading>
-          <TextInput label="Kode Item (opsional)" value={itemCode} onChange={setItemCode} />
+          
+          {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
+          
           <TextInput label="Nama Item" value={itemName} onChange={setItemName} isRequired />
           <Selector label="Kategori" value={itemCategory} onChange={setItemCategory} options={categoryOptions} />
           <Selector label="Satuan" value={itemUnit} onChange={setItemUnit} options={unitOptions} />
           
-          <HStack gap={2} justify="end">
+          <Heading level={4} style={{ marginTop: '1rem' }}>Variasi Harga</Heading>
+          {loadingPrices ? (
+            <Text color="secondary">Memuat data harga...</Text>
+          ) : (
+            <VStack gap={3}>
+              {prices.map((p, idx) => (
+                <HStack key={idx} gap={2} align="end">
+                  <TextInput 
+                    label="Harga (Rp)" 
+                    value={p.price ? String(p.price) : ""} 
+                    onChange={(val) => {
+                      const newPrices = [...prices];
+                      newPrices[idx].price = parseFloat(val) || 0;
+                      setPrices(newPrices);
+                    }} 
+                    width={180}
+                  />
+                  {prices.length > 1 && (
+                    <Button 
+                      variant="destructive" 
+                      label="✕" 
+                      onClick={() => setPrices(prices.filter((_, i) => i !== idx))} 
+                    />
+                  )}
+                </HStack>
+              ))}
+              
+              <HStack>
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  label="+ Tambah Variasi Harga" 
+                  onClick={() => setPrices([...prices, { price: 0 }])} 
+                />
+              </HStack>
+            </VStack>
+          )}
+
+          <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
             <Button variant="ghost" label="Batal" onClick={() => setIsDialogOpen(false)} />
-            <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} />
+            <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} isDisabled={loadingPrices} />
           </HStack>
         </VStack>
       </Dialog>
@@ -145,6 +231,8 @@ export function MasterTabItem() {
         message={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
         isLoading={deleting}
       />
+
+
     </VStack>
   );
 }

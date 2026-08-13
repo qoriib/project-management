@@ -57,7 +57,7 @@ function PODetailPage() {
           actions={
             <HStack gap={2}>
               <Button variant="ghost" label="← Kembali" onClick={() => navigate({ to: "/po" })} />
-              <Button variant="primary" label="🧾 Buat Tagihan" onClick={() => navigate({ to: "/billing/invoice", search: { po: String(po.po_id) } })} />
+              <Button variant="primary" label="🧾 Buat Tagihan" onClick={() => navigate({ to: "/billing/invoice" as any, search: { po: String(po.po_id) } as any })} />
             </HStack>
           }
         />

@@ -6,6 +6,7 @@ import { getPurchaseOrders, deletePO, type PurchaseOrder } from "@/db/queries/po
 import { getVendors, type Vendor } from "@/db/queries/master";
 import { formatRupiah, formatDate } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";
+import { useAppStore } from "@/store/useAppStore";
 
 interface POTableProps {
   onRefresh?: () => void;
@@ -17,16 +18,17 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   const navigate = useNavigate();
   const [pos, setPOs] = useState<PurchaseOrder[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [search, setSearch] = useState("");
   const [vendorFilter, setVendorFilter] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   async function load() {
     const [p, v] = await Promise.all([
       getPurchaseOrders({
         vendor_id: vendorFilter ? Number(vendorFilter) : undefined,
-        search: search || undefined,
+        project_id: selectedProjectId || undefined,
       }),
       getVendors(),
     ]);
@@ -34,7 +36,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
     setVendors(v);
   }
 
-  useEffect(() => { load(); }, [search, vendorFilter, refreshTrigger]);
+  useEffect(() => { load(); }, [vendorFilter, refreshTrigger, selectedProjectId]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -73,13 +75,6 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   return (
     <VStack gap={4}>
       <HStack gap={3}>
-        <TextInput
-          label=""
-          placeholder="Cari nomor PO..."
-          value={search}
-          onChange={setSearch}
-          width={240}
-        />
         <Selector
           label="Vendor"
           isLabelHidden
@@ -90,7 +85,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
             { value: "", label: "Semua Vendor" },
             ...vendors.map((v) => ({ value: String(v.vendor_id), label: v.vendor_name })),
           ]}
-          width={200}
+          width={240}
         />
       </HStack>
 
@@ -102,7 +97,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
         emptyState={
           <VStack align="center" padding={8}>
             <Text color="secondary">
-              {search || vendorFilter ? "Tidak ada PO yang cocok dengan filter." : "Belum ada PO. Klik '+ Buat PO Baru' untuk memulai."}
+              {vendorFilter ? "Tidak ada PO yang cocok dengan filter." : "Belum ada PO. Klik '+ Buat PO Baru' untuk memulai."}
             </Text>
           </VStack>
         }

@@ -7,8 +7,17 @@ import {
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { createPO, updatePO, getPOById, getPOItems } from "@/db/queries/po";
 import { getVendors, getItems, type Vendor, type Item as CatalogItem } from "@/db/queries/master";
-import { getProjects, type Project } from "@/db/queries/master";
 import { formatRupiah, todayISO } from "@/utils/formatters";
+import { useAppStore } from "@/store/useAppStore";
+
+function generatePONumber() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const r = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+  return `PO-${y}${m}${day}-${r}`;
+}
 
 interface POFormProps {
   initialEditId?: number;
@@ -18,18 +27,17 @@ interface POFormProps {
 
 export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
   const isEdit = !!initialEditId;
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
 
   const form = useForm({
     defaultValues: {
-      poNumber: "",
+      poNumber: isEdit ? "" : generatePONumber(),
       poDate: todayISO(),
       vendorId: "",
-      projectId: "",
       ppn: false,
       notes: "",
       items: [
@@ -43,7 +51,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           po_number: value.poNumber,
           po_date: value.poDate,
           vendor_id: Number(value.vendorId),
-          project_id: value.projectId ? Number(value.projectId) : null,
+          project_id: selectedProjectId || null,
           notes: value.notes,
         };
         const poItems = value.items
@@ -70,9 +78,8 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
 
   useEffect(() => {
     async function loadData() {
-      const [v, p, m] = await Promise.all([getVendors(), getProjects(), getItems()]);
+      const [v, m] = await Promise.all([getVendors(), getItems()]);
       setVendors(v);
-      setProjects(p);
       setCatalogItems(m);
 
       if (isEdit) {
@@ -82,7 +89,6 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           form.setFieldValue("poNumber", po.po_number);
           form.setFieldValue("poDate", po.po_date);
           form.setFieldValue("vendorId", String(po.vendor_id));
-          form.setFieldValue("projectId", po.project_id ? String(po.project_id) : "");
           form.setFieldValue("notes", po.notes || "");
           const hasPpn = poItems.some((i) => (i.ppn_percentage || 0) > 0);
           form.setFieldValue("ppn", hasPpn);
@@ -122,42 +128,34 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
               <Card padding={4}>
                 <VStack gap={3}>
                   <Heading level={4}>Informasi PO</Heading>
-                  <HStack gap={3}>
-                    <form.Field name="poNumber">
-                      {(field) => (
-                        <TextInput label="Nomor PO" value={field.state.value} onChange={(e) => field.handleChange(e)} isRequired width={220} />
-                      )}
-                    </form.Field>
-                    <form.Field name="poDate">
-                      {(field) => (
-                        <TextInput label="Tanggal PO" value={field.state.value} onChange={(e) => field.handleChange(e)} isRequired width={160} />
-                      )}
-                    </form.Field>
-                  </HStack>
-                  <HStack gap={3}>
-                    <form.Field name="vendorId">
-                      {(field) => (
-                        <Selector
-                          label="Vendor Pemasok"
-                          value={field.state.value}
-                          onChange={(v) => field.handleChange(v as string)}
-                          isRequired
-                          options={[{ value: "", label: "Pilih vendor..." }, ...vendors.map((v) => ({ value: String(v.vendor_id), label: v.vendor_name }))]}
-                          width={240}
-                        />
-                      )}
-                    </form.Field>
-                    <form.Field name="projectId">
-                      {(field) => (
-                        <Selector
-                          label="Proyek Penggunaan"
-                          value={field.state.value}
-                          onChange={(v) => field.handleChange(v as string)}
-                          options={[{ value: "", label: "Tidak ditentukan / Kantor" }, ...projects.map((p) => ({ value: String(p.project_id), label: p.project_name }))]}
-                          width={240}
-                        />
-                      )}
-                    </form.Field>
+                  <HStack gap={4} style={{ alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <form.Field name="poNumber">
+                        {(field) => (
+                          <TextInput label="Nomor PO" value={field.state.value} onChange={(e) => field.handleChange(e)} isDisabled isRequired />
+                        )}
+                      </form.Field>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <form.Field name="poDate">
+                        {(field) => (
+                          <TextInput label="Tanggal PO" type="date" value={field.state.value} onChange={(e) => field.handleChange(e)} isRequired />
+                        )}
+                      </form.Field>
+                    </div>
+                    <div style={{ flex: 2 }}>
+                      <form.Field name="vendorId">
+                        {(field) => (
+                          <Selector
+                            label="Vendor Pemasok"
+                            value={field.state.value}
+                            onChange={(v) => field.handleChange(v as string)}
+                            isRequired
+                            options={[{ value: "", label: "Pilih vendor..." }, ...vendors.map((v) => ({ value: String(v.vendor_id), label: v.vendor_name }))]}
+                          />
+                        )}
+                      </form.Field>
+                    </div>
                   </HStack>
                   <HStack gap={2} align="center">
                     <form.Field name="ppn">

@@ -11,8 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as EquipmentRouteImport } from './routes/equipment'
 import { Route as MasterRouteImport } from './routes/master'
+import { Route as BomIndexRouteImport } from './routes/bom/index'
+import { Route as BomStageIdRouteImport } from './routes/bom/$stageId'
 import { Route as DeliveryIndexRouteImport } from './routes/delivery/index'
 import { Route as MasterIndexRouteImport } from './routes/master/index'
 import { Route as MasterKategoriRouteImport } from './routes/master/kategori'
@@ -20,7 +21,9 @@ import { Route as MasterProjectRouteImport } from './routes/master/project'
 import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
 import { Route as MasterVendorRouteImport } from './routes/master/vendor'
 import { Route as PoIndexRouteImport } from './routes/po/index'
+import { Route as PoNewRouteImport } from './routes/po/new'
 import { Route as PoIdIndexRouteImport } from './routes/po/$id/index'
+import { Route as PoIdEditRouteImport } from './routes/po/$id/edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -32,14 +35,19 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EquipmentRoute = EquipmentRouteImport.update({
-  id: '/equipment',
-  path: '/equipment',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MasterRoute = MasterRouteImport.update({
   id: '/master',
   path: '/master',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BomIndexRoute = BomIndexRouteImport.update({
+  id: '/bom/',
+  path: '/bom/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BomStageIdRoute = BomStageIdRouteImport.update({
+  id: '/bom/$stageId',
+  path: '/bom/$stageId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeliveryIndexRoute = DeliveryIndexRouteImport.update({
@@ -77,52 +85,71 @@ const PoIndexRoute = PoIndexRouteImport.update({
   path: '/po/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PoNewRoute = PoNewRouteImport.update({
+  id: '/po/new',
+  path: '/po/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PoIdIndexRoute = PoIdIndexRouteImport.update({
   id: '/po/$id/',
   path: '/po/$id/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoIdEditRoute = PoIdEditRouteImport.update({
+  id: '/po/$id/edit',
+  path: '/po/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/equipment': typeof EquipmentRoute
   '/master': typeof MasterRouteWithChildren
+  '/bom/$stageId': typeof BomStageIdRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
   '/master/vendor': typeof MasterVendorRoute
+  '/po/new': typeof PoNewRoute
+  '/bom/': typeof BomIndexRoute
   '/delivery/': typeof DeliveryIndexRoute
   '/master/': typeof MasterIndexRoute
   '/po/': typeof PoIndexRoute
+  '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/equipment': typeof EquipmentRoute
+  '/bom/$stageId': typeof BomStageIdRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
   '/master/vendor': typeof MasterVendorRoute
+  '/po/new': typeof PoNewRoute
+  '/bom': typeof BomIndexRoute
   '/delivery': typeof DeliveryIndexRoute
   '/master': typeof MasterIndexRoute
   '/po': typeof PoIndexRoute
+  '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id': typeof PoIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/equipment': typeof EquipmentRoute
   '/master': typeof MasterRouteWithChildren
+  '/bom/$stageId': typeof BomStageIdRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
   '/master/vendor': typeof MasterVendorRoute
+  '/po/new': typeof PoNewRoute
+  '/bom/': typeof BomIndexRoute
   '/delivery/': typeof DeliveryIndexRoute
   '/master/': typeof MasterIndexRoute
   '/po/': typeof PoIndexRoute
+  '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -130,52 +157,64 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/equipment'
     | '/master'
+    | '/bom/$stageId'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
     | '/master/vendor'
+    | '/po/new'
+    | '/bom/'
     | '/delivery/'
     | '/master/'
     | '/po/'
+    | '/po/$id/edit'
     | '/po/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
-    | '/equipment'
+    | '/bom/$stageId'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
     | '/master/vendor'
+    | '/po/new'
+    | '/bom'
     | '/delivery'
     | '/master'
     | '/po'
+    | '/po/$id/edit'
     | '/po/$id'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
-    | '/equipment'
     | '/master'
+    | '/bom/$stageId'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
     | '/master/vendor'
+    | '/po/new'
+    | '/bom/'
     | '/delivery/'
     | '/master/'
     | '/po/'
+    | '/po/$id/edit'
     | '/po/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
-  EquipmentRoute: typeof EquipmentRoute
   MasterRoute: typeof MasterRouteWithChildren
+  BomStageIdRoute: typeof BomStageIdRoute
+  PoNewRoute: typeof PoNewRoute
+  BomIndexRoute: typeof BomIndexRoute
   DeliveryIndexRoute: typeof DeliveryIndexRoute
   PoIndexRoute: typeof PoIndexRoute
+  PoIdEditRoute: typeof PoIdEditRoute
   PoIdIndexRoute: typeof PoIdIndexRoute
 }
 
@@ -195,18 +234,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/equipment': {
-      id: '/equipment'
-      path: '/equipment'
-      fullPath: '/equipment'
-      preLoaderRoute: typeof EquipmentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/master': {
       id: '/master'
       path: '/master'
       fullPath: '/master'
       preLoaderRoute: typeof MasterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bom/': {
+      id: '/bom/'
+      path: '/bom'
+      fullPath: '/bom/'
+      preLoaderRoute: typeof BomIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bom/$stageId': {
+      id: '/bom/$stageId'
+      path: '/bom/$stageId'
+      fullPath: '/bom/$stageId'
+      preLoaderRoute: typeof BomStageIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/delivery/': {
@@ -258,11 +304,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/po/new': {
+      id: '/po/new'
+      path: '/po/new'
+      fullPath: '/po/new'
+      preLoaderRoute: typeof PoNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/po/$id/': {
       id: '/po/$id/'
       path: '/po/$id'
       fullPath: '/po/$id/'
       preLoaderRoute: typeof PoIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/po/$id/edit': {
+      id: '/po/$id/edit'
+      path: '/po/$id/edit'
+      fullPath: '/po/$id/edit'
+      preLoaderRoute: typeof PoIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -290,10 +350,13 @@ const MasterRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
-  EquipmentRoute: EquipmentRoute,
   MasterRoute: MasterRouteWithChildren,
+  BomStageIdRoute: BomStageIdRoute,
+  PoNewRoute: PoNewRoute,
+  BomIndexRoute: BomIndexRoute,
   DeliveryIndexRoute: DeliveryIndexRoute,
   PoIndexRoute: PoIndexRoute,
+  PoIdEditRoute: PoIdEditRoute,
   PoIdIndexRoute: PoIdIndexRoute,
 }
 export const routeTree = rootRouteImport

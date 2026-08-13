@@ -5,6 +5,7 @@ import { getDeliveries, deleteDelivery, type Delivery } from "@/db/queries/field
 import { getVendors, type Vendor } from "@/db/queries/master";
 import { formatDate, formatNumber } from "@/utils/formatters";
 import { exportToExcel } from "@/utils/export";
+import { useAppStore } from "@/store/useAppStore";
 
 interface DeliveryTableProps {
   onRefresh?: () => void;
@@ -23,10 +24,13 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
   async function load() {
     const [d, v] = await Promise.all([
       getDeliveries({
         vendor_id: vendorFilter ? Number(vendorFilter) : undefined,
+        project_id: selectedProjectId || undefined,
         tanggal_dari: dateDari || undefined,
         tanggal_sampai: dateSampai || undefined,
       }),
@@ -36,7 +40,7 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
     setVendors(v);
   }
 
-  useEffect(() => { load(); }, [vendorFilter, dateDari, dateSampai, refreshTrigger]);
+  useEffect(() => { load(); }, [vendorFilter, dateDari, dateSampai, refreshTrigger, selectedProjectId]);
 
   async function handleDelete() {
     if (!deleteTarget) return;

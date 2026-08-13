@@ -26,7 +26,7 @@
   "plugins": {
     "sql": {
       "preload": [
-        "sqlite:proyek.db"
+        "sqlite:proyek_v2.db"
       ]
     }
   },

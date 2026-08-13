@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Button, Table, Badge, Dialog, TextInput, Selector, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { useToast } from "@astryxdesign/core/Toast";
+import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
@@ -7,22 +9,21 @@ import {
   type Project,
 } from "@/db/queries/master";
 
-type ProjectStatus = Project["status"];
-
 export function MasterTabProject() {
   const [projects, setProjects] = useState<Project[]>([]);
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Project | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const [projectCode, setProjectCode] = useState("");
+  const showToast = useToast();
+
   const [projectName, setProjectName] = useState("");
-  const [contractorName, setContractorName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [fiscalYear, setFiscalYear] = useState("2026");
-  const [projectStatus, setProjectStatus] = useState<ProjectStatus>("ON_PROGRESS");
 
   async function loadData() {
     const nextProjects = await getProjects();
@@ -31,40 +32,50 @@ export function MasterTabProject() {
 
   useEffect(() => { loadData(); }, []);
 
+  useEffect(() => {
+    const handleOpen = () => openCreate();
+    window.addEventListener('openMasterCreate', handleOpen);
+    return () => window.removeEventListener('openMasterCreate', handleOpen);
+  }, []);
+
   function openCreate() {
-    setProjectCode(""); setProjectName(""); setContractorName(""); setFiscalYear("2026"); setProjectStatus("ON_PROGRESS");
+    setProjectName(""); setCompanyName(""); setFiscalYear("2026");
     setEditTarget(null);
+    setErrorMsg(null);
     setIsDialogOpen(true);
   }
 
   function openEdit(project: Project) {
     setEditTarget(project);
-    setProjectCode(project.project_code);
     setProjectName(project.project_name);
-    setContractorName(project.contractor_name);
+    setCompanyName(project.company_name);
     setFiscalYear(String(project.fiscal_year));
-    setProjectStatus(project.status);
+    setErrorMsg(null);
     setIsDialogOpen(true);
   }
 
   async function handleSave() {
+    setErrorMsg(null);
     setSaving(true);
     try {
       const data = {
-        project_code: projectCode,
         project_name: projectName,
-        contractor_name: contractorName,
+        company_name: companyName,
         fiscal_year: Number(fiscalYear),
-        status: projectStatus,
       };
       if (editTarget) {
         await updateProject(editTarget.project_id, data);
+        showToast({ body: "Project berhasil diubah", type: "info" });
       } else {
         await createProject(data);
+        showToast({ body: "Project berhasil ditambahkan", type: "info" });
       }
+      setIsDialogOpen(true);
       setIsDialogOpen(false);
       setEditTarget(null);
       await loadData();
+    } catch (err: any) {
+      setErrorMsg(err.message || "Gagal menyimpan project");
     } finally {
       setSaving(false);
     }
@@ -75,22 +86,26 @@ export function MasterTabProject() {
     setDeleting(true);
     try {
       await deleteProject(deleteTarget.id);
+      showToast({ body: "Project berhasil dihapus", type: "info" });
       setDeleteTarget(null);
       await loadData();
+    } catch (err: any) {
+      showToast({ body: err.message || "Gagal menghapus project", type: "error" });
     } finally {
       setDeleting(false);
     }
   }
 
   const columns = [
-    { key: "project_code", header: "Kode", width: pixel(120) },
-    { key: "project_name", header: "Nama Project", width: proportional(1.3) },
-    { key: "contractor_name", header: "Kontraktor", width: proportional(1) },
-    { key: "fiscal_year", header: "Tahun", width: pixel(100) },
     {
-      key: "status", header: "Status", width: pixel(140),
-      renderCell: (row: Project) => <Badge variant={row.status === "COMPLETED" ? "success" : "warning"} label={row.status} />,
+      key: "project_id",
+      header: "Kode",
+      width: pixel(120),
+      renderCell: (row: Project) => String(row.project_id).padStart(4, '0')
     },
+    { key: "project_name", header: "Nama Project", width: proportional(1.3) },
+    { key: "company_name", header: "Nama Perusahaan", width: proportional(1) },
+    { key: "fiscal_year", header: "Tahun", width: pixel(100) },
     {
       key: "actions", header: "", width: pixel(150),
       renderCell: (row: Project) => (
@@ -104,34 +119,26 @@ export function MasterTabProject() {
 
   return (
     <VStack gap={4}>
-      <HStack justify="end">
-        <Button variant="primary" label="+ Tambah Project" onClick={openCreate} />
-      </HStack>
-      <Table
-        columns={columns as any}
-        data={projects as any}
-        idKey="project_id"
-        emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada project.</Text></VStack>}
-      />
+      <Card padding={0}>
+        <Table
+          textOverflow="truncate"
+          columns={columns as any}
+          data={projects as any}
+          idKey="project_id"
+          emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada project.</Text></VStack>}
+        />
+      </Card>
 
-      <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={520}>
+      <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={600}>
         <VStack gap={3}>
           <Heading level={3}>{editTarget ? "Edit Project" : "Tambah Project"}</Heading>
-          <TextInput label="Kode Project" value={projectCode} onChange={setProjectCode} isRequired />
+
+          {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
+
           <TextInput label="Nama Project" value={projectName} onChange={setProjectName} isRequired />
-          <TextInput label="Kontraktor" value={contractorName} onChange={setContractorName} isRequired />
+          <TextInput label="Nama Perusahaan" value={companyName} onChange={setCompanyName} isRequired />
           <TextInput label="Tahun Fiskal" value={fiscalYear} onChange={setFiscalYear} isRequired />
-          <Selector
-            label="Status"
-            value={projectStatus || ""}
-            onChange={(value) => setProjectStatus(value as ProjectStatus)}
-            options={[
-              { value: "ON_PROGRESS", label: "Berjalan" },
-              { value: "COMPLETED", label: "Selesai" },
-              { value: "SUSPENDED", label: "Ditunda" },
-            ]}
-          />
-          
+
           <HStack gap={2} justify="end">
             <Button variant="ghost" label="Batal" onClick={() => setIsDialogOpen(false)} />
             <Button variant="primary" label="Simpan" onClick={handleSave} isLoading={saving} />

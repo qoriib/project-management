@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { Card, Button, Table, Dialog, TextInput, VStack, HStack, Text, Heading } from "@astryxdesign/core";
+import { useToast } from "@astryxdesign/core/Toast";
+import { Banner } from "@astryxdesign/core/Banner";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
@@ -17,8 +19,10 @@ export function MasterTabCategory() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const [categoryCode, setCategoryCode] = useState("");
+  const showToast = useToast();
+
   const [categoryName, setCategoryName] = useState("");
 
   async function loadData() {
@@ -32,31 +36,43 @@ export function MasterTabCategory() {
 
   useEffect(() => { loadData(); }, []);
 
+  useEffect(() => {
+    const handleOpen = () => openCreate();
+    window.addEventListener('openMasterCreate', handleOpen);
+    return () => window.removeEventListener('openMasterCreate', handleOpen);
+  }, []);
+
   function openCreate() {
-    setCategoryCode(""); setCategoryName("");
+    setCategoryName("");
     setEditTarget(null);
+    setErrorMsg(null);
     setIsDialogOpen(true);
   }
 
   function openEdit(category: ItemCategory) {
     setEditTarget(category);
-    setCategoryCode(category.category_code);
     setCategoryName(category.category_name);
+    setErrorMsg(null);
     setIsDialogOpen(true);
   }
 
   async function handleSave() {
+    setErrorMsg(null);
     setSaving(true);
     try {
-      const data = { category_code: categoryCode, category_name: categoryName };
+      const data = { category_name: categoryName };
       if (editTarget) {
         await updateItemCategory(editTarget.category_id, data);
+        showToast({ body: "Kategori berhasil diubah", type: "info" });
       } else {
         await createItemCategory(data);
+        showToast({ body: "Kategori berhasil ditambahkan", type: "info" });
       }
       setIsDialogOpen(false);
       setEditTarget(null);
       await loadData();
+    } catch (err: any) {
+      setErrorMsg(err.message || "Gagal menyimpan kategori");
     } finally {
       setSaving(false);
     }
@@ -67,8 +83,11 @@ export function MasterTabCategory() {
     setDeleting(true);
     try {
       await deleteItemCategory(deleteTarget.id);
+      showToast({ body: "Kategori berhasil dihapus", type: "info" });
       setDeleteTarget(null);
       await loadData();
+    } catch (err: any) {
+      showToast({ body: err.message || "Gagal menghapus kategori", type: "error" });
     } finally {
       setDeleting(false);
     }
@@ -76,11 +95,16 @@ export function MasterTabCategory() {
 
   const categoryRows = categories.map((category) => ({
     ...category,
-    count: items.filter((item) => item.category === category.category_code).length,
+    count: items.filter((item) => item.category === category.category_name).length,
   }));
 
   const columns = [
-    { key: "category_code", header: "Kode Kategori", width: pixel(180) },
+    { 
+      key: "category_id", 
+      header: "Kode Kategori", 
+      width: pixel(180),
+      renderCell: (row: ItemCategory) => String(row.category_id).padStart(4, '0')
+    },
     { key: "category_name", header: "Nama Kategori", width: proportional(1) },
     { key: "count", header: "Jumlah Item", width: pixel(140), renderCell: (row: { count: number }) => String(row.count) },
     {
@@ -96,20 +120,22 @@ export function MasterTabCategory() {
 
   return (
     <VStack gap={4}>
-      <HStack justify="end">
-        <Button variant="primary" label="+ Tambah Kategori" onClick={openCreate} />
-      </HStack>
-      <Table
+      <Card padding={0}>
+        <Table
+        textOverflow="truncate"
         columns={columns as any}
         data={categoryRows as any}
         idKey="category_id"
         emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada kategori.</Text></VStack>}
       />
+      </Card>
 
       <Dialog isOpen={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)} width={520}>
         <VStack gap={3}>
           <Heading level={3}>{editTarget ? "Edit Kategori" : "Tambah Kategori"}</Heading>
-          <TextInput label="Kode Kategori" value={categoryCode} onChange={setCategoryCode} isRequired />
+          
+          {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
+          
           <TextInput label="Nama Kategori" value={categoryName} onChange={setCategoryName} isRequired />
           
           <HStack gap={2} justify="end">
