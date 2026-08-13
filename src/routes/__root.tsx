@@ -1,15 +1,12 @@
 import { createRootRoute, Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
-import {
-  AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading,
-  Text, VStack
-} from "@astryxdesign/core";
+import { AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Text, VStack } from "@astryxdesign/core";
 import { ListItem } from "@astryxdesign/core/List";
 import { useEffect, useState } from "react";
 import { getDB } from "@/db";
 import { projectRepo, type Project } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
-import { Home, Folder, ShoppingCart, Truck, ClipboardList } from "lucide-react";
+import { APP } from '@/configs/app.config';
 
 export const Route = createRootRoute({
   component: AppLayout,
@@ -55,7 +52,7 @@ function AppLayout() {
           collapsible={{ hasButton: true, isCollapsed: sideNavCollapsed, onCollapsedChange: setSideNavCollapsed }}
           header={
             <SideNavHeading
-              heading={activeProject ? activeProject.project_name : "Manajemen Proyek"}
+              heading={activeProject ? activeProject.project_name : APP.title}
               subheading={activeProject ? `${activeProject.company_name} - ${activeProject.fiscal_year}` : "Pilih Proyek Aktif"}
               menu={
                 <>
@@ -77,36 +74,15 @@ function AppLayout() {
           }
         >
           <SideNavSection title="Menu Utama" isHeaderHidden>
-            <SideNavItem
-              label="Dashboard"
-              icon={Home}
-              isSelected={path === "/" || path === "/dashboard"}
-              onClick={() => navigate({ to: "/dashboard" })}
-            />
-            <SideNavItem
-              label="Kebutuhan"
-              icon={ClipboardList}
-              isSelected={path.startsWith("/bom")}
-              onClick={() => navigate({ to: "/bom" })}
-            />
-            <SideNavItem
-              label="Pemesanan"
-              icon={ShoppingCart}
-              isSelected={path.startsWith("/po")}
-              onClick={() => navigate({ to: "/po" })}
-            />
-            <SideNavItem
-              label="Penerimaan"
-              icon={Truck}
-              isSelected={path.startsWith("/delivery")}
-              onClick={() => navigate({ to: "/delivery" })}
-            />
-            <SideNavItem
-              label="Master Data"
-              icon={Folder}
-              isSelected={path.startsWith("/master")}
-              onClick={() => navigate({ to: "/master" })}
-            />
+            {APP.sidenav.map((sidenavItem) => (
+              <SideNavItem
+                key={sidenavItem.href}
+                label={sidenavItem.label}
+                icon={sidenavItem.icon}
+                isSelected={path.startsWith(sidenavItem.href)}
+                onClick={() => navigate({ to: sidenavItem.href })}
+              />
+            ))}
           </SideNavSection>
         </SideNav>
       }

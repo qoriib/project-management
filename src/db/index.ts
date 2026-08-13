@@ -15,7 +15,7 @@ export async function getDB(): Promise<DatabaseLike> {
   if (_tauriDb) return _tauriDb as DatabaseLike;
 
   const Database = (await import("@tauri-apps/plugin-sql")).default;
-  _tauriDb = await Database.load("sqlite:proyek_v11.db");
+  _tauriDb = await Database.load("sqlite:proyek_v12.db");
 
   return _tauriDb as DatabaseLike;
 }

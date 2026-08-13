@@ -1,8 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import {
-  VStack, HStack, Card, Heading, Text, Section, Table, Grid, GridSpan
-} from "@astryxdesign/core";
+import { VStack, HStack, Card, Heading, Text, Section, Table, Grid, GridSpan } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { PageHeader } from "@/components/PageHeader";
 import { ProjectRequired } from "@/components/ProjectRequired";
@@ -78,7 +76,7 @@ function Dashboard() {
 
             {stages.map(stage => {
               const stageData = report.filter(r => r.stage_name === stage);
-              
+
               const stageTotalBudget = stageData.reduce((sum, r) => sum + r.planned_budget, 0);
               const stageDeliveredValue = stageData.reduce((sum, r) => {
                 const percentDelivered = r.planned_volume > 0 ? (r.total_delivered / r.planned_volume) : 0;

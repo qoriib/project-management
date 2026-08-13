@@ -9,7 +9,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
-    <HStack gap={4} align={subtitle ? "start" : "center"} style={{ marginBottom: "var(--spacing-4)" }}>
+    <HStack gap={4} align="start">
       <VStack gap={0.5} style={{ flex: 1 }}>
         <Heading level={2}>{title}</Heading>
         {subtitle && <Text color="secondary">{subtitle}</Text>}

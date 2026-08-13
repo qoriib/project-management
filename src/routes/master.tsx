@@ -38,7 +38,6 @@ function MasterLayout() {
             />
           }
         />
-
         <TabList
           hasDivider
           value={currentTab}
@@ -62,4 +61,3 @@ function MasterLayout() {
     </Section>
   );
 }
-
