@@ -177,3 +177,47 @@ INSERT INTO `bill_of_materials` (`project_id`, `stage_id`, `item_id`, `item_pric
 -- Tahap 13: Struktur Baja (Warehouse)
 (3, 13, 11, 17, 500),  -- Besi Ulir 16mm 500 Btg
 (3, 13, 27, 37, 5);    -- Concrete Pump 5 Hari
+
+-- 9. PURCHASE ORDERS (PO)
+INSERT INTO `purchase_orders` (`project_id`, `po_date`) VALUES 
+(1, '2026-03-01'), -- PO 1: Semen & Pasir
+(1, '2026-03-05'), -- PO 2: Besi
+(2, '2026-04-10'), -- PO 3: Triplek & Cat (Project 2)
+(3, '2026-05-15'); -- PO 4: Sewa Alat (Project 3)
+
+-- 10. PO ITEMS (Rincian PO)
+INSERT INTO `po_items` (`po_id`, `item_id`, `item_price_id`, `vendor_id`, `qty`) VALUES 
+-- PO 1 Items
+(1, 1, 1, 1, 100),    -- Semen Portland 100 Zak dari TB Sinar
+(1, 5, 8, 3, 10),     -- Pasir Beton 10 m3 dari CV Sumber Pasir
+-- PO 2 Items
+(2, 8, 11, 2, 100),   -- Besi 8mm 100 Btg dari PT Baja Jaya
+(2, 10, 15, 2, 100),  -- Besi Ulir 13mm 100 Btg dari PT Baja Jaya
+-- PO 3 Items
+(3, 14, 20, 1, 60),   -- Triplek 12mm 60 Lembar dari TB Sinar
+(3, 17, 24, 4, 5),    -- Cat Interior 5 Pail dari Toko Cat Warna
+-- PO 4 Items
+(4, 26, 36, 6, 120),  -- Excavator 120 Jam dari Sewa Alat Berat
+(4, 27, 37, 6, 5);    -- Concrete Pump 5 Hari dari Sewa Alat Berat
+
+-- 11. DELIVERIES (Pengiriman)
+INSERT INTO `deliveries` (`po_id`, `delivery_date`) VALUES 
+(1, '2026-03-03'), -- Pengiriman 1 dari PO 1
+(1, '2026-03-05'), -- Pengiriman 2 dari PO 1
+(2, '2026-03-08'), -- Pengiriman 3 dari PO 2
+(3, '2026-04-12'); -- Pengiriman 4 dari PO 3
+
+-- 12. DELIVERY ITEMS (Rincian Pengiriman)
+INSERT INTO `delivery_items` (`delivery_id`, `po_item_id`, `qty`) VALUES 
+-- Pengiriman 1 (Semen 50 Zak, Pasir 5 m3)
+(1, 1, 50), 
+(1, 2, 5),
+-- Pengiriman 2 (Semen sisa 50 Zak, Pasir 5 m3)
+(2, 1, 50),
+(2, 2, 5),
+-- Pengiriman 3 (Besi 8mm 100 Btg, Besi 13mm 50 Btg - parsial)
+(3, 3, 100),
+(3, 4, 50),
+-- Pengiriman 4 (Triplek 60 Lembar, Cat 2 Pail)
+(4, 5, 60),
+(4, 6, 2);
