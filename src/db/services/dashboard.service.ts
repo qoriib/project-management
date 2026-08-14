@@ -138,3 +138,68 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
     throw wrapDbError(error, "dashboard");
   }
 }
+
+export interface DashboardItemLogEntry {
+  date: string;
+  type: 'PO' | 'Delivery';
+  reference: string;
+  qty: number;
+  vendor_name: string | null;
+}
+
+/**
+ * Get chronological log of POs and Deliveries for a specific item in a project.
+ */
+export async function getDashboardItemLog(
+  projectId: number,
+  itemId: number,
+  itemPriceId: number
+): Promise<DashboardItemLogEntry[]> {
+  try {
+    const db = await getDB();
+
+    // 1. Get POs
+    const poQb = new QueryBuilder()
+      .select("po.po_date as date")
+      .selectRaw("'PO' as type")
+      .selectRaw("'PO #' || po.po_id as reference")
+      .select("poi.qty", "v.vendor_name")
+      .from("po_items", "poi")
+      .join("purchase_orders", "po", "po.po_id = poi.po_id")
+      .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
+      .where("po.project_id", "=", projectId)
+      .where("poi.item_id", "=", itemId)
+      .where("poi.item_price_id", "=", itemPriceId)
+      .withSoftDelete("po");
+
+    const { sql: poSql, params: poParams } = poQb.build();
+    const pos = await db.select<DashboardItemLogEntry[]>(poSql, poParams);
+
+    // 2. Get Deliveries
+    const delQb = new QueryBuilder()
+      .select("d.delivery_date as date")
+      .selectRaw("'Delivery' as type")
+      .selectRaw("'Pengiriman #' || d.delivery_id as reference")
+      .selectRaw("di.qty")
+      .selectRaw("v.vendor_name")
+      .from("delivery_items", "di")
+      .join("deliveries", "d", "d.delivery_id = di.delivery_id")
+      .join("po_items", "poi", "poi.po_item_id = di.po_item_id")
+      .join("purchase_orders", "po", "po.po_id = poi.po_id")
+      .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
+      .where("po.project_id", "=", projectId)
+      .where("poi.item_id", "=", itemId)
+      .where("poi.item_price_id", "=", itemPriceId)
+      .withSoftDelete("d");
+
+    const { sql: delSql, params: delParams } = delQb.build();
+    const dels = await db.select<DashboardItemLogEntry[]>(delSql, delParams);
+
+    const combined = [...pos, ...dels];
+    combined.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return combined;
+  } catch (error) {
+    if (error instanceof DbError) throw error;
+    throw wrapDbError(error, "dashboard_log");
+  }
+}

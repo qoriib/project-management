@@ -189,8 +189,19 @@ export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }
                       columns={[
                         { key: "item", header: "Barang / Material", width: proportional(2), renderCell: (row: any) => <Text weight="medium">{row.item_name}</Text> },
                         {
-                          key: "sisa", header: "Sisa PO", width: pixel(150),
-                          renderCell: (row: any) => <Text size="sm">{formatNumber(row.sisa, 2)} {row.unit}</Text>
+                          key: "sisa", header: "Sisa PO", width: pixel(180),
+                          renderCell: (row: any) => {
+                            const sisaAkhir = row.sisa - row.qty;
+
+                            return (
+                              <VStack gap={0.5}>
+                                <Text size="sm" weight="medium">
+                                  {formatNumber(sisaAkhir, 2)} {row.unit} (Sisa)
+                                </Text>
+                                <Text size="sm" color="secondary">Batas PO: {formatNumber(row.sisa, 2)} {row.unit}</Text>
+                              </VStack>
+                            );
+                          }
                         },
                         {
                           key: "qty", header: "Volume Diterima", width: pixel(200),
@@ -202,7 +213,12 @@ export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }
                                   // The error is on the array element itself because of v.custom
                                   const err = getFieldError(field.state.meta.errors, !!field.state.meta.isTouched);
                                   return (
-                                    <form.Field name={`items[${idx}].qty`}>
+                                    <form.Field 
+                                      name={`items[${idx}].qty`}
+                                      validators={{
+                                        onChange: ({ value }) => value > row.sisa ? `Melebihi sisa PO (${formatNumber(row.sisa, 2)}).` : undefined
+                                      }}
+                                    >
                                       {(qtyField) => (
                                         <NumberInput
                                           label="Volume"

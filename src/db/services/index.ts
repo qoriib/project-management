@@ -2,4 +2,4 @@
  * Services Barrel Export.
  */
 
-export { getDashboardBOMReport, type DashboardBOMReportItem } from "./dashboard.service";
+export { getDashboardBOMReport, getDashboardItemLog, type DashboardBOMReportItem, type DashboardItemLogEntry } from "./dashboard.service";

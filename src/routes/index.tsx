@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { VStack, HStack, Card, Heading, Text, Section, Table, Grid, GridSpan } from "@astryxdesign/core";
+import { VStack, HStack, Card, Heading, Text, Section, Table, Grid, GridSpan, IconButton } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
@@ -8,10 +8,14 @@ import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/service
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { proportional, pixel } from "@astryxdesign/core/Table";
+import { Eye } from "lucide-react";
+import { DashboardItemLogDialog } from "@/components/dashboard/DashboardItemLogDialog";
 
 function Dashboard() {
   const [report, setReport] = useState<DashboardBOMReportItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [logItem, setLogItem] = useState<{ itemId: number, itemPriceId: number, itemName: string } | null>(null);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
@@ -74,24 +78,14 @@ function Dashboard() {
             )}
 
             {stages.map(stage => {
-              const stageData = report.filter(r => r.stage_name === stage);
-
-              const stageTotalBudget = stageData.reduce((sum, r) => sum + r.planned_budget, 0);
-              const stageDeliveredValue = stageData.reduce((sum, r) => {
-                const percentDelivered = r.planned_volume > 0 ? (r.total_delivered / r.planned_volume) : 0;
-                // Cap at 100% per item so over-delivery doesn't artificially inflate total progress
-                return sum + (Math.min(percentDelivered, 1) * r.planned_budget);
-              }, 0);
-              const stageProgressPercent = stageTotalBudget > 0 ? (stageDeliveredValue / stageTotalBudget) * 100 : 0;
+              const stageData = report.filter(r => r.stage_name === stage).map(r => ({
+                ...r,
+                unique_id: `${r.item_id}-${r.item_price_id}`
+              }));
 
               return (
                 <VStack key={stage} gap={3}>
-                  <HStack justify="between" align="center">
-                    <Heading level={4}>{stage}</Heading>
-                    <Text weight="medium" color="secondary">
-                      Progres: {stageProgressPercent.toFixed(1)}%
-                    </Text>
-                  </HStack>
+                  <Heading level={4}>{stage}</Heading>
                   <Card padding={0}>
                     <Table
                       columns={[
@@ -133,9 +127,19 @@ function Dashboard() {
                             );
                           }
                         },
+                        {
+                          key: "actions", header: "Aksi", width: pixel(80), align: "center", renderCell: (r: any) => (
+                            <IconButton
+                              icon={<Eye size={16} />}
+                              variant="ghost"
+                              onClick={() => setLogItem({ itemId: r.item_id, itemPriceId: r.item_price_id, itemName: r.item_name })}
+                              title="Lihat Log"
+                            />
+                          )
+                        }
                       ]}
                       data={stageData as any}
-                      idKey="item_name"
+                      idKey="unique_id"
                     />
                   </Card>
                 </VStack>
@@ -144,6 +148,17 @@ function Dashboard() {
           </>
         </ProjectRequired>
       </VStack>
+
+      {logItem && selectedProjectId && (
+        <DashboardItemLogDialog
+          isOpen={true}
+          onClose={() => setLogItem(null)}
+          projectId={selectedProjectId}
+          itemId={logItem.itemId}
+          itemPriceId={logItem.itemPriceId}
+          itemName={logItem.itemName}
+        />
+      )}
     </Section>
   );
 }

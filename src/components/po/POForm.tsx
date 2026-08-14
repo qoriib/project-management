@@ -6,7 +6,7 @@ import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { purchaseOrderRepo, itemPriceRepo, type ItemPrice } from "@/db/repositories";
 import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/services";
-import { formatRupiah, todayISO } from "@/utils/formatters";
+import { formatNumber, formatRupiah, todayISO } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { getFieldError } from "@/utils/form";
@@ -118,6 +118,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
             vendor_id: String(p.vendor_id || ""),
             item_price_id: String(p.item_price_id || ""),
             qty: p.qty,
+            original_qty: p.qty,
           })));
         }
       } else {
@@ -143,10 +144,10 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
             const b = bomOptions.find(bom => bom.item_id === it.item_id);
             const prices = priceCache.get(it.item_id) ?? [];
             const selectedPrice = prices.find(p => String(p.item_price_id) === it.item_price_id);
-            
+
             let planned_volume = 0;
             let total_ordered = 0;
-            
+
             if (it.item_price_id) {
               const matchingVariants = bomData.filter(bom => bom.item_id === it.item_id && String(bom.item_price_id) === it.item_price_id);
               planned_volume = matchingVariants.reduce((sum, v) => sum + v.planned_volume, 0);
@@ -157,6 +158,9 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
               total_ordered = allVariants.reduce((sum, v) => sum + v.total_ordered, 0);
             }
 
+            const original_qty = (it as any).original_qty || 0;
+            const sisaAwal = planned_volume - total_ordered + original_qty;
+
             return {
               ...it,
               item_name: b?.item_name || "",
@@ -164,6 +168,8 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
               price: selectedPrice?.price ?? 0,
               planned_volume,
               total_ordered,
+              original_qty,
+              sisaAwal,
             };
           });
 
@@ -251,14 +257,13 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                         key: "bom", header: "BOM (Sisa / Rencana)", width: pixel(180),
                         renderCell: (row: any) => {
                           if (!row.item_id) return null;
-                          let sisa = row.planned_volume - row.total_ordered;
-                          if (isEdit && row.po_item_id) {
-                            sisa += row.qty;
-                          }
-                          sisa = Math.max(0, sisa);
+                          const sisaAkhir = row.sisaAwal - row.qty;
+
                           return (
                             <VStack gap={0.5}>
-                              <Text size="sm">{sisa} {row.unit} (Sisa)</Text>
+                              <Text size="sm" weight="medium">
+                                {formatNumber(sisaAkhir, 2)} {row.unit} (Sisa)
+                              </Text>
                               <Text size="sm" color="secondary">Rencana: {row.planned_volume} {row.unit}</Text>
                             </VStack>
                           );
@@ -319,7 +324,12 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                         renderCell: (row: any) => {
                           const idx = resolvedItems.indexOf(row);
                           return (
-                            <form.Field name={`items[${idx}].qty`}>
+                            <form.Field 
+                              name={`items[${idx}].qty`}
+                              validators={{
+                                onChange: ({ value }) => value > row.sisaAwal ? `Melebihi sisa BOM (${formatNumber(row.sisaAwal, 2)}).` : undefined
+                              }}
+                            >
                               {(field) => (
                                 <NumberInput
                                   label="Volume"
