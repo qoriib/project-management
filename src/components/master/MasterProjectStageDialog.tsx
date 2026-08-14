@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton, Heading, Card } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core";
 import { useToast } from "@astryxdesign/core/Toast";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -175,10 +176,10 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
     <>
       <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
         <VStack gap={4}>
-          <HStack justify="between" align="center">
-            <Heading level={3}>Tahap: {project?.project_name}</Heading>
-            <IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />
-          </HStack>
+          <PageHeader
+            title={`Tahap: ${project?.project_name}`}
+            actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
+          />
 
           <Card>
             {loading ? (

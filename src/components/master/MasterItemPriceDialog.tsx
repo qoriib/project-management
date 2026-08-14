@@ -1,8 +1,9 @@
 import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton, Heading, Card } from "@astryxdesign/core";
+import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton, Card } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
@@ -150,10 +151,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     <>
       <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
         <VStack gap={4}>
-          <HStack justify="between" align="center">
-            <Heading level={3}>Harga: {item?.item_name}</Heading>
-            <IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />
-          </HStack>
+          <PageHeader
+            title={`Harga: ${item?.item_name}`}
+            actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
+          />
           <Card>
             <Table
               columns={columns as any}

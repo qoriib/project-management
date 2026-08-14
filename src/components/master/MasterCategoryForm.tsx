@@ -52,7 +52,9 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
       form.reset();
 
       if (initialData) {
-        form.setFieldValue("category_name", initialData.category_name);
+        form.reset({
+          category_name: initialData.category_name
+        })
       }
     }
   }, [isOpen, initialData]); // removed form from dep array as it is stable

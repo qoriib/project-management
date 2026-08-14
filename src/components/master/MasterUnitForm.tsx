@@ -49,9 +49,12 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
 
   useEffect(() => {
     if (isOpen) {
-      form.reset();
       if (initialData) {
-        form.setFieldValue("unit_name", initialData.unit_name);
+        form.reset({
+          unit_name: initialData.unit_name
+        });
+      } else {
+        form.reset();
       }
     }
   }, [isOpen, initialData]);

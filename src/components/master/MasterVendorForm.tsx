@@ -53,12 +53,14 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
 
   useEffect(() => {
     if (isOpen) {
-      form.reset();
-
       if (initialData) {
-        form.setFieldValue("vendor_name", initialData.vendor_name);
-        form.setFieldValue("phone", initialData.phone ?? "");
-        form.setFieldValue("address", initialData.address ?? "");
+        form.reset({
+          vendor_name: initialData.vendor_name,
+          phone: initialData.phone ?? "",
+          address: initialData.address ?? "",
+        });
+      } else {
+        form.reset();
       }
     }
   }, [isOpen, initialData]);

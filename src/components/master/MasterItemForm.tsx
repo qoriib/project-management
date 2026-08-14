@@ -59,15 +59,18 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
 
   useEffect(() => {
     if (isOpen) {
-      form.reset();
-
       if (initialData) {
-        form.setFieldValue("item_name", initialData.item_name);
-        form.setFieldValue("category_id", String(initialData.category_id));
-        form.setFieldValue("unit_id", String(initialData.unit_id));
+        form.reset({
+          item_name: initialData.item_name,
+          category_id: String(initialData.category_id),
+          unit_id: String(initialData.unit_id)
+        });
       } else {
-        form.setFieldValue("category_id", categories.length > 0 ? String(categories[0].category_id) : "");
-        form.setFieldValue("unit_id", units.length > 0 ? String(units[0].unit_id) : "");
+        form.reset({
+          item_name: "",
+          category_id: categories.length > 0 ? String(categories[0].category_id) : "",
+          unit_id: units.length > 0 ? String(units[0].unit_id) : ""
+        });
       }
     }
   }, [isOpen, initialData, categories, units]);

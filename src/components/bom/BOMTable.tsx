@@ -1,8 +1,9 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { HStack, Table, Text, VStack, Heading, Card, IconButton } from "@astryxdesign/core";
+import { HStack, Table, Text, VStack, Heading, Card, IconButton, Divider } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { bomRepo, type BOMDetail } from "@/db/repositories";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
@@ -47,62 +48,79 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
   }
 
   const columns = [
-    { key: "item_name", header: "Material/Alat", width: proportional(1.5) },
     {
-      key: "qty", header: "Volume Rencana", width: pixel(140),
+      key: "item_id",
+      header: "Kode",
+      width: pixel(100),
+      renderCell: (row: BOMDetail) => `BRG-${String(row.item_id).padStart(4, '0')}`
+    },
+    {
+      key: "item_name",
+      header: "Item",
+      width: proportional(1)
+    },
+    {
+      key: "qty",
+      header: "Volume Rencana",
+      width: pixel(140),
       renderCell: (row: BOMDetail) => `${formatNumber(row.qty, 2)} ${row.unit || ""}`
     },
     {
-      key: "price", header: "Harga Rencana", width: pixel(150),
+      key: "price",
+      header: "Harga Rencana",
+      width: pixel(160),
       renderCell: (row: BOMDetail) => formatRupiah(row.price)
     },
     {
-      key: "total_estimasi", header: "Total Estimasi", width: pixel(160),
-      renderCell: (row: BOMDetail) => <Text size="sm" weight="semibold">{formatRupiah(row.total_estimasi || 0)}</Text>,
+      key: "total_estimasi",
+      header: "Total Estimasi",
+      width: pixel(180),
+      renderCell: (row: BOMDetail) => formatRupiah(row.total_estimasi || 0),
     },
-    ...(stageId ? [{
-      key: "actions", header: "", width: pixel(140),
+    {
+      key: "actions", header: "", width: pixel(100),
       renderCell: (row: BOMDetail) => (
-        <HStack gap={1}>
-          <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => onEdit(row.bom_id, row)} />
-          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  onClick={() => setDeleteTarget(row.bom_id)} />
+        <HStack gap={2} justify="end">
+          <IconButton
+            size="sm"
+            variant="secondary"
+            label="Edit"
+            icon={<Pencil size={16} />}
+            onClick={() => onEdit(row.bom_id, row)}
+          />
+          <IconButton
+            size="sm"
+            variant="destructive"
+            label="Hapus"
+            icon={<Trash2 size={16} />}
+            onClick={() => setDeleteTarget(row.bom_id)}
+          />
         </HStack>
       ),
-    }] : []),
+    },
   ];
 
-  // Process BOMs: if no stageId (Semua tab), aggregate by item_price_id
-  const processedBoms = stageId ? boms : Object.values(boms.reduce((acc, curr) => {
-    const key = `${curr.item_id}-${curr.price}`;
-    if (!acc[key]) {
-      acc[key] = { ...curr };
-    } else {
-      acc[key].qty += curr.qty;
-      acc[key].total_estimasi = (acc[key].total_estimasi || 0) + (curr.total_estimasi || 0);
-    }
-    return acc;
-  }, {} as Record<string, BOMDetail>));
-
-  const groupedBoms = processedBoms.reduce((acc, curr) => {
+  const groupedBoms = boms.reduce((acc, curr) => {
     const cat = curr.category || "LAINNYA";
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(curr);
     return acc;
   }, {} as Record<string, BOMDetail[]>);
 
-  if (processedBoms.length === 0) {
+  if (boms.length === 0) {
     return (
-      <Card padding={8}>
-        <VStack align="center">
-          <Text color="secondary">
-            Belum ada rencana material di tahap ini. Isi form di bawah untuk mulai menambahkan.
-          </Text>
-        </VStack>
+      <Card>
+        <Table
+          columns={columns as any}
+          data={[]}
+          idKey="bom_id"
+          emptyState={<TableEmptyState message="Belum ada rencana material di tahap ini. Isi form di bawah untuk mulai menambahkan." />}
+        />
       </Card>
     );
   }
 
-  const grandTotal = processedBoms.reduce((acc, curr) => acc + (curr.total_estimasi || 0), 0);
+  const grandTotal = boms.reduce((acc, curr) => acc + (curr.total_estimasi || 0), 0);
 
   return (
     <VStack gap={6}>
@@ -114,7 +132,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
               <Heading level={4}>{category}</Heading>
               <Text weight="bold" color="primary">{formatRupiah(subtotal)}</Text>
             </HStack>
-            <Card padding={0}>
+            <Card>
               <Table
                 columns={columns as any}
                 data={items as any}
@@ -125,14 +143,13 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
           </VStack>
         );
       })}
-
-      <HStack justify="end" padding={4} style={{ borderTop: "2px solid var(--color-border)", marginTop: 16 }}>
-        <Text weight="bold" size="lg">Total Keseluruhan:</Text>
-        <Text weight="bold" size="lg" color="primary" style={{ marginLeft: 16, width: 140 }}>
+      <Divider />
+      <HStack justify="end" gap={2}>
+        <Text weight="bold" size="lg">Total:</Text>
+        <Text weight="bold" size="lg" color="primary">
           {formatRupiah(grandTotal)}
         </Text>
       </HStack>
-
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

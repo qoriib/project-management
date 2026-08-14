@@ -54,14 +54,18 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
 
   useEffect(() => {
     if (isOpen) {
-      form.reset();
-
       if (initialData) {
-        form.setFieldValue("project_name", initialData.project_name);
-        form.setFieldValue("company_name", initialData.company_name);
-        form.setFieldValue("fiscal_year", initialData.fiscal_year);
+        form.reset({
+          project_name: initialData.project_name,
+          company_name: initialData.company_name,
+          fiscal_year: initialData.fiscal_year,
+        });
       } else {
-        form.setFieldValue("fiscal_year", new Date().getFullYear());
+        form.reset({
+          project_name: "",
+          company_name: "",
+          fiscal_year: new Date().getFullYear(),
+        });
       }
     }
   }, [isOpen, initialData]);
