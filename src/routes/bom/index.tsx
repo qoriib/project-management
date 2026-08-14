@@ -95,7 +95,6 @@ function BOMPage() {
               <BOMForm
                 stageId={editData?.stage_id || Number(activeTab)}
                 initialData={editData}
-                isInline
                 onSuccess={handleSuccess}
                 onCancel={handleCancelEdit}
               />

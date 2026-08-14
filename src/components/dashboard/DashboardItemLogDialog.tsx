@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Dialog, Table, Text, VStack, Badge } from "@astryxdesign/core";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { getDashboardItemLog, type DashboardItemLogEntry } from "@/db/services";
 import { formatNumber, formatDate } from "@/utils/formatters";
@@ -38,16 +39,16 @@ export function DashboardItemLogDialog({
       isOpen={isOpen} 
       onOpenChange={(open) => !open && onClose()}
       width={700}
-      title={`Log Item: ${itemName}`}
     >
       <VStack gap={4}>
+        <PageHeader title={`Log Item: ${itemName}`} />
         <Table
           columns={[
             {
               key: "date",
               header: "Tanggal",
               width: pixel(120),
-              renderCell: (r: DashboardItemLogEntry) => (
+              renderCell: (r: any) => (
                 <Text size="sm">{formatDate(r.date)}</Text>
               )
             },
@@ -55,7 +56,7 @@ export function DashboardItemLogDialog({
               key: "type",
               header: "Tipe",
               width: pixel(100),
-              renderCell: (r: DashboardItemLogEntry) => (
+              renderCell: (r: any) => (
                 <Badge variant={r.type === 'PO' ? 'info' : 'success'} label={r.type} />
               )
             },
@@ -63,7 +64,7 @@ export function DashboardItemLogDialog({
               key: "reference",
               header: "Referensi",
               width: proportional(1),
-              renderCell: (r: DashboardItemLogEntry) => (
+              renderCell: (r: any) => (
                 <Text weight="medium">{r.reference}</Text>
               )
             },
@@ -71,7 +72,7 @@ export function DashboardItemLogDialog({
               key: "qty",
               header: "Volume",
               width: pixel(100),
-              renderCell: (r: DashboardItemLogEntry) => (
+              renderCell: (r: any) => (
                 <Text>{formatNumber(r.qty, 2)}</Text>
               )
             },
@@ -79,7 +80,7 @@ export function DashboardItemLogDialog({
               key: "vendor",
               header: "Vendor",
               width: proportional(1),
-              renderCell: (r: DashboardItemLogEntry) => (
+              renderCell: (r: any) => (
                 <Text>{r.vendor_name || '-'}</Text>
               )
             }
@@ -88,7 +89,9 @@ export function DashboardItemLogDialog({
           idKey="reference"
         />
         {logs.length === 0 && !loading && (
-          <Text color="secondary" align="center" style={{ marginTop: 16 }}>Belum ada log PO atau Pengiriman untuk item ini.</Text>
+          <VStack align="center" style={{ marginTop: 16 }}>
+            <Text color="secondary">Belum ada log PO atau Pengiriman untuk item ini.</Text>
+          </VStack>
         )}
       </VStack>
     </Dialog>

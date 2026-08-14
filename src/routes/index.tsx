@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { VStack, HStack, Card, Heading, Text, Section, Table, Grid, GridSpan, IconButton } from "@astryxdesign/core";
+import { VStack, Card, Heading, Text, Section, Table, Grid, GridSpan, IconButton } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
@@ -133,7 +133,7 @@ function Dashboard() {
                               icon={<Eye size={16} />}
                               variant="ghost"
                               onClick={() => setLogItem({ itemId: r.item_id, itemPriceId: r.item_price_id, itemName: r.item_name })}
-                              title="Lihat Log"
+                              label="Lihat Log"
                             />
                           )
                         }

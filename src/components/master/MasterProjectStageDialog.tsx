@@ -1,6 +1,6 @@
 import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton, Heading, Card } from "@astryxdesign/core";
+import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton, Card } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
