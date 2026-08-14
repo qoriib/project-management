@@ -10,10 +10,10 @@ import { useAppStore } from "@/store/useAppStore";
 
 function BOMPage() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
   const [stages, setStages] = useState<ProjectStageWithProject[]>([]);
   const [activeTab, setActiveTab] = useState<string>("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
   const [editData, setEditData] = useState<BOMDetail | undefined>(undefined);
 
   async function loadStages() {

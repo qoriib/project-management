@@ -25,12 +25,12 @@ interface BOMFormProps {
 }
 
 export function BOMForm({ stageId, initialData, isDisabled, onSuccess, onCancel }: BOMFormProps) {
+  const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
   const { items } = useMasterStore();
   const [existingBoms, setExistingBoms] = useState<BillOfMaterial[]>([]);
   const [priceOptions, setPriceOptions] = useState<{ value: string; label: string }[]>([]);
-
-  const showToast = useToast();
 
   const form = useForm({
     defaultValues: {

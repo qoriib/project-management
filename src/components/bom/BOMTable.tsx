@@ -1,12 +1,14 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { HStack, Table, Text, VStack, Heading, Card, IconButton, Divider } from "@astryxdesign/core";
-import { proportional, pixel } from "@astryxdesign/core/Table";
+import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { bomRepo, type BOMDetail } from "@/db/repositories";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
+
+type BomRow = BOMDetail & Record<string, unknown>;
 
 interface BOMTableProps {
   stageId?: number;
@@ -33,11 +35,15 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
     setBOMs(b);
   }
 
-  useEffect(() => { load(); }, [refreshTrigger, selectedProjectId, stageId]);
+  useEffect(() => {
+    load();
+  }, [refreshTrigger, selectedProjectId, stageId]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
+
     setDeleting(true);
+
     try {
       await bomRepo.delete(deleteTarget);
       setDeleteTarget(null);
@@ -47,12 +53,12 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
     }
   }
 
-  const columns = [
+  const columns: TableColumn<BomRow>[] = [
     {
       key: "item_id",
       header: "Kode",
       width: pixel(100),
-      renderCell: (row: BOMDetail) => `BRG-${String(row.item_id).padStart(4, '0')}`
+      renderCell: (row: BomRow) => `BRG-${String(row.item_id).padStart(4, '0')}`
     },
     {
       key: "item_name",
@@ -63,23 +69,23 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
       key: "qty",
       header: "Volume Rencana",
       width: pixel(140),
-      renderCell: (row: BOMDetail) => `${formatNumber(row.qty, 2)} ${row.unit || ""}`
+      renderCell: (row: BomRow) => `${formatNumber(row.qty, 2)} ${row.unit || ""}`
     },
     {
       key: "price",
       header: "Harga Rencana",
       width: pixel(160),
-      renderCell: (row: BOMDetail) => formatRupiah(row.price)
+      renderCell: (row: BomRow) => formatRupiah(row.price)
     },
     {
       key: "total_estimasi",
       header: "Total Estimasi",
       width: pixel(180),
-      renderCell: (row: BOMDetail) => formatRupiah(row.total_estimasi || 0),
+      renderCell: (row: BomRow) => formatRupiah(row.total_estimasi || 0),
     },
     {
       key: "actions", header: "", width: pixel(100),
-      renderCell: (row: BOMDetail) => (
+      renderCell: (row: BomRow) => (
         <HStack gap={2} justify="end">
           <IconButton
             size="sm"
@@ -111,8 +117,8 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
     return (
       <Card>
         <Table
-          columns={columns as any}
-          data={[]}
+          columns={columns}
+          data={[] as BomRow[]}
           idKey="bom_id"
           emptyState={<TableEmptyState message="Belum ada rencana material di tahap ini. Isi form di bawah untuk mulai menambahkan." />}
         />
@@ -134,8 +140,8 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
             </HStack>
             <Card>
               <Table
-                columns={columns as any}
-                data={items as any}
+                columns={columns}
+                data={items as BomRow[]}
                 idKey="bom_id"
                 hasHover
               />
