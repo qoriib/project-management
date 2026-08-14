@@ -1,13 +1,22 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton } from "@astryxdesign/core";
+import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton, Heading, Card } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { proportional } from "@astryxdesign/core/Table";
+import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { FormLayout } from "@astryxdesign/core/FormLayout";
+import { pixel, proportional } from "@astryxdesign/core/Table";
 import { formatRupiah } from "@/utils/formatters";
 import { itemPriceRepo, type ItemPriceWithRelation } from "@/db/repositories";
+import { useForm } from "@tanstack/react-form";
+import { getFieldError } from "@/utils/form";
 import type { ItemPrice, ItemWithDetails } from "@/db/repositories";
+import * as v from "valibot";
+
+const priceSchema = v.object({
+  price: v.pipe(v.number("Harga harus berupa angka"), v.minValue(0, "Harga tidak valid.")),
+});
 
 interface MasterItemPriceDialogProps {
   isOpen: boolean;
@@ -18,13 +27,39 @@ interface MasterItemPriceDialogProps {
 export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPriceDialogProps) {
   const showToast = useToast();
 
-  const [priceInput, setPriceInput] = useState<number | null>(null);
   const [editTarget, setEditTarget] = useState<ItemPriceWithRelation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null);
-  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const [prices, setPrices] = useState<ItemPriceWithRelation[]>([]);
+
+  const form = useForm({
+    defaultValues: {
+      price: null as unknown as number,
+    },
+    validators: {
+      onChange: priceSchema,
+    },
+    onSubmit: async ({ value }) => {
+      if (!item) return;
+
+      try {
+        if (editTarget) {
+          await itemPriceRepo.update(editTarget.item_price_id, { price: value.price });
+          showToast({ body: "Harga berhasil diubah.", type: "info" });
+        } else {
+          await itemPriceRepo.create({ item_id: item.item_id, price: value.price });
+          showToast({ body: "Harga berhasil ditambahkan.", type: "info" });
+        }
+
+        form.reset();
+        setEditTarget(null);
+        await loadPrices();
+      } catch (err: any) {
+        showToast({ body: err.message || "Gagal menyimpan harga.", type: "error" });
+      }
+    }
+  });
 
   async function loadPrices() {
     if (!item) return;
@@ -39,7 +74,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   useEffect(() => {
     if (isOpen && item) {
-      setPriceInput(null);
+      form.reset();
       setEditTarget(null);
       loadPrices();
     }
@@ -47,42 +82,12 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   function startEdit(price: ItemPriceWithRelation) {
     setEditTarget(price);
-    setPriceInput(price.price);
+    form.setFieldValue("price", price.price);
   }
 
   function cancelEdit() {
     setEditTarget(null);
-    setPriceInput(null);
-  }
-
-  async function handleSave() {
-    if (!item) return;
-
-    if (priceInput == null || priceInput < 0) {
-      showToast({ body: "Harga tidak valid.", type: "error" });
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      if (editTarget) {
-        await itemPriceRepo.update(editTarget.item_price_id, { price: priceInput });
-        showToast({ body: "Harga berhasil diubah.", type: "info" });
-      } else {
-        await itemPriceRepo.create({ item_id: item.item_id, price: priceInput });
-        showToast({ body: "Harga berhasil ditambahkan.", type: "info" });
-      }
-
-      setPriceInput(null);
-      setEditTarget(null);
-
-      await loadPrices();
-    } catch (err: any) {
-      showToast({ body: err.message || "Gagal menyimpan harga.", type: "error" });
-    } finally {
-      setSaving(false);
-    }
+    form.reset();
   }
 
   async function handleDelete() {
@@ -104,7 +109,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     {
       key: "item_price_id",
       header: "#",
-      width: proportional(0.5),
+      width: pixel(60),
       renderCell: (row: ItemPrice) => (
         <Text size="sm" color="secondary">{String(row.item_price_id).padStart(3, "0")}</Text>
       ),
@@ -123,11 +128,11 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     {
       key: "actions",
       header: "",
-      width: proportional(1.5),
+      width: pixel(100),
       renderCell: (row: ItemPriceWithRelation) => {
         const locked = row.has_relation;
         return (
-          <HStack gap={1}>
+          <HStack justify="end" gap={1}>
             <IconButton size="sm" variant="secondary" icon={<Pencil size={16} />} label="Edit" onClick={() => startEdit(row)} isDisabled={locked} />
             <IconButton size="sm"
               variant="destructive"
@@ -143,56 +148,70 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
         <VStack gap={4}>
-          {/* Inline form for add / edit */}
-          <VStack gap={2}>
-            <HStack gap={3} align="end">
-              <div style={{ flex: 1 }}>
-                <NumberInput
-                  label="Harga (Rp)"
-                  placeholder="Contoh: 50000"
-                  value={priceInput}
-                  onChange={(v) => setPriceInput(v ?? null)}
-                  isRequired
-                  min={0}
-                />
-              </div>
-              <HStack gap={2}>
-                <Button
-                  variant="primary"
-                  label={editTarget ? "Simpan" : "Tambah"}
-                  onClick={handleSave}
-                  isLoading={saving}
-                  isDisabled={priceInput == null}
-                />
-                {editTarget && (
-                  <Button variant="secondary" label="Batal" onClick={cancelEdit} />
-                )}
-              </HStack>
-            </HStack>
-          </VStack>
-
-          {/* Price list table */}
-          {prices.length > 0 ? (
+          <HStack justify="between" align="center">
+            <Heading level={3}>Harga: {item?.item_name}</Heading>
+            <IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />
+          </HStack>
+          <Card>
             <Table
               columns={columns as any}
               data={prices as any}
               idKey="item_price_id"
               textOverflow="truncate"
+              emptyState={<TableEmptyState message="Belum ada harga. Tambahkan di bawah." />}
             />
-          ) : (
-            <VStack align="center" padding={4}>
-              <Text color="secondary" size="sm">Belum ada harga. Tambahkan di atas.</Text>
-            </VStack>
-          )}
-
-          <HStack justify="end">
-            <Button variant="secondary" label="Tutup" onClick={onClose} />
-          </HStack>
+          </Card>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+          >
+            <Card>
+              <VStack gap={3}>
+                <FormLayout>
+                  <form.Field
+                    name="price"
+                    children={(field) => (
+                      <NumberInput
+                        label="Harga (Rp)"
+                        placeholder="Contoh: 50000"
+                        value={field.state.value}
+                        onChange={(val) => field.handleChange(val ?? (null as unknown as number))}
+                        onBlur={field.handleBlur}
+                        isRequired
+                        min={0}
+                        statusVariant="attached"
+                        status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                      />
+                    )}
+                  />
+                </FormLayout>
+                <HStack justify="end" gap={2}>
+                  {editTarget && (
+                    <Button type="button" variant="secondary" label="Batal" onClick={cancelEdit} />
+                  )}
+                  <form.Subscribe
+                    selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                    children={([canSubmit, isSubmitting]) => (
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        label={editTarget ? "Simpan" : "Tambah"}
+                        isLoading={isSubmitting}
+                        isDisabled={!canSubmit}
+                      />
+                    )}
+                  />
+                </HStack>
+              </VStack>
+            </Card>
+          </form>
         </VStack>
       </Dialog>
-
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

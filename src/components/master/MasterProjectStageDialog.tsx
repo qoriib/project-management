@@ -1,11 +1,20 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton } from "@astryxdesign/core";
+import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton, Heading, Card } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core";
 import { useToast } from "@astryxdesign/core/Toast";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { proportional } from "@astryxdesign/core/Table";
+import { FormLayout } from "@astryxdesign/core/FormLayout";
+import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { pixel, proportional } from "@astryxdesign/core/Table";
 import { projectRepo, type StageRelation, type Project } from "@/db/repositories";
+import { useForm } from "@tanstack/react-form";
+import { getFieldError } from "@/utils/form";
+import * as v from "valibot";
+
+const stageSchema = v.object({
+  stage_name: v.pipe(v.string(), v.nonEmpty("Nama tahap harus diisi.")),
+});
 
 interface MasterProjectStageDialogProps {
   isOpen: boolean;
@@ -19,12 +28,49 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
   const [stages, setStages] = useState<StageRelation[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [stageInput, setStageInput] = useState("");
   const [editTarget, setEditTarget] = useState<StageRelation | null>(null);
-  const [saving, setSaving] = useState(false);
-
   const [deleteTarget, setDeleteTarget] = useState<StageRelation | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const form = useForm({
+    defaultValues: {
+      stage_name: "",
+    },
+    validators: {
+      onChange: stageSchema,
+    },
+    onSubmit: async ({ value }) => {
+      if (!project) return;
+
+      const name = value.stage_name.trim();
+      if (!name) return;
+
+      try {
+        if (editTarget) {
+          await projectRepo.saveStages(project.project_id, [
+            ...stages.map(s =>
+              s.stage_id === editTarget.stage_id
+                ? { stage_id: s.stage_id, stage_name: name }
+                : { stage_id: s.stage_id, stage_name: s.stage_name }
+            )
+          ]);
+          showToast({ body: "Tahap berhasil diubah.", type: "info" });
+        } else {
+          await projectRepo.saveStages(project.project_id, [
+            ...stages.map(s => ({ stage_id: s.stage_id, stage_name: s.stage_name })),
+            { stage_name: name }
+          ]);
+          showToast({ body: "Tahap berhasil ditambahkan.", type: "info" });
+        }
+
+        form.reset();
+        setEditTarget(null);
+        await loadStages();
+      } catch (err: any) {
+        showToast({ body: err.message || "Gagal menyimpan tahap.", type: "error" });
+      }
+    }
+  });
 
   async function loadStages() {
     if (!project) return;
@@ -43,7 +89,7 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
 
   useEffect(() => {
     if (isOpen && project) {
-      setStageInput("");
+      form.reset();
       setEditTarget(null);
       loadStages();
     }
@@ -51,49 +97,12 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
 
   function startEdit(stage: StageRelation) {
     setEditTarget(stage);
-    setStageInput(stage.stage_name);
+    form.setFieldValue("stage_name", stage.stage_name);
   }
 
   function cancelEdit() {
     setEditTarget(null);
-    setStageInput("");
-  }
-
-  async function handleSave() {
-    if (!project) return;
-
-    const name = stageInput.trim();
-
-    if (!name) return;
-
-    setSaving(true);
-    try {
-      if (editTarget) {
-        // Update existing stage name
-        await projectRepo.saveStages(project.project_id, [
-          ...stages.map(s =>
-            s.stage_id === editTarget.stage_id
-              ? { stage_id: s.stage_id, stage_name: name }
-              : { stage_id: s.stage_id, stage_name: s.stage_name }
-          )
-        ]);
-        showToast({ body: "Tahap berhasil diubah.", type: "info" });
-      } else {
-        // Add new stage
-        await projectRepo.saveStages(project.project_id, [
-          ...stages.map(s => ({ stage_id: s.stage_id, stage_name: s.stage_name })),
-          { stage_name: name }
-        ]);
-        showToast({ body: "Tahap berhasil ditambahkan.", type: "info" });
-      }
-      setStageInput("");
-      setEditTarget(null);
-      await loadStages();
-    } catch (err: any) {
-      showToast({ body: err.message || "Gagal menyimpan tahap.", type: "error" });
-    } finally {
-      setSaving(false);
-    }
+    form.reset();
   }
 
   async function handleDelete() {
@@ -121,7 +130,7 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
     {
       key: "stage_id",
       header: "#",
-      width: proportional(0.5),
+      width: pixel(60),
       renderCell: (row: StageRelation) => (
         <Text size="sm" color="secondary">{String(row.stage_id).padStart(3, "0")}</Text>
       ),
@@ -140,16 +149,15 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
     {
       key: "actions",
       header: "",
-      width: proportional(1.5),
+      width: pixel(100),
       renderCell: (row: StageRelation) => {
         const locked = row.has_relation;
         return (
-          <HStack gap={1}>
+          <HStack justify="end" gap={1}>
             <IconButton size="sm"
               variant="secondary"
               icon={<Pencil size={16} />} label="Edit"
               onClick={() => startEdit(row)}
-              isDisabled={locked}
             />
             <IconButton size="sm"
               variant="destructive"
@@ -165,54 +173,75 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
         <VStack gap={4}>
-          {/* Inline form for add / edit */}
-          <VStack gap={2}>
-            <HStack gap={3} align="end">
-              <div style={{ flex: 1 }}>
-                <TextInput
-                  label="Nama Tahap"
-                  placeholder="Contoh: Perencanaan"
-                  value={stageInput}
-                  onChange={(v) => setStageInput(v)}
-                  isRequired
-                />
-              </div>
-              <HStack gap={2}>
-                <Button
-                  variant="primary"
-                  label={editTarget ? "Simpan" : "Tambah"}
-                  onClick={handleSave}
-                  isLoading={saving}
-                  isDisabled={!stageInput.trim()}
-                />
-                {editTarget && (
-                  <Button variant="secondary" label="Batal" onClick={cancelEdit} />
-                )}
-              </HStack>
-            </HStack>
-          </VStack>
-
-          {/* Stage list table */}
-          {loading ? (
-            <Text size="sm" color="secondary">Memuat data tahap...</Text>
-          ) : stages.length > 0 ? (
-            <Table
-              columns={columns as any}
-              data={stages as any}
-              idKey="stage_id"
-              textOverflow="truncate"
-            />
-          ) : (
-            <VStack align="center" padding={4}>
-              <Text color="secondary" size="sm">Belum ada tahap. Tambahkan di atas.</Text>
-            </VStack>
-          )}
-
-          <HStack justify="end">
-            <Button variant="secondary" label="Tutup" onClick={onClose} />
+          <HStack justify="between" align="center">
+            <Heading level={3}>Tahap: {project?.project_name}</Heading>
+            <IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />
           </HStack>
+
+          <Card>
+            {loading ? (
+              <VStack align="center" padding={4}>
+                <Text size="sm" color="secondary">Memuat data tahap...</Text>
+              </VStack>
+            ) : (
+              <Table
+                columns={columns as any}
+                data={stages as any}
+                idKey="stage_id"
+                textOverflow="truncate"
+                emptyState={<TableEmptyState message="Belum ada tahap. Tambahkan di bawah." />}
+              />
+            )}
+          </Card>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+          >
+            <Card>
+              <VStack gap={3}>
+                <FormLayout>
+                  <form.Field
+                    name="stage_name"
+                    children={(field) => (
+                      <TextInput
+                        label="Nama Tahap"
+                        placeholder="Contoh: Perencanaan"
+                        value={field.state.value}
+                        onChange={(val) => field.handleChange(val)}
+                        onBlur={field.handleBlur}
+                        isRequired
+                        statusVariant="attached"
+                        status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                      />
+                    )}
+                  />
+                </FormLayout>
+                <HStack justify="end" gap={2}>
+                  {editTarget && (
+                    <Button type="button" variant="secondary" label="Batal" onClick={cancelEdit} />
+                  )}
+                  <form.Subscribe
+                    selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                    children={([canSubmit, isSubmitting]) => (
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        label={editTarget ? "Simpan" : "Tambah"}
+                        isLoading={isSubmitting}
+                        isDisabled={!canSubmit}
+                      />
+                    )}
+                  />
+                </HStack>
+              </VStack>
+            </Card>
+          </form>
         </VStack>
       </Dialog>
 
