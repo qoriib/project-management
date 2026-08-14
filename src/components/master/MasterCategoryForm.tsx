@@ -57,7 +57,7 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
         })
       }
     }
-  }, [isOpen, initialData]); // removed form from dep array as it is stable
+  }, [isOpen, initialData]);
 
   return (
     <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>

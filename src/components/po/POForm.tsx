@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
-import { VStack, HStack, Button, Selector, Table, Text, Divider, Heading, Card, IconButton } from "@astryxdesign/core";
+import { VStack, HStack, Button, Text, Divider, Heading, Card, Table, Selector, IconButton } from "@astryxdesign/core";
+import { Banner } from "@astryxdesign/core/Banner";
 import { DateInput } from "@astryxdesign/core/DateInput";
+import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
-import { proportional, pixel } from "@astryxdesign/core/Table";
-import { purchaseOrderRepo, itemPriceRepo, type ItemPrice } from "@/db/repositories";
+import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
+import { useToast } from "@astryxdesign/core/Toast";
+import { purchaseOrderRepo, itemPriceRepo, type ItemPrice, type POItemInput } from "@/db/repositories";
 import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/services";
 import { formatNumber, formatRupiah, todayISO } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
@@ -29,6 +32,21 @@ const poSchema = v.object({
   )
 });
 
+export type POItemRow = {
+  po_item_id: number;
+  item_id: number;
+  vendor_id: string;
+  item_price_id: string;
+  qty: number;
+  item_name: string;
+  unit: string;
+  price: number;
+  planned_volume: number;
+  total_ordered: number;
+  original_qty: number;
+  sisaAwal: number;
+} & Record<string, unknown>;
+
 interface POFormProps {
   initialEditId?: number;
   onSuccess: () => void;
@@ -36,12 +54,14 @@ interface POFormProps {
 }
 
 export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
+  const showToast = useToast();
+
   const isEdit = !!initialEditId;
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
   const { vendors } = useMasterStore();
   const [bomData, setBomData] = useState<DashboardBOMReportItem[]>([]);
   const [loading, setLoading] = useState(true);
-  /** item_id → ItemPrice[] cache to avoid re-fetching */
   const [priceCache, setPriceCache] = useState<Map<number, ItemPrice[]>>(new Map());
 
   const form = useForm({
@@ -53,30 +73,38 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         vendor_id: string;
         item_price_id: string;
         qty: number;
+        original_qty?: number;
       }[],
     },
     validators: {
       onChange: poSchema,
     },
     onSubmit: async ({ value }) => {
-      const poData = {
-        po_date: value.poDate,
-        project_id: selectedProjectId!,
-      };
-      const poItems = value.items.map((it) => ({
-        po_item_id: it.po_item_id || undefined,
-        item_id: it.item_id,
-        vendor_id: Number(it.vendor_id),
-        item_price_id: Number(it.item_price_id),
-        qty: it.qty,
-      }));
+      try {
+        const poData = {
+          po_date: value.poDate,
+          project_id: selectedProjectId!,
+        };
+        const poItems: POItemInput[] = value.items.map((it) => ({
+          po_item_id: it.po_item_id || undefined,
+          item_id: it.item_id,
+          vendor_id: Number(it.vendor_id),
+          item_price_id: Number(it.item_price_id),
+          qty: it.qty,
+        }));
 
-      if (isEdit) {
-        await purchaseOrderRepo.updateWithItems(initialEditId, poData, poItems as any);
-      } else {
-        await purchaseOrderRepo.createWithItems(poData, poItems as any);
+        if (isEdit) {
+          await purchaseOrderRepo.updateWithItems(initialEditId, poData, poItems);
+          showToast({ body: "PO berhasil diperbarui", type: "info" });
+        } else {
+          await purchaseOrderRepo.createWithItems(poData, poItems);
+          showToast({ body: "PO berhasil dibuat", type: "info" });
+        }
+        onSuccess();
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : "Terjadi kesalahan";
+        showToast({ body: msg, type: "error" });
       }
-      onSuccess();
     },
   });
 
@@ -96,38 +124,46 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
       }
 
       const bom = await getDashboardBOMReport(selectedProjectId);
+
       setBomData(bom);
 
       if (isEdit) {
         const po = await purchaseOrderRepo.findByIdWithSummary(initialEditId);
         const poItems = await purchaseOrderRepo.findItems(initialEditId);
         if (po) {
-          form.setFieldValue("poDate", po.po_date);
           // Pre-load price variants for all items
           const allItemIds = [...new Set(poItems.map(p => p.item_id).filter(Boolean) as number[])];
           const cache = new Map<number, ItemPrice[]>();
+
           await Promise.all(allItemIds.map(async id => {
             const prices = await itemPriceRepo.findByItem(id);
             cache.set(id, prices);
           }));
+
           setPriceCache(cache);
 
-          form.setFieldValue("items", poItems.map(p => ({
-            po_item_id: p.po_item_id,
-            item_id: p.item_id || 0,
-            vendor_id: String(p.vendor_id || ""),
-            item_price_id: String(p.item_price_id || ""),
-            qty: p.qty,
-            original_qty: p.qty,
-          })));
+          form.reset({
+            poDate: po.po_date,
+            items: poItems.map(p => ({
+              po_item_id: p.po_item_id,
+              item_id: p.item_id || 0,
+              vendor_id: String(p.vendor_id || ""),
+              item_price_id: String(p.item_price_id || ""),
+              qty: p.qty,
+              original_qty: p.qty,
+            }))
+          });
         }
       } else {
-        form.setFieldValue("items", []);
+        form.reset({
+          poDate: todayISO(),
+          items: []
+        });
       }
       setLoading(false);
     }
     loadData();
-  }, [isEdit, initialEditId, form, selectedProjectId]);
+  }, [isEdit, initialEditId, selectedProjectId]); // removed form from dep array as it is stable
 
   if (loading) return <VStack padding={4}><Text>Memuat data...</Text></VStack>;
 
@@ -158,7 +194,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
               total_ordered = allVariants.reduce((sum, v) => sum + v.total_ordered, 0);
             }
 
-            const original_qty = (it as any).original_qty || 0;
+            const original_qty = it.original_qty || 0;
             const sisaAwal = planned_volume - total_ordered + original_qty;
 
             return {
@@ -174,204 +210,267 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           });
 
           const total = resolvedItems.reduce((sum, it) => sum + (it.qty * it.price), 0);
+          
+          const columns: TableColumn<POItemRow>[] = [
+            {
+              key: "item",
+              header: "Item",
+              width: proportional(1),
+              renderCell: (row: POItemRow) => {
+                const idx = resolvedItems.indexOf(row);
+                return (
+                  <form.Field name={`items[${idx}].item_id`}>
+                    {(field) => (
+                      <Selector
+                        label="Barang"
+                        isLabelHidden
+                        options={[
+                          { value: "0", label: "Pilih Material..." },
+                          ...bomOptions.map((b) => ({
+                            value: String(b.item_id),
+                            label: `${b.item_name} (${b.unit})`,
+                          })),
+                        ]}
+                        value={String(field.state.value)}
+                        onChange={async (v: string) => {
+                          const id = Number(v);
+                          field.handleChange(id);
+                          if (id) {
+                            await getPricesForItem(id);
+                            const bomItem = bomOptions.find((b) => b.item_id === id);
+                            if (bomItem && bomItem.item_price_id) {
+                              form.setFieldValue(
+                                `items[${idx}].item_price_id`,
+                                String(bomItem.item_price_id)
+                              );
+                            } else {
+                              form.setFieldValue(`items[${idx}].item_price_id`, "");
+                            }
+                          } else {
+                            form.setFieldValue(`items[${idx}].item_price_id`, "");
+                          }
+                        }}
+                        onBlur={field.handleBlur}
+                        statusVariant="attached"
+                        status={getFieldError(
+                          field.state.meta.errors,
+                          !!field.state.meta.isTouched
+                        )}
+                      />
+                    )}
+                  </form.Field>
+                );
+              },
+            },
+            {
+              key: "bom",
+              header: "BOM (Sisa / Rencana)",
+              width: pixel(180),
+              renderCell: (row: POItemRow) => {
+                if (!row.item_id) return null;
+                const sisaAkhir = row.sisaAwal - row.qty;
+
+                return (
+                  <VStack gap={0.5}>
+                    <Text size="sm" weight="medium">
+                      {formatNumber(sisaAkhir, 2)} {row.unit} (Sisa)
+                    </Text>
+                    <Text size="sm" color="secondary">
+                      Rencana: {row.planned_volume} {row.unit}
+                    </Text>
+                  </VStack>
+                );
+              },
+            },
+            {
+              key: "price",
+              header: "Variasi Harga",
+              width: pixel(180),
+              renderCell: (row: POItemRow) => {
+                const idx = resolvedItems.indexOf(row);
+                const itemId = row.item_id;
+                const prices = itemId ? priceCache.get(itemId) ?? [] : [];
+                return (
+                  <form.Field name={`items[${idx}].item_price_id`}>
+                    {(field) => (
+                      <Selector
+                        label="Harga"
+                        isLabelHidden
+                        options={[
+                          {
+                            value: "",
+                            label: itemId
+                              ? prices.length === 0
+                                ? "Belum ada harga"
+                                : "Pilih harga..."
+                              : "Pilih item dahulu...",
+                          },
+                          ...prices.map((p) => ({
+                            value: String(p.item_price_id),
+                            label: formatRupiah(p.price),
+                          })),
+                        ]}
+                        value={field.state.value}
+                        onChange={(v: string) => field.handleChange(v)}
+                        onBlur={field.handleBlur}
+                        statusVariant="attached"
+                        status={getFieldError(
+                          field.state.meta.errors,
+                          !!field.state.meta.isTouched
+                        )}
+                        isDisabled={!itemId || prices.length === 0}
+                      />
+                    )}
+                  </form.Field>
+                );
+              },
+            },
+            {
+              key: "vendor",
+              header: "Vendor Pemasok",
+              width: pixel(280),
+              renderCell: (row: POItemRow) => {
+                const idx = resolvedItems.indexOf(row);
+                return (
+                  <form.Field name={`items[${idx}].vendor_id`}>
+                    {(field) => (
+                      <Selector
+                        label="Vendor"
+                        isLabelHidden
+                        options={[
+                          { value: "", label: "Pilih vendor..." },
+                          ...vendors.map((v) => ({
+                            value: String(v.vendor_id),
+                            label: v.vendor_name,
+                          })),
+                        ]}
+                        value={field.state.value}
+                        onChange={(v: string) => field.handleChange(v)}
+                        onBlur={field.handleBlur}
+                        statusVariant="attached"
+                        status={getFieldError(
+                          field.state.meta.errors,
+                          !!field.state.meta.isTouched
+                        )}
+                      />
+                    )}
+                  </form.Field>
+                );
+              },
+            },
+            {
+              key: "qty",
+              header: "Volume Dipesan",
+              width: pixel(160),
+              renderCell: (row: POItemRow) => {
+                const idx = resolvedItems.indexOf(row);
+                return (
+                  <form.Field
+                    name={`items[${idx}].qty`}
+                    validators={{
+                      onChange: ({ value }: { value: number }) =>
+                        value > row.sisaAwal
+                          ? `Melebihi sisa BOM (${formatNumber(row.sisaAwal, 2)}).`
+                          : undefined,
+                    }}
+                  >
+                    {(field) => (
+                      <NumberInput
+                        label="Volume"
+                        isLabelHidden
+                        value={field.state.value}
+                        onChange={(v) => field.handleChange(v || 0)}
+                        onBlur={field.handleBlur}
+                        statusVariant="attached"
+                        status={getFieldError(
+                          field.state.meta.errors,
+                          !!field.state.meta.isTouched
+                        )}
+                      />
+                    )}
+                  </form.Field>
+                );
+              },
+            },
+            {
+              key: "subtotal_item",
+              header: "Subtotal",
+              width: pixel(180),
+              renderCell: (row: POItemRow) =>
+                row.item_id ? (
+                  <Text size="sm">{formatRupiah(row.qty * row.price)}</Text>
+                ) : null,
+            },
+            {
+              key: "remove",
+              header: "",
+              width: pixel(80),
+              renderCell: (row: POItemRow) => {
+                const idx = resolvedItems.indexOf(row);
+                return (
+                  <HStack justify="end">
+                    <form.Field name="items">
+                      {(field) => (
+                        <IconButton
+                          icon={<X size={16} />}
+                          size="sm"
+                          variant="secondary"
+                          type="button"
+                          label="Hapus Item"
+                          onClick={() => field.removeValue(idx)}
+                        />
+                      )}
+                    </form.Field>
+                  </HStack>
+                );
+              },
+            },
+          ];
 
           return (
             <VStack gap={6}>
               <Card padding={4}>
-                <HStack gap={4} style={{ alignItems: 'flex-start' }}>
-                  <div style={{ width: 240 }}>
-                    <form.Field name="poDate">
-                      {(field) => (
+                <FormLayout>
+                  <form.Field name="poDate">
+                    {(field) => {
+                      type ISODate = `${number}${number}${number}${number}-${number}${number}-${number}${number}`;
+                      return (
                         <DateInput
                           label="Tanggal PO"
-                          value={field.state.value as any}
+                          value={field.state.value as ISODate}
                           onChange={(v) => field.handleChange(v || "")}
                           onBlur={field.handleBlur}
                           statusVariant="attached"
                           status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
                           isRequired
                         />
-                      )}
-                    </form.Field>
-                  </div>
-                </HStack>
+                      )
+                    }}
+                  </form.Field>
+                </FormLayout>
               </Card>
-
               <Card padding={4}>
                 <VStack gap={4}>
                   <HStack justify="between" align="center">
-                    <Heading level={4}>Daftar Kebutuhan BOM</Heading>
+                    <Heading level={3}>Daftar Item PO</Heading>
+                    <form.Field name="items">
+                      {(field) => (
+                        <Button
+                          variant="secondary"
+                          label="Tambah Item"
+                          type="button"
+                          onClick={() => field.pushValue({
+                            po_item_id: 0,
+                            item_id: 0,
+                            vendor_id: "",
+                            item_price_id: "",
+                            qty: 0,
+                            original_qty: 0
+                          })} />
+                      )}
+                    </form.Field>
                   </HStack>
-
-                  <form.Field name="items">
-                    {(field) => field.state.meta.errors.length > 0 && (
-                      <Text size="sm" style={{ color: '#e3193b' }}>
-                        {typeof field.state.meta.errors[0] === 'string' ? field.state.meta.errors[0] : field.state.meta.errors[0]?.message}
-                      </Text>
-                    )}
-                  </form.Field>
-
-                  <Table
-                    columns={[
-                      {
-                        key: "item", header: "Barang / Material / Jasa", width: proportional(2),
-                        renderCell: (row: any) => {
-                          const idx = resolvedItems.indexOf(row);
-                          return (
-                            <form.Field name={`items[${idx}].item_id`}>
-                              {(field) => (
-                                <Selector
-                                  label="Barang"
-                                  isLabelHidden
-                                  options={[
-                                    { value: "0", label: "Pilih Material..." },
-                                    ...bomOptions.map(b => ({ value: String(b.item_id), label: `${b.item_name} (${b.unit})` }))
-                                  ]}
-                                  value={String(field.state.value)}
-                                  onChange={async (v) => {
-                                    const id = Number(v);
-                                    field.handleChange(id);
-                                    if (id) {
-                                      await getPricesForItem(id);
-                                      // Auto-select the price variant that was used in the BOM
-                                      const bomItem = bomOptions.find(b => b.item_id === id);
-                                      if (bomItem && bomItem.item_price_id) {
-                                        form.setFieldValue(`items[${idx}].item_price_id`, String(bomItem.item_price_id));
-                                      } else {
-                                        form.setFieldValue(`items[${idx}].item_price_id`, "");
-                                      }
-                                    } else {
-                                      form.setFieldValue(`items[${idx}].item_price_id`, "");
-                                    }
-                                  }}
-                                  onBlur={field.handleBlur}
-                                  statusVariant="attached"
-                                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
-                                />
-                              )}
-                            </form.Field>
-                          )
-                        }
-                      },
-                      {
-                        key: "bom", header: "BOM (Sisa / Rencana)", width: pixel(180),
-                        renderCell: (row: any) => {
-                          if (!row.item_id) return null;
-                          const sisaAkhir = row.sisaAwal - row.qty;
-
-                          return (
-                            <VStack gap={0.5}>
-                              <Text size="sm" weight="medium">
-                                {formatNumber(sisaAkhir, 2)} {row.unit} (Sisa)
-                              </Text>
-                              <Text size="sm" color="secondary">Rencana: {row.planned_volume} {row.unit}</Text>
-                            </VStack>
-                          );
-                        }
-                      },
-                      {
-                        key: "price", header: "Variasi Harga", width: proportional(1.8),
-                        renderCell: (row: any) => {
-                          const idx = resolvedItems.indexOf(row);
-                          const itemId = row.item_id;
-                          const prices = itemId ? (priceCache.get(itemId) ?? []) : [];
-                          return (
-                            <form.Field name={`items[${idx}].item_price_id`}>
-                              {(field) => (
-                                <Selector
-                                  label="Harga"
-                                  isLabelHidden
-                                  options={[
-                                    { value: "", label: itemId ? (prices.length === 0 ? "Belum ada harga" : "Pilih harga...") : "Pilih item dahulu..." },
-                                    ...prices.map(p => ({ value: String(p.item_price_id), label: formatRupiah(p.price) }))
-                                  ]}
-                                  value={field.state.value}
-                                  onChange={(v) => field.handleChange(v)}
-                                  onBlur={field.handleBlur}
-                                  statusVariant="attached"
-                                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
-                                  isDisabled={!itemId || prices.length === 0}
-                                />
-                              )}
-                            </form.Field>
-                          )
-                        }
-                      },
-                      {
-                        key: "vendor", header: "Vendor Pemasok", width: proportional(1.5),
-                        renderCell: (row: any) => {
-                          const idx = resolvedItems.indexOf(row);
-                          return (
-                            <form.Field name={`items[${idx}].vendor_id`}>
-                              {(field) => (
-                                <Selector
-                                  label="Vendor"
-                                  isLabelHidden
-                                  options={[{ value: "", label: "Pilih vendor..." }, ...vendors.map(v => ({ value: String(v.vendor_id), label: v.vendor_name }))]}
-                                  value={field.state.value}
-                                  onChange={(v) => field.handleChange(v)}
-                                  onBlur={field.handleBlur}
-                                  statusVariant="attached"
-                                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
-                                />
-                              )}
-                            </form.Field>
-                          )
-                        }
-                      },
-                      {
-                        key: "qty", header: "Volume Dipesan", width: pixel(130),
-                        renderCell: (row: any) => {
-                          const idx = resolvedItems.indexOf(row);
-                          return (
-                            <form.Field
-                              name={`items[${idx}].qty`}
-                              validators={{
-                                onChange: ({ value }) => value > row.sisaAwal ? `Melebihi sisa BOM (${formatNumber(row.sisaAwal, 2)}).` : undefined
-                              }}
-                            >
-                              {(field) => (
-                                <NumberInput
-                                  label="Volume"
-                                  isLabelHidden
-                                  value={field.state.value}
-                                  onChange={(v) => field.handleChange(v || 0)}
-                                  onBlur={field.handleBlur}
-                                  statusVariant="attached"
-                                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
-                                />
-                              )}
-                            </form.Field>
-                          )
-                        }
-                      },
-                      {
-                        key: "subtotal_item", header: "Subtotal", width: pixel(140),
-                        renderCell: (row: any) => row.item_id ? <Text size="sm">{formatRupiah(row.qty * row.price)}</Text> : null
-                      },
-                      {
-                        key: "remove", header: "", width: pixel(50),
-                        renderCell: (row: any) => {
-                          const idx = resolvedItems.indexOf(row);
-                          return (
-                            <form.Field name="items">
-                              {(field) => (
-                                <IconButton icon={<X size={16} />} size="sm" variant="secondary" type="button" label="Hapus Item" onClick={() => field.removeValue(idx)} />
-                              )}
-                            </form.Field>
-                          )
-                        }
-                      }
-                    ]}
-                    data={resolvedItems as any}
-                  />
-
-                  <form.Field name="items">
-                    {(field) => (
-                      <Button variant="secondary" label="Tambah Item" type="button" onClick={() => field.pushValue({ po_item_id: 0, item_id: 0, vendor_id: "", item_price_id: "", qty: 0 })} />
-                    )}
-                  </form.Field>
-
+                  <Table columns={columns} data={resolvedItems} />
                   <Divider />
                   <HStack gap={4} justify="end">
                     <VStack gap={1} align="end">
@@ -380,6 +479,15 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                   </HStack>
                 </VStack>
               </Card>
+
+              <form.Field name="items">
+                {(field) => field.state.meta.errors.length > 0 && (
+                  <Banner
+                    status="error"
+                    title={typeof field.state.meta.errors[0] === 'string' ? field.state.meta.errors[0] : field.state.meta.errors[0]?.message}
+                  />
+                )}
+              </form.Field>
 
               <HStack gap={2} justify="end">
                 <Button variant="secondary" label="Batal" type="button" onClick={onCancel} />
