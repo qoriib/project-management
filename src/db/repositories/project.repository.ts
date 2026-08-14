@@ -14,7 +14,7 @@ import {
 
 // ── Extended Types ───────────────────────────────────────────────────────────
 
-export type ProjectWithStages = Project & { stages: string[] };
+export type ProjectWithStages = Project & { stages: string[]; has_relation?: boolean };
 
 export interface StageRelation {
   stage_id: number;
@@ -39,9 +39,14 @@ class ProjectRepository extends BaseRepository<Project, CreateProject, UpdatePro
    */
   async findAllWithStages(): Promise<ProjectWithStages[]> {
     try {
-      const projects = await this.findAll({
-        orderBy: { column: "created_at", direction: "DESC" },
-      });
+      const pQb = new QueryBuilder()
+        .select("p.*")
+        .selectRaw("(EXISTS(SELECT 1 FROM project_stages WHERE project_id = p.project_id) OR EXISTS(SELECT 1 FROM bill_of_materials WHERE project_id = p.project_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM purchase_orders WHERE project_id = p.project_id AND deleted_at IS NULL)) as has_relation")
+        .from("projects p")
+        .where("p.deleted_at", "IS NULL")
+        .orderBy("p.created_at", "DESC");
+      const { sql: pSql, params: pParams } = pQb.build();
+      const projects = await this.rawSelect<any>(pSql, pParams);
 
       const { sql, params } = new QueryBuilder()
         .select("ps.project_id", "ps.stage_name")
@@ -54,6 +59,7 @@ class ProjectRepository extends BaseRepository<Project, CreateProject, UpdatePro
 
       return projects.map((proj) => ({
         ...proj,
+        has_relation: Boolean(proj.has_relation),
         stages: stages
           .filter((s) => s.project_id === proj.project_id)
           .map((s) => s.stage_name),

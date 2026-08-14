@@ -12,7 +12,7 @@ interface MasterVendorTableProps {
   onEdit: (vendor: Vendor) => void;
 }
 
-type VendorRow = Vendor & Record<string, unknown>;
+type VendorRow = Vendor & Record<string, unknown> & { has_relation?: boolean };
 
 export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
   const showToast = useToast();
@@ -78,6 +78,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
             label="Hapus"
             icon={<Trash2 size={16} />}
             onClick={() => setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })}
+            isDisabled={row.has_relation}
           />
         </HStack>
       ),

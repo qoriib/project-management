@@ -86,6 +86,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
             label="Hapus"
             icon={<Trash2 size={16} />}
             onClick={() => setDeleteTarget({ id: row.project_id, label: row.project_name })}
+            isDisabled={row.has_relation}
           />
         </HStack>
       ),

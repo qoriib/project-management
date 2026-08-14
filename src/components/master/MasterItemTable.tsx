@@ -88,6 +88,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
             label="Hapus"
             icon={<Trash2 size={16} />}
             onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })}
+            isDisabled={row.has_relation}
           />
         </HStack>
       ),
