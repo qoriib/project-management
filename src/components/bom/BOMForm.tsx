@@ -58,9 +58,7 @@ export function BOMForm({ stageId, initialData, isInline, isDisabled, onSuccess,
       } else {
         await bomRepo.create(data);
         if (isInline) {
-          form.setFieldValue("item_id", "");
-          form.setFieldValue("qty", 0);
-          form.setFieldValue("item_price_id", "");
+          form.reset();
           setPriceOptions([]);
         }
       }

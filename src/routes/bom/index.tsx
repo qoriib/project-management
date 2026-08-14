@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from "react";
-import { Section, VStack, Selector } from "@astryxdesign/core";
+import { Section, VStack, Selector, Text } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { BOMTable } from "@/components/bom/BOMTable";
@@ -71,23 +71,30 @@ function BOMPage() {
           </ProjectRequired>
         </VStack>
         {selectedProjectId && (
-          <div style={{
-            position: "sticky",
-            bottom: -24,
-            padding: "12px 12px",
-            background: "var(--color-bg-elevated)",
-            borderTop: "1px solid var(--color-border)",
-            margin: "16px -24px -24px -24px",
-            zIndex: 10
-          }}>
-            <BOMForm
-              stageId={editData?.stage_id || (activeTab === "all" ? undefined : Number(activeTab))}
-              initialData={editData}
-              isInline
-              isDisabled={!editData && activeTab === "all"}
-              onSuccess={handleSuccess}
-              onCancel={handleCancelEdit}
-            />
+          <div 
+            style={{
+              position: "sticky",
+              bottom: -24,
+              padding: "12px 12px",
+              background: "var(--color-bg-elevated)",
+              borderTop: "1px solid var(--color-border)",
+              margin: "16px -24px -24px -24px",
+              zIndex: 10
+            }}
+          >
+            {!editData && activeTab === "all" ? (
+              <div style={{ padding: "16px", textAlign: "center" }}>
+                <Text color="secondary">Silakan pilih Tahapan terlebih dahulu untuk menambahkan kebutuhan.</Text>
+              </div>
+            ) : (
+              <BOMForm
+                stageId={editData?.stage_id || (activeTab === "all" ? undefined : Number(activeTab))}
+                initialData={editData}
+                isInline
+                onSuccess={handleSuccess}
+                onCancel={handleCancelEdit}
+              />
+            )}
           </div>
         )}
       </div>
