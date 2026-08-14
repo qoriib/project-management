@@ -1,5 +1,6 @@
+import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Text, Table, Badge } from "@astryxdesign/core";
+import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -122,11 +123,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         const locked = row.has_relation;
         return (
           <HStack gap={1}>
-            <Button size="sm" variant="ghost" label="Edit" onClick={() => startEdit(row)} isDisabled={locked} />
-            <Button
-              size="sm"
+            <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => startEdit(row)} isDisabled={locked} />
+            <IconButton size="sm"
               variant="destructive"
-              label="Hapus"
+               icon={<Trash2 size={16} />} label="Hapus" 
               onClick={() => setDeleteTarget(row)}
               isDisabled={locked}
             />
@@ -162,7 +162,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                   isDisabled={priceInput == null}
                 />
                 {editTarget && (
-                  <Button variant="ghost" label="Batal" onClick={cancelEdit} />
+                  <Button variant="secondary" label="Batal" onClick={cancelEdit} />
                 )}
               </HStack>
             </HStack>
@@ -183,7 +183,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
           )}
 
           <HStack justify="end">
-            <Button variant="ghost" label="Tutup" onClick={onClose} />
+            <Button variant="secondary" label="Tutup" onClick={onClose} />
           </HStack>
         </VStack>
       </Dialog>

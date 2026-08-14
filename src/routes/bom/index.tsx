@@ -74,7 +74,7 @@ function BOMPage() {
           <div style={{
             position: "sticky",
             bottom: -24,
-            padding: "16px 24px",
+            padding: "12px 12px",
             background: "var(--color-bg-elevated)",
             borderTop: "1px solid var(--color-border)",
             margin: "16px -24px -24px -24px",

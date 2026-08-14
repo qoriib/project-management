@@ -230,7 +230,7 @@ export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }
               )}
 
               <HStack gap={2} justify="end">
-                <Button variant="ghost" label="Batal" type="button" onClick={onCancel} />
+                <Button variant="secondary" label="Batal" type="button" onClick={onCancel} />
                 <Button
                   variant="primary"
                   label="Simpan Pengiriman"

@@ -60,7 +60,7 @@ function PODetailPage() {
           subtitle={`Proyek: ${po.project_name ?? "—"} • Vendor: ${po.vendor_names ?? "—"} • Dibuat pada ${formatDate(po.po_date)} • Estimasi Total: ${formatRupiah(po.total_price)}`}
           actions={
             <HStack gap={2}>
-              <Button variant="ghost" label="← Kembali" onClick={() => navigate({ to: "/po" })} />
+              <Button variant="secondary" label="← Kembali" onClick={() => navigate({ to: "/po" })} />
             </HStack>
           }
         />

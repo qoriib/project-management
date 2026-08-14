@@ -90,7 +90,7 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
           </FormLayout>
 
           <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
-            <Button variant="ghost" label="Batal" onClick={onClose} type="button" />
+            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (

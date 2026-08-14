@@ -1,5 +1,6 @@
+import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Card, Button, Table, HStack, Text, VStack } from "@astryxdesign/core";
+import { Card, Table, HStack, Text, VStack, IconButton } from "@astryxdesign/core";
 import { proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -48,8 +49,8 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       key: "actions", header: "", width: proportional(1),
       renderCell: (row: ItemCategory & { count: number }) => (
         <HStack gap={1}>
-          <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row)} />
-          <Button size="sm" variant="destructive" label="Hapus" isDisabled={row.count > 0} onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })} />
+          <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => onEdit(row)} />
+          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  isDisabled={row.count > 0} onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })} />
         </HStack>
       ),
     },

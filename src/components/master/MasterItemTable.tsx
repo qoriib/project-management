@@ -1,5 +1,6 @@
+import { Pencil, Trash2, Tag } from "lucide-react";
 import { useState } from "react";
-import { Card, Button, Table, Badge, HStack, Text, VStack } from "@astryxdesign/core";
+import { Card, Table, Badge, HStack, Text, VStack, IconButton } from "@astryxdesign/core";
 import { proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
@@ -49,9 +50,9 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       key: "actions", header: "", width: proportional(2),
       renderCell: (row: ItemWithDetails) => (
         <HStack gap={1}>
-          <Button size="sm" variant="secondary" label="Harga" onClick={() => setPriceItem(row)} />
-          <Button size="sm" variant="secondary" label="Edit" onClick={() => onEdit(row)} />
-          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })} />
+          <IconButton size="sm" variant="secondary"  icon={<Tag size={16} />} label="Harga"  onClick={() => setPriceItem(row)} />
+          <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => onEdit(row)} />
+          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })} />
         </HStack>
       ),
     },

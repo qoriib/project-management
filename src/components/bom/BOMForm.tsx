@@ -209,7 +209,7 @@ export function BOMForm({ stageId, initialData, isInline, isDisabled, onSuccess,
                     isLoading={isSubmitting}
                     isDisabled={isDisabled || !canSubmit || !selectedProjectId}
                   />
-                  {initialData && <Button variant="ghost" label="Batal" onClick={onCancel} style={{ marginLeft: 8 }} />}
+                  {initialData && <Button variant="secondary" label="Batal" onClick={onCancel} style={{ marginLeft: 8 }} />}
                 </div>
               </HStack>
             );
@@ -313,7 +313,7 @@ export function BOMForm({ stageId, initialData, isInline, isDisabled, onSuccess,
               </VStack>
 
               <HStack gap={2} justify="end" style={{ marginTop: 16 }}>
-                <Button variant="ghost" label="Batal" type="button" onClick={onCancel} />
+                <Button variant="secondary" label="Batal" type="button" onClick={onCancel} />
                 <Button
                   variant="primary"
                   label="Simpan"

@@ -346,7 +346,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                           return (
                             <form.Field name="items">
                               {(field) => (
-                                <IconButton icon={<X size={16} />} size="sm" variant="ghost" type="button" label="Hapus Item" onClick={() => field.removeValue(idx)} />
+                                <IconButton icon={<X size={16} />} size="sm" variant="secondary" type="button" label="Hapus Item" onClick={() => field.removeValue(idx)} />
                               )}
                             </form.Field>
                           )
@@ -372,7 +372,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
               </Card>
 
               <HStack gap={2} justify="end">
-                <Button variant="ghost" label="Batal" type="button" onClick={onCancel} />
+                <Button variant="secondary" label="Batal" type="button" onClick={onCancel} />
                 <Button variant="primary" label="Simpan PO" type="submit" isLoading={isSubmitting} isDisabled={!canSubmit} />
               </HStack>
             </VStack>

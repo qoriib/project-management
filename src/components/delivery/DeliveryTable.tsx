@@ -1,6 +1,7 @@
+import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { HStack, Button, Table, Text, VStack, Card, Badge } from "@astryxdesign/core";
+import { HStack, Table, Text, VStack, Card, Badge, IconButton } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { deliveryRepo, type DeliverySummary } from "@/db/repositories";
@@ -65,9 +66,9 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
       renderCell: (row: DeliverySummary) => (
         <HStack gap={2}>
           <Link to="/delivery/$id/edit" params={{ id: String(row.delivery_id) }}>
-            <Button size="sm" variant="secondary" label="Edit" />
+            <IconButton size="sm" variant="secondary" icon={<Pencil size={16} />} label="Edit" />
           </Link>
-          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget(row.delivery_id)} />
+          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  onClick={() => setDeleteTarget(row.delivery_id)} />
         </HStack>
       )
     },

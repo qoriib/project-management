@@ -1,5 +1,6 @@
+import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { HStack, Button, Table, Text, VStack, Heading, Card } from "@astryxdesign/core";
+import { HStack, Table, Text, VStack, Heading, Card, IconButton } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { bomRepo, type BOMDetail } from "@/db/repositories";
@@ -63,8 +64,8 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
       key: "actions", header: "", width: pixel(140),
       renderCell: (row: BOMDetail) => (
         <HStack gap={1}>
-          <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row.bom_id, row)} />
-          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget(row.bom_id)} />
+          <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => onEdit(row.bom_id, row)} />
+          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  onClick={() => setDeleteTarget(row.bom_id)} />
         </HStack>
       ),
     }] : []),

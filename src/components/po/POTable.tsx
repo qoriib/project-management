@@ -1,5 +1,6 @@
+import { Pencil, Trash2, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
-import { HStack, Button, Table, Text, VStack, Card, Badge } from "@astryxdesign/core";
+import { HStack, Table, Text, VStack, Card, Badge, IconButton } from "@astryxdesign/core";
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { purchaseOrderRepo, type POWithSummary } from "@/db/repositories";
@@ -59,9 +60,9 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
       key: "actions", header: "", width: pixel(200),
       renderCell: (row: POWithSummary) => (
         <HStack gap={1} justify="end">
-          <Button size="sm" variant="ghost" label="Detail" onClick={() => navigate({ to: `/po/${row.po_id}` })} />
-          <Button size="sm" variant="ghost" label="Edit" onClick={() => onEdit(row.po_id)} />
-          <Button size="sm" variant="destructive" label="Hapus" onClick={() => setDeleteTarget({ id: row.po_id, label: `PO-${row.po_id}` })} />
+          <IconButton size="sm" variant="secondary"  icon={<Eye size={16} />} label="Detail"  onClick={() => navigate({ to: `/po/${row.po_id}` })} />
+          <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => onEdit(row.po_id)} />
+          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  onClick={() => setDeleteTarget({ id: row.po_id, label: `PO-${row.po_id}` })} />
         </HStack>
       ),
     },
