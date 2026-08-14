@@ -19,7 +19,6 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
   const [stages, setStages] = useState<StageRelation[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Shared form state — null editTarget = add mode
   const [stageInput, setStageInput] = useState("");
   const [editTarget, setEditTarget] = useState<StageRelation | null>(null);
   const [saving, setSaving] = useState(false);
@@ -29,7 +28,9 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
 
   async function loadStages() {
     if (!project) return;
+
     setLoading(true);
+
     try {
       const data = await projectRepo.getStagesWithRelation(project.project_id);
       setStages(data);
@@ -60,7 +61,9 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
 
   async function handleSave() {
     if (!project) return;
+
     const name = stageInput.trim();
+
     if (!name) return;
 
     setSaving(true);
@@ -144,13 +147,13 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
           <HStack gap={1}>
             <IconButton size="sm"
               variant="secondary"
-               icon={<Pencil size={16} />} label="Edit" 
+              icon={<Pencil size={16} />} label="Edit"
               onClick={() => startEdit(row)}
               isDisabled={locked}
             />
             <IconButton size="sm"
               variant="destructive"
-               icon={<Trash2 size={16} />} label="Hapus" 
+              icon={<Trash2 size={16} />} label="Hapus"
               onClick={() => setDeleteTarget(row)}
               isDisabled={locked}
             />

@@ -1,8 +1,9 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Card, Table, HStack, Text, VStack, IconButton } from "@astryxdesign/core";
-import { proportional } from "@astryxdesign/core/Table";
+import { Card, Table, HStack, IconButton } from "@astryxdesign/core";
+import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { ItemCategory } from "@/db/repositories";
@@ -11,15 +12,20 @@ interface MasterCategoryTableProps {
   onEdit: (category: ItemCategory) => void;
 }
 
+type CategoryRow = ItemCategory & { count: number } & Record<string, unknown>;
+
 export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
+  const showToast = useToast();
+
   const { categories, items, deleteCategory } = useMasterStore();
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const showToast = useToast();
 
   async function handleDelete() {
     if (!deleteTarget) return;
+
     setDeleting(true);
+
     try {
       await deleteCategory(deleteTarget.id);
       showToast({ body: "Kategori berhasil dihapus", type: "info" });
@@ -36,21 +42,45 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
     count: items.filter((item) => item.category_id === category.category_id).length,
   }));
 
-  const columns = [
+  const columns: TableColumn<CategoryRow>[] = [
     {
       key: "category_id",
-      header: "Kode Kategori",
-      width: proportional(1),
-      renderCell: (row: ItemCategory) => String(row.category_id).padStart(4, '0')
+      header: "Kode",
+      width: pixel(100),
+      renderCell: (row: CategoryRow) => `KAT-${String(row.category_id).padStart(4, '0')}`
     },
-    { key: "category_name", header: "Nama Kategori", width: proportional(1) },
-    { key: "count", header: "Jumlah Item", width: proportional(1), renderCell: (row: { count: number }) => String(row.count) },
     {
-      key: "actions", header: "", width: proportional(1),
-      renderCell: (row: ItemCategory & { count: number }) => (
-        <HStack gap={1}>
-          <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => onEdit(row)} />
-          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  isDisabled={row.count > 0} onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })} />
+      key: "category_name",
+      header: "Nama Kategori",
+      width: proportional(1)
+    },
+    {
+      key: "count",
+      header: "Jumlah Item",
+      width: pixel(150),
+      renderCell: (row: CategoryRow) => String(row.count)
+    },
+    {
+      key: "actions",
+      header: "",
+      width: pixel(120),
+      renderCell: (row: CategoryRow) => (
+        <HStack gap={2} justify="end">
+          <IconButton
+            size="sm"
+            variant="secondary"
+            label="Edit"
+            icon={<Pencil size={16} />}
+            onClick={() => onEdit(row)}
+          />
+          <IconButton
+            size="sm"
+            variant="destructive"
+            label="Hapus"
+            icon={<Trash2 size={16} />}
+            isDisabled={row.count > 0}
+            onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })}
+          />
         </HStack>
       ),
     },
@@ -58,16 +88,15 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
 
   return (
     <>
-      <Card padding={0}>
+      <Card>
         <Table
           textOverflow="truncate"
-          columns={columns as any}
-          data={categoryRows as any}
+          columns={columns}
+          data={categoryRows as CategoryRow[]}
           idKey="category_id"
-          emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada kategori.</Text></VStack>}
+          emptyState={<TableEmptyState message="Belum ada kategori." />}
         />
       </Card>
-
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

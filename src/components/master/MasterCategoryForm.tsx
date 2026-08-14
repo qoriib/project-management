@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Dialog, TextInput, VStack, HStack, Button, Heading } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
-import { Banner } from "@astryxdesign/core/Banner";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
@@ -20,9 +19,9 @@ interface MasterCategoryFormProps {
 }
 
 export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCategoryFormProps) {
-  const { createCategory, updateCategory } = useMasterStore();
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const showToast = useToast();
+
+  const { createCategory, updateCategory } = useMasterStore();
 
   const form = useForm({
     defaultValues: {
@@ -32,7 +31,6 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
       onChange: categorySchema,
     },
     onSubmit: async ({ value }) => {
-      setErrorMsg(null);
       try {
         if (initialData) {
           await updateCategory(initialData.category_id, value);
@@ -41,17 +39,18 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
           await createCategory(value);
           showToast({ body: "Kategori berhasil ditambahkan", type: "info" });
         }
+      } catch (error: any) {
+        showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
+      } finally {
         onClose();
-      } catch (err: any) {
-        setErrorMsg(err.message || "Gagal menyimpan kategori");
       }
     }
   });
 
   useEffect(() => {
     if (isOpen) {
-      setErrorMsg(null);
       form.reset();
+
       if (initialData) {
         form.setFieldValue("category_name", initialData.category_name);
       }
@@ -69,9 +68,6 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
       >
         <VStack gap={3}>
           <Heading level={3}>{initialData ? "Edit Kategori" : "Tambah Kategori"}</Heading>
-
-          {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
-
           <FormLayout>
             <form.Field
               name="category_name"
@@ -88,7 +84,6 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
               )}
             />
           </FormLayout>
-
           <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe

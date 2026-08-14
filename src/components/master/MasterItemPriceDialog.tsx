@@ -28,6 +28,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   async function loadPrices() {
     if (!item) return;
+
     try {
       const data = await itemPriceRepo.findByItemWithRelation(item.item_id);
       setPrices(data);
@@ -56,12 +57,14 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   async function handleSave() {
     if (!item) return;
+
     if (priceInput == null || priceInput < 0) {
       showToast({ body: "Harga tidak valid.", type: "error" });
       return;
     }
 
     setSaving(true);
+
     try {
       if (editTarget) {
         await itemPriceRepo.update(editTarget.item_price_id, { price: priceInput });
@@ -70,8 +73,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         await itemPriceRepo.create({ item_id: item.item_id, price: priceInput });
         showToast({ body: "Harga berhasil ditambahkan.", type: "info" });
       }
+
       setPriceInput(null);
       setEditTarget(null);
+
       await loadPrices();
     } catch (err: any) {
       showToast({ body: err.message || "Gagal menyimpan harga.", type: "error" });
@@ -123,10 +128,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         const locked = row.has_relation;
         return (
           <HStack gap={1}>
-            <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => startEdit(row)} isDisabled={locked} />
+            <IconButton size="sm" variant="secondary" icon={<Pencil size={16} />} label="Edit" onClick={() => startEdit(row)} isDisabled={locked} />
             <IconButton size="sm"
               variant="destructive"
-               icon={<Trash2 size={16} />} label="Hapus" 
+              icon={<Trash2 size={16} />} label="Hapus"
               onClick={() => setDeleteTarget(row)}
               isDisabled={locked}
             />

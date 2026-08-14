@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Dialog, TextInput, Selector, VStack, HStack, Button, Heading } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
-import { Banner } from "@astryxdesign/core/Banner";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
@@ -22,9 +21,9 @@ interface MasterItemFormProps {
 }
 
 export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormProps) {
-  const { categories, units, createItem, updateItem } = useMasterStore();
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const showToast = useToast();
+
+  const { categories, units, createItem, updateItem } = useMasterStore();
 
   const form = useForm({
     defaultValues: {
@@ -36,13 +35,13 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
       onChange: itemSchema,
     },
     onSubmit: async ({ value }) => {
-      setErrorMsg(null);
       try {
         const data = {
           item_name: value.item_name,
           category_id: parseInt(value.category_id),
           unit_id: parseInt(value.unit_id)
         };
+
         if (initialData) {
           await updateItem(initialData.item_id, data);
           showToast({ body: "Item berhasil diubah", type: "info" });
@@ -50,17 +49,18 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
           await createItem(data);
           showToast({ body: "Item berhasil ditambahkan. Gunakan 'Harga' di tabel untuk menambahkan harga.", type: "info" });
         }
+      } catch (error: any) {
+        showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
+      } finally {
         onClose();
-      } catch (err: any) {
-        setErrorMsg(err.message || "Gagal menyimpan item");
       }
     }
   });
 
   useEffect(() => {
     if (isOpen) {
-      setErrorMsg(null);
       form.reset();
+
       if (initialData) {
         form.setFieldValue("item_name", initialData.item_name);
         form.setFieldValue("category_id", String(initialData.category_id));
@@ -93,9 +93,6 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
       >
         <VStack gap={3}>
           <Heading level={3}>{initialData ? "Edit Item" : "Tambah Item"}</Heading>
-
-          {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
-
           <FormLayout>
             <form.Field
               name="item_name"
@@ -140,7 +137,6 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               )}
             />
           </FormLayout>
-
           <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe

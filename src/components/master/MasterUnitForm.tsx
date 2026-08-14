@@ -19,8 +19,9 @@ interface MasterUnitFormProps {
 }
 
 export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormProps) {
-  const { createUnit, updateUnit } = useMasterStore();
   const showToast = useToast();
+
+  const { createUnit, updateUnit } = useMasterStore();
 
   const form = useForm({
     defaultValues: {
@@ -30,14 +31,19 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
       onChange: unitSchema,
     },
     onSubmit: async ({ value }) => {
-      if (initialData) {
-        await updateUnit(initialData.unit_id, value);
-        showToast({ body: "Satuan berhasil diubah", type: "info" });
-      } else {
-        await createUnit(value);
-        showToast({ body: "Satuan berhasil ditambahkan", type: "info" });
+      try {
+        if (initialData) {
+          await updateUnit(initialData.unit_id, value);
+          showToast({ body: "Satuan berhasil diubah", type: "info" });
+        } else {
+          await createUnit(value);
+          showToast({ body: "Satuan berhasil ditambahkan", type: "info" });
+        }
+      } catch (error: any) {
+        showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
+      } finally {
+        onClose();
       }
-      onClose();
     }
   });
 
@@ -61,7 +67,6 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
       >
         <VStack gap={3}>
           <Heading level={3}>{initialData ? "Edit Satuan" : "Tambah Satuan"}</Heading>
-
           <FormLayout>
             <form.Field
               name="unit_name"
@@ -78,7 +83,6 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
               )}
             />
           </FormLayout>
-
           <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe

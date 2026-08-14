@@ -1,25 +1,31 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Card, Table, HStack, Text, VStack, IconButton } from "@astryxdesign/core";
-import { proportional } from "@astryxdesign/core/Table";
+import { Card, Table, HStack, IconButton } from "@astryxdesign/core";
+import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
-import type { Vendor } from "@/db/repositories";
 import { useMasterStore } from "@/store/useMasterStore";
+import type { Vendor } from "@/db/repositories";
 
 interface MasterVendorTableProps {
   onEdit: (vendor: Vendor) => void;
 }
 
+type VendorRow = Vendor & Record<string, unknown>;
+
 export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
+  const showToast = useToast();
+
   const { vendors, deleteVendor } = useMasterStore();
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const showToast = useToast();
 
   async function handleDelete() {
     if (!deleteTarget) return;
+
     setDeleting(true);
+
     try {
       await deleteVendor(deleteTarget.id);
       showToast({ body: "Vendor berhasil dihapus", type: "info" });
@@ -31,16 +37,48 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
     }
   }
 
-  const columns = [
-    { key: "vendor_name", header: "Nama Vendor", width: proportional(1.5) },
-    { key: "phone", header: "Telepon", width: proportional(1) },
-    { key: "address", header: "Alamat", width: proportional(1.5) },
+  const columns: TableColumn<VendorRow>[] = [
     {
-      key: "actions", header: "", width: proportional(1),
-      renderCell: (row: Vendor) => (
-        <HStack gap={1}>
-          <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => onEdit(row)} />
-          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  onClick={() => setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })} />
+      key: "vendor_id",
+      header: "Kode",
+      width: pixel(100),
+      renderCell: (row: VendorRow) => `VND-${String(row.vendor_id).padStart(4, '0')}`
+    },
+    {
+      key: "vendor_name",
+      header: "Nama Vendor",
+      width: proportional(1.5)
+    },
+    {
+      key: "phone",
+      header: "Telepon",
+      width: pixel(150)
+    },
+    {
+      key: "address",
+      header: "Alamat",
+      width: proportional(2)
+    },
+    {
+      key: "actions",
+      header: "",
+      width: pixel(120),
+      renderCell: (row: VendorRow) => (
+        <HStack gap={2} justify="end">
+          <IconButton
+            size="sm"
+            variant="secondary"
+            label="Edit"
+            icon={<Pencil size={16} />}
+            onClick={() => onEdit(row)}
+          />
+          <IconButton
+            size="sm"
+            variant="destructive"
+            label="Hapus"
+            icon={<Trash2 size={16} />}
+            onClick={() => setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })}
+          />
         </HStack>
       ),
     },
@@ -48,16 +86,15 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
 
   return (
     <>
-      <Card padding={0}>
+      <Card>
         <Table
           textOverflow="truncate"
-          columns={columns as any}
-          data={vendors as any}
+          columns={columns}
+          data={vendors as VendorRow[]}
           idKey="vendor_id"
-          emptyState={<VStack align="center" padding={8}><Text color="secondary">Belum ada vendor.</Text></VStack>}
+          emptyState={<TableEmptyState message="Belum ada vendor." />}
         />
       </Card>
-
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Dialog, TextInput, VStack, HStack, Button, Heading } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
-import { Banner } from "@astryxdesign/core/Banner";
 import { type Project } from "@/db/repositories";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
@@ -23,9 +22,9 @@ interface MasterProjectFormProps {
 }
 
 export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjectFormProps) {
-  const { createProject, updateProject } = useMasterStore();
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const showToast = useToast();
+
+  const { createProject, updateProject } = useMasterStore();
 
   const form = useForm({
     defaultValues: {
@@ -37,7 +36,6 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
       onChange: projectSchema,
     },
     onSubmit: async ({ value }) => {
-      setErrorMsg(null);
       try {
         if (initialData) {
           await updateProject(initialData.project_id, value, []);
@@ -46,17 +44,18 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
           await createProject(value, []);
           showToast({ body: "Project berhasil ditambahkan. Buka ' Tahap' untuk menambahkan tahapan.", type: "info" });
         }
+      } catch (error: any) {
+        showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
+      } finally {
         onClose();
-      } catch (err: any) {
-        setErrorMsg(err.message || "Gagal menyimpan project");
       }
     }
   });
 
   useEffect(() => {
     if (isOpen) {
-      setErrorMsg(null);
       form.reset();
+
       if (initialData) {
         form.setFieldValue("project_name", initialData.project_name);
         form.setFieldValue("company_name", initialData.company_name);
@@ -78,9 +77,6 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
       >
         <VStack gap={3}>
           <Heading level={3}>{initialData ? "Edit Project" : "Tambah Project"}</Heading>
-
-          {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
-
           <FormLayout>
             <form.Field
               name="project_name"
@@ -126,7 +122,6 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
               )}
             />
           </FormLayout>
-
           <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe

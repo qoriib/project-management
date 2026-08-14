@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Dialog, TextInput, TextArea, VStack, HStack, Button, Heading } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
-import { Banner } from "@astryxdesign/core/Banner";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
@@ -22,9 +21,9 @@ interface MasterVendorFormProps {
 }
 
 export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorFormProps) {
-  const { createVendor, updateVendor } = useMasterStore();
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const showToast = useToast();
+
+  const { createVendor, updateVendor } = useMasterStore();
 
   const form = useForm({
     defaultValues: {
@@ -36,7 +35,6 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
       onChange: vendorSchema,
     },
     onSubmit: async ({ value }) => {
-      setErrorMsg(null);
       try {
         if (initialData) {
           await updateVendor(initialData.vendor_id, value);
@@ -45,17 +43,18 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
           await createVendor(value);
           showToast({ body: "Vendor berhasil ditambahkan", type: "info" });
         }
+      } catch (error: any) {
+        showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
+      } finally {
         onClose();
-      } catch (err: any) {
-        setErrorMsg(err.message || "Gagal menyimpan vendor");
       }
     }
   });
 
   useEffect(() => {
     if (isOpen) {
-      setErrorMsg(null);
       form.reset();
+
       if (initialData) {
         form.setFieldValue("vendor_name", initialData.vendor_name);
         form.setFieldValue("phone", initialData.phone ?? "");
@@ -75,9 +74,6 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
       >
         <VStack gap={3}>
           <Heading level={3}>{initialData ? "Edit Vendor" : "Tambah Vendor"}</Heading>
-
-          {errorMsg && <Banner status="error" title="Gagal menyimpan" description={errorMsg} />}
-
           <FormLayout>
             <form.Field
               name="vendor_name"
@@ -120,7 +116,6 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
               )}
             />
           </FormLayout>
-
           <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
