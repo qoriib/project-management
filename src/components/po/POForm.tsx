@@ -10,8 +10,8 @@ import { formatNumber, formatRupiah, todayISO } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { getFieldError } from "@/utils/form";
-import * as v from "valibot";
 import { X } from "lucide-react";
+import * as v from "valibot";
 
 const poSchema = v.object({
   poDate: v.pipe(v.string(), v.nonEmpty("Tanggal PO harus diisi.")),
@@ -324,7 +324,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                         renderCell: (row: any) => {
                           const idx = resolvedItems.indexOf(row);
                           return (
-                            <form.Field 
+                            <form.Field
                               name={`items[${idx}].qty`}
                               validators={{
                                 onChange: ({ value }) => value > row.sisaAwal ? `Melebihi sisa BOM (${formatNumber(row.sisaAwal, 2)}).` : undefined

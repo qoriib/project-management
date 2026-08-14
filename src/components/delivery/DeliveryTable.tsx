@@ -48,7 +48,7 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
   const columns = [
     { key: "delivery_id", header: "ID Pengiriman", width: pixel(140), renderCell: (row: DeliverySummary) => `DLV-${row.delivery_id}` },
     { key: "delivery_date", header: "Tanggal", width: pixel(120), renderCell: (row: DeliverySummary) => formatDate(row.delivery_date) },
-    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: DeliverySummary) => `PO-${row.po_id}` },
+    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: DeliverySummary) => `PO-${String(row.po_id).padStart(4, "0")}` },
     { key: "project_name", header: "Proyek", width: proportional(1.5), renderCell: (row: DeliverySummary) => row.project_name || "—" },
     {
       key: "vendor_names", header: "Vendor Pemasok", width: proportional(1.5),

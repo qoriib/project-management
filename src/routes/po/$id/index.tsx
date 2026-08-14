@@ -117,7 +117,7 @@ function PODetailPage() {
   return (
     <Section padding={6}>
       <VStack gap={6}>
-        <PageHeader title={`Detail PO-${po.po_id}`} />
+        <PageHeader title={`Detail PO-${String(po.po_id).padStart(4, "0")}`} />
 
         <Card padding={6}>
           <VStack gap={4}>

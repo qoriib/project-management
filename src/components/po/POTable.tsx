@@ -4,6 +4,7 @@ import { HStack, Table, Text, VStack, Card, Badge, IconButton } from "@astryxdes
 import { proportional, pixel } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { purchaseOrderRepo, type POWithSummary } from "@/db/repositories";
+import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { formatRupiah, formatDate } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
@@ -45,24 +46,24 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   }
 
   const columns = [
-    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: any) => `PO-${row.po_id}` },
-    { key: "po_date", header: "Tanggal", width: pixel(150), renderCell: (row: any) => formatDate(row.po_date) },
+    { key: "po_id", header: "Kode", width: pixel(100), renderCell: (row: any) => `PO-${String(row.po_id).padStart(4, "0")}` },
+    { key: "po_date", header: "Tanggal", width: pixel(120), renderCell: (row: any) => formatDate(row.po_date) },
     {
       key: "vendor_names", header: "Vendor Pemasok", width: proportional(2),
       renderCell: (row: any) => row.vendor_names ? <Badge variant="neutral" label={row.vendor_names} /> : "—"
     },
     { key: "item_count", header: "Total Item", width: pixel(130), renderCell: (row: any) => `${row.item_count} Item` },
     {
-      key: "total_price", header: "Estimasi Total Biaya", width: pixel(200),
+      key: "total_price", header: "Total Biaya", width: pixel(200),
       renderCell: (row: any) => <Text size="sm" weight="semibold">{formatRupiah(row.total_price)}</Text>,
     },
     {
-      key: "actions", header: "", width: pixel(200),
+      key: "actions", header: "", width: pixel(140),
       renderCell: (row: POWithSummary) => (
-        <HStack gap={1} justify="end">
-          <IconButton size="sm" variant="secondary"  icon={<Eye size={16} />} label="Detail"  onClick={() => navigate({ to: `/po/${row.po_id}` })} />
-          <IconButton size="sm" variant="secondary"  icon={<Pencil size={16} />} label="Edit"  onClick={() => onEdit(row.po_id)} />
-          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  onClick={() => setDeleteTarget({ id: row.po_id, label: `PO-${row.po_id}` })} />
+        <HStack gap={2} justify="end">
+          <IconButton size="sm" variant="secondary" icon={<Eye size={16} />} label="Detail" onClick={() => navigate({ to: `/po/${row.po_id}` })} />
+          <IconButton size="sm" variant="secondary" icon={<Pencil size={16} />} label="Edit" onClick={() => onEdit(row.po_id)} />
+          <IconButton size="sm" variant="destructive" icon={<Trash2 size={16} />} label="Hapus" onClick={() => setDeleteTarget({ id: row.po_id, label: `PO-${String(row.po_id).padStart(4, "0")}` })} />
         </HStack>
       ),
     },
@@ -70,20 +71,14 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
 
   return (
     <VStack gap={4}>
-      <Card padding={0}>
+      <Card>
         <Table
           textOverflow="truncate"
           columns={columns as any}
           data={pos as any}
           idKey="po_id"
           hasHover
-          emptyState={
-            <VStack align="center" padding={8}>
-              <Text color="secondary">
-                Belum ada PO. Klik 'Buat Baru' untuk memulai.
-              </Text>
-            </VStack>
-          }
+          emptyState={<TableEmptyState message="Belum ada PO. Klik 'Buat Baru' untuk memulai." />}
         />
       </Card>
       <ConfirmDialog

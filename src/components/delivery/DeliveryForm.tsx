@@ -146,7 +146,7 @@ export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }
                           isDisabled={isEdit}
                           options={[
                             { value: "", label: "Pilih nomor PO..." },
-                            ...pos.map((p: any) => ({ value: String(p.po_id), label: `PO-${p.po_id} (${p.vendor_names || "Tidak ada vendor"})` })),
+                            ...pos.map((p: any) => ({ value: String(p.po_id), label: `PO-${String(p.po_id).padStart(4, "0")} (${p.vendor_names || "Tidak ada vendor"})` })),
                           ]}
                         />
                       )}
