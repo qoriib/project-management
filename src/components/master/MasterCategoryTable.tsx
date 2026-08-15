@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Card, Table, HStack, IconButton } from "@astryxdesign/core";
+import { Table, HStack, IconButton } from "@astryxdesign/core";
 import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -46,7 +46,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
     {
       key: "category_id",
       header: "Kode",
-      width: pixel(100),
+      width: pixel(120),
       renderCell: (row: CategoryRow) => `KAT-${String(row.category_id).padStart(4, '0')}`
     },
     {
@@ -88,15 +88,14 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
 
   return (
     <>
-      <Card>
-        <Table
-          textOverflow="truncate"
-          columns={columns}
-          data={categoryRows as CategoryRow[]}
-          idKey="category_id"
-          emptyState={<TableEmptyState message="Belum ada kategori." />}
-        />
-      </Card>
+      <Table
+        hasHover
+        textOverflow="truncate"
+        columns={columns}
+        data={categoryRows as CategoryRow[]}
+        idKey="category_id"
+        emptyState={<TableEmptyState message="Belum ada kategori." />}
+      />
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

@@ -1,6 +1,6 @@
 import { Pencil, Trash2, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
-import { HStack, Table, Text, VStack, Card, Badge, IconButton } from "@astryxdesign/core";
+import { HStack, Table, Text, Badge, IconButton } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { purchaseOrderRepo, type POWithSummary } from "@/db/repositories";
@@ -123,17 +123,15 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   ];
 
   return (
-    <VStack gap={4}>
-      <Card>
-        <Table
-          textOverflow="truncate"
-          columns={columns}
-          data={pos as PORow[]}
-          idKey="po_id"
-          hasHover
-          emptyState={<TableEmptyState message="Belum ada PO. Klik 'Buat Baru' untuk memulai." />}
-        />
-      </Card>
+    <>
+      <Table
+        textOverflow="truncate"
+        columns={columns}
+        data={pos as PORow[]}
+        idKey="po_id"
+        hasHover
+        emptyState={<TableEmptyState message="Belum ada PO. Klik 'Buat Baru' untuk memulai." />}
+      />
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -142,6 +140,6 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
         message={`Hapus PO "${deleteTarget?.label}"? Semua item dan pengiriman terkait akan ikut terhapus.`}
         isLoading={deleting}
       />
-    </VStack>
+    </>
   );
 }

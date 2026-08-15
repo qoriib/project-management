@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Card, Table, Badge, HStack, IconButton, Button } from "@astryxdesign/core";
+import { Table, Badge, HStack, IconButton, Button } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -43,7 +43,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
     {
       key: "item_id",
       header: "Kode",
-      width: pixel(100),
+      width: pixel(120),
       renderCell: (row: ItemRow) => `BRG-${String(row.item_id).padStart(4, '0')}`
     },
     {
@@ -97,15 +97,14 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
 
   return (
     <>
-      <Card>
-        <Table
-          textOverflow="truncate"
-          columns={columns}
-          data={items as ItemRow[]}
-          idKey="item_id"
-          emptyState={<TableEmptyState message="Belum ada item." />}
-        />
-      </Card>
+      <Table
+        hasHover
+        textOverflow="truncate"
+        columns={columns}
+        data={items as ItemRow[]}
+        idKey="item_id"
+        emptyState={<TableEmptyState message="Belum ada item." />}
+      />
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

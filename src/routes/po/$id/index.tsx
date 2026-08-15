@@ -96,18 +96,14 @@ function PODetailPage() {
           <HStack justify="between" align="center">
             <Heading level={3}>Tracking Realisasi</Heading>
           </HStack>
-          <Card padding={4}>
-            <POItemTrackingTable items={items} bomData={bomData} />
-          </Card>
+          <POItemTrackingTable items={items} bomData={bomData} />
         </VStack>
         <VStack gap={3}>
           <HStack gap={2} justify="between" align="center">
             <Heading level={3}>Log Penerimaan</Heading>
             <Button variant="secondary" label="Tambah Baru" onClick={() => navigate({ to: "/delivery/new", search: { po: String(po.po_id) } })} />
           </HStack>
-          <Card padding={4}>
-            <PODeliveryLogTable deliveryItems={deliveryItems} onDeleteRequest={(id, label) => setDeleteTarget({ id, label })} />
-          </Card>
+          <PODeliveryLogTable deliveryItems={deliveryItems} onDeleteRequest={(id, label) => setDeleteTarget({ id, label })} />
         </VStack>
         <HStack justify="start">
           <Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/po" })} />

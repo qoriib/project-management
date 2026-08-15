@@ -7,11 +7,13 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
-import { pixel, proportional } from "@astryxdesign/core/Table";
+import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
 import { projectRepo, type StageRelation, type Project } from "@/db/repositories";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
 import * as v from "valibot";
+
+type StageRow = StageRelation & Record<string, unknown>;
 
 const stageSchema = v.object({
   stage_name: v.pipe(v.string(), v.nonEmpty("Nama tahap harus diisi.")),
@@ -27,7 +29,6 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
   const showToast = useToast();
 
   const [stages, setStages] = useState<StageRelation[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const [editTarget, setEditTarget] = useState<StageRelation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<StageRelation | null>(null);
@@ -76,15 +77,11 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
   async function loadStages() {
     if (!project) return;
 
-    setLoading(true);
-
     try {
       const data = await projectRepo.getStagesWithRelation(project.project_id);
       setStages(data);
     } catch {
       setStages([]);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -127,7 +124,7 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
     }
   }
 
-  const columns = [
+  const columns: TableColumn<StageRow>[] = [
     {
       key: "stage_id",
       header: "#",
@@ -180,23 +177,13 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
             title={`Tahap: ${project?.project_name}`}
             actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
           />
-
-          <Card>
-            {loading ? (
-              <VStack align="center" padding={4}>
-                <Text size="sm" color="secondary">Memuat data tahap...</Text>
-              </VStack>
-            ) : (
-              <Table
-                columns={columns as any}
-                data={stages as any}
-                idKey="stage_id"
-                textOverflow="truncate"
-                emptyState={<TableEmptyState message="Belum ada tahap. Tambahkan di bawah." />}
-              />
-            )}
-          </Card>
-
+          <Table
+            columns={columns}
+            data={stages as StageRow[]}
+            idKey="stage_id"
+            textOverflow="truncate"
+            emptyState={<TableEmptyState message="Belum ada tahap. Tambahkan di bawah." />}
+          />
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -204,7 +191,7 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
               form.handleSubmit();
             }}
           >
-            <Card>
+            <Card padding={4}>
               <VStack gap={3}>
                 <FormLayout>
                   <form.Field
@@ -245,7 +232,6 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
           </form>
         </VStack>
       </Dialog>
-
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

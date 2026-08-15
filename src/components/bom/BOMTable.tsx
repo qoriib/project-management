@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { HStack, Table, Text, VStack, Heading, Card, IconButton, Divider } from "@astryxdesign/core";
-import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
+import { useEffect, useState, useMemo } from "react";
+import { HStack, Table, Text, IconButton, Divider } from "@astryxdesign/core";
+import { proportional, pixel, type TableColumn, useTableGroupedRows } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { bomRepo, type BOMDetail } from "@/db/repositories";
@@ -57,7 +57,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
     {
       key: "item_id",
       header: "Kode",
-      width: pixel(100),
+      width: pixel(120),
       renderCell: (row: BomRow) => `BRG-${String(row.item_id).padStart(4, '0')}`
     },
     {
@@ -106,56 +106,63 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
     },
   ];
 
-  const groupedBoms = boms.reduce((acc, curr) => {
-    const cat = curr.category || "LAINNYA";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(curr);
-    return acc;
-  }, {} as Record<string, BOMDetail[]>);
+  const { grandTotal, categorySubtotals } = useMemo(() => {
+    let grand = 0;
+    const subtotals: Record<string, number> = {};
+    for (const b of boms) {
+      const cat = b.category || "LAINNYA";
+      const total = b.total_estimasi || 0;
+      grand += total;
+      subtotals[cat] = (subtotals[cat] || 0) + total;
+    }
+    return { grandTotal: grand, categorySubtotals: subtotals };
+  }, [boms]);
 
-  if (boms.length === 0) {
-    return (
-      <Card>
-        <Table
-          columns={columns}
-          data={[] as BomRow[]}
-          idKey="bom_id"
-          emptyState={<TableEmptyState message="Belum ada rencana material di tahap ini. Isi form di bawah untuk mulai menambahkan." />}
-        />
-      </Card>
-    );
-  }
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
-  const grandTotal = boms.reduce((acc, curr) => acc + (curr.total_estimasi || 0), 0);
+  const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows({
+    data: boms as BomRow[],
+    groupBy: (item) => item.category || "LAINNYA",
+    collapsedGroups,
+    onToggleGroup: (key) => {
+      setCollapsedGroups((prev) => {
+        const next = new Set(prev);
+        if (next.has(key)) next.delete(key);
+        else next.add(key);
+        return next;
+      });
+    },
+    getRowKey: (item) => String(item.bom_id),
+    renderGroupHeader: (key) => (
+      <HStack justify="between" align="center" paddingInline={1} width="100%">
+        <Text weight="bold">{key}</Text>
+        <Text weight="bold">{formatRupiah(categorySubtotals[key] || 0)}</Text>
+      </HStack>
+    ),
+  });
 
   return (
-    <VStack gap={6}>
-      {Object.entries(groupedBoms).map(([category, items]) => {
-        const subtotal = items.reduce((acc, curr) => acc + (curr.total_estimasi || 0), 0);
-        return (
-          <VStack key={category} gap={3}>
-            <HStack justify="between" align="center">
-              <Heading level={4}>{category}</Heading>
-              <Text weight="bold" color="primary">{formatRupiah(subtotal)}</Text>
-            </HStack>
-            <Card>
-              <Table
-                columns={columns}
-                data={items as BomRow[]}
-                idKey="bom_id"
-                hasHover
-              />
-            </Card>
-          </VStack>
-        );
-      })}
-      <Divider />
-      <HStack justify="end" gap={2}>
-        <Text weight="bold" size="lg">Total:</Text>
-        <Text weight="bold" size="lg" color="primary">
-          {formatRupiah(grandTotal)}
-        </Text>
-      </HStack>
+    <>
+      <Table
+        hasHover
+        textOverflow="truncate"
+        columns={columns}
+        data={groupedData}
+        idKey={groupedIdKey}
+        plugins={{ grouping: groupedPlugin }}
+        emptyState={<TableEmptyState message="Belum ada rencana material di tahap ini. Isi form di bawah untuk mulai menambahkan." />}
+      />
+      {boms.length > 0 && (
+        <>
+          <Divider />
+          <HStack justify="end" gap={2}>
+            <Text weight="bold" size="lg">Total:</Text>
+            <Text weight="bold" size="lg" color="primary">
+              {formatRupiah(grandTotal)}
+            </Text>
+          </HStack>
+        </>
+      )}
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -164,6 +171,6 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
         message="Apakah Anda yakin ingin menghapus material ini dari rencana (BOM)?"
         isLoading={deleting}
       />
-    </VStack>
+    </>
   );
 }

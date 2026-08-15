@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Card, Table, HStack, IconButton } from "@astryxdesign/core";
+import { Table, HStack, IconButton } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -41,7 +41,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
     {
       key: "vendor_id",
       header: "Kode",
-      width: pixel(100),
+      width: pixel(120),
       renderCell: (row: VendorRow) => `VND-${String(row.vendor_id).padStart(4, '0')}`
     },
     {
@@ -87,15 +87,14 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
 
   return (
     <>
-      <Card>
-        <Table
-          textOverflow="truncate"
-          columns={columns}
-          data={vendors as VendorRow[]}
-          idKey="vendor_id"
-          emptyState={<TableEmptyState message="Belum ada vendor." />}
-        />
-      </Card>
+      <Table
+        hasHover
+        textOverflow="truncate"
+        columns={columns}
+        data={vendors as VendorRow[]}
+        idKey="vendor_id"
+        emptyState={<TableEmptyState message="Belum ada vendor." />}
+      />
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

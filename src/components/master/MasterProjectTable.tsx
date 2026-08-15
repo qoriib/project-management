@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Card, Table, HStack, IconButton, Button } from "@astryxdesign/core";
+import { Table, HStack, IconButton, Button } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -43,7 +43,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
     {
       key: "project_id",
       header: "Kode",
-      width: pixel(100),
+      width: pixel(120),
       renderCell: (row: ProjectRow) => `PRJ-${String(row.project_id).padStart(4, '0')}`
     },
     {
@@ -95,15 +95,14 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
 
   return (
     <>
-      <Card>
-        <Table
-          textOverflow="truncate"
-          columns={columns}
-          data={projects as ProjectRow[]}
-          idKey="project_id"
-          emptyState={<TableEmptyState message="Belum ada project." />}
-        />
-      </Card>
+      <Table
+        hasHover
+        textOverflow="truncate"
+        columns={columns}
+        data={projects as ProjectRow[]}
+        idKey="project_id"
+        emptyState={<TableEmptyState message="Belum ada project." />}
+      />
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

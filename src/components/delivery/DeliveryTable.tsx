@@ -1,21 +1,24 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { HStack, Table, Text, VStack, Card, Badge, IconButton } from "@astryxdesign/core";
-import { proportional, pixel } from "@astryxdesign/core/Table";
+import { useNavigate } from "@tanstack/react-router";
+import { HStack, Table, Badge, IconButton } from "@astryxdesign/core";
+import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { deliveryRepo, type DeliverySummary } from "@/db/repositories";
 import { formatDate } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 
+type DeliveryRow = DeliverySummary & Record<string, unknown>;
+
 interface DeliveryTableProps {
   onRefresh?: () => void;
-  refreshTrigger?: number; // to allow parent to trigger refresh
+  refreshTrigger?: number;
 }
 
 export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps) {
+  const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState<DeliverySummary[]>([]);
-
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -43,16 +46,30 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
     }
   }
 
-
-
-  const columns = [
-    { key: "delivery_id", header: "ID Pengiriman", width: pixel(140), renderCell: (row: DeliverySummary) => `DLV-${row.delivery_id}` },
-    { key: "delivery_date", header: "Tanggal", width: pixel(120), renderCell: (row: DeliverySummary) => formatDate(row.delivery_date) },
-    { key: "po_id", header: "No. PO", width: pixel(120), renderCell: (row: DeliverySummary) => `PO-${String(row.po_id).padStart(4, "0")}` },
-    { key: "project_name", header: "Proyek", width: proportional(1.5), renderCell: (row: DeliverySummary) => row.project_name || "—" },
+  const columns: TableColumn<DeliveryRow>[] = [
     {
-      key: "vendor_names", header: "Vendor Pemasok", width: proportional(1.5),
-      renderCell: (row: DeliverySummary) => (
+      key: "delivery_id",
+      header: "ID Pengiriman",
+      width: pixel(140),
+      renderCell: (row) => `DLV-${row.delivery_id}`
+    },
+    {
+      key: "delivery_date",
+      header: "Tanggal",
+      width: pixel(120),
+      renderCell: (row) => formatDate(row.delivery_date)
+    },
+    {
+      key: "po_id",
+      header: "No. PO",
+      width: pixel(120),
+      renderCell: (row) => `PO-${String(row.po_id).padStart(4, "0")}`
+    },
+    {
+      key: "vendor_names",
+      header: "Vendor Pemasok",
+      width: proportional(1.5),
+      renderCell: (row) => (
         <HStack gap={1} style={{ flexWrap: 'wrap' }}>
           {row.vendor_names ? row.vendor_names.split(',').map((v: string, i: number) => (
             <Badge key={i} variant="neutral" label={v.trim()} />
@@ -60,36 +77,47 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
         </HStack>
       )
     },
-    { key: "item_count", header: "Total Item", width: pixel(120), renderCell: (row: DeliverySummary) => `${row.item_count} Item` },
     {
-      key: "actions", header: "", width: pixel(180),
-      renderCell: (row: DeliverySummary) => (
-        <HStack gap={2}>
-          <Link to="/delivery/$id/edit" params={{ id: String(row.delivery_id) }}>
-            <IconButton size="sm" variant="secondary" icon={<Pencil size={16} />} label="Edit" />
-          </Link>
-          <IconButton size="sm" variant="destructive"  icon={<Trash2 size={16} />} label="Hapus"  onClick={() => setDeleteTarget(row.delivery_id)} />
+      key: "item_count",
+      header: "Total Item",
+      width: pixel(120),
+      renderCell: (row) => `${row.item_count} Item`
+    },
+    {
+      key: "actions",
+      header: "",
+      width: pixel(120),
+      renderCell: (row) => (
+        <HStack justify="end" gap={2}>
+          <IconButton
+            size="sm"
+            variant="secondary"
+            icon={<Pencil size={16} />}
+            label="Edit"
+            onClick={() => navigate({ to: '/delivery/$id/edit', params: { id: String(row.delivery_id) } })}
+          />
+          <IconButton
+            size="sm"
+            variant="destructive"
+            icon={<Trash2 size={16} />}
+            label="Hapus"
+            onClick={() => setDeleteTarget(row.delivery_id)}
+          />
         </HStack>
       )
     },
   ];
 
   return (
-    <VStack gap={4}>
-      <Card padding={0}>
-        <Table
-          textOverflow="truncate"
-          columns={columns as any}
-          data={deliveries as any}
-          idKey="delivery_id"
-          emptyState={
-            <VStack align="center" padding={8}>
-              <Text color="secondary">Tidak ada data pengiriman yang cocok.</Text>
-            </VStack>
-          }
-        />
-      </Card>
-
+    <>
+      <Table
+        hasHover
+        textOverflow="truncate"
+        columns={columns}
+        data={deliveries as DeliveryRow[]}
+        idKey="delivery_id"
+        emptyState={<TableEmptyState message="Tidak ada data pengiriman yang cocok." />}
+      />
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -98,6 +126,6 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
         message="Apakah Anda yakin ingin menghapus data pengiriman ini? Jumlah sisa PO terkait akan bertambah kembali."
         isLoading={deleting}
       />
-    </VStack>
+    </>
   );
 }

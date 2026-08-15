@@ -7,13 +7,15 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { pixel, proportional } from "@astryxdesign/core/Table";
+import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
 import { formatRupiah } from "@/utils/formatters";
 import { itemPriceRepo, type ItemPriceWithRelation } from "@/db/repositories";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
 import type { ItemPrice, ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
+
+type PriceRow = ItemPriceWithRelation & Record<string, unknown>;
 
 const priceSchema = v.object({
   price: v.pipe(v.number("Harga harus berupa angka"), v.minValue(0, "Harga tidak valid.")),
@@ -106,7 +108,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     }
   }
 
-  const columns = [
+  const columns: TableColumn<PriceRow>[] = [
     {
       key: "item_price_id",
       header: "#",
@@ -155,15 +157,13 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
             title={`Harga: ${item?.item_name}`}
             actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
           />
-          <Card>
-            <Table
-              columns={columns as any}
-              data={prices as any}
-              idKey="item_price_id"
-              textOverflow="truncate"
-              emptyState={<TableEmptyState message="Belum ada harga. Tambahkan di bawah." />}
-            />
-          </Card>
+          <Table
+            columns={columns}
+            data={prices as PriceRow[]}
+            idKey="item_price_id"
+            textOverflow="truncate"
+            emptyState={<TableEmptyState message="Belum ada harga. Tambahkan di bawah." />}
+          />
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -171,7 +171,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
               form.handleSubmit();
             }}
           >
-            <Card>
+            <Card padding={4}>
               <VStack gap={3}>
                 <FormLayout>
                   <form.Field

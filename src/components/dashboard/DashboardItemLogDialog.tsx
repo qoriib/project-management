@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Dialog, Table, Text, VStack, Badge } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { proportional, pixel } from "@astryxdesign/core/Table";
+import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { getDashboardItemLog, type DashboardItemLogEntry } from "@/db/services";
 import { formatNumber, formatDate } from "@/utils/formatters";
+
+type LogRow = DashboardItemLogEntry & Record<string, unknown>;
 
 interface DashboardItemLogDialogProps {
   isOpen: boolean;
@@ -34,6 +36,49 @@ export function DashboardItemLogDialog({
     }
   }, [isOpen, projectId, itemId, itemPriceId]);
 
+  const columns: TableColumn<LogRow>[] = [
+    {
+      key: "date",
+      header: "Tanggal",
+      width: pixel(120),
+      renderCell: (r: LogRow) => (
+        <Text size="sm">{formatDate(r.date)}</Text>
+      )
+    },
+    {
+      key: "type",
+      header: "Tipe",
+      width: pixel(100),
+      renderCell: (r: LogRow) => (
+        <Badge variant={r.type === 'PO' ? 'info' : 'success'} label={r.type} />
+      )
+    },
+    {
+      key: "reference",
+      header: "Referensi",
+      width: proportional(1),
+      renderCell: (r: LogRow) => (
+        <Text weight="medium">{r.reference}</Text>
+      )
+    },
+    {
+      key: "qty",
+      header: "Volume",
+      width: pixel(100),
+      renderCell: (r: LogRow) => (
+        <Text>{formatNumber(r.qty, 2)}</Text>
+      )
+    },
+    {
+      key: "vendor",
+      header: "Vendor",
+      width: proportional(1),
+      renderCell: (r: LogRow) => (
+        <Text>{r.vendor_name || '-'}</Text>
+      )
+    }
+  ];
+
   return (
     <Dialog 
       isOpen={isOpen} 
@@ -43,49 +88,8 @@ export function DashboardItemLogDialog({
       <VStack gap={4}>
         <PageHeader title={`Log Item: ${itemName}`} />
         <Table
-          columns={[
-            {
-              key: "date",
-              header: "Tanggal",
-              width: pixel(120),
-              renderCell: (r: any) => (
-                <Text size="sm">{formatDate(r.date)}</Text>
-              )
-            },
-            {
-              key: "type",
-              header: "Tipe",
-              width: pixel(100),
-              renderCell: (r: any) => (
-                <Badge variant={r.type === 'PO' ? 'info' : 'success'} label={r.type} />
-              )
-            },
-            {
-              key: "reference",
-              header: "Referensi",
-              width: proportional(1),
-              renderCell: (r: any) => (
-                <Text weight="medium">{r.reference}</Text>
-              )
-            },
-            {
-              key: "qty",
-              header: "Volume",
-              width: pixel(100),
-              renderCell: (r: any) => (
-                <Text>{formatNumber(r.qty, 2)}</Text>
-              )
-            },
-            {
-              key: "vendor",
-              header: "Vendor",
-              width: proportional(1),
-              renderCell: (r: any) => (
-                <Text>{r.vendor_name || '-'}</Text>
-              )
-            }
-          ]}
-          data={logs as any}
+          columns={columns}
+          data={logs as LogRow[]}
           idKey="reference"
         />
         {logs.length === 0 && !loading && (
