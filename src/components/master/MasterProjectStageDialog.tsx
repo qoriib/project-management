@@ -11,6 +11,7 @@ import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table"
 import { projectRepo, type StageRelation, type Project } from "@/db/repositories";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
+import { EntityCode } from "@/components/shared/EntityCode";
 import * as v from "valibot";
 
 type StageRow = StageRelation & Record<string, unknown>;
@@ -130,7 +131,7 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
       header: "#",
       width: pixel(60),
       renderCell: (row: StageRelation) => (
-        <Text size="sm" color="secondary">{String(row.stage_id).padStart(3, "0")}</Text>
+        <EntityCode prefix="" id={row.stage_id} padding={3} />
       ),
     },
     {

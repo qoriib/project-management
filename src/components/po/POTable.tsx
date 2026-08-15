@@ -1,10 +1,11 @@
 import { Pencil, Trash2, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
-import { HStack, Table, Badge, IconButton } from "@astryxdesign/core";
+import { HStack, Table, Badge, IconButton, Timestamp } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
-import { formatRupiah, formatDate } from "@/utils/formatters";
+import { formatRupiah } from "@/utils/formatters";
+import { EntityCode, formatEntityCode } from "@/components/shared/EntityCode";
 import { useNavigate } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
 import { usePOStore } from "@/store/usePOStore";
@@ -44,15 +45,15 @@ export function POTable({ onEdit }: POTableProps) {
   const columns: TableColumn<PORow>[] = [
     {
       key: "po_id",
-      header: "No.PO",
-      width: pixel(100),
-      renderCell: (row: PORow) => `PO-${String(row.po_id).padStart(4, "0")}`
+      header: "No. PO",
+      width: pixel(120),
+      renderCell: (row: PORow) => <EntityCode prefix="PO" id={row.po_id} />
     },
     {
       key: "po_date",
       header: "Tanggal",
       width: pixel(120),
-      renderCell: (row: PORow) => formatDate(row.po_date)
+      renderCell: (row: PORow) => <Timestamp value={row.po_date} format="system_date" />
     },
     {
       key: "vendor_names",
@@ -104,7 +105,7 @@ export function POTable({ onEdit }: POTableProps) {
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            onClick={() => setDeleteTarget({ id: row.po_id, label: `PO-${String(row.po_id).padStart(4, "0")}` })}
+            onClick={() => setDeleteTarget({ id: row.po_id, label: formatEntityCode("PO", row.po_id) })}
           />
         </HStack>
       ),

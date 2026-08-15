@@ -7,6 +7,7 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { Vendor } from "@/db/repositories";
+import { EntityCode } from "@/components/shared/EntityCode";
 
 interface MasterVendorTableProps {
   onEdit: (vendor: Vendor) => void;
@@ -42,7 +43,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
       key: "vendor_id",
       header: "No. Vendor",
       width: pixel(120),
-      renderCell: (row: VendorRow) => `VND-${String(row.vendor_id).padStart(4, '0')}`
+      renderCell: (row: VendorRow) => <EntityCode prefix="VND" id={row.vendor_id} />
     },
     {
       key: "vendor_name",

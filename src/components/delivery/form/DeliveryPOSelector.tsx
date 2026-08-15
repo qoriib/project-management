@@ -1,6 +1,7 @@
 import { VStack, Selector } from "@astryxdesign/core";
 import { getFieldError } from "@/utils/form";
 import type { useDeliveryForm } from "./useDeliveryForm";
+import { formatEntityCode } from "@/components/shared/EntityCode";
 
 interface DeliveryPOSelectorProps {
   form: ReturnType<typeof useDeliveryForm>["form"];
@@ -21,7 +22,7 @@ export function DeliveryPOSelector({
 }: DeliveryPOSelectorProps) {
   const poOptions = pos.map((p) => ({
     value: String(p.po_id),
-    label: `PO-${String(p.po_id).padStart(4, "0")}`,
+    label: formatEntityCode("PO", p.po_id),
   }));
 
   return (

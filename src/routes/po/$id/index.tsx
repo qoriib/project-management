@@ -1,12 +1,12 @@
-
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { Section, VStack, HStack, Button, Card, Heading, Text } from "@astryxdesign/core";
+import { Button, HStack, Text, VStack, Section, Timestamp, Card, Heading } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { formatRupiah, formatDate } from "@/utils/formatters";
+import { formatRupiah } from "@/utils/formatters";
 import { usePOStore } from "@/store/usePOStore";
 import { POItemTrackingTable } from "@/components/po/POItemTrackingTable";
 import { PODeliveryLogTable } from "@/components/po/PODeliveryLogTable";
+import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function PODetailPage() {
   const navigate = useNavigate();
@@ -55,13 +55,15 @@ function PODetailPage() {
     <Section padding={6}>
       <VStack gap={6}>
         <PageHeader
-          title={`Detail PO-${String(po.po_id).padStart(4, "0")}`}
+          title={`Detail ${formatEntityCode("PO", po.po_id)}`}
           actions={<Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/po" })} />}
         />
         <HStack gap={8}>
           <VStack gap={1}>
             <Text color="secondary" size="sm">Dibuat Pada</Text>
-            <Text weight="medium">{formatDate(po.po_date)}</Text>
+            <Text weight="medium">
+              {po.po_date ? <Timestamp value={po.po_date} format="system_date" /> : "-"}
+            </Text>
           </VStack>
           <VStack gap={1}>
             <Text color="secondary" size="sm">Rencana Total</Text>

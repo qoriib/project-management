@@ -1,11 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Table, proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { IconButton } from "@astryxdesign/core/IconButton";
+import { Timestamp } from "@astryxdesign/core";
 import { Pencil } from "lucide-react";
-import { formatDate, formatNumber } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 import type { DeliveryItemByPO } from "@/db/repositories";
 import { usePOStore } from "@/store/usePOStore";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { EntityCode } from "@/components/shared/EntityCode";
 
 export function PODeliveryLogTable() {
   const navigate = useNavigate();
@@ -18,13 +20,13 @@ export function PODeliveryLogTable() {
       key: "delivery_id",
       header: "No. DLV",
       width: pixel(100),
-      renderCell: (row) => `DLV-${String(row.delivery_id).padStart(4, "0")}`
+      renderCell: (row) => <EntityCode prefix="DLV" id={row.delivery_id} />
     },
     {
       key: "delivery_date",
       header: "Tanggal Kirim",
       width: pixel(120),
-      renderCell: (row) => formatDate(row.delivery_date)
+      renderCell: (row) => <Timestamp value={row.delivery_date} format="system_date" />
     },
     {
       key: "item_name",

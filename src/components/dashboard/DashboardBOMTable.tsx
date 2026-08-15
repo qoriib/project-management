@@ -5,6 +5,7 @@ import { proportional, pixel, useTableGroupedRows, type TableColumn } from "@ast
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { Eye } from "lucide-react";
 import type { DashboardBOMReportItem } from "@/db/services";
+import { EntityCode } from "@/components/shared/EntityCode";
 
 interface DashboardBOMTableProps {
   report: DashboardBOMReportItem[];
@@ -50,9 +51,9 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       header: "Item",
       width: proportional(1),
       renderCell: (r) => (
-        <VStack gap={0.5}>
+        <VStack align="start" gap={0.5}>
           <Text weight="medium">{r.item_name}</Text>
-          <Text size="sm" color="secondary">BRG-{String(r.item_id).padStart(4, "0")}</Text>
+          <EntityCode prefix="BRG" id={r.item_id} />
         </VStack>
       )
     },

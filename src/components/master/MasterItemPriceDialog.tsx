@@ -1,6 +1,6 @@
 import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Text, Table, Badge, IconButton, Card } from "@astryxdesign/core";
+import { Dialog, VStack, HStack, Button, Table, Badge, IconButton, Card } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -10,6 +10,7 @@ import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
 import { formatRupiah } from "@/utils/formatters";
 import { itemPriceRepo, type ItemPriceWithRelation } from "@/db/repositories";
+import { EntityCode } from "@/components/shared/EntityCode";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
 import type { ItemPrice, ItemWithDetails } from "@/db/repositories";
@@ -114,7 +115,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       header: "#",
       width: pixel(60),
       renderCell: (row: ItemPrice) => (
-        <Text size="sm" color="secondary">{String(row.item_price_id).padStart(3, "0")}</Text>
+        <EntityCode prefix="" id={row.item_price_id} padding={3} />
       ),
     },
     {

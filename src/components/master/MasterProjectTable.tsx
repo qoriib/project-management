@@ -5,6 +5,7 @@ import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { MasterProjectStageDialog } from "@/components/master/MasterProjectStageDialog";
+import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { Project, ProjectWithStages } from "@/db/repositories";
@@ -44,7 +45,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       key: "project_id",
       header: "No. Proyek",
       width: pixel(120),
-      renderCell: (row: ProjectRow) => `PRJ-${String(row.project_id).padStart(4, '0')}`
+      renderCell: (row: ProjectRow) => <EntityCode prefix="PRJ" id={row.project_id} />
     },
     {
       key: "project_name",

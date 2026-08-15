@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Dialog, Table, Text, VStack, Heading } from "@astryxdesign/core";
+import { Dialog, Table, Text, VStack, Heading, Timestamp } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { getDashboardItemLog, type DashboardItemLogEntry } from "@/db/services";
-import { formatNumber, formatDate } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 
 type LogRow = DashboardItemLogEntry & Record<string, unknown>;
 
@@ -40,7 +40,7 @@ export function DashboardItemLogDialog({
       key: "date",
       header: "Tanggal",
       width: pixel(120),
-      renderCell: (r: LogRow) => formatDate(r.date)
+      renderCell: (r: LogRow) => <Timestamp value={r.date} format="system_date" />
     },
     {
       key: "reference",

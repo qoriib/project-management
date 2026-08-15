@@ -20,10 +20,7 @@ export function formatNumber(value: number | undefined | null, decimals = 2): st
 
 // ── Date ─────────────────────────────────────────────────────────────────────
 
-export function formatDate(iso: string | undefined | null): string {
-  if (!iso) return "-";
-  return iso;
-}
+
 
 export function toISODate(date: Date = new Date()): string {
   return date.toISOString().slice(0, 10);

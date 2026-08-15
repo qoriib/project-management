@@ -1,12 +1,12 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { HStack, Table, Badge, IconButton } from "@astryxdesign/core";
+import { EntityCode } from "@/components/shared/EntityCode";
+import { HStack, Table, Badge, IconButton, Timestamp } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { type DeliverySummary } from "@/db/repositories";
-import { formatDate } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 
@@ -38,21 +38,21 @@ export function DeliveryTable() {
   const columns: TableColumn<DeliveryRow>[] = [
     {
       key: "delivery_id",
-      header: "No. DLV",
-      width: pixel(120),
-      renderCell: (row) => `DLV-${String(row.delivery_id).padStart(4, "0")}`
+      header: "No. Pengiriman",
+      width: pixel(140),
+      renderCell: (row) => <EntityCode prefix="DLV" id={row.delivery_id} />
     },
     {
       key: "delivery_date",
       header: "Tanggal",
-      width: pixel(140),
-      renderCell: (row) => formatDate(row.delivery_date)
+      width: pixel(120),
+      renderCell: (row) => <Timestamp value={row.delivery_date} format="system_date" />
     },
     {
       key: "po_id",
-      header: "No. PO",
+      header: "Ref. PO",
       width: pixel(120),
-      renderCell: (row) => `PO-${String(row.po_id).padStart(4, "0")}`
+      renderCell: (row) => <EntityCode prefix="PO" id={row.po_id} />
     },
     {
       key: "vendor_names",

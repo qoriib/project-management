@@ -4,6 +4,7 @@ import { HStack, Table, Text, IconButton, Divider } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn, useTableGroupedRows } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { EntityCode } from "@/components/shared/EntityCode";
 import { type BOMDetail } from "@/db/repositories";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
@@ -48,7 +49,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
       key: "item_id",
       header: "No. Barang",
       width: pixel(120),
-      renderCell: (row: BomRow) => `BRG-${String(row.item_id).padStart(4, '0')}`
+      renderCell: (row: BomRow) => <EntityCode prefix="BRG" id={row.item_id} />
     },
     {
       key: "item_name",

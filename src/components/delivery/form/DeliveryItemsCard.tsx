@@ -4,6 +4,7 @@ import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
 import { DeliveryQtyCell } from "./DeliveryQtyCell";
 import { DeliveryRemainingCell } from "./DeliveryRemainingCell";
+import { EntityCode } from "@/components/shared/EntityCode";
 import { useMemo } from "react";
 
 interface DeliveryItemsCardProps {
@@ -23,9 +24,7 @@ function DeliveryItemsCardInner({
         <VStack gap={0.5}>
           <Text weight="medium">{row.item_name}</Text>
           {row.item_id ? (
-            <Text size="sm" color="secondary">
-              BRG-{String(row.item_id).padStart(4, "0")}
-            </Text>
+            <EntityCode prefix="BRG" id={row.item_id} />
           ) : (
             <Text size="sm" color="secondary">
               Non-Master

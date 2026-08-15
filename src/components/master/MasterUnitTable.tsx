@@ -6,6 +6,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
+import { EntityCode } from "@/components/shared/EntityCode";
 import type { Unit } from "@/db/repositories";
 
 interface MasterUnitTableProps {
@@ -47,7 +48,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
       key: "unit_id",
       header: "No. Satuan",
       width: pixel(120),
-      renderCell: (row: UnitRow) => `STN-${String(row.unit_id).padStart(4, '0')}`
+      renderCell: (row: UnitRow) => <EntityCode prefix="STN" id={row.unit_id} />
     },
     {
       key: "unit_name",

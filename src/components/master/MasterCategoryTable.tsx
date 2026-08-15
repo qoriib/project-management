@@ -6,6 +6,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
+import { EntityCode } from "@/components/shared/EntityCode";
 import type { ItemCategory } from "@/db/repositories";
 
 interface MasterCategoryTableProps {
@@ -47,7 +48,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       key: "category_id",
       header: "No. Kategori",
       width: pixel(120),
-      renderCell: (row: CategoryRow) => `KAT-${String(row.category_id).padStart(4, '0')}`
+      renderCell: (row: CategoryRow) => <EntityCode prefix="KAT" id={row.category_id} />
     },
     {
       key: "category_name",

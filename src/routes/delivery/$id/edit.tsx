@@ -3,6 +3,7 @@ import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { DeliveryForm } from "@/components/delivery/DeliveryForm";
+import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function EditDeliveryPage() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ function EditDeliveryPage() {
     <Section padding={6}>
       <VStack gap={4}>
         <PageHeader
-          title={`Edit Penerimaan DLV-${String(id).padStart(4, '0')}`}
+          title={`Edit Penerimaan ${formatEntityCode("DLV", id)}`}
           subtitle="Ubah log penerimaan item di lapangan"
         />
         <ProjectRequired>

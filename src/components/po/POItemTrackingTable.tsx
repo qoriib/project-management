@@ -3,6 +3,7 @@ import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { EntityCode } from "@/components/shared/EntityCode";
 import { usePOStore } from "@/store/usePOStore";
 import type { POItemDetail } from "@/db/repositories";
 
@@ -15,9 +16,9 @@ export function POItemTrackingTable() {
       header: "Item",
       width: proportional(1),
       renderCell: (row) => (
-        <VStack gap={0.5}>
+        <VStack align="start" gap={0.5}>
           <Text weight="medium">{row.item_name}</Text>
-          <Text size="sm" color="secondary">BRG-{String(row.item_id).padStart(4, "0")}</Text>
+          <EntityCode prefix="BRG" id={row.item_id} />
         </VStack>
       )
     },
@@ -102,6 +103,7 @@ export function POItemTrackingTable() {
 
   return (
     <Table
+      hasHover
       idKey="po_item_id"
       textOverflow="truncate"
       columns={itemColumns}
