@@ -2,11 +2,11 @@ import { VStack, Text } from "@astryxdesign/core";
 import { formatNumber } from "@/utils/formatters";
 import type { DeliveryItemRow } from "./delivery.schema";
 
-interface DeliverySisaCellProps {
+interface DeliveryRemainingCellProps {
   row: DeliveryItemRow;
 }
 
-export function DeliverySisaCell({ row }: DeliverySisaCellProps) {
+export function DeliveryRemainingCell({ row }: DeliveryRemainingCellProps) {
   return (
     <VStack gap={0.5}>
       <Text size="sm" weight="medium">

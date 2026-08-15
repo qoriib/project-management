@@ -25,7 +25,7 @@ export function DeliveryPOSelector({
   }));
 
   return (
-    <VStack style={{ flex: 1 }}>
+    <VStack width={380}>
       <form.Field name="po_id">
         {(field) => (
           <Selector

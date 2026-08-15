@@ -1,7 +1,7 @@
-import { Card, VStack, HStack } from "@astryxdesign/core";
-import type { useDeliveryForm } from "./useDeliveryForm";
+import { Card, HStack } from "@astryxdesign/core";
 import { DeliveryPOSelector } from "./DeliveryPOSelector";
 import { DeliveryDateField } from "./DeliveryDateField";
+import type { useDeliveryForm } from "./useDeliveryForm";
 
 interface DeliveryHeaderCardProps {
   form: ReturnType<typeof useDeliveryForm>["form"];
@@ -21,16 +21,13 @@ export function DeliveryHeaderCard({
 }: DeliveryHeaderCardProps) {
   return (
     <Card padding={4}>
-      <HStack gap={6} align="start">
-        <VStack gap={4} width={400}>
-          <DeliveryPOSelector
-            form={form}
-            pos={pos}
-            isEdit={isEdit}
-            handlePOChange={handlePOChange}
-          />
-        </VStack>
-
+      <HStack gap={3} align="start">
+        <DeliveryPOSelector
+          form={form}
+          pos={pos}
+          isEdit={isEdit}
+          handlePOChange={handlePOChange}
+        />
         <DeliveryDateField form={form} />
       </HStack>
     </Card>

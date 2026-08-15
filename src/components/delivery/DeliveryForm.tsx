@@ -36,7 +36,7 @@ function DeliveryFormActions({ form, onCancel }: { form: ReturnType<typeof useDe
             />
             <Button
               variant="primary"
-              label="Simpan Pengiriman"
+              label="Simpan"
               type="submit"
               isLoading={isSubmitting}
               isDisabled={!canSubmit}
@@ -73,7 +73,7 @@ export function DeliveryForm({
         form.handleSubmit();
       }}
     >
-      <VStack gap={6}>
+      <VStack gap={4}>
         <DeliveryHeaderCard
           form={form}
           pos={pos}

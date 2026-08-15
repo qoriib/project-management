@@ -3,7 +3,7 @@ import { Table, proportional, pixel, type TableColumn } from "@astryxdesign/core
 import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
 import { DeliveryQtyCell } from "./DeliveryQtyCell";
-import { DeliverySisaCell } from "./DeliverySisaCell";
+import { DeliveryRemainingCell } from "./DeliveryRemainingCell";
 import { useMemo } from "react";
 
 interface DeliveryItemsCardProps {
@@ -38,7 +38,7 @@ function DeliveryItemsCardInner({
       key: "sisa",
       header: "Dipesan / Diterima",
       width: pixel(180),
-      renderCell: (row) => <DeliverySisaCell row={row} />,
+      renderCell: (row) => <DeliveryRemainingCell row={row} />,
     },
     {
       key: "qty",
@@ -53,16 +53,14 @@ function DeliveryItemsCardInner({
       key: "unit",
       header: "Satuan",
       width: pixel(100),
-      renderCell: (row) => (
-        <Text size="sm">{row.unit}</Text>
-      ),
+      renderCell: (row) => row.unit,
     },
   ], [form, items]);
 
   return (
     <Card padding={4}>
       <VStack gap={4}>
-        <Table verticalAlign="top" columns={columns} data={items} />
+        <Table columns={columns} data={items} />
       </VStack>
     </Card>
   );

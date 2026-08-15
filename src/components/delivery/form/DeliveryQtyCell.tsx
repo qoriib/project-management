@@ -18,17 +18,13 @@ interface DeliveryQtyCellProps {
 export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
   return (
     <VStack gap={0.5}>
-
-      {/* Outer Field: tangkap error level-row dari v.custom per baris */}
       <form.Field name={`items[${idx}]`}>
         {(field) => {
           const rowErr = getFieldError(
             field.state.meta.errors,
             !!field.state.meta.isTouched
           );
-
           return (
-            /* Inner Field: tangkap error level-qty dari validator onChange */
             <form.Field
               name={`items[${idx}].qty`}
               validators={{
@@ -54,7 +50,7 @@ export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
                     value={qtyField.state.value}
                     onChange={(v) => qtyField.handleChange(v || 0)}
                     onBlur={qtyField.handleBlur}
-                    statusVariant="attached"
+                    statusVariant="tooltip"
                     status={rowErr || qtyErr}
                   />
                 );
