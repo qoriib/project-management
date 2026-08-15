@@ -116,6 +116,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               children={(field) => (
                 <Selector
                   label="Kategori"
+                  placeholder="Pilih kategori..."
                   options={categoryOptions}
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
@@ -130,6 +131,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               children={(field) => (
                 <Selector
                   label="Satuan"
+                  placeholder="Pilih satuan..."
                   options={unitOptions}
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}

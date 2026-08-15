@@ -38,18 +38,17 @@ export function ItemSelectorCell({
           <Selector
             label="Barang"
             isLabelHidden
-            options={[
-              { value: "0", label: "Pilih Material..." },
-              ...bomOptions
-                .filter(
-                  (b) =>
-                    b.item_id === currentVal || !selectedItemIds.has(b.item_id)
-                )
-                .map((b) => ({
-                  value: String(b.item_id),
-                  label: `${b.item_name} (${b.unit})`,
-                })),
-            ]}
+            hasSearch
+            placeholder="Pilih material..."
+            options={bomOptions
+              .filter(
+                (b) =>
+                  b.item_id === currentVal || !selectedItemIds.has(b.item_id)
+              )
+              .map((b) => ({
+                value: String(b.item_id),
+                label: `${b.item_name} (${b.unit})`,
+              }))}
             value={String(field.state.value)}
             onChange={async (v: string) => {
               const id = Number(v);
@@ -97,20 +96,17 @@ export function PriceSelectorCell({
         <Selector
           label="Harga"
           isLabelHidden
-          options={[
-            {
-              value: "",
-              label: itemId
-                ? prices.length === 0
-                  ? "Belum ada harga"
-                  : "Pilih harga..."
-                : "Pilih item dahulu...",
-            },
-            ...prices.map((p) => ({
-              value: String(p.item_price_id),
-              label: formatRupiah(p.price),
-            })),
-          ]}
+          placeholder={
+            !itemId
+              ? "Pilih item dahulu..."
+              : prices.length === 0
+              ? "Belum ada harga"
+              : "Pilih harga..."
+          }
+          options={prices.map((p) => ({
+            value: String(p.item_price_id),
+            label: formatRupiah(p.price),
+          }))}
           value={field.state.value}
           onChange={(v: string) => field.handleChange(v)}
           onBlur={field.handleBlur}
@@ -143,13 +139,11 @@ export function VendorSelectorCell({
         <Selector
           label="Vendor"
           isLabelHidden
-          options={[
-            { value: "", label: "Pilih vendor..." },
-            ...vendors.map((v) => ({
-              value: String(v.vendor_id),
-              label: v.vendor_name,
-            })),
-          ]}
+          placeholder="Pilih vendor..."
+          options={vendors.map((v) => ({
+            value: String(v.vendor_id),
+            label: v.vendor_name,
+          }))}
           value={field.state.value}
           onChange={(v: string) => field.handleChange(v)}
           onBlur={field.handleBlur}

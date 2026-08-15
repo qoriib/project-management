@@ -25,6 +25,7 @@ export function BOMItemField({
           <Selector
             label="Material / Alat"
             hasSearch
+            placeholder="Pilih material atau alat..."
             value={field.state.value}
             onChange={onItemChange}
             onBlur={field.handleBlur}

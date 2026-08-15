@@ -67,8 +67,5 @@ export function buildItemOptions(
     label: `${i.item_name} (${i.unit_name})`,
   }));
 
-  return [
-    { value: "", label: "Pilih Material/Alat..." },
-    ...mappedItems,
-  ];
+  return mappedItems;
 }

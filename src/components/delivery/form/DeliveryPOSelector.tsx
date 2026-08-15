@@ -31,6 +31,7 @@ export function DeliveryPOSelector({
         {(field) => (
           <Selector
             label="Pilih PO"
+            placeholder="Pilih nomor PO..."
             value={field.state.value}
             onChange={(v) => handlePOChange(v as string)}
             onBlur={field.handleBlur}

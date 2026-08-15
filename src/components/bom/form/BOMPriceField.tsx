@@ -20,14 +20,13 @@ export function BOMPriceField({
   isDisabled,
 }: BOMPriceFieldProps) {
   const hasNoPrice = priceOptions.length === 0;
-
-  const placeholderLabel = hasNoPrice
-    ? "Pilih item dahulu..."
-    : "Pilih harga...";
-
-  const placeholderOption = { value: "", label: placeholderLabel };
-
   const isFieldDisabled = isDisabled || !formItemId || hasNoPrice;
+
+  const placeholder = !formItemId
+    ? "Pilih item terlebih dahulu..."
+    : hasNoPrice
+    ? "Tidak ada harga tersedia"
+    : "Pilih harga...";
 
   return (
     <VStack width={260}>
@@ -35,6 +34,7 @@ export function BOMPriceField({
         {(field) => (
           <Selector
             label="Harga"
+            placeholder={placeholder}
             value={field.state.value}
             onChange={(val) => field.handleChange(val)}
             onBlur={field.handleBlur}
@@ -43,7 +43,7 @@ export function BOMPriceField({
               field.state.meta.errors,
               !!field.state.meta.isTouched
             )}
-            options={[placeholderOption, ...priceOptions]}
+            options={priceOptions}
             isDisabled={isFieldDisabled}
           />
         )}
