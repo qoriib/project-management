@@ -5,27 +5,24 @@ import { resolveItems, getUniqueBomOptions, calcGrandTotal } from "./po.utils";
 import { formatRupiah } from "@/utils/formatters";
 import { ItemSelectorCell, PriceSelectorCell, VendorSelectorCell } from "./POItemCells";
 import { BomInfoCell, QtyInputCell, RemoveItemCell } from "./POItemActions";
-import type { ItemPrice, Vendor } from "@/db/repositories";
-import type { DashboardBOMReportItem } from "@/db/services";
+import type { ItemPrice, Vendor, BOMDetail } from "@/db/repositories";
 import type { usePOForm } from "./usePOForm";
 import type { POFormItemValue, POItemRow } from "./po.schema";
 
 interface POItemsCardProps {
   form: ReturnType<typeof usePOForm>["form"];
-  items: POFormItemValue[];
-  bomData: DashboardBOMReportItem[];
+  bomData: BOMDetail[];
   itemPricesMap: Map<number, ItemPrice[]>;
   vendors: Vendor[];
 }
 
-/** Card displaying PO item table, Add Item button, and estimated grand total */
-export function POItemsCard({
+function POItemsCardInner({
   form,
   items,
   bomData,
   itemPricesMap,
   vendors,
-}: POItemsCardProps) {
+}: POItemsCardProps & { items: POFormItemValue[] }) {
   const bomOptions = getUniqueBomOptions(bomData);
   const selectedItemIds = new Set(items.map((it) => it.item_id).filter((id) => id > 0));
   const resolvedItems = resolveItems(items, bomData, itemPricesMap);
@@ -142,5 +139,14 @@ export function POItemsCard({
         </HStack>
       </VStack>
     </Card>
+  );
+}
+
+/** Card displaying PO item table, Add Item button, and estimated grand total */
+export function POItemsCard(props: POItemsCardProps) {
+  return (
+    <props.form.Subscribe selector={(state) => state.values.items}>
+      {(items) => <POItemsCardInner {...props} items={items} />}
+    </props.form.Subscribe>
   );
 }

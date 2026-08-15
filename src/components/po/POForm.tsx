@@ -29,32 +29,19 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         form.handleSubmit();
       }}
     >
-      <form.Subscribe
-        selector={(state) => [
-          state.values.items,
-          state.canSubmit,
-          state.isSubmitting,
-        ] as const}
-      >
-        {([items, canSubmit, isSubmitting]) => (
-          <VStack gap={4}>
-            <PODateCard form={form} />
-            <POItemsCard
-              form={form}
-              items={items}
-              bomData={bomData}
-              itemPricesMap={itemPricesMap}
-              vendors={vendors}
-            />
-            <POFormActions
-              form={form}
-              canSubmit={canSubmit}
-              isSubmitting={isSubmitting}
-              onCancel={onCancel}
-            />
-          </VStack>
-        )}
-      </form.Subscribe>
+      <VStack gap={4}>
+        <PODateCard form={form} />
+        <POItemsCard
+          form={form}
+          bomData={bomData}
+          itemPricesMap={itemPricesMap}
+          vendors={vendors}
+        />
+        <POFormActions
+          form={form}
+          onCancel={onCancel}
+        />
+      </VStack>
     </form>
   );
 }

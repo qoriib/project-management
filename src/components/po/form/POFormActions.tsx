@@ -4,18 +4,15 @@ import type { usePOForm } from "./usePOForm";
 
 interface POFormActionsProps {
   form: ReturnType<typeof usePOForm>["form"];
-  canSubmit: boolean;
-  isSubmitting: boolean;
   onCancel: () => void;
 }
 
-/** Displays form-level error banner and Cancel/Save action buttons */
-export function POFormActions({
+function POFormActionsInner({
   form,
   canSubmit,
   isSubmitting,
   onCancel,
-}: POFormActionsProps) {
+}: POFormActionsProps & { canSubmit: boolean; isSubmitting: boolean }) {
   return (
     <>
       <form.Field name="items">
@@ -49,5 +46,16 @@ export function POFormActions({
         />
       </HStack>
     </>
+  );
+}
+
+/** Displays form-level error banner and Cancel/Save action buttons */
+export function POFormActions(props: POFormActionsProps) {
+  return (
+    <props.form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting] as const}>
+      {([canSubmit, isSubmitting]) => (
+        <POFormActionsInner {...props} canSubmit={canSubmit} isSubmitting={isSubmitting} />
+      )}
+    </props.form.Subscribe>
   );
 }

@@ -3,8 +3,7 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { formatRupiah } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import type { usePOForm } from "./usePOForm";
-import type { ItemPrice, Vendor } from "@/db/repositories";
-import type { DashboardBOMReportItem } from "@/db/services";
+import type { ItemPrice, Vendor, BOMDetail } from "@/db/repositories";
 
 export interface CellFormProps {
   form: ReturnType<typeof usePOForm>["form"];
@@ -12,7 +11,7 @@ export interface CellFormProps {
 }
 
 interface ItemSelectorCellProps extends CellFormProps {
-  bomOptions: DashboardBOMReportItem[];
+  bomOptions: BOMDetail[];
   selectedItemIds: Set<number>;
 }
 
@@ -35,7 +34,7 @@ export function ItemSelectorCell({
           )
           .map((b) => ({
             value: String(b.item_id),
-            label: `${b.item_name} (${b.unit})`,
+            label: `${b.item_name} (${b.unit ?? ""})`,
           }));
 
         const handleChange = async (v: string) => {

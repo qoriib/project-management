@@ -11,14 +11,13 @@ interface PODateCardProps {
 
 /** Card displaying PO Date field */
 export function PODateCard({ form }: PODateCardProps) {
-  console.log(form);
-
   return (
     <Card padding={4}>
       <VStack width={320}>
         <form.Field name="po_date">
           {(field) => (
             <DateInput
+              isRequired
               label="Tanggal PO"
               value={field.state.value as ISODate}
               onChange={(v) => field.handleChange(v || "")}
@@ -29,7 +28,6 @@ export function PODateCard({ form }: PODateCardProps) {
                 field.state.meta.errors,
                 !!field.state.meta.isTouched
               )}
-              isRequired
             />
           )}
         </form.Field>

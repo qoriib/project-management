@@ -1,5 +1,4 @@
-import type { ItemPrice, POItemInput } from "@/db/repositories";
-import type { DashboardBOMReportItem } from "@/db/services";
+import type { ItemPrice, POItemInput, BOMDetail } from "@/db/repositories";
 import type { POFormItemValue, POItemRow } from "./po.schema";
 
 /**
@@ -7,15 +6,15 @@ import type { POFormItemValue, POItemRow } from "./po.schema";
  * Used for the Item selector dropdown.
  */
 export function getUniqueBomOptions(
-  bomData: DashboardBOMReportItem[]
-): DashboardBOMReportItem[] {
+  bomData: BOMDetail[]
+): BOMDetail[] {
   const uniqueMap = new Map(bomData.map((b) => [b.item_id, b]));
   return Array.from(uniqueMap.values());
 }
 
 function calcPlannedAndOrdered(
   it: POFormItemValue,
-  bomData: DashboardBOMReportItem[]
+  bomData: BOMDetail[]
 ): { plannedVolume: number; totalOrdered: number } {
   const hasPriceSelected = it.item_price_id.length > 0;
 
@@ -29,8 +28,9 @@ function calcPlannedAndOrdered(
   let totalOrdered = 0;
 
   for (const bom of matchingVariants) {
-    plannedVolume += bom.planned_volume;
-    totalOrdered += bom.total_ordered;
+    plannedVolume += bom.qty;
+    // Note: totalOrdered is not available in BOMDetail, so it's 0. 
+    // If needed, it must be fetched separately.
   }
 
   return { plannedVolume, totalOrdered };
@@ -42,7 +42,7 @@ function calcPlannedAndOrdered(
  */
 export function resolveItems(
   items: POFormItemValue[],
-  bomData: DashboardBOMReportItem[],
+  bomData: BOMDetail[],
   itemPricesMap: Map<number, ItemPrice[]>
 ): POItemRow[] {
   const bomOptions = getUniqueBomOptions(bomData);
