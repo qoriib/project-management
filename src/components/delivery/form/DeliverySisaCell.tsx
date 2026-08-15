@@ -13,7 +13,7 @@ export function DeliverySisaCell({ row }: DeliverySisaCellProps) {
         Dipesan: {formatNumber(row.ordered, 2)} {row.unit}
       </Text>
       <Text size="sm" color="secondary">
-        Dikirim: {formatNumber(row.delivered, 2)} {row.unit}
+        Diterima: {formatNumber(row.delivered, 2)} {row.unit}
       </Text>
     </VStack>
   );

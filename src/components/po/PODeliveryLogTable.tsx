@@ -48,7 +48,7 @@ export function PODeliveryLogTable() {
     },
     {
       key: "item_name",
-      header: "Barang / Material",
+      header: "Item",
       width: proportional(1),
       renderCell: (row) => row.item_name
     },

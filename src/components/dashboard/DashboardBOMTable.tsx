@@ -43,7 +43,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
   const columns = [
     {
       key: "item",
-      header: "Material / Alat",
+      header: "Item",
       width: proportional(1),
       renderCell: (r: any) => <Text weight="medium">{r.item_name}</Text>
     },

@@ -11,7 +11,7 @@ export function POItemTrackingTable() {
   const itemColumns: TableColumn<POItemDetail>[] = [
     {
       key: "item_name",
-      header: "Barang / Material",
+      header: "Item",
       width: proportional(1),
       renderCell: (row) => (
         <VStack gap={1}>
