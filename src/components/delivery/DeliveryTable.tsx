@@ -101,7 +101,6 @@ export function DeliveryTable() {
   return (
     <>
       <Table
-        verticalAlign="top"
         hasHover
         textOverflow="truncate"
         columns={columns}

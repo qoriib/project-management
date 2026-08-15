@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { VStack, Text, HStack, IconButton, Table } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
-import { proportional, pixel, useTableGroupedRows } from "@astryxdesign/core/Table";
+import { proportional, pixel, useTableGroupedRows, type TableColumn } from "@astryxdesign/core/Table";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { Eye } from "lucide-react";
 import type { DashboardBOMReportItem } from "@/db/services";
@@ -12,17 +12,21 @@ interface DashboardBOMTableProps {
   onLogClick: (itemId: number, itemPriceId: number, itemName: string) => void;
 }
 
+type EnrichedReportItem = DashboardBOMReportItem & Record<string, unknown> & {
+  unique_id: string;
+};
+
 export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMTableProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
-  const enrichedReport = useMemo(() => report.map(r => ({
+  const enrichedReport: EnrichedReportItem[] = useMemo(() => report.map(r => ({
     ...r,
     unique_id: `${r.item_id}-${r.item_price_id}`
   })), [report]);
 
-  const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows({
-    data: enrichedReport as any,
-    groupBy: (item: any) => item.stage_name || "Lainnya",
+  const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows<EnrichedReportItem>({
+    data: enrichedReport,
+    groupBy: (item) => item.stage_name || "Lainnya",
     collapsedGroups,
     onToggleGroup: (key) => {
       setCollapsedGroups((prev) => {
@@ -37,24 +41,54 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
         <Text weight="bold">{key}</Text>
       </HStack>
     ),
-    getRowKey: (item: any) => item.unique_id,
+    getRowKey: (item) => item.unique_id,
   });
 
-  const columns = [
+  const columns: TableColumn<EnrichedReportItem>[] = [
     {
       key: "item",
       header: "Item",
       width: proportional(1),
-      renderCell: (r: any) => <Text weight="medium">{r.item_name}</Text>
+      renderCell: (r) => (
+        <VStack gap={0.5}>
+          <Text weight="medium">{r.item_name}</Text>
+          <Text size="sm" color="secondary">BRG-{String(r.item_id).padStart(4, "0")}</Text>
+        </VStack>
+      )
     },
     {
-      key: "planned",
-      header: "Rencana (BOM)",
-      width: pixel(180),
-      renderCell: (r: any) => (
-        <VStack gap={1}>
-          <Text size="sm">{formatNumber(r.planned_volume, 2)} {r.unit}</Text>
-          <Text size="2xs" color="secondary">{formatRupiah(r.planned_budget)}</Text>
+      key: "price",
+      header: "Harga",
+      width: pixel(160),
+      renderCell: (r) => {
+        const poPrice = r.total_ordered > 0 ? r.total_po_price / r.total_ordered : 0;
+        return (
+          <VStack gap={0.5}>
+            <Text weight="medium">Realisasi: {formatRupiah(poPrice)}</Text>
+            <Text size="sm" color="secondary">Rencana: {formatRupiah(r.price || 0)}</Text>
+          </VStack>
+        );
+      }
+    },
+    {
+      key: "qty",
+      header: "Volume",
+      width: pixel(160),
+      renderCell: (r) => (
+        <VStack gap={0.5}>
+          <Text weight="medium">Realisasi: {formatNumber(r.total_ordered, 2)} {r.unit}</Text>
+          <Text size="sm" color="secondary">Rencana: {formatNumber(r.planned_volume, 2)} {r.unit}</Text>
+        </VStack>
+      )
+    },
+    {
+      key: "subtotal",
+      header: "Total Harga",
+      width: pixel(200),
+      renderCell: (r) => (
+        <VStack gap={0.5}>
+          <Text weight="medium">Realisasi: {formatRupiah(r.total_po_price || 0)}</Text>
+          <Text size="sm" color="secondary">Rencana: {formatRupiah(r.planned_budget || 0)}</Text>
         </VStack>
       )
     },
@@ -62,33 +96,55 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       key: "ordered",
       header: "Dipesan (PO)",
       width: pixel(180),
-      renderCell: (r: any) => {
+      renderCell: (r) => {
         const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
         const isOver = percent > 100;
+        const variant = percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
         return (
-          <ProgressBar
-            label={`${formatNumber(r.total_ordered, 2)} ${r.unit}`}
-            value={r.total_ordered}
-            max={r.planned_volume || 1}
-            variant={isOver ? 'warning' : percent === 100 ? 'success' : 'accent'}
-            hasValueLabel
-          />
+          <VStack gap={0.5}>
+            <HStack justify="between">
+              <Text size="sm" color="secondary" weight="medium">
+                {`${formatNumber(r.total_ordered, 2)} / ${formatNumber(r.planned_volume, 2)} ${r.unit}`}
+              </Text>
+              <Text
+                size="sm"
+                color={isOver ? undefined : "primary"}
+                weight="bold"
+                style={isOver ? { color: "var(--color-error, #d32f2f)" } : undefined}
+              >
+                {percent.toFixed(0)}%
+              </Text>
+            </HStack>
+            <ProgressBar value={r.total_ordered} max={r.planned_volume || 1} variant={variant} label="" />
+          </VStack>
         );
       }
     },
     {
       key: "delivered",
       header: "Diterima (DLV)",
-      width: pixel(180), renderCell: (r: any) => {
+      width: pixel(180),
+      renderCell: (r) => {
         const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
+        const isOver = percent > 100;
+        const variant = percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
         return (
-          <ProgressBar
-            label={`${formatNumber(r.total_delivered, 2)} ${r.unit}`}
-            value={r.total_delivered}
-            max={r.total_ordered || 1}
-            variant={percent === 100 ? 'success' : 'accent'}
-            hasValueLabel
-          />
+          <VStack gap={0.5}>
+            <HStack justify="between">
+              <Text size="sm" color="secondary" weight="medium">
+                {`${formatNumber(r.total_delivered, 2)} / ${formatNumber(r.total_ordered, 2)} ${r.unit}`}
+              </Text>
+              <Text
+                size="sm"
+                color={isOver ? undefined : "primary"}
+                weight="bold"
+                style={isOver ? { color: "var(--color-error, #d32f2f)" } : undefined}
+              >
+                {percent.toFixed(0)}%
+              </Text>
+            </HStack>
+            <ProgressBar value={r.total_delivered} max={r.total_ordered || 1} variant={variant} label="" />
+          </VStack>
         );
       }
     },
@@ -96,7 +152,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       key: "actions",
       header: "",
       width: pixel(80),
-      renderCell: (r: any) => (
+      renderCell: (r) => (
         <IconButton
           icon={<Eye size={16} />}
           variant="secondary"
@@ -117,10 +173,9 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
 
   return (
     <Table
-      verticalAlign="top"
       hasHover
-      columns={columns as any}
-      data={groupedData as any}
+      columns={columns}
+      data={groupedData}
       idKey={groupedIdKey}
       plugins={{ grouping: groupedPlugin }}
     />

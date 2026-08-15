@@ -9,11 +9,11 @@ interface DashboardSummaryCardsProps {
 
 export function DashboardSummaryCards({ totalBudget, totalPO, loading }: DashboardSummaryCardsProps) {
   return (
-    <Grid gap={4} columns={{ minWidth: 250, max: 2 }}>
+    <Grid gap={4} columns={{ minWidth: 250, max: 3 }}>
       <GridSpan columns={1}>
         <Card padding={4}>
           <VStack gap={2}>
-            <Text size="sm" color="secondary">Total Rencana Anggaran (BOM)</Text>
+            <Text size="sm" color="secondary">Nilai Rencana (BOM)</Text>
             <Heading level={2}>{loading ? "…" : formatRupiah(totalBudget)}</Heading>
           </VStack>
         </Card>
@@ -21,7 +21,7 @@ export function DashboardSummaryCards({ totalBudget, totalPO, loading }: Dashboa
       <GridSpan columns={1}>
         <Card padding={4}>
           <VStack gap={2}>
-            <Text size="sm" color="secondary">Total Nilai Terpesan (PO)</Text>
+            <Text size="sm" color="secondary">Nilai Realisasi (PO)</Text>
             <Heading level={2}>{loading ? "…" : formatRupiah(totalPO)}</Heading>
           </VStack>
         </Card>

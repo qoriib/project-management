@@ -124,8 +124,8 @@ export async function seedDeliveries(): Promise<void> {
       poId: 8,
       deliveryDate: "2026-04-28",
       items: [
-        { poItemId: 30, qty: 10 },
-        { poItemId: 31, qty: 50 }
+        { poItemId: 30, qty: 12 }, // > 100% (ordered 10)
+        { poItemId: 31, qty: 40 }  // < 100% (ordered 50)
       ]
     },
     {

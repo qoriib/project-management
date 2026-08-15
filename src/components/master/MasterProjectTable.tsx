@@ -96,7 +96,6 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   return (
     <>
       <Table
-        verticalAlign="top"
         hasHover
         textOverflow="truncate"
         columns={columns}

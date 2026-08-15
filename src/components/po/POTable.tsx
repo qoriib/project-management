@@ -115,7 +115,6 @@ export function POTable({ onEdit }: POTableProps) {
     <>
       <Table
         hasHover
-        verticalAlign="top"
         textOverflow="truncate"
         columns={columns}
         data={pos as PORow[]}

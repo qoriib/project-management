@@ -178,7 +178,6 @@ export function MasterProjectStageDialog({ isOpen, onClose, project }: MasterPro
             actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
           />
           <Table
-            verticalAlign="top"
             columns={columns}
             data={stages as StageRow[]}
             idKey="stage_id"

@@ -89,7 +89,6 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
   return (
     <>
       <Table
-        verticalAlign="top"
         hasHover
         textOverflow="truncate"
         columns={columns}

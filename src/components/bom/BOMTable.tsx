@@ -138,7 +138,6 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
     <>
       <Table
         hasHover
-        verticalAlign="top"
         textOverflow="truncate"
         columns={columns}
         data={groupedData}

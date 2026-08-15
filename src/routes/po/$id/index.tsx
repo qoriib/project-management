@@ -12,7 +12,7 @@ function PODetailPage() {
   const navigate = useNavigate();
 
   const { id } = useParams({ strict: false });
-  const { currentPO: po, loadPODetail, clearPODetail } = usePOStore();
+  const { currentPO: po, currentItems, currentBOMData, loadPODetail, clearPODetail } = usePOStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +39,18 @@ function PODetailPage() {
 
   if (!po) return <Section padding={6}><Text color="secondary">PO tidak ditemukan.</Text></Section>;
 
+  // Hitung Rencana Total berdasarkan item-item yang ada di PO ini
+  const totalRencana = currentItems.reduce((acc, row) => {
+    const bomItem = currentBOMData.find((b) => b.item_id === row.item_id);
+    const bomPrice = bomItem?.price || 0;
+    return acc + ((row.qty || 0) * bomPrice);
+  }, 0);
+
+  // Hitung Realisasi Total
+  const totalRealisasi = currentItems.reduce((acc, row) => {
+    return acc + ((row.qty || 0) * (row.price || 0));
+  }, 0);
+
   return (
     <Section padding={6}>
       <VStack gap={6}>
@@ -52,21 +64,22 @@ function PODetailPage() {
             <Text weight="medium">{formatDate(po.po_date)}</Text>
           </VStack>
           <VStack gap={1}>
-            <Text color="secondary" size="sm">Estimasi Total</Text>
-            <Text weight="medium">{formatRupiah(po.total_price)}</Text>
+            <Text color="secondary" size="sm">Rencana Total</Text>
+            <Text weight="medium">{formatRupiah(totalRencana)}</Text>
+          </VStack>
+          <VStack gap={1}>
+            <Text color="secondary" size="sm">Realisasi Total</Text>
+            <Text weight="medium" color="primary">{formatRupiah(totalRealisasi)}</Text>
           </VStack>
         </HStack>
         <Card padding={4}>
-          <VStack gap={4}>
-            <Heading level={3}>Tracking Realisasi</Heading>
-            <POItemTrackingTable />
-          </VStack>
+          <POItemTrackingTable />
         </Card>
         <Card padding={4}>
           <VStack gap={4}>
             <HStack gap={2} justify="between" align="center">
               <Heading level={3}>Log Penerimaan</Heading>
-              <Button variant="secondary" label="Tambah Baru" onClick={() => navigate({ to: "/delivery/new", search: { po: String(po.po_id) } })} />
+              <Button variant="secondary" label="Buat Baru" onClick={() => navigate({ to: "/delivery/new", search: { po: String(po.po_id) } })} />
             </HStack>
             <PODeliveryLogTable />
           </VStack>

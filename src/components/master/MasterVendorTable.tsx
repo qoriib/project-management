@@ -88,7 +88,6 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
   return (
     <>
       <Table
-        verticalAlign="top"
         hasHover
         textOverflow="truncate"
         columns={columns}

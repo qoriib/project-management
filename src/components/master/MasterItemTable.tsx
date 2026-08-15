@@ -98,7 +98,6 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   return (
     <>
       <Table
-        verticalAlign="top"
         hasHover
         textOverflow="truncate"
         columns={columns}

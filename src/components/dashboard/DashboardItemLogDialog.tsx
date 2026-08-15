@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dialog, Table, Text, VStack, Badge } from "@astryxdesign/core";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { Dialog, Table, Text, VStack, Heading } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { getDashboardItemLog, type DashboardItemLogEntry } from "@/db/services";
 import { formatNumber, formatDate } from "@/utils/formatters";
@@ -41,17 +40,7 @@ export function DashboardItemLogDialog({
       key: "date",
       header: "Tanggal",
       width: pixel(120),
-      renderCell: (r: LogRow) => (
-        <Text size="sm">{formatDate(r.date)}</Text>
-      )
-    },
-    {
-      key: "type",
-      header: "Tipe",
-      width: pixel(100),
-      renderCell: (r: LogRow) => (
-        <Badge variant={r.type === 'PO' ? 'info' : 'success'} label={r.type} />
-      )
+      renderCell: (r: LogRow) => formatDate(r.date)
     },
     {
       key: "reference",
@@ -80,15 +69,15 @@ export function DashboardItemLogDialog({
   ];
 
   return (
-    <Dialog 
-      isOpen={isOpen} 
+    <Dialog
+      isOpen={isOpen}
       onOpenChange={(open) => !open && onClose()}
       width={700}
     >
       <VStack gap={4}>
-        <PageHeader title={`Log Item: ${itemName}`} />
+        <Heading level={3}>Log Item: {itemName}</Heading>
         <Table
-          verticalAlign="top"
+          textOverflow="truncate"
           columns={columns}
           data={logs as LogRow[]}
           idKey="reference"
