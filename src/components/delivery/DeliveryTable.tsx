@@ -40,7 +40,7 @@ export function DeliveryTable() {
       key: "delivery_id",
       header: "No. DLV",
       width: pixel(120),
-      renderCell: (row) => `DLV-${String(row.po_id).padStart(4, "0")}`
+      renderCell: (row) => `DLV-${String(row.delivery_id).padStart(4, "0")}`
     },
     {
       key: "delivery_date",

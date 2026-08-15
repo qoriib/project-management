@@ -5,13 +5,15 @@ const itemRowSchema = v.object({
   item_id: v.nullable(v.number()),
   item_name: v.string(),
   unit: v.string(),
-  sisa: v.number(),
+  remaining: v.number(),
   qty: v.number(),
+  ordered: v.number(),
+  delivered: v.number(),
 });
 
-function itemQtyDoesNotExceedSisa(item: unknown): boolean {
-  const row = item as { qty: number; sisa: number };
-  return row.qty <= row.sisa;
+function itemQtyDoesNotExceedRemaining(item: unknown): boolean {
+  const row = item as { qty: number; remaining: number };
+  return row.qty <= row.remaining;
 }
 
 function atLeastOneItemReceived(items: unknown): boolean {
@@ -20,13 +22,13 @@ function atLeastOneItemReceived(items: unknown): boolean {
 }
 
 export const deliverySchema = v.object({
-  poId: v.pipe(v.string(), v.nonEmpty("PO harus dipilih.")),
-  deliveryDate: v.pipe(v.string(), v.nonEmpty("Tanggal kirim harus diisi.")),
+  po_id: v.pipe(v.string(), v.nonEmpty("PO harus dipilih.")),
+  delivery_date: v.pipe(v.string(), v.nonEmpty("Tanggal kirim harus diisi.")),
   items: v.pipe(
     v.array(
       v.pipe(
         itemRowSchema,
-        v.custom(itemQtyDoesNotExceedSisa, "Volume melebihi sisa PO.")
+        v.custom(itemQtyDoesNotExceedRemaining, "Volume melebihi sisa PO.")
       )
     ),
     v.custom(atLeastOneItemReceived, "Minimal ada 1 item yang diterima.")
@@ -39,13 +41,15 @@ export type DeliveryItemRow = {
   item_id: number | null;
   item_name: string;
   unit: string;
-  sisa: number;
+  remaining: number;
   qty: number;
+  ordered: number;
+  delivered: number;
 };
 
 export type DeliveryFormValues = {
-  poId: string;
-  deliveryDate: string;
+  po_id: string;
+  delivery_date: string;
   items: DeliveryItemRow[];
 };
 
@@ -54,11 +58,4 @@ export interface DeliveryFormProps {
   initialEditId?: number;
   onSuccess: (poId: number) => void;
   onCancel: () => void;
-}
-
-/** Format label PO untuk selector: "PO-0001 (Vendor A)" */
-export function formatPOLabel(poId: number, vendorNames?: string): string {
-  const paddedId = String(poId).padStart(4, "0");
-  const vendor = vendorNames || "Tidak ada vendor";
-  return `PO-${paddedId} (${vendor})`;
 }

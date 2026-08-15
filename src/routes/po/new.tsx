@@ -14,7 +14,10 @@ function NewPOPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader title="Buat Purchase Order Baru" subtitle="Isi form di bawah untuk membuat PO baru" />
+        <PageHeader
+          title="Pemesanan Baru"
+          subtitle="Buat pesanan pembelian item ke vendor"
+        />
 
         <ProjectRequired>
           <POForm onSuccess={goBack} onCancel={goBack} />

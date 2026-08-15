@@ -34,8 +34,8 @@ export function useDeliveryForm({
 
   const form = useForm({
     defaultValues: {
-      poId: initialPoId ?? "",
-      deliveryDate: todayISO(),
+      po_id: initialPoId ?? "",
+      delivery_date: todayISO(),
       items: [] as DeliveryItemRow[],
     },
     validators: { onChange: deliverySchema },
@@ -43,8 +43,8 @@ export function useDeliveryForm({
       const payload = buildDeliveryItemPayload(value.items);
 
       const header = {
-        po_id: Number(value.poId),
-        delivery_date: value.deliveryDate,
+        po_id: Number(value.po_id),
+        delivery_date: value.delivery_date,
       };
 
       if (isEdit) {
@@ -53,14 +53,14 @@ export function useDeliveryForm({
         await createDelivery(header, payload);
       }
 
-      const poId = Number(value.poId);
+      const poId = Number(value.po_id);
       onSuccess(poId);
     },
   });
 
   /** Load items ke form saat user memilih PO baru (mode create) */
   async function handlePOChange(poId: string) {
-    form.setFieldValue("poId", poId);
+    form.setFieldValue("po_id", poId);
 
     const hasSelectedPO = poId.length > 0;
 
@@ -84,8 +84,8 @@ export function useDeliveryForm({
         const hasData = editData !== null;
 
         if (hasData) {
-          form.setFieldValue("poId", editData!.poId);
-          form.setFieldValue("deliveryDate", editData!.deliveryDate);
+          form.setFieldValue("po_id", editData!.po_id);
+          form.setFieldValue("delivery_date", editData!.delivery_date);
           form.setFieldValue("items", editData!.items);
         }
       } else if (initialPoId) {

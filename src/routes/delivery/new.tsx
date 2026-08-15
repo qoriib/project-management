@@ -24,8 +24,10 @@ function NewDeliveryPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader title="Input Pengiriman Baru" subtitle="Catat log penerimaan barang atau jasa di lapangan" />
-
+        <PageHeader
+          title="Penerimaan Baru"
+          subtitle="Catat log penerimaan item di lapangan"
+        />
         <ProjectRequired>
           <DeliveryForm
             initialPoId={initialPoId}

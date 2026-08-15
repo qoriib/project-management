@@ -14,7 +14,10 @@ function EditPOPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader title="Edit Purchase Order" subtitle={`Mengubah data PO`} />
+        <PageHeader
+          title={`Edit Purchase Order PO-${String(id).padStart(4, '0')}`}
+          subtitle="Ubah pesanan pembelian item ke vendor"
+        />
         <POForm initialEditId={Number(id)} onSuccess={goBack} onCancel={goBack} />
       </VStack>
     </Section>

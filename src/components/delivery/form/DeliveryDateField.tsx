@@ -10,15 +10,16 @@ interface DeliveryDateFieldProps {
 }
 
 /**
- * Field tanggal kirim / terima pada form Delivery.
+ * Field tanggal terima pada form Delivery.
  */
 export function DeliveryDateField({ form }: DeliveryDateFieldProps) {
   return (
     <VStack width={320}>
-      <form.Field name="deliveryDate">
+      <form.Field name="delivery_date">
         {(field) => (
           <DateInput
-            label="Tanggal Kirim / Terima"
+            format="system_date"
+            label="Tanggal Terima"
             value={field.state.value as ISODate}
             onChange={(v) => field.handleChange(v ?? "")}
             onBlur={field.handleBlur}
@@ -28,7 +29,6 @@ export function DeliveryDateField({ form }: DeliveryDateFieldProps) {
               !!field.state.meta.isTouched
             )}
             isRequired
-            format="system_date"
           />
         )}
       </form.Field>

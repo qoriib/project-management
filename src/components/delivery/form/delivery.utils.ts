@@ -15,15 +15,19 @@ export async function loadPOItemsAsDeliveryRows(
   return poItems.map((i) => {
     const item_name = i.item_name ?? "";
     const unit = i.unit ?? "";
-    const sisa = i.sisa ?? 0;
+    const remaining = i.sisa ?? 0;
+    const ordered = i.qty ?? 0;
+    const delivered = i.total_terkirim ?? 0;
 
     return {
       po_item_id: i.po_item_id,
       item_id: i.item_id,
       item_name,
       unit,
-      sisa,
+      remaining,
       qty: 0,
+      ordered,
+      delivered,
     };
   });
 }
@@ -32,12 +36,12 @@ export async function loadPOItemsAsDeliveryRows(
 
 /**
  * Ambil data delivery yang ada (mode edit).
- * Mengembalikan header delivery (poId, deliveryDate) dan
+ * Mengembalikan header delivery (po_id, delivery_date) dan
  * item rows dengan sisa yang sudah dikembalikan (sisa + oldQty).
  */
 export async function loadDeliveryEditData(deliveryId: number): Promise<{
-  poId: string;
-  deliveryDate: string;
+  po_id: string;
+  delivery_date: string;
   items: DeliveryItemRow[];
 } | null> {
   const delivery = await deliveryRepo.findById(deliveryId);
@@ -59,6 +63,7 @@ export async function loadDeliveryEditData(deliveryId: number): Promise<{
     const oldQty = existingDelivItem?.qty ?? 0;
     const originalSisa = i.sisa ?? 0;
     const restoredSisa = originalSisa + oldQty; // kembalikan sisa yang sudah dipakai
+    const originalDelivered = (i.total_terkirim ?? 0) - oldQty;
 
     const item_name = i.item_name ?? "";
     const unit = i.unit ?? "";
@@ -68,14 +73,16 @@ export async function loadDeliveryEditData(deliveryId: number): Promise<{
       item_id: i.item_id,
       item_name,
       unit,
-      sisa: restoredSisa,
+      remaining: restoredSisa,
       qty: oldQty,
+      ordered: i.qty ?? 0,
+      delivered: originalDelivered,
     };
   });
 
   return {
-    poId: String(delivery.po_id),
-    deliveryDate: delivery.delivery_date,
+    po_id: String(delivery.po_id),
+    delivery_date: delivery.delivery_date,
     items,
   };
 }

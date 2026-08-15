@@ -1,6 +1,5 @@
 import { VStack, Selector } from "@astryxdesign/core";
 import { getFieldError } from "@/utils/form";
-import { formatPOLabel } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
 
 interface DeliveryPOSelectorProps {
@@ -22,12 +21,12 @@ export function DeliveryPOSelector({
 }: DeliveryPOSelectorProps) {
   const poOptions = pos.map((p) => ({
     value: String(p.po_id),
-    label: formatPOLabel(p.po_id, p.vendor_names),
+    label: `PO-${String(p.po_id).padStart(4, "0")}`,
   }));
 
   return (
     <VStack style={{ flex: 1 }}>
-      <form.Field name="poId">
+      <form.Field name="po_id">
         {(field) => (
           <Selector
             label="Pilih PO"

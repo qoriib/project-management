@@ -35,12 +35,9 @@ export function buildDeliveryItemColumns(
     },
     {
       key: "sisa",
-      header: "Sisa PO",
+      header: "Dipesan / Dikirim",
       width: pixel(180),
-      renderCell: (row) => {
-        const idx = items.indexOf(row);
-        return <DeliverySisaCell form={form} row={row} idx={idx} />;
-      },
+      renderCell: (row) => <DeliverySisaCell row={row} />,
     },
     {
       key: "qty",

@@ -19,8 +19,10 @@ function EditDeliveryPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader title={`Edit Pengiriman #${id}`} subtitle="Ubah log penerimaan barang atau jasa di lapangan" />
-
+        <PageHeader
+          title={`Edit Penerimaan DLV-${String(id).padStart(4, '0')}`}
+          subtitle="Ubah log penerimaan item di lapangan"
+        />
         <ProjectRequired>
           <DeliveryForm
             initialEditId={Number(id)}
