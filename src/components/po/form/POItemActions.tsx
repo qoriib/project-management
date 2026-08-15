@@ -11,11 +11,11 @@ export function BomInfoCell({ row }: { row: POItemRow }) {
   if (!row.item_id) return null;
   return (
     <VStack gap={0.5}>
-      <Text size="sm" weight="medium">
-        Rencana: {formatNumber(row.planned_volume, 2)} {row.unit}
+      <Text weight="medium">
+        Realisasi: {formatNumber(row.total_ordered, 2)} {row.unit}
       </Text>
       <Text size="sm" color="secondary">
-        Realisasi: {formatNumber(row.total_ordered, 2)} {row.unit}
+        Rencana: {formatNumber(row.planned_volume, 2)} {row.unit}
       </Text>
     </VStack>
   );

@@ -9,11 +9,11 @@ interface DeliveryRemainingCellProps {
 export function DeliveryRemainingCell({ row }: DeliveryRemainingCellProps) {
   return (
     <VStack gap={0.5}>
-      <Text size="sm" weight="medium">
-        Dipesan: {formatNumber(row.ordered, 2)} {row.unit}
+      <Text weight="medium">
+        Diterima: {formatNumber(row.delivered, 2)} {row.unit}
       </Text>
       <Text size="sm" color="secondary">
-        Diterima: {formatNumber(row.delivered, 2)} {row.unit}
+        Dipesan: {formatNumber(row.ordered, 2)} {row.unit}
       </Text>
     </VStack>
   );

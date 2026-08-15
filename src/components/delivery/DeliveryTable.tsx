@@ -46,7 +46,7 @@ export function DeliveryTable() {
       key: "delivery_date",
       header: "Tanggal",
       width: pixel(120),
-      renderCell: (row) => <Timestamp value={row.delivery_date} format="system_date" size="md" />
+      renderCell: (row) => <Timestamp value={row.delivery_date} format="system_date" size="base" />
     },
     {
       key: "po_id",

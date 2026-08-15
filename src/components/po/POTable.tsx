@@ -53,7 +53,7 @@ export function POTable({ onEdit }: POTableProps) {
       key: "po_date",
       header: "Tanggal",
       width: pixel(120),
-      renderCell: (row: PORow) => <Timestamp value={row.po_date} format="system_date" size="md" />
+      renderCell: (row: PORow) => <Timestamp value={row.po_date} format="system_date" size="base" />
     },
     {
       key: "vendor_names",
