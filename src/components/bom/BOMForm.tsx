@@ -6,7 +6,6 @@ import { BOMQtyField } from "./form/BOMQtyField";
 import { BOMPriceField } from "./form/BOMPriceField";
 import { BOMFormActions } from "./form/BOMFormActions";
 import type { BOMFormProps } from "./form/bom.schema";
-
 export type { BOMFormProps };
 
 /**
@@ -51,19 +50,16 @@ export function BOMForm({
               isDisabled={isDisabled}
               onItemChange={handleItemChange}
             />
-
             <BOMQtyField
               form={form}
               isDisabled={isDisabled}
             />
-
             <BOMPriceField
               form={form}
               priceOptions={priceOptions}
               formItemId={formItemId}
               isDisabled={isDisabled}
             />
-
             <BOMFormActions
               initialData={initialData}
               canSubmit={canSubmit}

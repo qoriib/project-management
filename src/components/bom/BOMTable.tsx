@@ -46,13 +46,13 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
   const columns: TableColumn<BomRow>[] = [
     {
       key: "item_id",
-      header: "Kode",
+      header: "No. Barang",
       width: pixel(120),
       renderCell: (row: BomRow) => `BRG-${String(row.item_id).padStart(4, '0')}`
     },
     {
       key: "item_name",
-      header: "Item",
+      header: "Nama Item",
       width: proportional(1)
     },
     {
@@ -68,13 +68,16 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
       renderCell: (row: BomRow) => formatRupiah(row.price)
     },
     {
-      key: "total_estimasi",
+      key: "estimation",
       header: "Total Estimasi",
       width: pixel(180),
       renderCell: (row: BomRow) => formatRupiah(row.total_estimasi || 0),
     },
     {
-      key: "actions", header: "", width: pixel(100),
+      key: "actions",
+      header: "Aksi",
+      align: "end",
+      width: pixel(100),
       renderCell: (row: BomRow) => (
         <HStack gap={2} justify="end">
           <IconButton
@@ -134,8 +137,8 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
   return (
     <>
       <Table
-        verticalAlign="top"
         hasHover
+        verticalAlign="top"
         textOverflow="truncate"
         columns={columns}
         data={groupedData}

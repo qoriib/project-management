@@ -19,6 +19,7 @@ export async function loadPOItemsAsDeliveryRows(
 
     return {
       po_item_id: i.po_item_id,
+      item_id: i.item_id,
       item_name,
       unit,
       sisa,
@@ -64,6 +65,7 @@ export async function loadDeliveryEditData(deliveryId: number): Promise<{
 
     return {
       po_item_id: i.po_item_id,
+      item_id: i.item_id,
       item_name,
       unit,
       sisa: restoredSisa,

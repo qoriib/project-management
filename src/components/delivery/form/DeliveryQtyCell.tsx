@@ -1,6 +1,6 @@
 import { VStack, Text } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
-import { formatNumber } from "@/utils/formatters";
+
 import { getFieldError } from "@/utils/form";
 import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
@@ -16,16 +16,8 @@ interface DeliveryQtyCellProps {
  * Menampilkan error dari dua sumber: level-row (v.custom) dan level-field (onChange validator).
  */
 export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
-  const sisaAkhir = row.sisa - row.qty;
-
   return (
     <VStack gap={0.5}>
-      <Text size="sm" weight="medium">
-        {formatNumber(sisaAkhir, 2)} {row.unit} (Sisa)
-      </Text>
-      <Text size="sm" color="secondary">
-        Batas PO: {formatNumber(row.sisa, 2)} {row.unit}
-      </Text>
 
       {/* Outer Field: tangkap error level-row dari v.custom per baris */}
       <form.Field name={`items[${idx}]`}>

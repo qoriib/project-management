@@ -14,7 +14,7 @@ interface DeliveryDateFieldProps {
  */
 export function DeliveryDateField({ form }: DeliveryDateFieldProps) {
   return (
-    <VStack width={240}>
+    <VStack width={320}>
       <form.Field name="deliveryDate">
         {(field) => (
           <DateInput

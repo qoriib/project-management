@@ -2,6 +2,7 @@ import * as v from "valibot";
 
 const itemRowSchema = v.object({
   po_item_id: v.number(),
+  item_id: v.nullable(v.number()),
   item_name: v.string(),
   unit: v.string(),
   sisa: v.number(),
@@ -35,6 +36,7 @@ export const deliverySchema = v.object({
 /** Satu baris item delivery dalam form */
 export type DeliveryItemRow = {
   po_item_id: number;
+  item_id: number | null;
   item_name: string;
   unit: string;
   sisa: number;

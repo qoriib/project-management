@@ -10,7 +10,7 @@ interface BOMItemFieldProps {
 }
 
 /**
- * Field selector untuk memilih Material / Alat pada form BOM.
+ * Field selector untuk memilih Item pada form BOM.
  */
 export function BOMItemField({
   form,
@@ -23,9 +23,9 @@ export function BOMItemField({
       <form.Field name="item_id">
         {(field) => (
           <Selector
-            label="Material / Alat"
+            label="Item Kebutuhan"
             hasSearch
-            placeholder="Pilih material atau alat..."
+            placeholder="Pilih item..."
             value={field.state.value}
             onChange={onItemChange}
             onBlur={field.handleBlur}

@@ -22,7 +22,7 @@ export function BOMQtyField({ form, isDisabled }: BOMQtyFieldProps) {
             value={field.state.value || null}
             onChange={(val) => field.handleChange(val || 0)}
             onBlur={field.handleBlur}
-            statusVariant="attached"
+            statusVariant="tooltip"
             status={getFieldError(
               field.state.meta.errors,
               !!field.state.meta.isTouched

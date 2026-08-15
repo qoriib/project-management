@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from "react";
-import { Section, VStack, Selector, Text } from "@astryxdesign/core";
+import { Section, VStack, Selector, Text, useToast } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { BOMTable } from "@/components/bom/BOMTable";
@@ -13,30 +13,34 @@ function BOMPage() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const [stages, setStages] = useState<ProjectStageWithProject[]>([]);
-  const [loadingStages, setLoadingStages] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("");
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [editData, setEditData] = useState<BOMDetail | undefined>(undefined);
+
+  const showToast = useToast();
 
   async function loadStages() {
     if (!selectedProjectId) {
       setStages([]);
       setActiveTab("");
-      setLoadingStages(false);
+      setIsLoading(false);
       return;
     }
 
-    setLoadingStages(true);
+    setIsLoading(true);
     try {
       const data = await bomRepo.findStagesByProject(selectedProjectId);
       setStages(data);
+
       if (data.length > 0) {
         setActiveTab(String(data[0].stage_id));
       } else {
         setActiveTab("");
       }
+    } catch (error: any) {
+      showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
     } finally {
-      setLoadingStages(false);
+      setIsLoading(false);
     }
   }
 
@@ -46,7 +50,6 @@ function BOMPage() {
 
   function handleSuccess() {
     setEditData(undefined);
-    setRefreshTrigger((r) => r + 1);
   }
 
   function handleCancelEdit() {
@@ -74,43 +77,40 @@ function BOMPage() {
             }
           />
           <ProjectRequired>
-            {loadingStages ? (
+            {isLoading ? (
               <LoadingState message="Memuat data proyek" />
             ) : (
               <BOMTable
                 stageId={activeTab ? Number(activeTab) : undefined}
-                refreshTrigger={refreshTrigger}
                 onEdit={(_, data) => setEditData(data)}
               />
             )}
           </ProjectRequired>
         </VStack>
-        {selectedProjectId && (
-          <VStack
-            style={{
-              position: "sticky",
-              bottom: -24,
-              padding: "12px 12px",
-              background: "var(--color-bg-elevated)",
-              borderTop: "1px solid var(--color-border)",
-              margin: "16px -24px -24px -24px",
-              zIndex: 10
-            }}
-          >
-            {!activeTab ? (
-              <VStack align="center" padding={4}>
-                <Text color="secondary">Silakan tambahkan Tahapan di master data proyek terlebih dahulu.</Text>
-              </VStack>
-            ) : (
-              <BOMForm
-                stageId={editData?.stage_id || Number(activeTab)}
-                initialData={editData}
-                onSuccess={handleSuccess}
-                onCancel={handleCancelEdit}
-              />
-            )}
-          </VStack>
-        )}
+        <VStack
+          style={{
+            position: "sticky",
+            bottom: -24,
+            padding: "12px 12px",
+            background: "var(--color-bg-elevated)",
+            borderTop: "1px solid var(--color-border)",
+            margin: "16px -24px -24px -24px",
+            zIndex: 10
+          }}
+        >
+          {!activeTab ? (
+            <VStack align="center" padding={4}>
+              <Text color="secondary">Silakan tambahkan Tahapan di master data proyek terlebih dahulu.</Text>
+            </VStack>
+          ) : (
+            <BOMForm
+              stageId={editData?.stage_id || Number(activeTab)}
+              initialData={editData}
+              onSuccess={handleSuccess}
+              onCancel={handleCancelEdit}
+            />
+          )}
+        </VStack>
       </VStack>
     </Section>
   );

@@ -25,8 +25,8 @@ export function BOMPriceField({
   const placeholder = !formItemId
     ? "Pilih item terlebih dahulu..."
     : hasNoPrice
-    ? "Tidak ada harga tersedia"
-    : "Pilih harga...";
+      ? "Tidak ada harga tersedia"
+      : "Pilih harga...";
 
   return (
     <VStack width={260}>

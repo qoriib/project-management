@@ -67,8 +67,7 @@ export function useBOMForm({
 
   /** Muat & set price options untuk item_id yang diberikan */
   async function handleItemChange(itemId: string) {
-    form.setFieldValue("item_id", itemId);
-    form.setFieldValue("item_price_id", "");
+    form.setFieldValue("item_id", itemId, { dontValidate: true });
 
     const hasItem = itemId.length > 0;
     if (!hasItem) {
@@ -77,7 +76,14 @@ export function useBOMForm({
     }
 
     const opts = await loadAvailablePriceOptions(itemId, initialData);
+
     setPriceOptions(opts);
+
+    if (opts.length > 0) {
+      form.setFieldValue("item_price_id", opts[0].value, { dontValidate: true });
+    } else {
+      form.setFieldValue("item_price_id", "", { dontValidate: true });
+    }
   }
 
   // Sync form ke initialData saat mode edit atau saat stage berubah
