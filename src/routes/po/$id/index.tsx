@@ -62,7 +62,7 @@ function PODetailPage() {
           <VStack gap={1}>
             <Text color="secondary" size="sm">Dibuat Pada</Text>
             <Text weight="medium">
-              {po.po_date ? <Timestamp value={po.po_date} format="system_date" /> : "-"}
+              {po.po_date ? <Timestamp value={po.po_date} format="system_date" size="md" /> : "-"}
             </Text>
           </VStack>
           <VStack gap={1}>

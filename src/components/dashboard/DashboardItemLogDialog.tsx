@@ -40,7 +40,7 @@ export function DashboardItemLogDialog({
       key: "date",
       header: "Tanggal",
       width: pixel(120),
-      renderCell: (r: LogRow) => <Timestamp value={r.date} format="system_date" />
+      renderCell: (r: LogRow) => <Timestamp value={r.date} format="system_date" size="md" />
     },
     {
       key: "reference",

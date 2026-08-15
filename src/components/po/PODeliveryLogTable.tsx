@@ -26,7 +26,7 @@ export function PODeliveryLogTable() {
       key: "delivery_date",
       header: "Tanggal Kirim",
       width: pixel(120),
-      renderCell: (row) => <Timestamp value={row.delivery_date} format="system_date" />
+      renderCell: (row) => <Timestamp value={row.delivery_date} format="system_date" size="md" />
     },
     {
       key: "item_name",
