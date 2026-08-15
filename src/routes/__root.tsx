@@ -24,8 +24,8 @@ function RootComponent() {
 
 function AppLayout() {
   const navigate = useNavigate();
-  const { activeNav, setActiveNav } = useNav();
 
+  const { activeNav, setActiveNav } = useNav();
   const { dbReady, setDbReady, setGlobalError, selectedProjectId, setSelectedProjectId } = useAppStore();
 
   const [projects, setProjects] = useState<Project[]>([]);
