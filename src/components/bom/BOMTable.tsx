@@ -4,9 +4,10 @@ import { HStack, Table, Text, IconButton, Divider } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn, useTableGroupedRows } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
-import { bomRepo, type BOMDetail } from "@/db/repositories";
+import { type BOMDetail } from "@/db/repositories";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
+import { useBOMStore } from "@/store/useBOMStore";
 
 type BomRow = BOMDetail & Record<string, unknown>;
 
@@ -17,26 +18,16 @@ interface BOMTableProps {
 }
 
 export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
-  const [boms, setBOMs] = useState<BOMDetail[]>([]);
+  const { boms, deleteBOM, loadBOMs } = useBOMStore();
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
-  async function load() {
-    if (!selectedProjectId) {
-      setBOMs([]);
-      return;
-    }
-    const b = await bomRepo.findAllWithDetails({
-      project_id: selectedProjectId,
-      stage_id: stageId,
-    });
-    setBOMs(b);
-  }
-
   useEffect(() => {
-    load();
+    if (selectedProjectId) {
+      loadBOMs(selectedProjectId, stageId);
+    }
   }, [refreshTrigger, selectedProjectId, stageId]);
 
   async function handleDelete() {
@@ -45,9 +36,8 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
     setDeleting(true);
 
     try {
-      await bomRepo.delete(deleteTarget);
+      await deleteBOM(deleteTarget);
       setDeleteTarget(null);
-      await load();
     } finally {
       setDeleting(false);
     }

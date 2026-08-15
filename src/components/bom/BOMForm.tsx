@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { VStack, HStack, Button, Selector, Text } from "@astryxdesign/core";
+import { VStack, HStack, Button, Selector } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
-import { bomRepo, itemPriceRepo, type BillOfMaterial, type BOMDetail } from "@/db/repositories";
+import { type BOMDetail } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
+import { useBOMStore } from "@/store/useBOMStore";
 import { formatRupiah } from "@/utils/formatters";
 import * as v from "valibot";
 
@@ -28,8 +29,8 @@ export function BOMForm({ stageId, initialData, isDisabled, onSuccess, onCancel 
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
-  const { items } = useMasterStore();
-  const [existingBoms, setExistingBoms] = useState<BillOfMaterial[]>([]);
+  const { items, itemPricesMap, loadItemPrices } = useMasterStore();
+  const { boms: existingBoms, createBOM, updateBOM } = useBOMStore();
   const [priceOptions, setPriceOptions] = useState<{ value: string; label: string }[]>([]);
 
   const form = useForm({
@@ -54,9 +55,9 @@ export function BOMForm({ stageId, initialData, isDisabled, onSuccess, onCancel 
         };
 
         if (initialData) {
-          await bomRepo.update(initialData.bom_id, data);
+          await updateBOM(initialData.bom_id, { qty: data.qty, item_price_id: data.item_price_id });
         } else {
-          await bomRepo.create(data);
+          await createBOM(data);
           form.reset();
           setPriceOptions([]);
         }
@@ -67,22 +68,12 @@ export function BOMForm({ stageId, initialData, isDisabled, onSuccess, onCancel 
     }
   });
 
-  // Fetch existing BOMs for this stage
-  useEffect(() => {
-    if (selectedProjectId && stageId) {
-      bomRepo.findAllWithDetails({ project_id: selectedProjectId, stage_id: stageId }).then(setExistingBoms);
-    } else {
-      setExistingBoms([]);
-    }
-  }, [selectedProjectId, stageId]);
-
   async function loadPricesForItem(itemId: string) {
-    if (!itemId) {
-      setPriceOptions([]);
-      form.setFieldValue("item_price_id", "");
-      return;
+    let prices = itemPricesMap.get(Number(itemId));
+
+    if (!prices) {
+      prices = await loadItemPrices(Number(itemId));
     }
-    const prices = await itemPriceRepo.findByItem(Number(itemId));
 
     const usedPricesForItem = existingBoms
       .filter(b => b.item_id === Number(itemId) && (!initialData || b.bom_id !== initialData.bom_id))
@@ -90,12 +81,8 @@ export function BOMForm({ stageId, initialData, isDisabled, onSuccess, onCancel 
 
     const availablePrices = prices.filter(p => !usedPricesForItem.includes(p.item_price_id));
     const opts = availablePrices.map(p => ({ value: String(p.item_price_id), label: formatRupiah(p.price) }));
-    setPriceOptions(opts);
 
-    const currentPriceId = form.getFieldValue("item_price_id");
-    if (!currentPriceId && prices.length > 0) {
-      form.setFieldValue("item_price_id", String(prices[0].item_price_id));
-    }
+    setPriceOptions(opts);
   }
 
   useEffect(() => {
@@ -184,11 +171,6 @@ export function BOMForm({ stageId, initialData, isDisabled, onSuccess, onCancel 
                   />
                 )}
               />
-              {formItemId && priceOptions.length === 0 && (
-                <Text size="sm" style={{ marginTop: 4, color: "var(--color-status-warning)" }}>
-                  Item ini belum memiliki harga. Tambahkan di Master Item → Harga.
-                </Text>
-              )}
             </VStack>
             <VStack style={{ paddingTop: '24px' }}>
               <HStack gap={2}>
