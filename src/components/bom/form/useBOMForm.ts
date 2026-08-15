@@ -47,6 +47,7 @@ export function useBOMForm({
 
         if (isEditMode) {
           await updateBOM(initialData.bom_id, {
+            item_id: payload.item_id,
             qty: payload.qty,
             item_price_id: payload.item_price_id,
           });

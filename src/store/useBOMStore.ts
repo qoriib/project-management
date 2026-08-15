@@ -6,7 +6,7 @@ interface BOMStore {
   isLoadingBOMs: boolean;
   loadBOMs: (projectId: number, stageId?: number) => Promise<void>;
   createBOM: (data: { project_id: number; item_id: number; stage_id: number; qty: number; item_price_id: number }) => Promise<void>;
-  updateBOM: (id: number, data: { qty?: number; item_price_id?: number }) => Promise<void>;
+  updateBOM: (id: number, data: { item_id?: number; qty?: number; item_price_id?: number }) => Promise<void>;
   deleteBOM: (id: number) => Promise<void>;
 }
 

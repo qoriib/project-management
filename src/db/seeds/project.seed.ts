@@ -1,18 +1,18 @@
 import { projectRepo } from "@/db/repositories";
 
 interface SeedProject {
-  project_name: string;
-  company_name: string;
-  fiscal_year: number;
+  projectName: string;
+  companyName: string;
+  fiscalYear: number;
   stages: string[];
 }
 
 export async function seedProjects(): Promise<void> {
   const projects: SeedProject[] = [
     {
-      project_name: "Pembangunan Rumah Tinggal 2 Lantai Bpk. Budi",
-      company_name: "PT. Bangun Rumah Idaman",
-      fiscal_year: 2026,
+      projectName: "Pembangunan Rumah Tinggal 2 Lantai Bpk. Budi",
+      companyName: "PT. Bangun Rumah Idaman",
+      fiscalYear: 2026,
       stages: [
         "Pekerjaan Persiapan & Tanah",
         "Pekerjaan Pondasi & Beton Bertulang",
@@ -24,9 +24,9 @@ export async function seedProjects(): Promise<void> {
       ]
     },
     {
-      project_name: "Renovasi Interior Kantor PT. xyz",
-      company_name: "CV. Karya Mandiri",
-      fiscal_year: 2026,
+      projectName: "Renovasi Interior Kantor PT. xyz",
+      companyName: "CV. Karya Mandiri",
+      fiscalYear: 2026,
       stages: [
         "Pekerjaan Pembongkaran (Demolisi)",
         "Pekerjaan Partisi Kaca & Gypsum",
@@ -35,12 +35,12 @@ export async function seedProjects(): Promise<void> {
       ]
     },
     {
-      project_name: "Pembangunan Gudang Logistik Cikarang",
-      company_name: "PT. Konstruksi Maju Bersama",
-      fiscal_year: 2026,
+      projectName: "Pembangunan Gudang Logistik Cikarang",
+      companyName: "PT. Konstruksi Maju Bersama",
+      fiscalYear: 2026,
       stages: [
         "Pekerjaan Tanah & Cut and Fill",
-        "Pekerjaan Struktur Baja (Warehouse)",
+        "Pekerjaan Struktur",
         "Pekerjaan Lantai Beton (Floor Hardener)",
         "Pekerjaan Utilitas Gudang"
       ]
@@ -48,12 +48,12 @@ export async function seedProjects(): Promise<void> {
   ];
 
   for (const proj of projects) {
-    const exists = await projectRepo.exists({ project_name: proj.project_name }, true);
+    const exists = await projectRepo.exists({ project_name: proj.projectName }, true);
     if (!exists) {
       const projectId = await projectRepo.create({
-        project_name: proj.project_name,
-        company_name: proj.company_name,
-        fiscal_year: proj.fiscal_year
+        project_name: proj.projectName,
+        company_name: proj.companyName,
+        fiscal_year: proj.fiscalYear
       });
 
       await projectRepo.saveStages(
