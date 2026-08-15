@@ -1,6 +1,6 @@
-import { VStack, Text } from "@astryxdesign/core";
+import { VStack } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
-
+import { formatNumber } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";

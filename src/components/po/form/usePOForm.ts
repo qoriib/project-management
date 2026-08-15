@@ -8,7 +8,6 @@ import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/service
 import { todayISO } from "@/utils/formatters";
 import { poSchema, type POFormItemValue } from "./po.schema";
 import { buildPOItemPayload } from "./po.utils";
-import { usePriceCache } from "./usePriceCache";
 
 interface UsePOFormOptions {
   initialEditId?: number;
@@ -16,10 +15,10 @@ interface UsePOFormOptions {
 }
 
 /**
- * Orchestrates semua logic form PO:
- * - Inisialisasi & reset form
- * - Load BOM data
- * - Pre-load data edit (jika mode edit)
+ * Orchestrates PO form logic:
+ * - Initialization & form reset
+ * - Loading BOM & master data
+ * - Preloading edit data (edit mode)
  * - Submit handler
  */
 export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
@@ -27,18 +26,15 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
 
   const isEdit = !!initialEditId;
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const { vendors } = useMasterStore();
+  const { vendors, itemPricesMap, loadAllMasters, loadItemPrices } = useMasterStore();
   const { createPO, updatePO, loadPODetail } = usePOStore();
 
   const [bomData, setBomData] = useState<DashboardBOMReportItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const { priceCache, getPricesForItem, preloadPrices } = usePriceCache();
+  const [editProjectId, setEditProjectId] = useState<number | null>(null);
 
   const form = useForm({
     defaultValues: {
-      poDate: todayISO(),
-      // Explicit cast so TanStack Form infers the correct items type (not never[])
+      po_date: todayISO(),
       items: [] as POFormItemValue[],
     },
     validators: {
@@ -46,14 +42,21 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
     },
     onSubmit: async ({ value }) => {
       try {
+        const projectId = isEdit ? editProjectId : selectedProjectId;
+
+        if (!projectId) {
+          showToast({ body: "Proyek belum dipilih.", type: "error" });
+          return;
+        }
+
         const poData = {
-          po_date: value.poDate,
-          project_id: selectedProjectId!,
+          po_date: value.po_date,
+          project_id: projectId,
         };
 
         const poItems = buildPOItemPayload(value.items);
 
-        if (isEdit) {
+        if (isEdit && initialEditId) {
           await updatePO(initialEditId, poData, poItems);
           showToast({ body: "PO berhasil diperbarui", type: "info" });
         } else {
@@ -72,26 +75,20 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
 
   useEffect(() => {
     async function loadData() {
-      const hasProject = !!selectedProjectId;
+      await loadAllMasters();
 
-      if (!hasProject) {
-        setLoading(false);
-        return;
-      }
-
-      const bom = await getDashboardBOMReport(selectedProjectId);
-      setBomData(bom);
-
-      if (isEdit) {
+      if (isEdit && initialEditId) {
         await loadPODetail(initialEditId);
         const { currentPO: po, currentItems: poItems } = usePOStore.getState();
 
-        const hasData = po !== null && po !== undefined;
+        if (po) {
+          setEditProjectId(po.project_id);
+          const bom = await getDashboardBOMReport(po.project_id);
+          setBomData(bom);
 
-        if (hasData) {
           const rawItemIds = poItems.map((p) => p.item_id).filter(Boolean);
           const uniqueItemIds = [...new Set(rawItemIds)] as number[];
-          await preloadPrices(uniqueItemIds);
+          await Promise.all(uniqueItemIds.map((id) => loadItemPrices(id)));
 
           const mappedItems = poItems.map((p) => ({
             po_item_id: p.po_item_id,
@@ -102,20 +99,19 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
             original_qty: p.qty,
           }));
 
-          form.reset({
-            poDate: po!.po_date,
-            items: mappedItems,
-          });
+          form.setFieldValue("po_date", po.po_date);
+          form.setFieldValue("items", mappedItems);
         }
-      } else {
-        form.reset({ poDate: todayISO(), items: [] });
+      } else if (selectedProjectId) {
+        const bom = await getDashboardBOMReport(selectedProjectId);
+        setBomData(bom);
+        form.setFieldValue("po_date", todayISO());
+        form.setFieldValue("items", []);
       }
-
-      setLoading(false);
     }
 
     loadData();
-  }, [isEdit, initialEditId, selectedProjectId]); // form & preloadPrices are stable
+  }, [isEdit, initialEditId, selectedProjectId]);
 
-  return { form, bomData, priceCache, getPricesForItem, loading, vendors, isEdit };
+  return { form, bomData, itemPricesMap, vendors };
 }

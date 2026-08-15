@@ -28,6 +28,7 @@ export function DeliveryDateField({ form }: DeliveryDateFieldProps) {
               !!field.state.meta.isTouched
             )}
             isRequired
+            format="system_date"
           />
         )}
       </form.Field>

@@ -1,29 +1,24 @@
 import * as v from "valibot";
 
-// ── Per-item schema ────────────────────────────────────────────────────────────
-
 const poItemSchema = v.object({
   po_item_id: v.number(),
   item_id: v.pipe(v.number(), v.minValue(1, "Material harus dipilih.")),
   vendor_id: v.pipe(v.string(), v.nonEmpty("Vendor harus dipilih.")),
-  item_price_id: v.pipe(v.string(), v.nonEmpty("Pilih variasi harga.")),
+  item_price_id: v.pipe(v.string(), v.nonEmpty("Variasi harga harus dipilih.")),
   qty: v.pipe(v.number(), v.minValue(0.001, "Volume tidak valid.")),
 });
 
-// ── Root schema ────────────────────────────────────────────────────────────────
-
 export const poSchema = v.object({
-  poDate: v.pipe(v.string(), v.nonEmpty("Tanggal PO harus diisi.")),
+  po_date: v.pipe(v.string(), v.nonEmpty("Tanggal PO harus diisi.")),
   items: v.pipe(
     v.array(poItemSchema),
-    v.minLength(1, "Minimal harus ada 1 item yang dipesan.")
+    v.minLength(1, "Minimal 1 item harus dipesan.")
   ),
 });
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-/** Satu baris item dalam tabel PO (sudah di-resolve dengan data BOM & harga) */
+/** Single PO item row in table (resolved with BOM & price data) */
 export type POItemRow = {
+  id: string;
   po_item_id: number;
   item_id: number;
   vendor_id: string;
@@ -35,11 +30,10 @@ export type POItemRow = {
   planned_volume: number;
   total_ordered: number;
   original_qty: number;
-  /** Sisa BOM yang bisa dipesan = planned_volume - total_ordered + original_qty */
-  sisaAwal: number;
-} & Record<string, unknown>;
+  initial_balance: number;
+};
 
-/** Shape dari default values form */
+/** Default shape of form item value */
 export type POFormItemValue = {
   po_item_id: number;
   item_id: number;
@@ -50,6 +44,6 @@ export type POFormItemValue = {
 };
 
 export type POFormValues = {
-  poDate: string;
+  po_date: string;
   items: POFormItemValue[];
 };

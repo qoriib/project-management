@@ -1,14 +1,14 @@
 import { Pencil, Trash2, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
-import { HStack, Table, Text, Badge, IconButton } from "@astryxdesign/core";
+import { HStack, Table, Badge, IconButton } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { type POWithSummary } from "@/db/repositories";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { formatRupiah, formatDate } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
 import { usePOStore } from "@/store/usePOStore";
+import { type POWithSummary } from "@/db/repositories";
 
 type PORow = POWithSummary & Record<string, unknown>;
 
@@ -18,12 +18,11 @@ interface POTableProps {
 
 export function POTable({ onEdit }: POTableProps) {
   const navigate = useNavigate();
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
+  const { pos, loadAllPOs, deletePO } = usePOStore();
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const { pos, loadAllPOs, deletePO } = usePOStore();
 
   useEffect(() => {
     loadAllPOs(selectedProjectId || undefined);
@@ -45,7 +44,7 @@ export function POTable({ onEdit }: POTableProps) {
   const columns: TableColumn<PORow>[] = [
     {
       key: "po_id",
-      header: "Kode",
+      header: "No.PO",
       width: pixel(100),
       renderCell: (row: PORow) => `PO-${String(row.po_id).padStart(4, "0")}`
     },
@@ -77,11 +76,12 @@ export function POTable({ onEdit }: POTableProps) {
       key: "total_price",
       header: "Total Biaya",
       width: pixel(200),
-      renderCell: (row: PORow) => <Text size="sm" weight="semibold">{formatRupiah(row.total_price)}</Text>,
+      renderCell: (row: PORow) => formatRupiah(row.total_price),
     },
     {
       key: "actions",
-      header: "",
+      header: "Aksi",
+      align: "end",
       width: pixel(140),
       renderCell: (row: PORow) => (
         <HStack gap={2} justify="end">
@@ -114,12 +114,12 @@ export function POTable({ onEdit }: POTableProps) {
   return (
     <>
       <Table
+        hasHover
         verticalAlign="top"
         textOverflow="truncate"
         columns={columns}
         data={pos as PORow[]}
         idKey="po_id"
-        hasHover
         emptyState={<TableEmptyState message="Belum ada PO. Klik 'Buat Baru' untuk memulai." />}
       />
       <ConfirmDialog

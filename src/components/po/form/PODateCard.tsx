@@ -9,20 +9,21 @@ interface PODateCardProps {
   form: ReturnType<typeof usePOForm>["form"];
 }
 
-// ── PODateCard ────────────────────────────────────────────────────────────────
-
-/** Card yang menampilkan field Tanggal PO */
+/** Card displaying PO Date field */
 export function PODateCard({ form }: PODateCardProps) {
+  console.log(form);
+
   return (
     <Card padding={4}>
       <VStack width={320}>
-        <form.Field name="poDate">
+        <form.Field name="po_date">
           {(field) => (
             <DateInput
               label="Tanggal PO"
               value={field.state.value as ISODate}
               onChange={(v) => field.handleChange(v || "")}
               onBlur={field.handleBlur}
+              format="system_date"
               statusVariant="attached"
               status={getFieldError(
                 field.state.meta.errors,

@@ -9,11 +9,7 @@ interface POFormActionsProps {
   onCancel: () => void;
 }
 
-// ── POFormActions ─────────────────────────────────────────────────────────────
-
-/**
- * Menampilkan banner error validasi level-form dan tombol aksi Batal / Simpan.
- */
+/** Displays form-level error banner and Cancel/Save action buttons */
 export function POFormActions({
   form,
   canSubmit,
@@ -22,7 +18,6 @@ export function POFormActions({
 }: POFormActionsProps) {
   return (
     <>
-      {/* Banner error jika items array kosong / invalid */}
       <form.Field name="items">
         {(field) =>
           field.state.meta.errors.length > 0 ? (
@@ -32,14 +27,12 @@ export function POFormActions({
                 typeof field.state.meta.errors[0] === "string"
                   ? field.state.meta.errors[0]
                   : (field.state.meta.errors[0] as unknown as { message?: string })
-                      ?.message
+                    ?.message
               }
             />
           ) : null
         }
       </form.Field>
-
-      {/* Action buttons */}
       <HStack gap={2} justify="end">
         <Button
           variant="secondary"

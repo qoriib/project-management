@@ -22,8 +22,7 @@ export function formatNumber(value: number | undefined | null, decimals = 2): st
 
 export function formatDate(iso: string | undefined | null): string {
   if (!iso) return "-";
-  const [year, month, day] = iso.split("-");
-  return `${day}/${month}/${year}`;
+  return iso;
 }
 
 export function toISODate(date: Date = new Date()): string {
