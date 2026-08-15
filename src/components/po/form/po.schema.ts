@@ -1,19 +1,21 @@
 import * as v from "valibot";
 
-// ── Valibot Schema ─────────────────────────────────────────────────────────────
+// ── Per-item schema ────────────────────────────────────────────────────────────
+
+const poItemSchema = v.object({
+  po_item_id: v.number(),
+  item_id: v.pipe(v.number(), v.minValue(1, "Material harus dipilih.")),
+  vendor_id: v.pipe(v.string(), v.nonEmpty("Vendor harus dipilih.")),
+  item_price_id: v.pipe(v.string(), v.nonEmpty("Pilih variasi harga.")),
+  qty: v.pipe(v.number(), v.minValue(0.001, "Volume tidak valid.")),
+});
+
+// ── Root schema ────────────────────────────────────────────────────────────────
 
 export const poSchema = v.object({
   poDate: v.pipe(v.string(), v.nonEmpty("Tanggal PO harus diisi.")),
   items: v.pipe(
-    v.array(
-      v.object({
-        po_item_id: v.number(),
-        item_id: v.pipe(v.number(), v.minValue(1, "Material harus dipilih.")),
-        vendor_id: v.pipe(v.string(), v.nonEmpty("Vendor harus dipilih.")),
-        item_price_id: v.pipe(v.string(), v.nonEmpty("Pilih variasi harga.")),
-        qty: v.pipe(v.number(), v.minValue(0.001, "Volume tidak valid.")),
-      })
-    ),
+    v.array(poItemSchema),
     v.minLength(1, "Minimal harus ada 1 item yang dipesan.")
   ),
 });

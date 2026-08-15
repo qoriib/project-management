@@ -35,7 +35,7 @@ function MasterSatuanPage() {
       <VStack gap={4}>
         <PageHeader
           title="Master Data Satuan"
-          subtitle="Kelola data satuan"
+          subtitle="Kelola data satuan item"
           actions={
             <Button
               variant="primary"
@@ -45,10 +45,10 @@ function MasterSatuanPage() {
           }
         />
         <MasterUnitTable onEdit={openEdit} />
-        <MasterUnitForm 
-          isOpen={isFormOpen} 
-          onClose={() => setIsFormOpen(false)} 
-          initialData={editTarget} 
+        <MasterUnitForm
+          isOpen={isFormOpen}
+          onClose={() => setIsFormOpen(false)}
+          initialData={editTarget}
         />
       </VStack>
     </Section>

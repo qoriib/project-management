@@ -1,6 +1,22 @@
 import * as v from "valibot";
 
-// ── Valibot Schema ─────────────────────────────────────────────────────────────
+const itemRowSchema = v.object({
+  po_item_id: v.number(),
+  item_name: v.string(),
+  unit: v.string(),
+  sisa: v.number(),
+  qty: v.number(),
+});
+
+function itemQtyDoesNotExceedSisa(item: unknown): boolean {
+  const row = item as { qty: number; sisa: number };
+  return row.qty <= row.sisa;
+}
+
+function atLeastOneItemReceived(items: unknown): boolean {
+  const rows = items as { qty: number }[];
+  return rows.some((it) => it.qty > 0);
+}
 
 export const deliverySchema = v.object({
   poId: v.pipe(v.string(), v.nonEmpty("PO harus dipilih.")),
@@ -8,27 +24,13 @@ export const deliverySchema = v.object({
   items: v.pipe(
     v.array(
       v.pipe(
-        v.object({
-          po_item_id: v.number(),
-          item_name: v.string(),
-          unit: v.string(),
-          sisa: v.number(),
-          qty: v.number(),
-        }),
-        v.custom((item: unknown) => {
-          const i = item as { qty: number; sisa: number };
-          return i.qty <= i.sisa;
-        }, "Volume melebihi sisa PO.")
+        itemRowSchema,
+        v.custom(itemQtyDoesNotExceedSisa, "Volume melebihi sisa PO.")
       )
     ),
-    v.custom(
-      (items: unknown) => (items as { qty: number }[]).some((it) => it.qty > 0),
-      "Minimal ada 1 item yang diterima."
-    )
+    v.custom(atLeastOneItemReceived, "Minimal ada 1 item yang diterima.")
   ),
 });
-
-// ── Types ──────────────────────────────────────────────────────────────────────
 
 /** Satu baris item delivery dalam form */
 export type DeliveryItemRow = {
@@ -52,9 +54,9 @@ export interface DeliveryFormProps {
   onCancel: () => void;
 }
 
-// ── Label Helpers ──────────────────────────────────────────────────────────────
-
 /** Format label PO untuk selector: "PO-0001 (Vendor A)" */
 export function formatPOLabel(poId: number, vendorNames?: string): string {
-  return `PO-${String(poId).padStart(4, "0")} (${vendorNames || "Tidak ada vendor"})`;
+  const paddedId = String(poId).padStart(4, "0");
+  const vendor = vendorNames || "Tidak ada vendor";
+  return `PO-${paddedId} (${vendor})`;
 }

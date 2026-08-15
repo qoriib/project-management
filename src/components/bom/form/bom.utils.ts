@@ -3,8 +3,6 @@ import { useBOMStore } from "@/store/useBOMStore";
 import { formatRupiah } from "@/utils/formatters";
 import type { BOMDetail, ItemWithDetails } from "@/db/repositories";
 
-// ── Price Options ──────────────────────────────────────────────────────────────
-
 /**
  * Memuat harga untuk item yang dipilih, kemudian menyaring harga yang sudah
  * digunakan di BOM lain pada stage yang sama (kecuali BOM yang sedang diedit).
@@ -18,28 +16,32 @@ export async function loadAvailablePriceOptions(
   const { itemPricesMap, loadItemPrices } = useMasterStore.getState();
   const { boms: existingBoms } = useBOMStore.getState();
 
-  let prices = itemPricesMap.get(Number(itemId));
+  const itemIdNum = Number(itemId);
+
+  let prices = itemPricesMap.get(itemIdNum);
+
   if (!prices) {
-    prices = await loadItemPrices(Number(itemId));
+    prices = await loadItemPrices(itemIdNum);
   }
 
+  const isEditingThisBom = (bomId: number) =>
+    initialData !== undefined && bomId === initialData.bom_id;
+
   const usedPriceIds = existingBoms
-    .filter(
-      (b) =>
-        b.item_id === Number(itemId) &&
-        (!initialData || b.bom_id !== initialData.bom_id)
-    )
+    .filter((b) => b.item_id === itemIdNum && !isEditingThisBom(b.bom_id))
     .map((b) => b.item_price_id);
 
-  return prices
-    .filter((p) => !usedPriceIds.includes(p.item_price_id))
-    .map((p) => ({
-      value: String(p.item_price_id),
-      label: formatRupiah(p.price),
-    }));
-}
+  const availablePrices = prices.filter(
+    (p) => !usedPriceIds.includes(p.item_price_id)
+  );
 
-// ── Item Options ───────────────────────────────────────────────────────────────
+  const options = availablePrices.map((p) => ({
+    value: String(p.item_price_id),
+    label: formatRupiah(p.price),
+  }));
+
+  return options;
+}
 
 /**
  * Memfilter daftar item agar tidak menampilkan item yang sudah ada di BOM lain,
@@ -50,17 +52,23 @@ export function buildItemOptions(
   existingBoms: BOMDetail[],
   initialData?: BOMDetail
 ): { value: string; label: string }[] {
+  const isCurrentItem = (itemId: number) =>
+    initialData?.item_id === itemId;
+
+  const isAlreadyUsed = (itemId: number) =>
+    existingBoms.some((b) => b.item_id === itemId);
+
+  const filteredItems = items.filter(
+    (i) => isCurrentItem(i.item_id) || !isAlreadyUsed(i.item_id)
+  );
+
+  const mappedItems = filteredItems.map((i) => ({
+    value: String(i.item_id),
+    label: `${i.item_name} (${i.unit_name})`,
+  }));
+
   return [
     { value: "", label: "Pilih Material/Alat..." },
-    ...items
-      .filter(
-        (i) =>
-          initialData?.item_id === i.item_id ||
-          !existingBoms.some((b) => b.item_id === i.item_id)
-      )
-      .map((i) => ({
-        value: String(i.item_id),
-        label: `${i.item_name} (${i.unit_name})`,
-      })),
+    ...mappedItems,
   ];
 }

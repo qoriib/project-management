@@ -45,13 +45,13 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
   const columns: TableColumn<UnitRow>[] = [
     {
       key: "unit_id",
-      header: "Kode",
+      header: "No. Satuan",
       width: pixel(120),
       renderCell: (row: UnitRow) => `STN-${String(row.unit_id).padStart(4, '0')}`
     },
     {
       key: "unit_name",
-      header: "Satuan",
+      header: "Nama Satuan",
       width: proportional(1)
     },
     {

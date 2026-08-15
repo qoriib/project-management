@@ -7,8 +7,6 @@ import { useBOMStore } from "@/store/useBOMStore";
 import { bomSchema, buildDefaultValues, type BOMFormProps } from "./bom.schema";
 import { loadAvailablePriceOptions } from "./bom.utils";
 
-// ── useBOMForm ────────────────────────────────────────────────────────────────
-
 /**
  * Custom hook yang mengorkestrasikan seluruh logic form BOM:
  * - Inisialisasi & reset form
@@ -22,19 +20,20 @@ export function useBOMForm({
 }: Pick<BOMFormProps, "stageId" | "initialData" | "onSuccess">) {
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
   const { items } = useMasterStore();
   const { boms: existingBoms, createBOM, updateBOM } = useBOMStore();
 
-  const [priceOptions, setPriceOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
+  const [priceOptions, setPriceOptions] = useState<{ value: string; label: string }[]>([]);
 
   const form = useForm({
     defaultValues: buildDefaultValues(initialData),
     validators: { onChange: bomSchema },
     onSubmit: async ({ value }) => {
       try {
-        if (!selectedProjectId || !stageId) return;
+        const isReady = selectedProjectId && stageId;
+
+        if (!isReady) return;
 
         const payload = {
           project_id: selectedProjectId,
@@ -44,7 +43,9 @@ export function useBOMForm({
           item_price_id: Number(value.item_price_id),
         };
 
-        if (initialData) {
+        const isEditMode = initialData !== undefined;
+
+        if (isEditMode) {
           await updateBOM(initialData.bom_id, {
             qty: payload.qty,
             item_price_id: payload.item_price_id,
@@ -54,10 +55,11 @@ export function useBOMForm({
           form.reset();
           setPriceOptions([]);
         }
+
         onSuccess();
       } catch (error: unknown) {
-        const msg =
-          error instanceof Error ? error.message : "Terjadi kesalahan";
+        const isError = error instanceof Error;
+        const msg = isError ? error.message : "Terjadi kesalahan";
         showToast({ body: msg, type: "error" });
       }
     },
@@ -67,21 +69,24 @@ export function useBOMForm({
   async function handleItemChange(itemId: string) {
     form.setFieldValue("item_id", itemId);
     form.setFieldValue("item_price_id", "");
-    if (!itemId) {
+
+    const hasItem = itemId.length > 0;
+    if (!hasItem) {
       setPriceOptions([]);
       return;
     }
+
     const opts = await loadAvailablePriceOptions(itemId, initialData);
     setPriceOptions(opts);
   }
 
   // Sync form ke initialData saat mode edit atau saat stage berubah
   useEffect(() => {
-    if (initialData) {
+    const isEditMode = initialData !== undefined;
+
+    if (isEditMode) {
       form.reset(buildDefaultValues(initialData));
-      loadAvailablePriceOptions(String(initialData.item_id), initialData).then(
-        setPriceOptions
-      );
+      loadAvailablePriceOptions(String(initialData.item_id), initialData).then(setPriceOptions);
     } else {
       form.reset(buildDefaultValues());
       setPriceOptions([]);

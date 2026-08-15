@@ -12,7 +12,7 @@ import { DashboardBOMTable } from "@/components/dashboard/DashboardBOMTable";
 function Dashboard() {
   const [report, setReport] = useState<DashboardBOMReportItem[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [logItem, setLogItem] = useState<{ itemId: number, itemPriceId: number, itemName: string } | null>(null);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
@@ -43,16 +43,20 @@ function Dashboard() {
     <Section padding={6}>
       <VStack gap={4}>
         <PageHeader
-          title="Dashboard Laporan Kebutuhan & Realisasi"
-          subtitle="Ringkasan pemenuhan Bill of Materials terhadap pemesanan (PO) dan penerimaan (Delivery)"
+          title="Laporan Kebutuhan & Realisasi"
+          subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
         />
         <ProjectRequired>
           <>
-            <DashboardSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
-            <DashboardBOMTable 
-              report={report} 
-              loading={loading} 
-              onLogClick={(itemId, itemPriceId, itemName) => setLogItem({ itemId, itemPriceId, itemName })} 
+            <DashboardSummaryCards
+              totalBudget={totalBudget}
+              totalPO={totalPO}
+              loading={loading}
+            />
+            <DashboardBOMTable
+              report={report}
+              loading={loading}
+              onLogClick={(itemId, itemPriceId, itemName) => setLogItem({ itemId, itemPriceId, itemName })}
             />
           </>
         </ProjectRequired>

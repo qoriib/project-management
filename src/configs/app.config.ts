@@ -4,22 +4,22 @@ export const APP = {
   title: "Manajemen Proyek",
   sidenav: [
     {
-      label: "Dashboard",
+      label: "Laporan",
       icon: Home,
       href: "/"
     },
     {
       icon: ClipboardList,
-      label: "Kebutuhan",
+      label: "Kebutuhan (BOM)",
       href: "/bom"
     },
     {
-      label: "Pemesanan",
+      label: "Pemesanan (PO)",
       icon: ShoppingCart,
       href: "/po"
     },
     {
-      label: "Penerimaan",
+      label: "Penerimaan (DLV)",
       icon: Truck,
       href: "/delivery"
     },

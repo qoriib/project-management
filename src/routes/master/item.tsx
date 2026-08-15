@@ -35,7 +35,7 @@ function MasterItemPage() {
       <VStack gap={4}>
         <PageHeader
           title="Master Data Item"
-          subtitle="Kelola data item material"
+          subtitle="Kelola data item kebutuhan"
           actions={
             <Button
               variant="primary"
@@ -45,10 +45,10 @@ function MasterItemPage() {
           }
         />
         <MasterItemTable onEdit={openEdit} />
-        <MasterItemForm 
-          isOpen={isFormOpen} 
-          onClose={() => setIsFormOpen(false)} 
-          initialData={editTarget} 
+        <MasterItemForm
+          isOpen={isFormOpen}
+          onClose={() => setIsFormOpen(false)}
+          initialData={editTarget}
         />
       </VStack>
     </Section>

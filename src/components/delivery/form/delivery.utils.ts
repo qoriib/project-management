@@ -11,13 +11,20 @@ export async function loadPOItemsAsDeliveryRows(
   poId: number
 ): Promise<DeliveryItemRow[]> {
   const poItems = await purchaseOrderRepo.findItems(poId);
-  return poItems.map((i) => ({
-    po_item_id: i.po_item_id,
-    item_name: i.item_name ?? "",
-    unit: i.unit ?? "",
-    sisa: i.sisa ?? 0,
-    qty: 0,
-  }));
+
+  return poItems.map((i) => {
+    const item_name = i.item_name ?? "";
+    const unit = i.unit ?? "";
+    const sisa = i.sisa ?? 0;
+
+    return {
+      po_item_id: i.po_item_id,
+      item_name,
+      unit,
+      sisa,
+      qty: 0,
+    };
+  });
 }
 
 // ── Edit Data Loader ───────────────────────────────────────────────────────────
@@ -32,29 +39,41 @@ export async function loadDeliveryEditData(deliveryId: number): Promise<{
   deliveryDate: string;
   items: DeliveryItemRow[];
 } | null> {
-  const d = await deliveryRepo.findById(deliveryId);
-  if (!d) return null;
+  const delivery = await deliveryRepo.findById(deliveryId);
+
+  if (!delivery) {
+    return null;
+  }
 
   const [poItems, delivItems] = await Promise.all([
-    purchaseOrderRepo.findItems(d.po_id),
+    purchaseOrderRepo.findItems(delivery.po_id),
     deliveryRepo.findItems(deliveryId),
   ]);
 
   const items: DeliveryItemRow[] = poItems.map((i) => {
-    const existing = delivItems.find((di) => di.po_item_id === i.po_item_id);
-    const oldQty = existing?.qty ?? 0;
+    const existingDelivItem = delivItems.find(
+      (di) => di.po_item_id === i.po_item_id
+    );
+
+    const oldQty = existingDelivItem?.qty ?? 0;
+    const originalSisa = i.sisa ?? 0;
+    const restoredSisa = originalSisa + oldQty; // kembalikan sisa yang sudah dipakai
+
+    const item_name = i.item_name ?? "";
+    const unit = i.unit ?? "";
+
     return {
       po_item_id: i.po_item_id,
-      item_name: i.item_name ?? "",
-      unit: i.unit ?? "",
-      sisa: (i.sisa ?? 0) + oldQty, // kembalikan sisa yang sudah dipakai
+      item_name,
+      unit,
+      sisa: restoredSisa,
       qty: oldQty,
     };
   });
 
   return {
-    poId: String(d.po_id),
-    deliveryDate: d.delivery_date,
+    poId: String(delivery.po_id),
+    deliveryDate: delivery.delivery_date,
     items,
   };
 }
@@ -65,7 +84,10 @@ export async function loadDeliveryEditData(deliveryId: number): Promise<{
 export function buildDeliveryItemPayload(
   items: DeliveryItemRow[]
 ): { po_item_id: number; qty: number }[] {
-  return items
-    .filter((it) => it.qty > 0)
-    .map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }));
+  const receivedItems = items.filter((it) => it.qty > 0);
+
+  return receivedItems.map((it) => ({
+    po_item_id: it.po_item_id,
+    qty: it.qty,
+  }));
 }

@@ -15,8 +15,6 @@ import {
   buildDeliveryItemPayload,
 } from "./delivery.utils";
 
-// ── useDeliveryForm ───────────────────────────────────────────────────────────
-
 /**
  * Custom hook yang mengorkestrasikan seluruh logic form Delivery:
  * - Inisialisasi & load data (create / edit)
@@ -29,6 +27,7 @@ export function useDeliveryForm({
   onSuccess,
 }: Pick<DeliveryFormProps, "initialPoId" | "initialEditId" | "onSuccess">) {
   const isEdit = !!initialEditId;
+
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const { pos, loadAllPOs } = usePOStore();
   const { createDelivery, updateDelivery } = useDeliveryStore();
@@ -42,6 +41,7 @@ export function useDeliveryForm({
     validators: { onChange: deliverySchema },
     onSubmit: async ({ value }) => {
       const payload = buildDeliveryItemPayload(value.items);
+
       const header = {
         po_id: Number(value.poId),
         delivery_date: value.deliveryDate,
@@ -52,14 +52,19 @@ export function useDeliveryForm({
       } else {
         await createDelivery(header, payload);
       }
-      onSuccess(Number(value.poId));
+
+      const poId = Number(value.poId);
+      onSuccess(poId);
     },
   });
 
   /** Load items ke form saat user memilih PO baru (mode create) */
   async function handlePOChange(poId: string) {
     form.setFieldValue("poId", poId);
-    if (poId) {
+
+    const hasSelectedPO = poId.length > 0;
+
+    if (hasSelectedPO) {
       const rows = await loadPOItemsAsDeliveryRows(Number(poId));
       form.setFieldValue("items", rows);
     } else {
@@ -69,20 +74,26 @@ export function useDeliveryForm({
 
   useEffect(() => {
     async function loadData() {
-      await loadAllPOs(selectedProjectId ?? undefined);
+      const projectId = selectedProjectId ?? undefined;
+      await loadAllPOs(projectId);
 
-      if (isEdit && initialEditId) {
-        const editData = await loadDeliveryEditData(initialEditId);
-        if (editData) {
-          form.setFieldValue("poId", editData.poId);
-          form.setFieldValue("deliveryDate", editData.deliveryDate);
-          form.setFieldValue("items", editData.items);
+      const hasEditId = isEdit && initialEditId !== undefined;
+
+      if (hasEditId) {
+        const editData = await loadDeliveryEditData(initialEditId!);
+        const hasData = editData !== null;
+
+        if (hasData) {
+          form.setFieldValue("poId", editData!.poId);
+          form.setFieldValue("deliveryDate", editData!.deliveryDate);
+          form.setFieldValue("items", editData!.items);
         }
       } else if (initialPoId) {
         const rows = await loadPOItemsAsDeliveryRows(Number(initialPoId));
         form.setFieldValue("items", rows);
       }
     }
+
     loadData();
   }, [initialPoId, initialEditId, isEdit, selectedProjectId]);
 

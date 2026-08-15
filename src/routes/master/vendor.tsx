@@ -35,7 +35,7 @@ function MasterVendorPage() {
       <VStack gap={4}>
         <PageHeader
           title="Master Data Vendor"
-          subtitle="Kelola data vendor"
+          subtitle="Kelola data vendor pemasok kebutuhan"
           actions={
             <Button
               variant="primary"
@@ -45,10 +45,10 @@ function MasterVendorPage() {
           }
         />
         <MasterVendorTable onEdit={openEdit} />
-        <MasterVendorForm 
-          isOpen={isFormOpen} 
-          onClose={() => setIsFormOpen(false)} 
-          initialData={editTarget} 
+        <MasterVendorForm
+          isOpen={isFormOpen}
+          onClose={() => setIsFormOpen(false)}
+          initialData={editTarget}
         />
       </VStack>
     </Section>

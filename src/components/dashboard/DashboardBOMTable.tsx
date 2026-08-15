@@ -41,9 +41,17 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
   });
 
   const columns = [
-    { key: "item", header: "Material / Alat", width: proportional(1.5), renderCell: (r: any) => <Text weight="medium">{r.item_name}</Text> },
     {
-      key: "planned", header: "BOM (Rencana)", width: pixel(180), renderCell: (r: any) => (
+      key: "item",
+      header: "Material / Alat",
+      width: proportional(1),
+      renderCell: (r: any) => <Text weight="medium">{r.item_name}</Text>
+    },
+    {
+      key: "planned",
+      header: "Rencana (BOM)",
+      width: pixel(180),
+      renderCell: (r: any) => (
         <VStack gap={1}>
           <Text size="sm">{formatNumber(r.planned_volume, 2)} {r.unit}</Text>
           <Text size="2xs" color="secondary">{formatRupiah(r.planned_budget)}</Text>
@@ -51,7 +59,10 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       )
     },
     {
-      key: "ordered", header: "PO (Dipesan)", width: pixel(180), renderCell: (r: any) => {
+      key: "ordered",
+      header: "Dipesan (PO)",
+      width: pixel(180),
+      renderCell: (r: any) => {
         const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
         const isOver = percent > 100;
         return (
@@ -66,7 +77,9 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       }
     },
     {
-      key: "delivered", header: "Delivery (Terkirim)", width: pixel(180), renderCell: (r: any) => {
+      key: "delivered",
+      header: "Diterima (DLV)",
+      width: pixel(180), renderCell: (r: any) => {
         const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
         return (
           <ProgressBar
@@ -80,10 +93,13 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       }
     },
     {
-      key: "actions", header: "Aksi", width: pixel(80), align: "center", renderCell: (r: any) => (
+      key: "actions",
+      header: "",
+      width: pixel(80),
+      renderCell: (r: any) => (
         <IconButton
           icon={<Eye size={16} />}
-          variant="ghost"
+          variant="secondary"
           onClick={() => onLogClick(r.item_id, r.item_price_id, r.item_name)}
           label="Lihat Log"
         />

@@ -1,17 +1,17 @@
-import { HStack, VStack, Button, Selector } from "@astryxdesign/core";
-import { NumberInput } from "@astryxdesign/core/NumberInput";
-import { getFieldError } from "@/utils/form";
+import { HStack } from "@astryxdesign/core";
 import { buildItemOptions } from "./form/bom.utils";
 import { useBOMForm } from "./form/useBOMForm";
+import { BOMItemField } from "./form/BOMItemField";
+import { BOMQtyField } from "./form/BOMQtyField";
+import { BOMPriceField } from "./form/BOMPriceField";
+import { BOMFormActions } from "./form/BOMFormActions";
 import type { BOMFormProps } from "./form/bom.schema";
 
 export type { BOMFormProps };
 
-// ── BOMForm ───────────────────────────────────────────────────────────────────
-
 /**
  * Form inline untuk menambah atau mengedit satu baris BOM.
- * Semua logic ada di `useBOMForm`; komponen ini hanya bertanggung jawab pada UI.
+ * Semua logic ada di `useBOMForm`; komponen ini hanya mengkomposisikan field-field.
  */
 export function BOMForm({
   stageId,
@@ -45,103 +45,33 @@ export function BOMForm({
         }
         children={([formItemId, canSubmit, isSubmitting]) => (
           <HStack gap={3} align="start" padding={3}>
-            {/* ── Selector: Material / Alat ── */}
-            <VStack style={{ flex: 1 }}>
-              <form.Field
-                name="item_id"
-                children={(field) => (
-                  <Selector
-                    label="Material / Alat"
-                    hasSearch
-                    value={field.state.value}
-                    onChange={(val) => handleItemChange(val)}
-                    onBlur={field.handleBlur}
-                    statusVariant="attached"
-                    status={getFieldError(
-                      field.state.meta.errors,
-                      !!field.state.meta.isTouched
-                    )}
-                    options={itemOptions}
-                    isDisabled={isDisabled}
-                  />
-                )}
-              />
-            </VStack>
+            <BOMItemField
+              form={form}
+              options={itemOptions}
+              isDisabled={isDisabled}
+              onItemChange={handleItemChange}
+            />
 
-            {/* ── Input: Volume Rencana ── */}
-            <VStack width={200}>
-              <form.Field
-                name="qty"
-                children={(field) => (
-                  <NumberInput
-                    label="Volume Rencana"
-                    placeholder="Contoh: 1500"
-                    value={field.state.value || null}
-                    onChange={(val) => field.handleChange(val || 0)}
-                    onBlur={field.handleBlur}
-                    statusVariant="attached"
-                    status={getFieldError(
-                      field.state.meta.errors,
-                      !!field.state.meta.isTouched
-                    )}
-                    isDisabled={isDisabled}
-                  />
-                )}
-              />
-            </VStack>
+            <BOMQtyField
+              form={form}
+              isDisabled={isDisabled}
+            />
 
-            {/* ── Selector: Harga ── */}
-            <VStack width={260}>
-              <form.Field
-                name="item_price_id"
-                children={(field) => (
-                  <Selector
-                    label="Harga"
-                    value={field.state.value}
-                    onChange={(val) => field.handleChange(val)}
-                    onBlur={field.handleBlur}
-                    statusVariant="attached"
-                    status={getFieldError(
-                      field.state.meta.errors,
-                      !!field.state.meta.isTouched
-                    )}
-                    options={[
-                      {
-                        value: "",
-                        label:
-                          priceOptions.length === 0
-                            ? "Pilih item dahulu..."
-                            : "Pilih harga...",
-                      },
-                      ...priceOptions,
-                    ]}
-                    isDisabled={
-                      isDisabled || !formItemId || priceOptions.length === 0
-                    }
-                  />
-                )}
-              />
-            </VStack>
+            <BOMPriceField
+              form={form}
+              priceOptions={priceOptions}
+              formItemId={formItemId}
+              isDisabled={isDisabled}
+            />
 
-            {/* ── Action Buttons ── */}
-            <VStack style={{ paddingTop: "24px" }}>
-              <HStack gap={2}>
-                <Button
-                  variant="primary"
-                  label={initialData ? "Simpan" : "Tambah"}
-                  type="submit"
-                  isLoading={isSubmitting}
-                  isDisabled={isDisabled || !canSubmit || !selectedProjectId}
-                />
-                {initialData && (
-                  <Button
-                    variant="secondary"
-                    label="Batal"
-                    onClick={onCancel}
-                  />
-                )}
-              </HStack>
-            </VStack>
+            <BOMFormActions
+              initialData={initialData}
+              canSubmit={canSubmit}
+              isSubmitting={isSubmitting}
+              isDisabled={isDisabled}
+              selectedProjectId={selectedProjectId}
+              onCancel={onCancel}
+            />
           </HStack>
         )}
       />

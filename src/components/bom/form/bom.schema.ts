@@ -1,7 +1,4 @@
 import * as v from "valibot";
-import type { BOMDetail } from "@/db/repositories";
-
-// ── Valibot Schema ─────────────────────────────────────────────────────────────
 
 export const bomSchema = v.object({
   item_id: v.pipe(v.string(), v.nonEmpty("Material harus dipilih.")),
@@ -9,23 +6,28 @@ export const bomSchema = v.object({
   item_price_id: v.pipe(v.string(), v.nonEmpty("Pilih harga terlebih dahulu.")),
 });
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-
 export type BOMFormValues = {
   item_id: string;
   qty: number;
   item_price_id: string;
 };
 
-/** Buat default values form dari data awal (mode edit) atau kosong (mode tambah) */
+import type { BOMDetail } from "@/db/repositories";
+
 export function buildDefaultValues(initialData?: BOMDetail): BOMFormValues {
-  return {
-    item_id: initialData?.item_id ? String(initialData.item_id) : "",
-    qty: initialData?.qty ? Number(initialData.qty) : 0,
-    item_price_id: initialData?.item_price_id
-      ? String(initialData.item_price_id)
-      : "",
-  };
+  const item_id = initialData?.item_id
+    ? String(initialData.item_id)
+    : "";
+
+  const qty = initialData?.qty
+    ? Number(initialData.qty)
+    : 0;
+
+  const item_price_id = initialData?.item_price_id
+    ? String(initialData.item_price_id)
+    : "";
+
+  return { item_id, qty, item_price_id };
 }
 
 export interface BOMFormProps {

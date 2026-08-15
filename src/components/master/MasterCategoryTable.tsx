@@ -45,7 +45,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   const columns: TableColumn<CategoryRow>[] = [
     {
       key: "category_id",
-      header: "Kode",
+      header: "No. Kategori",
       width: pixel(120),
       renderCell: (row: CategoryRow) => `KAT-${String(row.category_id).padStart(4, '0')}`
     },

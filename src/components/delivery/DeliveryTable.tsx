@@ -38,14 +38,14 @@ export function DeliveryTable() {
   const columns: TableColumn<DeliveryRow>[] = [
     {
       key: "delivery_id",
-      header: "ID Pengiriman",
-      width: pixel(140),
-      renderCell: (row) => `DLV-${row.delivery_id}`
+      header: "No. DLV",
+      width: pixel(120),
+      renderCell: (row) => `DLV-${String(row.po_id).padStart(4, "0")}`
     },
     {
       key: "delivery_date",
       header: "Tanggal",
-      width: pixel(120),
+      width: pixel(140),
       renderCell: (row) => formatDate(row.delivery_date)
     },
     {
@@ -74,7 +74,8 @@ export function DeliveryTable() {
     },
     {
       key: "actions",
-      header: "",
+      header: "Aksi",
+      align: "end",
       width: pixel(120),
       renderCell: (row) => (
         <HStack justify="end" gap={2}>

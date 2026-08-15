@@ -40,7 +40,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
   const columns: TableColumn<VendorRow>[] = [
     {
       key: "vendor_id",
-      header: "Kode",
+      header: "No. Vendor",
       width: pixel(120),
       renderCell: (row: VendorRow) => `VND-${String(row.vendor_id).padStart(4, '0')}`
     },

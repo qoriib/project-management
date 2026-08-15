@@ -42,7 +42,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   const columns: TableColumn<ItemRow>[] = [
     {
       key: "item_id",
-      header: "Kode",
+      header: "No. Item",
       width: pixel(120),
       renderCell: (row: ItemRow) => `BRG-${String(row.item_id).padStart(4, '0')}`
     },

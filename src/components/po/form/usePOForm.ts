@@ -15,8 +15,6 @@ interface UsePOFormOptions {
   onSuccess: () => void;
 }
 
-// ── usePOForm ─────────────────────────────────────────────────────────────────
-
 /**
  * Orchestrates semua logic form PO:
  * - Inisialisasi & reset form
@@ -26,6 +24,7 @@ interface UsePOFormOptions {
  */
 export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
   const showToast = useToast();
+
   const isEdit = !!initialEditId;
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const { vendors } = useMasterStore();
@@ -51,6 +50,7 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
           po_date: value.poDate,
           project_id: selectedProjectId!,
         };
+
         const poItems = buildPOItemPayload(value.items);
 
         if (isEdit) {
@@ -60,10 +60,11 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
           await createPO(poData, poItems);
           showToast({ body: "PO berhasil dibuat", type: "info" });
         }
+
         onSuccess();
       } catch (error: unknown) {
-        const msg =
-          error instanceof Error ? error.message : "Terjadi kesalahan";
+        const isError = error instanceof Error;
+        const msg = isError ? error.message : "Terjadi kesalahan";
         showToast({ body: msg, type: "error" });
       }
     },
@@ -71,7 +72,9 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
 
   useEffect(() => {
     async function loadData() {
-      if (!selectedProjectId) {
+      const hasProject = !!selectedProjectId;
+
+      if (!hasProject) {
         setLoading(false);
         return;
       }
@@ -83,24 +86,25 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
         await loadPODetail(initialEditId);
         const { currentPO: po, currentItems: poItems } = usePOStore.getState();
 
-        if (po) {
-          const allItemIds = [
-            ...new Set(
-              poItems.map((p) => p.item_id).filter(Boolean) as number[]
-            ),
-          ];
-          await preloadPrices(allItemIds);
+        const hasData = po !== null && po !== undefined;
+
+        if (hasData) {
+          const rawItemIds = poItems.map((p) => p.item_id).filter(Boolean);
+          const uniqueItemIds = [...new Set(rawItemIds)] as number[];
+          await preloadPrices(uniqueItemIds);
+
+          const mappedItems = poItems.map((p) => ({
+            po_item_id: p.po_item_id,
+            item_id: p.item_id || 0,
+            vendor_id: String(p.vendor_id || ""),
+            item_price_id: String(p.item_price_id || ""),
+            qty: p.qty,
+            original_qty: p.qty,
+          }));
 
           form.reset({
-            poDate: po.po_date,
-            items: poItems.map((p) => ({
-              po_item_id: p.po_item_id,
-              item_id: p.item_id || 0,
-              vendor_id: String(p.vendor_id || ""),
-              item_price_id: String(p.item_price_id || ""),
-              qty: p.qty,
-              original_qty: p.qty,
-            })),
+            poDate: po!.po_date,
+            items: mappedItems,
           });
         }
       } else {

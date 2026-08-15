@@ -42,13 +42,13 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   const columns: TableColumn<ProjectRow>[] = [
     {
       key: "project_id",
-      header: "Kode",
+      header: "No. Proyek",
       width: pixel(120),
       renderCell: (row: ProjectRow) => `PRJ-${String(row.project_id).padStart(4, '0')}`
     },
     {
       key: "project_name",
-      header: "Nama Project",
+      header: "Nama Proyek",
       width: proportional(2)
     },
     {
