@@ -89,6 +89,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   return (
     <>
       <Table
+        verticalAlign="top"
         hasHover
         textOverflow="truncate"
         columns={columns}

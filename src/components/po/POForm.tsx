@@ -6,11 +6,12 @@ import { DateInput } from "@astryxdesign/core/DateInput";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { useToast } from "@astryxdesign/core/Toast";
-import { purchaseOrderRepo, itemPriceRepo, type ItemPrice, type POItemInput } from "@/db/repositories";
+import { itemPriceRepo, type ItemPrice, type POItemInput } from "@/db/repositories";
 import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/services";
 import { formatNumber, formatRupiah, todayISO } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
+import { usePOStore } from "@/store/usePOStore";
 import { getFieldError } from "@/utils/form";
 import { X } from "lucide-react";
 import * as v from "valibot";
@@ -59,6 +60,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const { vendors } = useMasterStore();
+  const { createPO, updatePO, loadPODetail } = usePOStore();
   const [bomData, setBomData] = useState<DashboardBOMReportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [priceCache, setPriceCache] = useState<Map<number, ItemPrice[]>>(new Map());
@@ -94,10 +96,10 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         }));
 
         if (isEdit) {
-          await purchaseOrderRepo.updateWithItems(initialEditId, poData, poItems);
+          await updatePO(initialEditId, poData, poItems);
           showToast({ body: "PO berhasil diperbarui", type: "info" });
         } else {
-          await purchaseOrderRepo.createWithItems(poData, poItems);
+          await createPO(poData, poItems);
           showToast({ body: "PO berhasil dibuat", type: "info" });
         }
         onSuccess();
@@ -128,8 +130,8 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
       setBomData(bom);
 
       if (isEdit) {
-        const po = await purchaseOrderRepo.findByIdWithSummary(initialEditId);
-        const poItems = await purchaseOrderRepo.findItems(initialEditId);
+        await loadPODetail(initialEditId);
+        const { currentPO: po, currentItems: poItems } = usePOStore.getState();
         if (po) {
           // Pre-load price variants for all items
           const allItemIds = [...new Set(poItems.map(p => p.item_id).filter(Boolean) as number[])];
@@ -174,6 +176,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
       >
         {([items, canSubmit, isSubmitting]) => {
           const bomOptions = Array.from(new Map(bomData.map(b => [b.item_id, b])).values());
+          const selectedItemIds = new Set(items.map(it => it.item_id).filter(id => id > 0));
 
           // Resolve full item objects for rendering
           const resolvedItems = items.map(it => {
@@ -220,16 +223,20 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                 const idx = resolvedItems.indexOf(row);
                 return (
                   <form.Field name={`items[${idx}].item_id`}>
-                    {(field) => (
+                    {(field) => {
+                      const currentVal = Number(field.state.value);
+                      return (
                       <Selector
                         label="Barang"
                         isLabelHidden
                         options={[
                           { value: "0", label: "Pilih Material..." },
-                          ...bomOptions.map((b) => ({
-                            value: String(b.item_id),
-                            label: `${b.item_name} (${b.unit})`,
-                          })),
+                          ...bomOptions
+                            .filter((b) => b.item_id === currentVal || !selectedItemIds.has(b.item_id))
+                            .map((b) => ({
+                              value: String(b.item_id),
+                              label: `${b.item_name} (${b.unit})`,
+                            })),
                         ]}
                         value={String(field.state.value)}
                         onChange={async (v: string) => {
@@ -257,7 +264,8 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                           !!field.state.meta.isTouched
                         )}
                       />
-                    )}
+                      );
+                    }}
                   </form.Field>
                 );
               },
@@ -470,7 +478,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                       )}
                     </form.Field>
                   </HStack>
-                  <Table columns={columns} data={resolvedItems} />
+                  <Table verticalAlign="top" columns={columns} data={resolvedItems} />
                   <Divider />
                   <HStack justify="end" align="center" gap={6}>
                     <Text weight="semibold">Estimasi Total Biaya</Text>

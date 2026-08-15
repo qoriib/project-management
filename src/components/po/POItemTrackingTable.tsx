@@ -4,14 +4,10 @@ import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table"
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import type { POItemDetail } from "@/db/repositories";
-import type { DashboardBOMReportItem } from "@/db/services";
+import { usePOStore } from "@/store/usePOStore";
 
-interface POItemTrackingTableProps {
-  items: POItemDetail[];
-  bomData?: DashboardBOMReportItem[];
-}
-
-export function POItemTrackingTable({ items, bomData = [] }: POItemTrackingTableProps) {
+export function POItemTrackingTable() {
+  const { currentItems: items, currentBOMData: bomData } = usePOStore();
   const itemColumns: TableColumn<POItemDetail>[] = [
     {
       key: "item_name",
@@ -90,6 +86,7 @@ export function POItemTrackingTable({ items, bomData = [] }: POItemTrackingTable
 
   return (
     <Table
+      verticalAlign="top"
       textOverflow="truncate"
       columns={itemColumns}
       data={items}

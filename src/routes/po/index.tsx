@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from "react";
+
 import { Section, VStack, Button } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
@@ -9,7 +9,6 @@ import { useAppStore } from "@/store/useAppStore";
 function POListPage() {
   const navigate = useNavigate();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   function openNew() {
     navigate({ to: "/po/new" });
@@ -29,7 +28,7 @@ function POListPage() {
         />
 
         <ProjectRequired>
-          <POTable refreshTrigger={refreshTrigger} onRefresh={() => setRefreshTrigger(r => r + 1)} onEdit={openEdit} />
+          <POTable onEdit={openEdit} />
         </ProjectRequired>
       </VStack>
     </Section>

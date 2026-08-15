@@ -5,42 +5,31 @@ import { HStack, Table, Badge, IconButton } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
-import { deliveryRepo, type DeliverySummary } from "@/db/repositories";
+import { type DeliverySummary } from "@/db/repositories";
 import { formatDate } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
+import { useDeliveryStore } from "@/store/useDeliveryStore";
 
 type DeliveryRow = DeliverySummary & Record<string, unknown>;
 
-interface DeliveryTableProps {
-  onRefresh?: () => void;
-  refreshTrigger?: number;
-}
-
-export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps) {
+export function DeliveryTable() {
   const navigate = useNavigate();
-  const [deliveries, setDeliveries] = useState<DeliverySummary[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const { deliveries, loadAllDeliveries, deleteDelivery } = useDeliveryStore();
 
-  async function load() {
-    const d = await deliveryRepo.findAllWithSummary({
-      project_id: selectedProjectId || undefined,
-    });
-    setDeliveries(d);
-  }
-
-  useEffect(() => { load(); }, [refreshTrigger, selectedProjectId]);
+  useEffect(() => {
+    loadAllDeliveries(selectedProjectId || undefined);
+  }, [selectedProjectId, loadAllDeliveries]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deliveryRepo.delete(deleteTarget);
+      await deleteDelivery(deleteTarget);
       setDeleteTarget(null);
-      await load();
-      if (onRefresh) onRefresh();
     } finally {
       setDeleting(false);
     }
@@ -111,6 +100,7 @@ export function DeliveryTable({ onRefresh, refreshTrigger }: DeliveryTableProps)
   return (
     <>
       <Table
+        verticalAlign="top"
         hasHover
         textOverflow="truncate"
         columns={columns}

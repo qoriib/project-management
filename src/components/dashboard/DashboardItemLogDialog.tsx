@@ -88,6 +88,7 @@ export function DashboardItemLogDialog({
       <VStack gap={4}>
         <PageHeader title={`Log Item: ${itemName}`} />
         <Table
+          verticalAlign="top"
           columns={columns}
           data={logs as LogRow[]}
           idKey="reference"

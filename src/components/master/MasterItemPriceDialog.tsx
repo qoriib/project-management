@@ -158,6 +158,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
             actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
           />
           <Table
+            verticalAlign="top"
             columns={columns}
             data={prices as PriceRow[]}
             idKey="item_price_id"

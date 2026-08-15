@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import { VStack, HStack, Button, Selector, Card, Heading, Text, Table } from "@astryxdesign/core";
 import { DateInput } from "@astryxdesign/core/DateInput";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { proportional, pixel } from "@astryxdesign/core/Table";
-import { purchaseOrderRepo, deliveryRepo, type POWithSummary } from "@/db/repositories";
+import { purchaseOrderRepo, deliveryRepo } from "@/db/repositories";
 import { todayISO, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
+import { usePOStore } from "@/store/usePOStore";
+import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { getFieldError } from "@/utils/form";
 import * as v from "valibot";
 
@@ -39,8 +41,10 @@ interface DeliveryFormProps {
 
 export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }: DeliveryFormProps) {
   const isEdit = !!initialEditId;
-  const [pos, setPOs] = useState<POWithSummary[]>([]);
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  
+  const { pos, loadAllPOs } = usePOStore();
+  const { createDelivery, updateDelivery } = useDeliveryStore();
 
   const form = useForm({
     defaultValues: {
@@ -54,13 +58,13 @@ export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }
     onSubmit: async ({ value }) => {
       const itemsToSave = value.items.filter((it) => it.qty > 0);
       if (isEdit) {
-        await deliveryRepo.updateWithItems(
-          initialEditId,
+        await updateDelivery(
+          initialEditId!,
           { po_id: Number(value.poId), delivery_date: value.deliveryDate },
           itemsToSave.map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }))
         );
       } else {
-        await deliveryRepo.createWithItems(
+        await createDelivery(
           { po_id: Number(value.poId), delivery_date: value.deliveryDate },
           itemsToSave.map((it) => ({ po_item_id: it.po_item_id, qty: it.qty }))
         );
@@ -71,8 +75,7 @@ export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }
 
   useEffect(() => {
     async function loadData() {
-      const p = await purchaseOrderRepo.findAllWithSummary({ project_id: selectedProjectId || undefined });
-      setPOs(p);
+      await loadAllPOs(selectedProjectId || undefined);
 
       if (isEdit) {
         const d = await deliveryRepo.findById(initialEditId);
@@ -186,6 +189,7 @@ export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }
                     </form.Field>
 
                     <Table
+                      verticalAlign="top"
                       columns={[
                         { key: "item", header: "Barang / Material", width: proportional(2), renderCell: (row: any) => <Text weight="medium">{row.item_name}</Text> },
                         {

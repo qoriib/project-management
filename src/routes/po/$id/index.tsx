@@ -1,12 +1,10 @@
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { useToast } from "@astryxdesign/core/Toast";
+
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
 import { Section, VStack, HStack, Button, Card, Heading, Text } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { purchaseOrderRepo, deliveryRepo, type POWithSummary, type POItemDetail, type DeliveryItemByPO } from "@/db/repositories";
-import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/services";
 import { formatRupiah, formatDate } from "@/utils/formatters";
+import { usePOStore } from "@/store/usePOStore";
 import { POItemTrackingTable } from "@/components/po/POItemTrackingTable";
 import { PODeliveryLogTable } from "@/components/po/PODeliveryLogTable";
 
@@ -14,59 +12,22 @@ function PODetailPage() {
   const navigate = useNavigate();
 
   const { id } = useParams({ strict: false });
-  const [po, setPO] = useState<POWithSummary | null>(null);
-  const [items, setItems] = useState<POItemDetail[]>([]);
-  const [deliveryItems, setDeliveryItems] = useState<DeliveryItemByPO[]>([]);
-  const [bomData, setBomData] = useState<DashboardBOMReportItem[]>([]);
+  const { currentPO: po, loadPODetail, clearPODetail } = usePOStore();
   const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const showToast = useToast();
-
-  async function handleDeleteDelivery() {
-    if (!deleteTarget) return;
-
-    setDeleting(true);
-
-    try {
-      await deliveryRepo.delete(deleteTarget.id);
-      showToast({ body: "Pengiriman berhasil dihapus", type: "info" });
-      setDeleteTarget(null);
-      // reload
-      const [p, its, delItems] = await Promise.all([
-        purchaseOrderRepo.findByIdWithSummary(Number(id)),
-        purchaseOrderRepo.findItems(Number(id)),
-        deliveryRepo.findItemsByPO(Number(id)),
-      ]);
-      setPO(p);
-      setItems(its);
-      setDeliveryItems(delItems);
-    } catch (err: any) {
-      showToast({ body: err.message || "Gagal menghapus pengiriman", type: "error" });
-    } finally {
-      setDeleting(false);
-    }
-  }
 
   useEffect(() => {
     if (!id) return;
     async function load() {
-      const p = await purchaseOrderRepo.findByIdWithSummary(Number(id));
-      if (p) {
-        const [its, delItems, bom] = await Promise.all([
-          purchaseOrderRepo.findItems(Number(id)),
-          deliveryRepo.findItemsByPO(Number(id)),
-          getDashboardBOMReport(p.project_id)
-        ]);
-        setPO(p);
-        setItems(its);
-        setDeliveryItems(delItems);
-        setBomData(bom);
-      }
+      setLoading(true);
+      await loadPODetail(Number(id));
       setLoading(false);
     }
     load();
-  }, [id]);
+
+    return () => {
+      clearPODetail();
+    };
+  }, [id, loadPODetail, clearPODetail]);
 
   if (loading) {
     return (
@@ -98,7 +59,7 @@ function PODetailPage() {
         <Card padding={4}>
           <VStack gap={4}>
             <Heading level={3}>Tracking Realisasi</Heading>
-            <POItemTrackingTable items={items} bomData={bomData} />
+            <POItemTrackingTable />
           </VStack>
         </Card>
         <Card padding={4}>
@@ -107,18 +68,10 @@ function PODetailPage() {
               <Heading level={3}>Log Penerimaan</Heading>
               <Button variant="secondary" label="Tambah Baru" onClick={() => navigate({ to: "/delivery/new", search: { po: String(po.po_id) } })} />
             </HStack>
-            <PODeliveryLogTable deliveryItems={deliveryItems} onDeleteRequest={(id, label) => setDeleteTarget({ id, label })} />
+            <PODeliveryLogTable />
           </VStack>
         </Card>
       </VStack>
-      <ConfirmDialog
-        isOpen={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDeleteDelivery}
-        title="Hapus Pengiriman"
-        message={`Hapus ${deleteTarget?.label}? Semua item dalam log pengiriman ini akan ikut terhapus.`}
-        isLoading={deleting}
-      />
     </Section>
   );
 }

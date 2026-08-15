@@ -3,40 +3,31 @@ import { useEffect, useState } from "react";
 import { HStack, Table, Text, Badge, IconButton } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { purchaseOrderRepo, type POWithSummary } from "@/db/repositories";
+import { type POWithSummary } from "@/db/repositories";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { formatRupiah, formatDate } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
+import { usePOStore } from "@/store/usePOStore";
 
 type PORow = POWithSummary & Record<string, unknown>;
 
 interface POTableProps {
-  onRefresh?: () => void;
-  refreshTrigger?: number;
   onEdit: (id: number) => void;
 }
 
-export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
+export function POTable({ onEdit }: POTableProps) {
   const navigate = useNavigate();
 
-  const [pos, setPOs] = useState<POWithSummary[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-
-  async function load() {
-    const p = await purchaseOrderRepo.findAllWithSummary({
-      project_id: selectedProjectId || undefined,
-    });
-
-    setPOs(p);
-  }
+  const { pos, loadAllPOs, deletePO } = usePOStore();
 
   useEffect(() => {
-    load();
-  }, [refreshTrigger, selectedProjectId]);
+    loadAllPOs(selectedProjectId || undefined);
+  }, [selectedProjectId, loadAllPOs]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -44,10 +35,8 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
     setDeleting(true);
 
     try {
-      await purchaseOrderRepo.delete(deleteTarget.id);
+      await deletePO(deleteTarget.id);
       setDeleteTarget(null);
-      await load();
-      if (onRefresh) onRefresh();
     } finally {
       setDeleting(false);
     }
@@ -125,6 +114,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
   return (
     <>
       <Table
+        verticalAlign="top"
         textOverflow="truncate"
         columns={columns}
         data={pos as PORow[]}

@@ -101,6 +101,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
 
   return (
     <Table
+      verticalAlign="top"
       hasHover
       columns={columns as any}
       data={groupedData as any}

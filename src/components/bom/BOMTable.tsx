@@ -134,6 +134,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
   return (
     <>
       <Table
+        verticalAlign="top"
         hasHover
         textOverflow="truncate"
         columns={columns}

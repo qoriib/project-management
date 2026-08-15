@@ -3,16 +3,35 @@ import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table"
 import { Pencil, Trash2 } from "lucide-react";
 import { formatDate, formatNumber } from "@/utils/formatters";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useNavigate } from "@tanstack/react-router";
+import { useToast } from "@astryxdesign/core/Toast";
+import { useState } from "react";
 import type { DeliveryItemByPO } from "@/db/repositories";
+import { usePOStore } from "@/store/usePOStore";
+import { useDeliveryStore } from "@/store/useDeliveryStore";
 
-interface PODeliveryLogTableProps {
-  deliveryItems: DeliveryItemByPO[];
-  onDeleteRequest: (id: number, label: string) => void;
-}
-
-export function PODeliveryLogTable({ deliveryItems, onDeleteRequest }: PODeliveryLogTableProps) {
+export function PODeliveryLogTable() {
   const navigate = useNavigate();
+  const showToast = useToast();
+  const { currentDeliveryItems: deliveryItems } = usePOStore();
+  const { deleteDelivery } = useDeliveryStore();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteDelivery(deleteTarget.id);
+      showToast({ body: "Pengiriman berhasil dihapus", type: "info" });
+      setDeleteTarget(null);
+    } catch (err: any) {
+      showToast({ body: err.message || "Gagal menghapus pengiriman", type: "error" });
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   const deliveryColumns: TableColumn<DeliveryItemByPO>[] = [
     {
@@ -56,20 +75,31 @@ export function PODeliveryLogTable({ deliveryItems, onDeleteRequest }: PODeliver
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            onClick={() => onDeleteRequest(row.delivery_id!, `Pengiriman ${formatDate(row.delivery_date)} - ${row.item_name}`)} />
+            onClick={() => setDeleteTarget({ id: row.delivery_id!, label: `Pengiriman ${formatDate(row.delivery_date)} - ${row.item_name}` })} />
         </HStack>
       )
     },
   ];
 
   return (
-    <Table
-      hasHover
-      textOverflow="truncate"
-      columns={deliveryColumns}
-      data={deliveryItems}
-      idKey="delivery_item_id"
-      emptyState={<TableEmptyState message="Belum ada realisasi pengiriman material untuk PO ini." />}
-    />
+    <>
+      <Table
+        verticalAlign="top"
+        hasHover
+        textOverflow="truncate"
+        columns={deliveryColumns}
+        data={deliveryItems}
+        idKey="delivery_item_id"
+        emptyState={<TableEmptyState message="Belum ada realisasi pengiriman material untuk PO ini." />}
+      />
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Hapus Pengiriman"
+        message={`Hapus ${deleteTarget?.label}? Semua item dalam log pengiriman ini akan ikut terhapus.`}
+        isLoading={deleting}
+      />
+    </>
   );
 }
