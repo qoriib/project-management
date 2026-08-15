@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Dialog, Table, Text, VStack, Heading, Timestamp } from "@astryxdesign/core";
+import { Dialog, Table, Text, VStack, Heading, Timestamp, HStack, IconButton, Code } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { getDashboardItemLog, type DashboardItemLogEntry } from "@/db/services";
 import { formatNumber } from "@/utils/formatters";
+import { X } from "lucide-react";
 
 type LogRow = DashboardItemLogEntry & Record<string, unknown>;
 
@@ -45,10 +46,8 @@ export function DashboardItemLogDialog({
     {
       key: "reference",
       header: "Referensi",
-      width: proportional(1),
-      renderCell: (r: LogRow) => (
-        <Text weight="medium">{r.reference}</Text>
-      )
+      width: pixel(120),
+      renderCell: (r: LogRow) => <Code style={{ background: "transparent", padding: 0 }}>{r.reference}</Code>,
     },
     {
       key: "qty",
@@ -75,7 +74,16 @@ export function DashboardItemLogDialog({
       width={700}
     >
       <VStack gap={4}>
-        <Heading level={3}>Log Item: {itemName}</Heading>
+        <HStack align="center" justify="between">
+          <Heading level={3}>Log: {itemName}</Heading>
+          <IconButton
+            icon={<X size={16} />}
+            variant="secondary"
+            type="button"
+            label="Tutup"
+            onClick={() => onClose()}
+          />
+        </HStack>
         <Table
           textOverflow="truncate"
           columns={columns}
