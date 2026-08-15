@@ -3,7 +3,6 @@ import { useForm } from "@tanstack/react-form";
 import { VStack, HStack, Button, Text, Divider, Heading, Card, Table, Selector, IconButton } from "@astryxdesign/core";
 import { Banner } from "@astryxdesign/core/Banner";
 import { DateInput } from "@astryxdesign/core/DateInput";
-import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -85,6 +84,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           po_date: value.poDate,
           project_id: selectedProjectId!,
         };
+
         const poItems: POItemInput[] = value.items.map((it) => ({
           po_item_id: it.po_item_id || undefined,
           item_id: it.item_id,
@@ -210,7 +210,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           });
 
           const total = resolvedItems.reduce((sum, it) => sum + (it.qty * it.price), 0);
-          
+
           const columns: TableColumn<POItemRow>[] = [
             {
               key: "item",
@@ -428,9 +428,9 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
           ];
 
           return (
-            <VStack gap={6}>
+            <VStack gap={4}>
               <Card padding={4}>
-                <FormLayout>
+                <VStack width={320}>
                   <form.Field name="poDate">
                     {(field) => {
                       type ISODate = `${number}${number}${number}${number}-${number}${number}-${number}${number}`;
@@ -447,7 +447,7 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                       )
                     }}
                   </form.Field>
-                </FormLayout>
+                </VStack>
               </Card>
               <Card padding={4}>
                 <VStack gap={4}>
@@ -472,14 +472,12 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                   </HStack>
                   <Table columns={columns} data={resolvedItems} />
                   <Divider />
-                  <HStack gap={4} justify="end">
-                    <VStack gap={1} align="end">
-                      <HStack gap={6}><Text weight="semibold">Estimasi Total Biaya</Text><Heading level={2}>{formatRupiah(total)}</Heading></HStack>
-                    </VStack>
+                  <HStack justify="end" align="center" gap={6}>
+                    <Text weight="semibold">Estimasi Total Biaya</Text>
+                    <Heading level={2}>{formatRupiah(total)}</Heading>
                   </HStack>
                 </VStack>
               </Card>
-
               <form.Field name="items">
                 {(field) => field.state.meta.errors.length > 0 && (
                   <Banner
@@ -488,10 +486,20 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
                   />
                 )}
               </form.Field>
-
               <HStack gap={2} justify="end">
-                <Button variant="secondary" label="Batal" type="button" onClick={onCancel} />
-                <Button variant="primary" label="Simpan PO" type="submit" isLoading={isSubmitting} isDisabled={!canSubmit} />
+                <Button
+                  variant="secondary"
+                  label="Batal"
+                  type="button"
+                  onClick={onCancel}
+                />
+                <Button
+                  variant="primary"
+                  label="Simpan"
+                  type="submit"
+                  isLoading={isSubmitting}
+                  isDisabled={!canSubmit}
+                />
               </HStack>
             </VStack>
           );

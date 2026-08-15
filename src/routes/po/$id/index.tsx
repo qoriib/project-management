@@ -81,7 +81,10 @@ function PODetailPage() {
   return (
     <Section padding={6}>
       <VStack gap={6}>
-        <PageHeader title={`Detail PO-${String(po.po_id).padStart(4, "0")}`} />
+        <PageHeader
+          title={`Detail PO-${String(po.po_id).padStart(4, "0")}`}
+          actions={<Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/po" })} />}
+        />
         <HStack gap={8}>
           <VStack gap={1}>
             <Text color="secondary" size="sm">Dibuat Pada</Text>
@@ -92,22 +95,21 @@ function PODetailPage() {
             <Text weight="medium">{formatRupiah(po.total_price)}</Text>
           </VStack>
         </HStack>
-        <VStack gap={2}>
-          <HStack justify="between" align="center">
+        <Card padding={4}>
+          <VStack gap={4}>
             <Heading level={3}>Tracking Realisasi</Heading>
-          </HStack>
-          <POItemTrackingTable items={items} bomData={bomData} />
-        </VStack>
-        <VStack gap={3}>
-          <HStack gap={2} justify="between" align="center">
-            <Heading level={3}>Log Penerimaan</Heading>
-            <Button variant="secondary" label="Tambah Baru" onClick={() => navigate({ to: "/delivery/new", search: { po: String(po.po_id) } })} />
-          </HStack>
-          <PODeliveryLogTable deliveryItems={deliveryItems} onDeleteRequest={(id, label) => setDeleteTarget({ id, label })} />
-        </VStack>
-        <HStack justify="start">
-          <Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/po" })} />
-        </HStack>
+            <POItemTrackingTable items={items} bomData={bomData} />
+          </VStack>
+        </Card>
+        <Card padding={4}>
+          <VStack gap={4}>
+            <HStack gap={2} justify="between" align="center">
+              <Heading level={3}>Log Penerimaan</Heading>
+              <Button variant="secondary" label="Tambah Baru" onClick={() => navigate({ to: "/delivery/new", search: { po: String(po.po_id) } })} />
+            </HStack>
+            <PODeliveryLogTable deliveryItems={deliveryItems} onDeleteRequest={(id, label) => setDeleteTarget({ id, label })} />
+          </VStack>
+        </Card>
       </VStack>
       <ConfirmDialog
         isOpen={!!deleteTarget}

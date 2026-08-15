@@ -93,7 +93,7 @@ export function POTable({ onRefresh, refreshTrigger, onEdit }: POTableProps) {
     {
       key: "actions",
       header: "",
-      width: pixel(120),
+      width: pixel(140),
       renderCell: (row: PORow) => (
         <HStack gap={2} justify="end">
           <IconButton
