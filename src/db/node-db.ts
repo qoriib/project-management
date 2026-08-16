@@ -46,7 +46,7 @@ export function getLocalNodeDb(): NodeDatabaseWrapper {
     baseDir = path.join(os.homedir(), ".local", "share");
   }
 
-  const dbPath = path.join(baseDir, appIdentifier, "proyek_v12.db");
+  const dbPath = path.join(baseDir, appIdentifier, "proyek.db");
   console.log("Connecting node:sqlite to:", dbPath);
   _nodeDb = new NodeDatabaseWrapper(dbPath);
   return _nodeDb;
