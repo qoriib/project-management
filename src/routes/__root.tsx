@@ -2,9 +2,8 @@ import { createRootRoute, Outlet, useNavigate } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Text, VStack } from "@astryxdesign/core";
 import { ListItem } from "@astryxdesign/core/List";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getDB } from "@/db";
-import { projectRepo, type Project } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { APP } from '@/configs/app.config';
@@ -28,14 +27,13 @@ function AppLayout() {
   const { activeNav, setActiveNav } = useNav();
   const { dbReady, setDbReady, setGlobalError, selectedProjectId, setSelectedProjectId } = useAppStore();
 
-  const [projects, setProjects] = useState<Project[]>([]);
+  const projects = useMasterStore((state) => state.projects);
   const activeProject = projects.find(p => p.project_id === selectedProjectId);
 
   useEffect(() => {
     getDB()
       .then(() => {
         setDbReady(true);
-        projectRepo.findAllWithStages().then(setProjects).catch(console.error);
         useMasterStore.getState().loadAllMasters();
       })
       .catch((err) => {
