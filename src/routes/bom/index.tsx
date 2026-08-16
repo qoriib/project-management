@@ -5,7 +5,6 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { BOMTable } from "@/components/bom/BOMTable";
 import { BOMForm } from "@/components/bom/BOMForm";
-import { LoadingState } from "@/components/shared/LoadingState";
 import { bomRepo, type BOMDetail, type ProjectStageWithProject } from "@/db/repositories";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -13,7 +12,6 @@ function BOMPage() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const [stages, setStages] = useState<ProjectStageWithProject[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("");
   const [editData, setEditData] = useState<BOMDetail | undefined>(undefined);
 
@@ -23,11 +21,9 @@ function BOMPage() {
     if (!selectedProjectId) {
       setStages([]);
       setActiveTab("");
-      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
     try {
       const data = await bomRepo.findStagesByProject(selectedProjectId);
       setStages(data);
@@ -39,8 +35,6 @@ function BOMPage() {
       }
     } catch (error: any) {
       showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -77,14 +71,10 @@ function BOMPage() {
             }
           />
           <ProjectRequired>
-            {isLoading ? (
-              <LoadingState message="Memuat data proyek" />
-            ) : (
-              <BOMTable
-                stageId={activeTab ? Number(activeTab) : undefined}
-                onEdit={(_, data) => setEditData(data)}
-              />
-            )}
+            <BOMTable
+              stageId={activeTab ? Number(activeTab) : undefined}
+              onEdit={(_, data) => setEditData(data)}
+            />
           </ProjectRequired>
         </VStack>
         <VStack
