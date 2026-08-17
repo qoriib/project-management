@@ -4,6 +4,7 @@ import { seedVendors } from "./vendor.seed";
 import { seedItems } from "./item.seed";
 import { seedItemPrices } from "./item-price.seed";
 import { seedProjects } from "./project.seed";
+import { seedBOMGroups } from "./bom-group.seed";
 import { seedBOMs } from "./bom.seed";
 import { seedPurchaseOrders } from "./purchase-order.seed";
 import { seedDeliveries } from "./delivery.seed";
@@ -17,6 +18,7 @@ export async function runAllSeeds(): Promise<void> {
     await seedItems();
     await seedItemPrices();
     await seedProjects();
+    await seedBOMGroups();
     await seedBOMs();
     await seedPurchaseOrders();
     await seedDeliveries();

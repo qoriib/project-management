@@ -10,6 +10,7 @@ export * from "./item-category.model";
 export * from "./unit.model";
 export * from "./purchase-order.model";
 export * from "./po-item.model";
+export * from "./bom-group.model";
 export * from "./bom.model";
 export * from "./delivery.model";
 export * from "./delivery-item.model";

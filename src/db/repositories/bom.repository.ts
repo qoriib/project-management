@@ -18,6 +18,7 @@ export type BOMDetail = BillOfMaterial & {
   item_name?: string;
   unit?: string;
   project_name?: string;
+  bom_group_name?: string;
   category?: string;
   /** Resolved price value from item_prices join */
   price?: number;
@@ -42,10 +43,11 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
     try {
       const qb = new QueryBuilder()
         .select(
-          "b.bom_id", "b.project_id", "b.item_id",
+          "b.bom_id", "b.project_id", "b.bom_group_id", "b.item_id",
           "b.item_price_id", "b.qty", "b.created_at",
           "ip.price",
           "i.item_name", "u.unit_name as unit", "c.category_name as category",
+          "g.group_name as bom_group_name",
           "p.project_name"
         )
         .selectRaw("(b.qty * ip.price) as estimated_total")
@@ -55,8 +57,9 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
         .leftJoin("item_categories", "c", "i.category_id = c.category_id")
         .leftJoin("units", "u", "i.unit_id = u.unit_id")
         .leftJoin("projects", "p", "p.project_id = b.project_id")
+        .leftJoin("bom_groups", "g", "g.bom_group_id = b.bom_group_id")
         .withSoftDelete("b")
-        .orderBy("c.category_name", "ASC")
+        .orderBy("g.group_name", "ASC")
         .orderBy("i.item_name", "ASC");
 
       if (filters?.project_id) {

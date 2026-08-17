@@ -2,6 +2,7 @@ import { HStack } from "@astryxdesign/core";
 import { buildItemOptions } from "./form/bom.utils";
 import { useBOMForm } from "./form/useBOMForm";
 import { BOMItemField } from "./form/BOMItemField";
+import { BOMGroupField } from "./form/BOMGroupField";
 import { BOMQtyField } from "./form/BOMQtyField";
 import { BOMPriceField } from "./form/BOMPriceField";
 import { BOMFormActions } from "./form/BOMFormActions";
@@ -22,12 +23,14 @@ export function BOMForm({
     form,
     priceOptions,
     items,
+    bomGroups,
     existingBoms,
     selectedProjectId,
     handleItemChange,
   } = useBOMForm({ initialData, onSuccess });
 
   const itemOptions = buildItemOptions(items, existingBoms, initialData);
+  const groupOptions = bomGroups.map(g => ({ value: g.bom_group_id, label: g.group_name }));
 
   return (
     <form
@@ -43,6 +46,11 @@ export function BOMForm({
         }
         children={([formItemId, canSubmit, isSubmitting]) => (
           <HStack gap={3} align="start" padding={3}>
+            <BOMGroupField
+              form={form}
+              options={groupOptions}
+              isDisabled={isDisabled}
+            />
             <BOMItemField
               form={form}
               options={itemOptions}

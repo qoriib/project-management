@@ -19,10 +19,13 @@ export { itemCategoryRepo } from "./item-category.repository";
 export { itemPriceRepo } from "./item-price.repository";
 export { unitRepo } from "./unit.repository";
 export { purchaseOrderRepo } from "./purchase-order.repository";
+export { bomGroupRepo } from "./bom-group.repository";
 export { bomRepo } from "./bom.repository";
 export { deliveryRepo } from "./delivery.repository";
 
 // ── Extended Types ───────────────────────────────────────────────────────────
+
+export type { BOMGroupWithProject } from "./bom-group.repository";
 
 export type { ProjectWithRelations } from "./project.repository";
 export type { ItemWithDetails } from "./item.repository";
@@ -42,6 +45,7 @@ export type {
   ItemCategory, CreateItemCategory, UpdateItemCategory,
   Unit, CreateUnit, UpdateUnit,
   PurchaseOrder, CreatePurchaseOrder, UpdatePurchaseOrder,
+  BOMGroup, CreateBOMGroup, UpdateBOMGroup,
   POItem, CreatePOItem,
   BillOfMaterial, CreateBOM, UpdateBOM,
   Delivery, CreateDelivery,

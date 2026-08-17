@@ -27,7 +27,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
 
   const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows<EnrichedReportItem>({
     data: enrichedReport,
-    groupBy: (item) => item.category || "Lainnya",
+    groupBy: (item) => item.bom_group_name || "LAINNYA",
     collapsedGroups,
     onToggleGroup: (key) => {
       setCollapsedGroups((prev) => {

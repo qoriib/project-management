@@ -1,4 +1,4 @@
-import { bomRepo, projectRepo, itemRepo, itemPriceRepo } from "@/db/repositories";
+import { bomRepo, projectRepo, itemRepo, itemPriceRepo, bomGroupRepo } from "@/db/repositories";
 
 interface SeedBOMRaw {
   projectName: string;
@@ -58,6 +58,7 @@ export async function seedBOMs(): Promise<void> {
 
   const projects = await projectRepo.findAll();
   const items = await itemRepo.findAll();
+  const bomGroups = await bomGroupRepo.findAll();
 
   const projMap = new Map<string, string>(projects.map(p => [p.project_name, p.project_id]));
   const itemMap = new Map<string, string>(items.map(i => [i.item_name, i.item_id]));
@@ -94,9 +95,15 @@ export async function seedBOMs(): Promise<void> {
       item_price_id: matchedPrice.item_price_id,
     }, true);
 
-    if (!exists) {
+    const projectBomGroups = bomGroups.filter(g => g.project_id === projectId);
+
+    if (!exists && projectBomGroups.length > 0) {
+      // Pick a random bom_group for this specific project
+      const randomGroup = projectBomGroups[Math.floor(Math.random() * projectBomGroups.length)];
+
       await bomRepo.create({
         project_id: projectId,
+        bom_group_id: randomGroup.bom_group_id,
         item_id: itemId,
         item_price_id: matchedPrice.item_price_id,
         qty: b.qty,

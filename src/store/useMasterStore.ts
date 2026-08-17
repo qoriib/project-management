@@ -6,6 +6,7 @@ import {
   projectRepo,
   unitRepo,
   vendorRepo,
+  bomGroupRepo,
   type ItemWithDetails,
   type ItemPrice,
   type ItemCategory,
@@ -23,7 +24,10 @@ import {
   type CreateUnit,
   type UpdateUnit,
   type CreateVendor,
-  type UpdateVendor
+  type UpdateVendor,
+  type BOMGroupWithProject,
+  type CreateBOMGroup,
+  type UpdateBOMGroup
 } from '@/db/repositories';
 
 interface MasterStore {
@@ -34,6 +38,7 @@ interface MasterStore {
   projects: ProjectWithRelations[];
   units: Unit[];
   vendors: Vendor[];
+  bomGroups: BOMGroupWithProject[];
   /** item_price_id → ItemPrice[], keyed by item_id for fast lookup */
   itemPricesMap: Map<string, ItemPrice[]>;
 
@@ -44,6 +49,7 @@ interface MasterStore {
   reloadProjects: () => Promise<void>;
   reloadUnits: () => Promise<void>;
   reloadVendors: () => Promise<void>;
+  reloadBOMGroups: () => Promise<void>;
   /** Load/reload price variants for a specific item */
   loadItemPrices: (itemId: string) => Promise<ItemPrice[]>;
 
@@ -78,6 +84,11 @@ interface MasterStore {
   createVendor: (data: CreateVendor) => Promise<void>;
   updateVendor: (id: string, data: UpdateVendor) => Promise<void>;
   deleteVendor: (id: string) => Promise<void>;
+
+  // BOM Groups
+  createBOMGroup: (data: CreateBOMGroup) => Promise<void>;
+  updateBOMGroup: (id: string, data: UpdateBOMGroup) => Promise<void>;
+  deleteBOMGroup: (id: string) => Promise<void>;
 }
 
 export const useMasterStore = create<MasterStore>((set, get) => ({
@@ -87,19 +98,21 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
   projects: [],
   units: [],
   vendors: [],
+  bomGroups: [],
   itemPricesMap: new Map(),
 
   loadAllMasters: async () => {
     if (get().isLoaded) return;
     try {
-      const [items, categories, projects, units, vendors] = await Promise.all([
+      const [items, categories, projects, units, vendors, bomGroups] = await Promise.all([
         itemRepo.findAll(),
         itemCategoryRepo.findAllSorted(),
         projectRepo.findAllWithRelations(),
         unitRepo.findAllSorted(),
-        vendorRepo.findAllSorted()
+        vendorRepo.findAllSorted(),
+        bomGroupRepo.findAllSorted()
       ]);
-      set({ items, categories, projects, units, vendors, isLoaded: true });
+      set({ items, categories, projects, units, vendors, bomGroups, isLoaded: true });
     } catch (err) {
       console.error("Failed to load master data", err);
     }
@@ -124,6 +137,10 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
   reloadVendors: async () => {
     const vendors = await vendorRepo.findAllSorted();
     set({ vendors });
+  },
+  reloadBOMGroups: async () => {
+    const bomGroups = await bomGroupRepo.findAllSorted();
+    set({ bomGroups });
   },
 
   loadItemPrices: async (itemId) => {
@@ -225,5 +242,19 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
   deleteVendor: async (id) => {
     await vendorRepo.delete(id);
     await get().reloadVendors();
+  },
+
+  // ── BOM Groups CRUD ──
+  createBOMGroup: async (data) => {
+    await bomGroupRepo.create(data);
+    await get().reloadBOMGroups();
+  },
+  updateBOMGroup: async (id, data) => {
+    await bomGroupRepo.update(id, data);
+    await get().reloadBOMGroups();
+  },
+  deleteBOMGroup: async (id) => {
+    await bomGroupRepo.delete(id);
+    await get().reloadBOMGroups();
   },
 }));

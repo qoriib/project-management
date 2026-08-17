@@ -1,9 +1,10 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, HStack, IconButton } from "@astryxdesign/core";
+import { Table, HStack, IconButton, Button } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { MasterProjectBOMGroupDialog } from "@/components/master/MasterProjectBOMGroupDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { Project, ProjectWithRelations } from "@/db/repositories";
@@ -20,6 +21,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   const { projects, deleteProject } = useMasterStore();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [groupProject, setGroupProject] = useState<ProjectWithRelations | null>(null);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -60,6 +62,12 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       width: pixel(200),
       renderCell: (row: ProjectRow) => (
         <HStack gap={2} justify="end">
+          <Button
+            size="sm"
+            variant="secondary"
+            label="Grup"
+            onClick={() => setGroupProject(row)}
+          />
           <IconButton
             size="sm"
             variant="secondary"
@@ -95,8 +103,13 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Master Data"
-        message={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
+        message={`Hapus proyek "${deleteTarget?.label}"? Semua data RAB dan PO terkait akan ikut terhapus.`}
         isLoading={deleting}
+      />
+      <MasterProjectBOMGroupDialog
+        isOpen={!!groupProject}
+        onClose={() => setGroupProject(null)}
+        project={groupProject}
       />
     </>
   );

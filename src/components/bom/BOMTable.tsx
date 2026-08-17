@@ -103,7 +103,7 @@ export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
     let grand = 0;
     const subtotals: Record<string, number> = {};
     for (const b of boms) {
-      const cat = b.category || "LAINNYA";
+      const cat = b.bom_group_name || "LAINNYA";
       const total = b.estimated_total || 0;
       grand += total;
       subtotals[cat] = (subtotals[cat] || 0) + total;
@@ -115,7 +115,7 @@ export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
 
   const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows({
     data: boms as BomRow[],
-    groupBy: (item) => item.category || "LAINNYA",
+    groupBy: (item) => item.bom_group_name || "LAINNYA",
     collapsedGroups,
     onToggleGroup: (key) => {
       setCollapsedGroups((prev) => {

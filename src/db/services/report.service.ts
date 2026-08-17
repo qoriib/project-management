@@ -14,6 +14,7 @@ import { wrapDbError, DbError } from "@/db/core/errors";
 export interface BOMReportItem {
   item_id: string;
   item_name: string;
+  bom_group_name: string;
   category: string;
   unit: string;
   /** Price resolved from the linked item_price variant */
@@ -39,7 +40,7 @@ export async function getBOMReport(projectId: string): Promise<BOMReportItem[]> 
     const bomQb = new QueryBuilder()
       .select(
         "b.item_id", "b.item_price_id",
-        "i.item_name", "c.category_name as category", "u.unit_name as unit",
+        "i.item_name", "g.group_name as bom_group_name", "c.category_name as category", "u.unit_name as unit",
         "ip.price",
       )
       .selectRaw("SUM(b.qty) as planned_volume")
@@ -47,12 +48,13 @@ export async function getBOMReport(projectId: string): Promise<BOMReportItem[]> 
       .from("bill_of_materials", "b")
       .join("items", "i", "i.item_id = b.item_id")
       .join("item_prices", "ip", "ip.item_price_id = b.item_price_id")
+      .leftJoin("bom_groups", "g", "g.bom_group_id = b.bom_group_id")
       .leftJoin("item_categories", "c", "i.category_id = c.category_id")
       .leftJoin("units", "u", "i.unit_id = u.unit_id")
       .where("b.project_id", "=", projectId)
       .withSoftDelete("b")
-      .groupBy("b.item_id", "b.item_price_id", "i.item_name", "c.category_name", "u.unit_name", "ip.price")
-      .orderBy("c.category_name", "ASC")
+      .groupBy("b.item_id", "b.item_price_id", "i.item_name", "g.group_name", "c.category_name", "u.unit_name", "ip.price")
+      .orderBy("g.group_name", "ASC")
       .orderBy("i.item_name", "ASC");
 
     const { sql: bomSql, params: bomParams } = bomQb.build();

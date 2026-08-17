@@ -20,8 +20,10 @@ export function useBOMForm({
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
-  const { items } = useMasterStore();
+  const { items, bomGroups } = useMasterStore();
   const { boms: existingBoms, createBOM, updateBOM } = useBOMStore();
+
+  const projectBomGroups = bomGroups.filter(g => g.project_id === selectedProjectId);
 
   const [priceOptions, setPriceOptions] = useState<{ value: string; label: string }[]>([]);
 
@@ -36,6 +38,7 @@ export function useBOMForm({
 
         const payload = {
           project_id: selectedProjectId,
+          bom_group_id: value.bom_group_id,
           item_id: value.item_id,
           qty: value.qty,
           item_price_id: value.item_price_id,
@@ -45,6 +48,7 @@ export function useBOMForm({
 
         if (isEditMode) {
           await updateBOM(initialData.bom_id, {
+            bom_group_id: payload.bom_group_id,
             item_id: payload.item_id,
             qty: payload.qty,
             item_price_id: payload.item_price_id,
@@ -102,6 +106,7 @@ export function useBOMForm({
     form,
     priceOptions,
     items,
+    bomGroups: projectBomGroups,
     existingBoms,
     selectedProjectId,
     handleItemChange,
