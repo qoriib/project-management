@@ -36,8 +36,8 @@ export type DeliveryItemByPO = DeliveryItemDetail & {
 export interface DeliveryFilters {
   vendor_id?: string;
   project_id?: string;
-  tanggal_dari?: string;
-  tanggal_sampai?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface DeliveryItemInput {
@@ -81,11 +81,11 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
       if (filters?.project_id) {
         qb.where("po.project_id", "=", filters.project_id);
       }
-      if (filters?.tanggal_dari) {
-        qb.where("d.delivery_date", ">=", filters.tanggal_dari);
+      if (filters?.start_date) {
+        qb.where("d.delivery_date", ">=", filters.start_date);
       }
-      if (filters?.tanggal_sampai) {
-        qb.where("d.delivery_date", "<=", filters.tanggal_sampai);
+      if (filters?.end_date) {
+        qb.where("d.delivery_date", "<=", filters.end_date);
       }
 
       const { sql, params } = qb.build();

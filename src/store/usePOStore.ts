@@ -7,7 +7,7 @@ import {
   type DeliveryItemByPO,
   type POItemInput,
 } from '@/db/repositories';
-import { getDashboardBOMReport, type DashboardBOMReportItem } from '@/db/services';
+import { getBOMReport, type BOMReportItem } from '@/db/services';
 import { useBOMStore } from '@/store/useBOMStore';
 
 interface POStore {
@@ -16,7 +16,7 @@ interface POStore {
   currentPO: POWithSummary | null;
   currentItems: POItemDetail[];
   currentDeliveryItems: DeliveryItemByPO[];
-  currentBOMData: DashboardBOMReportItem[];
+  currentBOMData: BOMReportItem[];
   
   // ── Load Actions ───────────────────────────────────────────────────────────
   loadAllPOs: (projectId?: string) => Promise<void>;
@@ -47,7 +47,7 @@ export const usePOStore = create<POStore>((set, get) => ({
       const [items, delItems, bom] = await Promise.all([
         purchaseOrderRepo.findItems(id),
         deliveryRepo.findItemsByPO(id),
-        getDashboardBOMReport(p.project_id)
+        getBOMReport(p.project_id)
       ]);
       set({ currentPO: p, currentItems: items, currentDeliveryItems: delItems, currentBOMData: bom });
     } else {

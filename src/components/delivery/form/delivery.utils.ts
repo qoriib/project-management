@@ -15,9 +15,9 @@ export async function loadPOItemsAsDeliveryRows(
   return poItems.map((i) => {
     const item_name = i.item_name ?? "";
     const unit = i.unit ?? "";
-    const remaining = i.sisa ?? 0;
+    const remaining = i.remaining ?? 0;
     const ordered = i.qty ?? 0;
-    const delivered = i.total_terkirim ?? 0;
+    const delivered = i.total_delivered ?? 0;
 
     return {
       po_item_id: i.po_item_id,
@@ -37,7 +37,7 @@ export async function loadPOItemsAsDeliveryRows(
 /**
  * Ambil data delivery yang ada (mode edit).
  * Mengembalikan header delivery (po_id, delivery_date) dan
- * item rows dengan sisa yang sudah dikembalikan (sisa + oldQty).
+ * item rows dengan sisa yang sudah dikembalikan (remaining + oldQty).
  */
 export async function loadDeliveryEditData(deliveryId: string): Promise<{
   po_id: string;
@@ -61,9 +61,9 @@ export async function loadDeliveryEditData(deliveryId: string): Promise<{
     );
 
     const oldQty = existingDelivItem?.qty ?? 0;
-    const originalSisa = i.sisa ?? 0;
+    const originalSisa = i.remaining ?? 0;
     const restoredSisa = originalSisa + oldQty; // kembalikan sisa yang sudah dipakai
-    const originalDelivered = (i.total_terkirim ?? 0) - oldQty;
+    const originalDelivered = (i.total_delivered ?? 0) - oldQty;
 
     const item_name = i.item_name ?? "";
     const unit = i.unit ?? "";

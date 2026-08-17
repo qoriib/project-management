@@ -4,7 +4,6 @@ import { Table, HStack, IconButton } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
-import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { Project, ProjectWithRelations } from "@/db/repositories";

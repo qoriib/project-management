@@ -7,7 +7,7 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { Vendor } from "@/db/repositories";
-import { EntityCode } from "@/components/shared/EntityCode";
+
 
 interface MasterVendorTableProps {
   onEdit: (vendor: Vendor) => void;

@@ -6,7 +6,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
-import { EntityCode } from "@/components/shared/EntityCode";
+
 import type { Unit } from "@/db/repositories";
 
 interface MasterUnitTableProps {

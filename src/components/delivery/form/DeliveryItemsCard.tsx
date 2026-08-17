@@ -34,7 +34,7 @@ function DeliveryItemsCardInner({
       ),
     },
     {
-      key: "sisa",
+      key: "remaining",
       header: "Dipesan / Diterima",
       width: pixel(180),
       renderCell: (row) => <DeliveryRemainingCell row={row} />,

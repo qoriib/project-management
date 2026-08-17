@@ -7,7 +7,7 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
-import { EntityCode } from "@/components/shared/EntityCode";
+
 import type { ItemWithDetails } from "@/db/repositories";
 
 interface MasterItemTableProps {

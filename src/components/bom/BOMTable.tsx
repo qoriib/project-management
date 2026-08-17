@@ -71,7 +71,7 @@ export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
       key: "estimation",
       header: "Total Estimasi",
       width: pixel(180),
-      renderCell: (row: BomRow) => formatRupiah(row.total_estimasi || 0),
+      renderCell: (row: BomRow) => formatRupiah(row.estimated_total || 0),
     },
     {
       key: "actions",
@@ -104,7 +104,7 @@ export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
     const subtotals: Record<string, number> = {};
     for (const b of boms) {
       const cat = b.category || "LAINNYA";
-      const total = b.total_estimasi || 0;
+      const total = b.estimated_total || 0;
       grand += total;
       subtotals[cat] = (subtotals[cat] || 0) + total;
     }

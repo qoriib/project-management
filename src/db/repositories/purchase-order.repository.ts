@@ -33,14 +33,14 @@ export type POItemDetail = {
   item_name?: string;
   unit?: string;
   vendor_name?: string;
-  total_terkirim?: number;
-  sisa?: number;
+  total_delivered?: number;
+  remaining?: number;
 };
 
 export interface POFilters {
   project_id?: string;
-  tanggal_dari?: string;
-  tanggal_sampai?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface POItemInput {
@@ -84,11 +84,11 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
       if (filters?.project_id) {
         qb.where("po.project_id", "=", filters.project_id);
       }
-      if (filters?.tanggal_dari) {
-        qb.where("po.po_date", ">=", filters.tanggal_dari);
+      if (filters?.start_date) {
+        qb.where("po.po_date", ">=", filters.start_date);
       }
-      if (filters?.tanggal_sampai) {
-        qb.where("po.po_date", "<=", filters.tanggal_sampai);
+      if (filters?.end_date) {
+        qb.where("po.po_date", "<=", filters.end_date);
       }
 
       const { sql, params } = qb.build();
@@ -134,8 +134,8 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
         "ip.price",
         "i.item_name", "u.unit_name as unit", "v.vendor_name"
       )
-      .selectRaw("COALESCE(SUM(d.qty), 0) as total_terkirim")
-      .selectRaw("poi.qty - COALESCE(SUM(d.qty), 0) as sisa")
+      .selectRaw("COALESCE(SUM(d.qty), 0) as total_delivered")
+      .selectRaw("poi.qty - COALESCE(SUM(d.qty), 0) as remaining")
       .from("po_items", "poi")
       .leftJoin("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
       .leftJoin("items", "i", "i.item_id = poi.item_id")

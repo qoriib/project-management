@@ -4,16 +4,16 @@ import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { proportional, pixel, useTableGroupedRows, type TableColumn } from "@astryxdesign/core/Table";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { Eye } from "lucide-react";
-import type { DashboardBOMReportItem } from "@/db/services";
+import type { BOMReportItem } from "@/db/services";
 import { EntityCode } from "@/components/shared/EntityCode";
 
 interface DashboardBOMTableProps {
-  report: DashboardBOMReportItem[];
+  report: BOMReportItem[];
   loading: boolean;
   onLogClick: (itemId: string, itemPriceId: string, itemName: string) => void;
 }
 
-type EnrichedReportItem = DashboardBOMReportItem & Record<string, unknown> & {
+type EnrichedReportItem = BOMReportItem & Record<string, unknown> & {
   unique_id: string;
 };
 

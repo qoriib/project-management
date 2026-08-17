@@ -29,8 +29,7 @@ export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
               name={`items[${idx}].qty`}
               validators={{
                 onChange: ({ value }) => {
-                  const exceedsRemaining = value > row.remaining;
-                  if (exceedsRemaining) {
+                  if (value > (row.remaining || 0)) {
                     return `Melebihi sisa PO (${formatNumber(row.remaining, 2)}).`;
                   }
                   return undefined;

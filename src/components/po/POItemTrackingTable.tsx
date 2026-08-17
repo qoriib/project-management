@@ -75,7 +75,7 @@ export function POItemTrackingTable() {
       header: "Perkembangan",
       width: pixel(180),
       renderCell: (row) => {
-        const pct = row.qty > 0 ? ((row.total_terkirim || 0) / row.qty) * 100 : 0;
+        const pct = row.qty > 0 ? ((row.total_delivered || 0) / row.qty) * 100 : 0;
         const variant = pct > 100 ? "error" : pct >= 100 ? "success" : "accent";
         const isOver = pct > 100;
 
@@ -83,7 +83,7 @@ export function POItemTrackingTable() {
           <VStack gap={0.5}>
             <HStack justify="between">
               <Text size="sm" color="secondary" weight="medium">
-                {`${formatNumber(row.total_terkirim || 0, 2)} / ${formatNumber(row.qty || 0, 2)} ${row.unit ?? ""}`}
+                {`${formatNumber(row.total_delivered || 0, 2)} / ${formatNumber(row.qty || 0, 2)} ${row.unit ?? ""}`}
               </Text>
               <Text
                 size="sm"
@@ -94,7 +94,7 @@ export function POItemTrackingTable() {
                 {pct.toFixed(0)}%
               </Text>
             </HStack>
-            <ProgressBar value={row.total_terkirim || 0} max={row.qty || 1} variant={variant} label="" />
+            <ProgressBar value={row.total_delivered || 0} max={row.qty || 1} variant={variant} label="" />
           </VStack>
         );
       }

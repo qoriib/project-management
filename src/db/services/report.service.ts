@@ -11,7 +11,7 @@ import { wrapDbError, DbError } from "@/db/core/errors";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export interface DashboardBOMReportItem {
+export interface BOMReportItem {
   item_id: string;
   item_name: string;
   category: string;
@@ -31,7 +31,7 @@ export interface DashboardBOMReportItem {
 /**
  * Generate the full BOM fulfillment report for a project.
  */
-export async function getDashboardBOMReport(projectId: string): Promise<DashboardBOMReportItem[]> {
+export async function getBOMReport(projectId: string): Promise<BOMReportItem[]> {
   try {
     const db = await getDB();
 
@@ -56,7 +56,7 @@ export async function getDashboardBOMReport(projectId: string): Promise<Dashboar
       .orderBy("i.item_name", "ASC");
 
     const { sql: bomSql, params: bomParams } = bomQb.build();
-    const boms = await db.select<DashboardBOMReportItem[]>(bomSql, bomParams);
+    const boms = await db.select<BOMReportItem[]>(bomSql, bomParams);
 
     // 2. Fetch PO Aggregates (join item_prices for price)
     const poQb = new QueryBuilder()
@@ -112,7 +112,7 @@ export async function getDashboardBOMReport(projectId: string): Promise<Dashboar
   }
 }
 
-export interface DashboardItemLogEntry {
+export interface ItemLogEntry {
   date: string;
   type: 'PO' | 'Delivery';
   reference: string;
@@ -123,11 +123,11 @@ export interface DashboardItemLogEntry {
 /**
  * Get chronological log of POs and Deliveries for a specific item in a project.
  */
-export async function getDashboardItemLog(
+export async function getItemLog(
   projectId: string,
   itemId: string,
   itemPriceId: string
-): Promise<DashboardItemLogEntry[]> {
+): Promise<ItemLogEntry[]> {
   try {
     const db = await getDB();
 
@@ -146,7 +146,7 @@ export async function getDashboardItemLog(
       .withSoftDelete("po");
 
     const { sql: poSql, params: poParams } = poQb.build();
-    const pos = await db.select<DashboardItemLogEntry[]>(poSql, poParams);
+    const pos = await db.select<ItemLogEntry[]>(poSql, poParams);
 
     // 2. Get Deliveries
     const delQb = new QueryBuilder()
@@ -166,7 +166,7 @@ export async function getDashboardItemLog(
       .withSoftDelete("d");
 
     const { sql: delSql, params: delParams } = delQb.build();
-    const dels = await db.select<DashboardItemLogEntry[]>(delSql, delParams);
+    const dels = await db.select<ItemLogEntry[]>(delSql, delParams);
 
     const combined = [...pos, ...dels];
     combined.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());

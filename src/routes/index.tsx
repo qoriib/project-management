@@ -3,14 +3,14 @@ import { useEffect, useState } from "react";
 import { VStack, Section } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
-import { getDashboardBOMReport, type DashboardBOMReportItem } from "@/db/services";
+import { getBOMReport, type BOMReportItem } from "@/db/services";
 import { useAppStore } from "@/store/useAppStore";
 import { DashboardItemLogDialog } from "@/components/dashboard/DashboardItemLogDialog";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { DashboardBOMTable } from "@/components/dashboard/DashboardBOMTable";
 
 function Dashboard() {
-  const [report, setReport] = useState<DashboardBOMReportItem[]>([]);
+  const [report, setReport] = useState<BOMReportItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [logItem, setLogItem] = useState<{ itemId: string, itemPriceId: string, itemName: string } | null>(null);
@@ -27,7 +27,7 @@ function Dashboard() {
 
       setLoading(true);
       try {
-        const rep = await getDashboardBOMReport(selectedProjectId);
+        const rep = await getBOMReport(selectedProjectId);
         setReport(rep);
       } finally {
         setLoading(false);

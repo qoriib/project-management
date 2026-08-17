@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Dialog, Table, Text, VStack, Heading, Timestamp, HStack, IconButton, Code } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
-import { getDashboardItemLog, type DashboardItemLogEntry } from "@/db/services";
+import { getItemLog, type ItemLogEntry } from "@/db/services";
 import { formatNumber } from "@/utils/formatters";
 import { X } from "lucide-react";
 
-type LogRow = DashboardItemLogEntry & Record<string, unknown>;
+type LogRow = ItemLogEntry & Record<string, unknown>;
 
 interface DashboardItemLogDialogProps {
   isOpen: boolean;
@@ -24,13 +24,13 @@ export function DashboardItemLogDialog({
   itemPriceId,
   itemName
 }: DashboardItemLogDialogProps) {
-  const [logs, setLogs] = useState<DashboardItemLogEntry[]>([]);
+  const [logs, setLogs] = useState<ItemLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
       setLoading(true);
-      getDashboardItemLog(projectId, itemId, itemPriceId)
+      getItemLog(projectId, itemId, itemPriceId)
         .then(setLogs)
         .finally(() => setLoading(false));
     }

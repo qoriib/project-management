@@ -21,7 +21,7 @@ export type BOMDetail = BillOfMaterial & {
   category?: string;
   /** Resolved price value from item_prices join */
   price?: number;
-  total_estimasi?: number;
+  estimated_total?: number;
 };
 
 export interface BOMFilters {
@@ -48,7 +48,7 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
           "i.item_name", "u.unit_name as unit", "c.category_name as category",
           "p.project_name"
         )
-        .selectRaw("(b.qty * ip.price) as total_estimasi")
+        .selectRaw("(b.qty * ip.price) as estimated_total")
         .from("bill_of_materials", "b")
         .leftJoin("item_prices", "ip", "ip.item_price_id = b.item_price_id")
         .leftJoin("items", "i", "i.item_id = b.item_id")
