@@ -7,6 +7,7 @@ import { RouterProvider, createRouter, createHashHistory } from '@tanstack/react
 import "@astryxdesign/core/reset.css";
 import "@astryxdesign/core/astryx.css";
 import "@astryxdesign/theme-neutral/theme.css";
+import { useAppStore } from "@/store/useAppStore";
 
 // Create a new router instance
 const hashHistory = createHashHistory();
@@ -19,10 +20,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <Theme theme={neutralTheme}>
+/** Inner component that reads themeMode from the store and passes it to <Theme>. */
+function ThemedApp() {
+  const themeMode = useAppStore((s) => s.themeMode);
+  return (
+    <Theme theme={neutralTheme} mode={themeMode}>
       <RouterProvider router={router} />
     </Theme>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+  <React.StrictMode>
+    <ThemedApp />
   </React.StrictMode>,
 );

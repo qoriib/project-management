@@ -1,34 +1,41 @@
-import { createRootRoute, Outlet, useNavigate } from '@tanstack/react-router';
+import { createRootRoute, Outlet, useNavigate, useLocation } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Text, VStack } from "@astryxdesign/core";
+import { IconButton } from "@astryxdesign/core/IconButton";
 import { ListItem } from "@astryxdesign/core/List";
 import { useEffect } from "react";
+import { Sun, Moon } from 'lucide-react';
 import { getDB } from "@/db";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { APP } from '@/configs/app.config';
-import { NavProvider, useNav } from '@/contexts/NavContext';
 
 export const Route = createRootRoute({
   component: RootComponent,
 });
 
 function RootComponent() {
-  return (
-    <NavProvider>
-      <AppLayout />
-    </NavProvider>
-  );
+  return <AppLayout />;
 }
 
 function AppLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const { activeNav, setActiveNav } = useNav();
+  const activeNav = useAppStore((s) => s.activeNav);
+  const setActiveNav = useAppStore((s) => s.setActiveNav);
+  const resolvedMode = useAppStore((s) => s.resolvedMode);
+  const toggleThemeMode = useAppStore((s) => s.toggleThemeMode);
+
   const { dbReady, setDbReady, setGlobalError, selectedProjectId, setSelectedProjectId } = useAppStore();
 
   const projects = useMasterStore((state) => state.projects);
   const activeProject = projects.find(p => p.project_id === selectedProjectId);
+
+  // Sync activeNav with the current route (supports direct URL hits / refresh)
+  useEffect(() => {
+    setActiveNav(location.pathname);
+  }, [location.pathname, setActiveNav]);
 
   useEffect(() => {
     getDB()
@@ -77,6 +84,14 @@ function AppLayout() {
                   )}
                 </>
               }
+            />
+          }
+          footerIcons={
+            <IconButton
+              label={resolvedMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              icon={resolvedMode === 'dark' ? <Sun size="1em" aria-hidden /> : <Moon size="1em" aria-hidden />}
+              variant="ghost"
+              onClick={toggleThemeMode}
             />
           }
         >
