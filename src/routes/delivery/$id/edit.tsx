@@ -9,7 +9,7 @@ function EditDeliveryPage() {
   const navigate = useNavigate();
   const { id } = Route.useParams();
 
-  function handleSuccess(poId: number) {
+  function handleSuccess(poId: string) {
     navigate({ to: `/po/${poId}` });
   }
 
@@ -26,7 +26,7 @@ function EditDeliveryPage() {
         />
         <ProjectRequired>
           <DeliveryForm
-            initialEditId={Number(id)}
+            initialEditId={id}
             onSuccess={handleSuccess}
             onCancel={goBack}
           />

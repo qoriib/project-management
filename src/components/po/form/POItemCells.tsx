@@ -12,7 +12,7 @@ export interface CellFormProps {
 
 interface ItemSelectorCellProps extends CellFormProps {
   bomOptions: BOMDetail[];
-  selectedItemIds: Set<number>;
+  selectedItemIds: Set<string>;
 }
 
 export function ItemSelectorCell({
@@ -26,26 +26,25 @@ export function ItemSelectorCell({
   return (
     <form.Field name={`items[${idx}].item_id`}>
       {(field) => {
-        const currentVal = Number(field.state.value);
+        const currentVal = field.state.value;
 
         const options = bomOptions
           .filter(
             (b) => b.item_id === currentVal || !selectedItemIds.has(b.item_id)
           )
           .map((b) => ({
-            value: String(b.item_id),
+            value: b.item_id,
             label: `${b.item_name} (${b.unit ?? ""})`,
           }));
 
-        const handleChange = async (v: string) => {
-          const id = Number(v);
-          field.handleChange(id);
+      const handleChange = async (v: string) => {
+          field.handleChange(v);
 
-          if (id) {
-            await loadItemPrices(id);
+          if (v) {
+            await loadItemPrices(v);
 
-            const bomItem = bomOptions.find((b) => b.item_id === id);
-            const bomItemPrice = bomItem?.item_price_id ? String(bomItem.item_price_id) : ""
+            const bomItem = bomOptions.find((b) => b.item_id === v);
+            const bomItemPrice = bomItem?.item_price_id ?? ""
 
             form.setFieldValue(`items[${idx}].item_price_id`, bomItemPrice);
           } else {
@@ -60,7 +59,7 @@ export function ItemSelectorCell({
             hasSearch
             placeholder="Pilih Item..."
             statusVariant="tooltip"
-            value={String(field.state.value)}
+            value={field.state.value}
             options={options}
             onChange={handleChange}
             onBlur={field.handleBlur}
@@ -76,7 +75,7 @@ export function ItemSelectorCell({
 }
 
 interface PriceSelectorCellProps extends CellFormProps {
-  itemId: number;
+  itemId: string;
   prices: ItemPrice[];
 }
 

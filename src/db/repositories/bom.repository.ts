@@ -1,5 +1,5 @@
 /**
- * BOM (Bill of Materials) Repository — BOM management with stage queries.
+ * BOM (Bill of Materials) Repository — BOM management.
  */
 
 import { BaseRepository } from "@/db/core/base-repository";
@@ -10,20 +10,14 @@ import {
   type BillOfMaterial,
   type CreateBOM,
   type UpdateBOM,
-  type ProjectStage,
 } from "@/db/models";
 
 // ── Extended Types ───────────────────────────────────────────────────────────
-
-export type ProjectStageWithProject = ProjectStage & {
-  project_name?: string;
-};
 
 export type BOMDetail = BillOfMaterial & {
   item_name?: string;
   unit?: string;
   project_name?: string;
-  stage_name?: string;
   category?: string;
   /** Resolved price value from item_prices join */
   price?: number;
@@ -31,8 +25,7 @@ export type BOMDetail = BillOfMaterial & {
 };
 
 export interface BOMFilters {
-  project_id?: number;
-  stage_id?: number;
+  project_id?: string;
 }
 
 // ── Repository ───────────────────────────────────────────────────────────────
@@ -43,32 +36,17 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
   }
 
   /**
-   * Get project stages for a project, with project name.
-   */
-  async findStagesByProject(projectId: number): Promise<ProjectStageWithProject[]> {
-    const { sql, params } = new QueryBuilder()
-      .select("ps.stage_id", "ps.project_id", "ps.stage_name", "ps.created_at", "p.project_name")
-      .from("project_stages", "ps")
-      .leftJoin("projects", "p", "p.project_id = ps.project_id")
-      .where("ps.project_id", "=", projectId)
-      .orderBy("ps.stage_id", "ASC")
-      .build();
-
-    return this.rawSelect<ProjectStageWithProject>(sql, params);
-  }
-
-  /**
-   * Get all BOMs with joined details (item, price variant, project, stage).
+   * Get all BOMs with joined details (item, price variant, project).
    */
   async findAllWithDetails(filters?: BOMFilters): Promise<BOMDetail[]> {
     try {
       const qb = new QueryBuilder()
         .select(
-          "b.bom_id", "b.project_id", "b.stage_id", "b.item_id",
+          "b.bom_id", "b.project_id", "b.item_id",
           "b.item_price_id", "b.qty", "b.created_at",
           "ip.price",
           "i.item_name", "u.unit_name as unit", "c.category_name as category",
-          "p.project_name", "ps.stage_name",
+          "p.project_name"
         )
         .selectRaw("(b.qty * ip.price) as total_estimasi")
         .from("bill_of_materials", "b")
@@ -77,16 +55,12 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
         .leftJoin("item_categories", "c", "i.category_id = c.category_id")
         .leftJoin("units", "u", "i.unit_id = u.unit_id")
         .leftJoin("projects", "p", "p.project_id = b.project_id")
-        .leftJoin("project_stages", "ps", "ps.stage_id = b.stage_id")
         .withSoftDelete("b")
         .orderBy("c.category_name", "ASC")
         .orderBy("i.item_name", "ASC");
 
       if (filters?.project_id) {
         qb.where("b.project_id", "=", filters.project_id);
-      }
-      if (filters?.stage_id) {
-        qb.where("b.stage_id", "=", filters.stage_id);
       }
 
       const { sql, params } = qb.build();

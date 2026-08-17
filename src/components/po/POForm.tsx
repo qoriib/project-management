@@ -6,7 +6,7 @@ import { POFormActions } from "./form/POFormActions";
 export type { POItemRow } from "./form/po.schema";
 
 interface POFormProps {
-  initialEditId?: number;
+  initialEditId?: string;
   onSuccess: () => void;
   onCancel: () => void;
 }

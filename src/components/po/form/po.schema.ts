@@ -1,8 +1,8 @@
 import * as v from "valibot";
 
 const poItemSchema = v.object({
-  po_item_id: v.number(),
-  item_id: v.pipe(v.number(), v.minValue(1, "Material harus dipilih.")),
+  po_item_id: v.optional(v.string()),
+  item_id: v.pipe(v.string(), v.nonEmpty("Material harus dipilih.")),
   vendor_id: v.pipe(v.string(), v.nonEmpty("Vendor harus dipilih.")),
   item_price_id: v.pipe(v.string(), v.nonEmpty("Variasi harga harus dipilih.")),
   qty: v.pipe(v.number(), v.minValue(0.001, "Volume tidak valid.")),
@@ -19,8 +19,8 @@ export const poSchema = v.object({
 /** Single PO item row in table (resolved with BOM & price data) */
 export type POItemRow = {
   id: string;
-  po_item_id: number;
-  item_id: number;
+  po_item_id: string;
+  item_id: string;
   vendor_id: string;
   item_price_id: string;
   qty: number;
@@ -35,8 +35,8 @@ export type POItemRow = {
 
 /** Default shape of form item value */
 export type POFormItemValue = {
-  po_item_id: number;
-  item_id: number;
+  po_item_id?: string;
+  item_id: string;
   vendor_id: string;
   item_price_id: string;
   qty: number;

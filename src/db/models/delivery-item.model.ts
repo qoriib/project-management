@@ -1,9 +1,9 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface DeliveryItem {
-  delivery_item_id: number;
-  delivery_id: number | null;
-  po_item_id: number | null;
+  delivery_item_id: string;
+  delivery_id: string | null;
+  po_item_id: string | null;
   qty: number;
 }
 

@@ -19,14 +19,14 @@ interface POStore {
   currentBOMData: DashboardBOMReportItem[];
   
   // ── Load Actions ───────────────────────────────────────────────────────────
-  loadAllPOs: (projectId?: number) => Promise<void>;
-  loadPODetail: (id: number) => Promise<void>;
+  loadAllPOs: (projectId?: string) => Promise<void>;
+  loadPODetail: (id: string) => Promise<void>;
   clearPODetail: () => void;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
-  createPO: (data: { po_date: string; project_id: number }, items: POItemInput[]) => Promise<void>;
-  updatePO: (id: number, data: { po_date: string; project_id: number }, items: POItemInput[]) => Promise<void>;
-  deletePO: (id: number) => Promise<void>;
+  createPO: (data: { po_date: string; project_id: string }, items: POItemInput[]) => Promise<void>;
+  updatePO: (id: string, data: { po_date: string; project_id: string }, items: POItemInput[]) => Promise<void>;
+  deletePO: (id: string) => Promise<void>;
 }
 
 export const usePOStore = create<POStore>((set, get) => ({

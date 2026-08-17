@@ -12,7 +12,7 @@ import type { POFormItemValue, POItemRow } from "./po.schema";
 interface POItemsCardProps {
   form: ReturnType<typeof usePOForm>["form"];
   bomData: BOMDetail[];
-  itemPricesMap: Map<number, ItemPrice[]>;
+  itemPricesMap: Map<string, ItemPrice[]>;
   vendors: Vendor[];
 }
 
@@ -24,7 +24,7 @@ function POItemsCardInner({
   vendors,
 }: POItemsCardProps & { items: POFormItemValue[] }) {
   const bomOptions = getUniqueBomOptions(bomData);
-  const selectedItemIds = new Set(items.map((it) => it.item_id).filter((id) => id > 0));
+  const selectedItemIds = new Set(items.map((it) => it.item_id).filter((id) => id.length > 0));
   const resolvedItems = resolveItems(items, bomData, itemPricesMap);
   const grandTotal = calcGrandTotal(resolvedItems);
 
@@ -118,9 +118,9 @@ function POItemsCardInner({
                 label="Tambah Item"
                 type="button"
                 onClick={() =>
-                  field.pushValue({
-                    po_item_id: 0,
-                    item_id: 0,
+                   field.pushValue({
+                    po_item_id: undefined,
+                    item_id: "",
                     vendor_id: "",
                     item_price_id: "",
                     qty: 0,

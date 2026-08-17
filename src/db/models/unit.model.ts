@@ -1,7 +1,7 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface Unit {
-  unit_id: number;
+  unit_id: string;
   unit_name: string;
   deleted_at: string | null;
 }

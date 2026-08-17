@@ -68,7 +68,7 @@ export interface ModelDefinition {
 // ── Query Result ─────────────────────────────────────────────────────────────
 
 export interface ExecuteResult {
-  lastInsertId: number;
+  lastInsertId: string | number;
   rowsAffected: number;
 }
 

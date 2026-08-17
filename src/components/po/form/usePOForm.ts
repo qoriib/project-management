@@ -10,7 +10,7 @@ import { poSchema, type POFormItemValue } from "./po.schema";
 import { buildPOItemPayload } from "./po.utils";
 
 interface UsePOFormOptions {
-  initialEditId?: number;
+  initialEditId?: string;
   onSuccess: () => void;
 }
 
@@ -34,7 +34,7 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
   const boms = useBOMStore((s) => s.boms);
   const loadBOMs = useBOMStore((s) => s.loadBOMs);
 
-  const [editProjectId, setEditProjectId] = useState<number | null>(null);
+  const [editProjectId, setEditProjectId] = useState<string | null>(null);
 
   const form = useForm({
     defaultValues: {
@@ -89,12 +89,12 @@ export function usePOForm({ initialEditId, onSuccess }: UsePOFormOptions) {
         await loadBOMs(po.project_id);
 
         const rawItemIds = poItems.map((p) => p.item_id).filter(Boolean);
-        const uniqueItemIds = [...new Set(rawItemIds)] as number[];
+        const uniqueItemIds = [...new Set(rawItemIds)] as string[];
         await Promise.all(uniqueItemIds.map((id) => loadItemPrices(id)));
 
         const mappedItems = poItems.map((p) => ({
           po_item_id: p.po_item_id,
-          item_id: p.item_id || 0,
+          item_id: p.item_id || "",
           vendor_id: String(p.vendor_id || ""),
           item_price_id: String(p.item_price_id || ""),
           qty: p.qty,

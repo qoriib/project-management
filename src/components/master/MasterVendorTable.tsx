@@ -19,7 +19,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
   const showToast = useToast();
 
   const { vendors, deleteVendor } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
@@ -39,12 +39,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
   }
 
   const columns: TableColumn<VendorRow>[] = [
-    {
-      key: "vendor_id",
-      header: "No. Vendor",
-      width: pixel(120),
-      renderCell: (row: VendorRow) => <EntityCode prefix="VND" id={row.vendor_id} />
-    },
+
     {
       key: "vendor_name",
       header: "Nama Vendor",

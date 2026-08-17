@@ -1,11 +1,11 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface POItem {
-  po_item_id: number;
-  po_id: number;
-  item_id: number;
-  vendor_id: number;
-  item_price_id: number;
+  po_item_id: string;
+  po_id: string;
+  item_id: string;
+  vendor_id: string;
+  item_price_id: string;
   qty: number;
 }
 

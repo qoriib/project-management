@@ -14,7 +14,6 @@ export async function resetDatabase(): Promise<void> {
       "po_items",
       "purchase_orders",
       "bill_of_materials",
-      "project_stages",
       "projects",
       "item_prices",
       "items",
@@ -25,8 +24,6 @@ export async function resetDatabase(): Promise<void> {
 
     for (const table of tables) {
       await db.execute(`DELETE FROM ${table};`);
-      // Reset sqlite sequence to reset AUTOINCREMENT if needed
-      await db.execute(`DELETE FROM sqlite_sequence WHERE name='${table}';`);
     }
 
     // Re-enable foreign key checks

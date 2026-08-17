@@ -35,7 +35,7 @@ export function useDeliveryForm({
       const payload = buildDeliveryItemPayload(value.items);
 
       const header = {
-        po_id: Number(value.po_id),
+        po_id: value.po_id,
         delivery_date: value.delivery_date,
       };
 
@@ -45,8 +45,7 @@ export function useDeliveryForm({
         await createDelivery(header, payload);
       }
 
-      const poId = Number(value.po_id);
-      onSuccess(poId);
+      onSuccess(value.po_id);
     },
   });
 
@@ -57,7 +56,7 @@ export function useDeliveryForm({
     const hasSelectedPO = poId.length > 0;
 
     if (hasSelectedPO) {
-      const rows = await loadPOItemsAsDeliveryRows(Number(poId));
+      const rows = await loadPOItemsAsDeliveryRows(poId);
       form.setFieldValue("items", rows);
     } else {
       form.setFieldValue("items", []);
@@ -81,7 +80,7 @@ export function useDeliveryForm({
           form.setFieldValue("items", editData!.items);
         }
       } else if (initialPoId) {
-        const rows = await loadPOItemsAsDeliveryRows(Number(initialPoId));
+        const rows = await loadPOItemsAsDeliveryRows(initialPoId);
         form.setFieldValue("items", rows);
       }
     }

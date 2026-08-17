@@ -21,7 +21,7 @@ function calcPlannedAndOrdered(
   const matchingVariants = bomData.filter(
     (bom) =>
       bom.item_id === it.item_id &&
-      (!hasPriceSelected || String(bom.item_price_id) === it.item_price_id)
+      (!hasPriceSelected || bom.item_price_id === it.item_price_id)
   );
 
   let plannedVolume = 0;
@@ -43,7 +43,7 @@ function calcPlannedAndOrdered(
 export function resolveItems(
   items: POFormItemValue[],
   bomData: BOMDetail[],
-  itemPricesMap: Map<number, ItemPrice[]>
+  itemPricesMap: Map<string, ItemPrice[]>
 ): POItemRow[] {
   const bomOptions = getUniqueBomOptions(bomData);
 
@@ -52,7 +52,7 @@ export function resolveItems(
     const prices = itemPricesMap.get(it.item_id) ?? [];
 
     const selectedPrice = prices.find(
-      (p) => String(p.item_price_id) === it.item_price_id
+      (p) => p.item_price_id === it.item_price_id
     );
 
     const { plannedVolume, totalOrdered } = calcPlannedAndOrdered(it, bomData);
@@ -62,7 +62,8 @@ export function resolveItems(
 
     return {
       ...it,
-      id: it.po_item_id ? String(it.po_item_id) : `new-${idx}`,
+      po_item_id: it.po_item_id ?? `new-${idx}`,
+      id: it.po_item_id ? it.po_item_id : `new-${idx}`,
       item_name: matchedBom?.item_name ?? "",
       unit: matchedBom?.unit ?? "",
       price: selectedPrice?.price ?? 0,
@@ -84,8 +85,8 @@ export function buildPOItemPayload(items: POFormItemValue[]): POItemInput[] {
   return items.map((it) => ({
     po_item_id: it.po_item_id || undefined,
     item_id: it.item_id,
-    vendor_id: Number(it.vendor_id),
-    item_price_id: Number(it.item_price_id),
+    vendor_id: it.vendor_id,
+    item_price_id: it.item_price_id,
     qty: it.qty,
   }));
 }

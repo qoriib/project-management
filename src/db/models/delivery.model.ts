@@ -1,8 +1,8 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface Delivery {
-  delivery_id: number;
-  po_id: number;
+  delivery_id: string;
+  po_id: string;
   delivery_date: string;
   deleted_at: string | null;
 }

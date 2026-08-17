@@ -6,7 +6,7 @@ interface BOMFormActionsProps {
   canSubmit: boolean;
   isSubmitting: boolean;
   isDisabled?: boolean;
-  selectedProjectId: number | null;
+  selectedProjectId: string | null;
   onCancel: () => void;
 }
 

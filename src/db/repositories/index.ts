@@ -24,10 +24,10 @@ export { deliveryRepo } from "./delivery.repository";
 
 // ── Extended Types ───────────────────────────────────────────────────────────
 
-export type { ProjectWithStages, StageRelation, StageInput } from "./project.repository";
+export type { ProjectWithRelations } from "./project.repository";
 export type { ItemWithDetails } from "./item.repository";
 export type { POWithSummary, POItemDetail, POFilters, POItemInput } from "./purchase-order.repository";
-export type { ProjectStageWithProject, BOMDetail, BOMFilters } from "./bom.repository";
+export type { BOMDetail, BOMFilters } from "./bom.repository";
 export type { DeliverySummary, DeliveryItemDetail, DeliveryItemByPO, DeliveryFilters, DeliveryItemInput } from "./delivery.repository";
 export type { ItemPriceWithRelation } from "./item-price.repository";
 
@@ -35,7 +35,7 @@ export type { ItemPriceWithRelation } from "./item-price.repository";
 
 export type {
   Project, CreateProject, UpdateProject,
-  ProjectStage, CreateProjectStage, UpdateProjectStage,
+
   Vendor, CreateVendor, UpdateVendor,
   Item, CreateItem, UpdateItem,
   ItemPrice, CreateItemPrice, UpdateItemPrice,

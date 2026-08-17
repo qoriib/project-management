@@ -1,28 +1,26 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, HStack, IconButton, Button } from "@astryxdesign/core";
+import { Table, HStack, IconButton } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
-import { MasterProjectStageDialog } from "@/components/master/MasterProjectStageDialog";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
-import type { Project, ProjectWithStages } from "@/db/repositories";
+import type { Project, ProjectWithRelations } from "@/db/repositories";
 
 interface MasterProjectTableProps {
   onEdit: (project: Project) => void;
 }
 
-type ProjectRow = ProjectWithStages & Record<string, unknown>;
+type ProjectRow = ProjectWithRelations & Record<string, unknown>;
 
 export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   const showToast = useToast();
 
   const { projects, deleteProject } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [stageProject, setStageProject] = useState<Project | null>(null);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -41,12 +39,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   }
 
   const columns: TableColumn<ProjectRow>[] = [
-    {
-      key: "project_id",
-      header: "No. Proyek",
-      width: pixel(120),
-      renderCell: (row: ProjectRow) => <EntityCode prefix="PRJ" id={row.project_id} />
-    },
+
     {
       key: "project_name",
       header: "Nama Proyek",
@@ -68,12 +61,6 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       width: pixel(200),
       renderCell: (row: ProjectRow) => (
         <HStack gap={2} justify="end">
-          <Button
-            size="sm"
-            variant="secondary"
-            label="Tahap"
-            onClick={() => setStageProject(row)}
-          />
           <IconButton
             size="sm"
             variant="secondary"
@@ -111,11 +98,6 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
         title="Hapus Master Data"
         message={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
         isLoading={deleting}
-      />
-      <MasterProjectStageDialog
-        isOpen={!!stageProject}
-        onClose={() => setStageProject(null)}
-        project={stageProject}
       />
     </>
   );

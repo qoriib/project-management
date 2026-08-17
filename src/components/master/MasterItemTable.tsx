@@ -20,7 +20,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   const showToast = useToast();
 
   const { items, deleteItem } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [priceItem, setPriceItem] = useState<ItemWithDetails | null>(null);
 
@@ -41,12 +41,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   }
 
   const columns: TableColumn<ItemRow>[] = [
-    {
-      key: "item_id",
-      header: "No. Item",
-      width: pixel(120),
-      renderCell: (row: ItemRow) => <EntityCode prefix="BRG" id={row.item_id} />
-    },
+
     {
       key: "item_name",
       header: "Nama Item",

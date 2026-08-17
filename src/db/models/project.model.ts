@@ -1,7 +1,7 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface Project {
-  project_id: number;
+  project_id: string;
   project_name: string;
   company_name: string;
   fiscal_year: number;

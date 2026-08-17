@@ -16,19 +16,17 @@ export async function loadAvailablePriceOptions(
   const { itemPricesMap, loadItemPrices } = useMasterStore.getState();
   const { boms: existingBoms } = useBOMStore.getState();
 
-  const itemIdNum = Number(itemId);
-
-  let prices = itemPricesMap.get(itemIdNum);
+  let prices = itemPricesMap.get(itemId);
 
   if (!prices) {
-    prices = await loadItemPrices(itemIdNum);
+    prices = await loadItemPrices(itemId);
   }
 
-  const isEditingThisBom = (bomId: number) =>
+  const isEditingThisBom = (bomId: string) =>
     initialData !== undefined && bomId === initialData.bom_id;
 
   const usedPriceIds = existingBoms
-    .filter((b) => b.item_id === itemIdNum && !isEditingThisBom(b.bom_id))
+    .filter((b) => b.item_id === itemId && !isEditingThisBom(b.bom_id))
     .map((b) => b.item_price_id);
 
   const availablePrices = prices.filter(
@@ -36,7 +34,7 @@ export async function loadAvailablePriceOptions(
   );
 
   const options = availablePrices.map((p) => ({
-    value: String(p.item_price_id),
+    value: p.item_price_id,
     label: formatRupiah(p.price),
   }));
 
@@ -52,10 +50,10 @@ export function buildItemOptions(
   existingBoms: BOMDetail[],
   initialData?: BOMDetail
 ): { value: string; label: string }[] {
-  const isCurrentItem = (itemId: number) =>
+  const isCurrentItem = (itemId: string) =>
     initialData?.item_id === itemId;
 
-  const isAlreadyUsed = (itemId: number) =>
+  const isAlreadyUsed = (itemId: string) =>
     existingBoms.some((b) => b.item_id === itemId);
 
   const filteredItems = items.filter(
@@ -63,7 +61,7 @@ export function buildItemOptions(
   );
 
   const mappedItems = filteredItems.map((i) => ({
-    value: String(i.item_id),
+    value: i.item_id,
     label: `${i.item_name} (${i.unit_name})`,
   }));
 

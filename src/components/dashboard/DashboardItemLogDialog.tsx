@@ -10,9 +10,9 @@ type LogRow = DashboardItemLogEntry & Record<string, unknown>;
 interface DashboardItemLogDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  projectId: number;
-  itemId: number;
-  itemPriceId: number;
+  projectId: string;
+  itemId: string;
+  itemPriceId: string;
   itemName: string;
 }
 

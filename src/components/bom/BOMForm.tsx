@@ -13,7 +13,6 @@ export type { BOMFormProps };
  * Semua logic ada di `useBOMForm`; komponen ini hanya mengkomposisikan field-field.
  */
 export function BOMForm({
-  stageId,
   initialData,
   isDisabled,
   onSuccess,
@@ -26,7 +25,7 @@ export function BOMForm({
     existingBoms,
     selectedProjectId,
     handleItemChange,
-  } = useBOMForm({ stageId, initialData, onSuccess });
+  } = useBOMForm({ initialData, onSuccess });
 
   const itemOptions = buildItemOptions(items, existingBoms, initialData);
 

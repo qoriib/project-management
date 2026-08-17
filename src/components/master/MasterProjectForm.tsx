@@ -38,11 +38,11 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
     onSubmit: async ({ value }) => {
       try {
         if (initialData) {
-          await updateProject(initialData.project_id, value, []);
+          await updateProject(initialData.project_id, value);
           showToast({ body: "Project berhasil diubah", type: "info" });
         } else {
-          await createProject(value, []);
-          showToast({ body: "Project berhasil ditambahkan. Buka ' Tahap' untuk menambahkan tahapan.", type: "info" });
+          await createProject(value);
+          showToast({ body: "Project berhasil ditambahkan.", type: "info" });
         }
       } catch (error: any) {
         showToast({ body: error.message || "Terjadi kesalahan", type: "error" });

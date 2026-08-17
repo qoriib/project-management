@@ -8,8 +8,8 @@ function getSystemMode(): 'light' | 'dark' {
 }
 
 interface AppStore {
-  selectedProjectId: number | null;
-  setSelectedProjectId: (id: number | null) => void;
+  selectedProjectId: string | null;
+  setSelectedProjectId: (id: string | null) => void;
 
   dbReady: boolean;
   setDbReady: (ready: boolean) => void;

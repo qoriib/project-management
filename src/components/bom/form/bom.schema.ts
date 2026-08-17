@@ -15,23 +15,14 @@ export type BOMFormValues = {
 import type { BOMDetail } from "@/db/repositories";
 
 export function buildDefaultValues(initialData?: BOMDetail): BOMFormValues {
-  const item_id = initialData?.item_id
-    ? String(initialData.item_id)
-    : "";
-
-  const qty = initialData?.qty
-    ? Number(initialData.qty)
-    : 0;
-
-  const item_price_id = initialData?.item_price_id
-    ? String(initialData.item_price_id)
-    : "";
+  const item_id = initialData?.item_id ?? "";
+  const qty = initialData?.qty ? Number(initialData.qty) : 0;
+  const item_price_id = initialData?.item_price_id ?? "";
 
   return { item_id, qty, item_price_id };
 }
 
 export interface BOMFormProps {
-  stageId?: number;
   initialData?: BOMDetail;
   isDisabled?: boolean;
   onSuccess: () => void;

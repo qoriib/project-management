@@ -9,7 +9,7 @@ import {
   type ItemWithDetails,
   type ItemPrice,
   type ItemCategory,
-  type ProjectWithStages,
+  type ProjectWithRelations,
   type Unit,
   type Vendor,
   type CreateItem,
@@ -20,7 +20,6 @@ import {
   type UpdateItemCategory,
   type CreateProject,
   type UpdateProject,
-  type StageInput,
   type CreateUnit,
   type UpdateUnit,
   type CreateVendor,
@@ -32,11 +31,11 @@ interface MasterStore {
   isLoaded: boolean;
   items: ItemWithDetails[];
   categories: ItemCategory[];
-  projects: ProjectWithStages[];
+  projects: ProjectWithRelations[];
   units: Unit[];
   vendors: Vendor[];
   /** item_price_id → ItemPrice[], keyed by item_id for fast lookup */
-  itemPricesMap: Map<number, ItemPrice[]>;
+  itemPricesMap: Map<string, ItemPrice[]>;
 
   // ── Load Actions ───────────────────────────────────────────────────────────
   loadAllMasters: () => Promise<void>;
@@ -46,39 +45,39 @@ interface MasterStore {
   reloadUnits: () => Promise<void>;
   reloadVendors: () => Promise<void>;
   /** Load/reload price variants for a specific item */
-  loadItemPrices: (itemId: number) => Promise<ItemPrice[]>;
+  loadItemPrices: (itemId: string) => Promise<ItemPrice[]>;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
 
   // Items
   createItem: (data: CreateItem) => Promise<void>;
-  updateItem: (id: number, data: UpdateItem) => Promise<void>;
-  deleteItem: (id: number) => Promise<void>;
+  updateItem: (id: string, data: UpdateItem) => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
 
   // Item Prices
   createItemPrice: (data: CreateItemPrice) => Promise<void>;
-  updateItemPrice: (id: number, data: UpdateItemPrice) => Promise<void>;
-  deleteItemPrice: (id: number, itemId: number) => Promise<void>;
+  updateItemPrice: (id: string, data: UpdateItemPrice) => Promise<void>;
+  deleteItemPrice: (id: string, itemId: string) => Promise<void>;
 
   // Categories
   createCategory: (data: CreateItemCategory) => Promise<void>;
-  updateCategory: (id: number, data: UpdateItemCategory) => Promise<void>;
-  deleteCategory: (id: number) => Promise<void>;
+  updateCategory: (id: string, data: UpdateItemCategory) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
 
   // Projects
-  createProject: (data: CreateProject, stages: StageInput[]) => Promise<void>;
-  updateProject: (id: number, data: UpdateProject, stages: StageInput[]) => Promise<void>;
-  deleteProject: (id: number) => Promise<void>;
+  createProject: (data: CreateProject) => Promise<void>;
+  updateProject: (id: string, data: UpdateProject) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
 
   // Units
   createUnit: (data: CreateUnit) => Promise<void>;
-  updateUnit: (id: number, data: UpdateUnit) => Promise<void>;
-  deleteUnit: (id: number) => Promise<void>;
+  updateUnit: (id: string, data: UpdateUnit) => Promise<void>;
+  deleteUnit: (id: string) => Promise<void>;
 
   // Vendors
   createVendor: (data: CreateVendor) => Promise<void>;
-  updateVendor: (id: number, data: UpdateVendor) => Promise<void>;
-  deleteVendor: (id: number) => Promise<void>;
+  updateVendor: (id: string, data: UpdateVendor) => Promise<void>;
+  deleteVendor: (id: string) => Promise<void>;
 }
 
 export const useMasterStore = create<MasterStore>((set, get) => ({
@@ -96,7 +95,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
       const [items, categories, projects, units, vendors] = await Promise.all([
         itemRepo.findAll(),
         itemCategoryRepo.findAllSorted(),
-        projectRepo.findAllWithStages(),
+        projectRepo.findAllWithRelations(),
         unitRepo.findAllSorted(),
         vendorRepo.findAllSorted()
       ]);
@@ -115,7 +114,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     set({ categories });
   },
   reloadProjects: async () => {
-    const projects = await projectRepo.findAllWithStages();
+    const projects = await projectRepo.findAllWithRelations();
     set({ projects });
   },
   reloadUnits: async () => {
@@ -187,18 +186,12 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
   },
 
   // ── Projects CRUD ──
-  createProject: async (data, stages) => {
-    const projectId = await projectRepo.create(data);
-    if (stages.length > 0) {
-      await projectRepo.saveStages(projectId, stages);
-    }
+  createProject: async (data) => {
+    await projectRepo.create(data);
     await get().reloadProjects();
   },
-  updateProject: async (id, data, stages) => {
+  updateProject: async (id, data) => {
     await projectRepo.update(id, data);
-    if (stages.length > 0) {
-      await projectRepo.saveStages(id, stages);
-    }
     await get().reloadProjects();
   },
   deleteProject: async (id) => {

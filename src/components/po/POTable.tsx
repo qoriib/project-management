@@ -14,7 +14,7 @@ import { type POWithSummary } from "@/db/repositories";
 type PORow = POWithSummary & Record<string, unknown>;
 
 interface POTableProps {
-  onEdit: (id: number) => void;
+  onEdit: (id: string) => void;
 }
 
 export function POTable({ onEdit }: POTableProps) {
@@ -22,7 +22,7 @@ export function POTable({ onEdit }: POTableProps) {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const { pos, loadAllPOs, deletePO } = usePOStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {

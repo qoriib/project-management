@@ -1,8 +1,8 @@
 import * as v from "valibot";
 
 const itemRowSchema = v.object({
-  po_item_id: v.number(),
-  item_id: v.nullable(v.number()),
+  po_item_id: v.string(),
+  item_id: v.nullable(v.string()),
   item_name: v.string(),
   unit: v.string(),
   remaining: v.number(),
@@ -37,8 +37,8 @@ export const deliverySchema = v.object({
 
 /** Satu baris item delivery dalam form */
 export type DeliveryItemRow = {
-  po_item_id: number;
-  item_id: number | null;
+  po_item_id: string;
+  item_id: string | null;
   item_name: string;
   unit: string;
   remaining: number;
@@ -55,7 +55,7 @@ export type DeliveryFormValues = {
 
 export interface DeliveryFormProps {
   initialPoId?: string;
-  initialEditId?: number;
-  onSuccess: (poId: number) => void;
+  initialEditId?: string;
+  onSuccess: (poId: string) => void;
   onCancel: () => void;
 }

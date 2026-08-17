@@ -19,7 +19,7 @@ function PODetailPage() {
     if (!id) return;
     async function load() {
       setLoading(true);
-      await loadPODetail(Number(id));
+      await loadPODetail(id as string);
       setLoading(false);
     }
     load();

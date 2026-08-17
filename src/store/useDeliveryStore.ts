@@ -11,12 +11,12 @@ interface DeliveryStore {
   deliveries: DeliverySummary[];
   
   // ── Load Actions ───────────────────────────────────────────────────────────
-  loadAllDeliveries: (projectId?: number) => Promise<void>;
+  loadAllDeliveries: (projectId?: string) => Promise<void>;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
-  createDelivery: (data: { po_id: number; delivery_date: string }, items: { po_item_id: number; qty: number }[]) => Promise<void>;
-  updateDelivery: (id: number, data: { po_id: number; delivery_date: string }, items: { po_item_id: number; qty: number }[]) => Promise<void>;
-  deleteDelivery: (id: number) => Promise<void>;
+  createDelivery: (data: { po_id: string; delivery_date: string }, items: { po_item_id: string; qty: number }[]) => Promise<void>;
+  updateDelivery: (id: string, data: { po_id: string; delivery_date: string }, items: { po_item_id: string; qty: number }[]) => Promise<void>;
+  deleteDelivery: (id: string) => Promise<void>;
 }
 
 export const useDeliveryStore = create<DeliveryStore>((set, get) => ({

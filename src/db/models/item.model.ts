@@ -1,10 +1,10 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface Item {
-  item_id: number;
+  item_id: string;
   item_name: string;
-  category_id: number;
-  unit_id: number;
+  category_id: string;
+  unit_id: string;
   deleted_at: string | null;
 }
 

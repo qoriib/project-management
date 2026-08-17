@@ -1,5 +1,5 @@
 /**
- * Dashboard Service — Complex BOM report with PO/Delivery distribution.
+ * Dashboard Service — BOM report with PO/Delivery distribution.
  *
  * This is business logic, not simple CRUD, so it lives in services/
  * rather than in a repository.
@@ -12,14 +12,13 @@ import { wrapDbError, DbError } from "@/db/core/errors";
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface DashboardBOMReportItem {
-  item_id: number;
-  stage_name: string;
+  item_id: string;
   item_name: string;
   category: string;
   unit: string;
   /** Price resolved from the linked item_price variant */
   price: number;
-  item_price_id: number;
+  item_price_id: string;
   planned_volume: number;
   planned_budget: number;
   total_ordered: number;
@@ -31,12 +30,8 @@ export interface DashboardBOMReportItem {
 
 /**
  * Generate the full BOM fulfillment report for a project.
- *
- * This distributes PO quantities and delivery quantities across
- * BOM stages proportionally, handling over-delivery by dumping
- * excess into the last stage for each item.
  */
-export async function getDashboardBOMReport(projectId: number): Promise<DashboardBOMReportItem[]> {
+export async function getDashboardBOMReport(projectId: string): Promise<DashboardBOMReportItem[]> {
   try {
     const db = await getDB();
 
@@ -44,21 +39,19 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
     const bomQb = new QueryBuilder()
       .select(
         "b.item_id", "b.item_price_id",
-        "ps.stage_name",
         "i.item_name", "c.category_name as category", "u.unit_name as unit",
         "ip.price",
       )
-      .selectRaw("b.qty as planned_volume")
-      .selectRaw("(b.qty * ip.price) as planned_budget")
+      .selectRaw("SUM(b.qty) as planned_volume")
+      .selectRaw("SUM(b.qty * ip.price) as planned_budget")
       .from("bill_of_materials", "b")
-      .join("project_stages", "ps", "ps.stage_id = b.stage_id")
       .join("items", "i", "i.item_id = b.item_id")
       .join("item_prices", "ip", "ip.item_price_id = b.item_price_id")
       .leftJoin("item_categories", "c", "i.category_id = c.category_id")
       .leftJoin("units", "u", "i.unit_id = u.unit_id")
       .where("b.project_id", "=", projectId)
       .withSoftDelete("b")
-      .orderBy("ps.stage_id", "ASC")
+      .groupBy("b.item_id", "b.item_price_id", "i.item_name", "c.category_name", "u.unit_name", "ip.price")
       .orderBy("c.category_name", "ASC")
       .orderBy("i.item_name", "ASC");
 
@@ -84,52 +77,32 @@ export async function getDashboardBOMReport(projectId: number): Promise<Dashboar
       .groupBy("poi.item_id", "poi.item_price_id");
 
     const { sql: poSql, params: poParams } = poQb.build();
-    const poAggs = await db.select<{ item_id: number; item_price_id: number; total_ordered: number; total_delivered: number; avg_po_price: number }[]>(poSql, poParams);
+    const poAggs = await db.select<{ item_id: string; item_price_id: string; total_ordered: number; total_delivered: number; avg_po_price: number }[]>(poSql, poParams);
 
     // 3. Build remaining map
-    const itemRemaining = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
+    const itemAgg = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
     for (const agg of poAggs) {
-      itemRemaining.set(`${agg.item_id}-${agg.item_price_id}`, {
+      itemAgg.set(`${agg.item_id}-${agg.item_price_id}`, {
         ordered: agg.total_ordered || 0,
         delivered: agg.total_delivered || 0,
         avgPrice: agg.avg_po_price || 0,
       });
     }
 
-    // Count stages per item+price for "last stage" detection
-    const stageCounts = new Map<string, number>();
+    // 4. Attach to BOMs
     for (const row of boms) {
       const key = `${row.item_id}-${row.item_price_id}`;
-      stageCounts.set(key, (stageCounts.get(key) || 0) + 1);
-    }
-
-    // 4. Distribute over BOM stages
-    for (const row of boms) {
-      const key = `${row.item_id}-${row.item_price_id}`;
-      const remain = itemRemaining.get(key);
-      if (!remain) {
+      const agg = itemAgg.get(key);
+      if (!agg) {
         row.total_ordered = 0;
         row.total_delivered = 0;
         row.total_po_price = 0;
         continue;
       }
 
-      const count = stageCounts.get(key)!;
-      stageCounts.set(key, count - 1);
-
-      const isLastStage = count === 1;
-
-      // Allocate ordered
-      const allocateOrdered = isLastStage ? remain.ordered : Math.min(row.planned_volume, remain.ordered);
-      row.total_ordered = allocateOrdered;
-      remain.ordered -= allocateOrdered;
-
-      // Allocate delivered
-      const allocateDelivered = isLastStage ? remain.delivered : Math.min(allocateOrdered, remain.delivered);
-      row.total_delivered = allocateDelivered;
-      remain.delivered -= allocateDelivered;
-
-      row.total_po_price = allocateOrdered * remain.avgPrice;
+      row.total_ordered = agg.ordered;
+      row.total_delivered = agg.delivered;
+      row.total_po_price = agg.ordered * agg.avgPrice;
     }
 
     return boms;
@@ -151,9 +124,9 @@ export interface DashboardItemLogEntry {
  * Get chronological log of POs and Deliveries for a specific item in a project.
  */
 export async function getDashboardItemLog(
-  projectId: number,
-  itemId: number,
-  itemPriceId: number
+  projectId: string,
+  itemId: string,
+  itemPriceId: string
 ): Promise<DashboardItemLogEntry[]> {
   try {
     const db = await getDB();
@@ -162,7 +135,7 @@ export async function getDashboardItemLog(
     const poQb = new QueryBuilder()
       .select("po.po_date as date")
       .selectRaw("'PO' as type")
-      .selectRaw("printf('PO-%04d', po.po_id) as reference")
+      .selectRaw("'PO-' || SUBSTR(po.po_id, 1, 8) as reference")
       .select("poi.qty", "v.vendor_name")
       .from("po_items", "poi")
       .join("purchase_orders", "po", "po.po_id = poi.po_id")
@@ -179,7 +152,7 @@ export async function getDashboardItemLog(
     const delQb = new QueryBuilder()
       .select("d.delivery_date as date")
       .selectRaw("'Delivery' as type")
-      .selectRaw("printf('DLV-%04d', d.delivery_id) as reference")
+      .selectRaw("'DLV-' || SUBSTR(d.delivery_id, 1, 8) as reference")
       .selectRaw("di.qty")
       .selectRaw("v.vendor_name")
       .from("delivery_items", "di")

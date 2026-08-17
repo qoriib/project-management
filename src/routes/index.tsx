@@ -13,7 +13,7 @@ function Dashboard() {
   const [report, setReport] = useState<DashboardBOMReportItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [logItem, setLogItem] = useState<{ itemId: number, itemPriceId: number, itemName: string } | null>(null);
+  const [logItem, setLogItem] = useState<{ itemId: string, itemPriceId: string, itemName: string } | null>(null);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 

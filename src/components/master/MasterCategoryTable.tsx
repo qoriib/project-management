@@ -19,7 +19,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   const showToast = useToast();
 
   const { categories, items, deleteCategory } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
@@ -44,12 +44,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   }));
 
   const columns: TableColumn<CategoryRow>[] = [
-    {
-      key: "category_id",
-      header: "No. Kategori",
-      width: pixel(120),
-      renderCell: (row: CategoryRow) => <EntityCode prefix="KAT" id={row.category_id} />
-    },
+
     {
       key: "category_name",
       header: "Nama Kategori",

@@ -14,10 +14,9 @@ import { loadAvailablePriceOptions } from "./bom.utils";
  * - Submit handler (create / update)
  */
 export function useBOMForm({
-  stageId,
   initialData,
   onSuccess,
-}: Pick<BOMFormProps, "stageId" | "initialData" | "onSuccess">) {
+}: Pick<BOMFormProps, "initialData" | "onSuccess">) {
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
@@ -31,16 +30,15 @@ export function useBOMForm({
     validators: { onChange: bomSchema },
     onSubmit: async ({ value }) => {
       try {
-        const isReady = selectedProjectId && stageId;
+        const isReady = selectedProjectId;
 
         if (!isReady) return;
 
         const payload = {
           project_id: selectedProjectId,
-          item_id: Number(value.item_id),
-          stage_id: stageId,
+          item_id: value.item_id,
           qty: value.qty,
-          item_price_id: Number(value.item_price_id),
+          item_price_id: value.item_price_id,
         };
 
         const isEditMode = initialData !== undefined;
@@ -98,7 +96,7 @@ export function useBOMForm({
       form.reset(buildDefaultValues());
       setPriceOptions([]);
     }
-  }, [initialData, stageId]);
+  }, [initialData]);
 
   return {
     form,

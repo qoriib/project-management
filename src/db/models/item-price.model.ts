@@ -1,8 +1,8 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface ItemPrice {
-  item_price_id: number;
-  item_id: number;
+  item_price_id: string;
+  item_id: string;
   price: number;
   deleted_at: string | null;
 }

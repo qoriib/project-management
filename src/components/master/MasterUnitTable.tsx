@@ -19,7 +19,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
   const showToast = useToast();
 
   const { units, items, deleteUnit } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
@@ -44,12 +44,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
   }));
 
   const columns: TableColumn<UnitRow>[] = [
-    {
-      key: "unit_id",
-      header: "No. Satuan",
-      width: pixel(120),
-      renderCell: (row: UnitRow) => <EntityCode prefix="STN" id={row.unit_id} />
-    },
+
     {
       key: "unit_name",
       header: "Nama Satuan",

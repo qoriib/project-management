@@ -19,7 +19,7 @@ function EditPOPage() {
           title={`Edit Pemesanan ${formatEntityCode("PO", id)}`}
           subtitle="Ubah pesanan pembelian item ke vendor"
         />
-        <POForm initialEditId={Number(id)} onSuccess={goBack} onCancel={goBack} />
+        <POForm initialEditId={id} onSuccess={goBack} onCancel={goBack} />
       </VStack>
     </Section>
   );

@@ -1,7 +1,7 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface ItemCategory {
-  category_id: number;
+  category_id: string;
   category_name: string;
   deleted_at: string | null;
 }

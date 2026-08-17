@@ -1,7 +1,7 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface Vendor {
-  vendor_id: number;
+  vendor_id: string;
   vendor_name: string;
   phone: string | null;
   address: string | null;

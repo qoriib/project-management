@@ -13,23 +13,22 @@ import { useBOMStore } from "@/store/useBOMStore";
 type BomRow = BOMDetail & Record<string, unknown>;
 
 interface BOMTableProps {
-  stageId?: number;
   refreshTrigger?: number;
-  onEdit: (id: number, data: BOMDetail) => void;
+  onEdit: (id: string, data: BOMDetail) => void;
 }
 
-export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
+export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
   const { boms, deleteBOM, loadBOMs } = useBOMStore();
-  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   useEffect(() => {
     if (selectedProjectId) {
-      loadBOMs(selectedProjectId, stageId);
+      loadBOMs(selectedProjectId);
     }
-  }, [refreshTrigger, selectedProjectId, stageId]);
+  }, [refreshTrigger, selectedProjectId]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -144,7 +143,7 @@ export function BOMTable({ stageId, refreshTrigger, onEdit }: BOMTableProps) {
         data={groupedData}
         idKey={groupedIdKey}
         plugins={{ grouping: groupedPlugin }}
-        emptyState={<TableEmptyState message="Belum ada rencana material di tahap ini. Isi form di bawah untuk mulai menambahkan." />}
+        emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini. Isi form di bawah untuk mulai menambahkan." />}
       />
       {boms.length > 0 && (
         <>

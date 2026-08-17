@@ -3,7 +3,6 @@
  */
 
 export * from "./project.model";
-export * from "./project-stage.model";
 export * from "./vendor.model";
 export * from "./item.model";
 export * from "./item-price.model";

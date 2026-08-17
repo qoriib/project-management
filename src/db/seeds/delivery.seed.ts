@@ -1,167 +1,226 @@
 import { deliveryRepo } from "@/db/repositories";
+import { getDB } from "@/db/index";
 
-interface SeedDeliveryItem {
-  poItemId: number;
+interface SeedDeliveryItemRaw {
+  /** PO date to identify which PO */
+  poDate: string;
+  /** Item name to find the po_item_id */
+  itemName: string;
   qty: number;
 }
 
 interface SeedDelivery {
-  poId: number;
+  /** PO date string to look up the PO */
+  poDate: string;
   deliveryDate: string;
-  items: SeedDeliveryItem[];
+  items: SeedDeliveryItemRaw[];
 }
 
 export async function seedDeliveries(): Promise<void> {
+  const db = await getDB();
+
+  // Load all POs with their items to build lookup maps
+  const poRows = await db.select<{ po_id: string; po_date: string }[]>(
+    "SELECT po_id, po_date FROM purchase_orders WHERE deleted_at IS NULL"
+  );
+  const poItemRows = await db.select<{ po_item_id: string; po_id: string; item_name: string }[]>(`
+    SELECT poi.po_item_id, poi.po_id, i.item_name
+    FROM po_items poi
+    JOIN items i ON i.item_id = poi.item_id
+  `);
+
+  // Maps: po_date → po_id
+  const poDateMap = new Map<string, string>(poRows.map(r => [r.po_date, r.po_id]));
+  // Map: "po_id|item_name" → po_item_id
+  const poItemMap = new Map<string, string>(
+    poItemRows.map(r => [`${r.po_id}|${r.item_name}`, r.po_item_id])
+  );
+
   const deliveries: SeedDelivery[] = [
+    // PO 1: poDate=2026-03-01
     {
-      poId: 1,
+      poDate: "2026-03-01",
       deliveryDate: "2026-03-03",
       items: [
-        { poItemId: 1, qty: 30 },
-        { poItemId: 2, qty: 14 },
-        { poItemId: 3, qty: 14 },
-        { poItemId: 4, qty: 2 }
+        { poDate: "2026-03-01", itemName: "Sewa Excavator PC100", qty: 30 },
+        { poDate: "2026-03-01", itemName: "Tukang Batu / Pekerja", qty: 14 },
+        { poDate: "2026-03-01", itemName: "Mandor", qty: 14 },
+        { poDate: "2026-03-01", itemName: "Sewa Concrete Pump", qty: 2 },
       ]
     },
+    // PO 2: poDate=2026-03-05
     {
-      poId: 2,
+      poDate: "2026-03-05",
       deliveryDate: "2026-03-07",
       items: [
-        { poItemId: 5, qty: 100 },
-        { poItemId: 6, qty: 15 },
-        { poItemId: 7, qty: 10 },
-        { poItemId: 9, qty: 10 }
+        { poDate: "2026-03-05", itemName: "Semen Portland 50 Kg", qty: 100 },
+        { poDate: "2026-03-05", itemName: "Pasir Beton", qty: 15 },
+        { poDate: "2026-03-05", itemName: "Pasir Pasang", qty: 10 },
+        { poDate: "2026-03-05", itemName: "Semen Putih 40 Kg", qty: 10 },
       ]
     },
     {
-      poId: 2,
+      poDate: "2026-03-05",
       deliveryDate: "2026-03-14",
       items: [
-        { poItemId: 5, qty: 100 },
-        { poItemId: 7, qty: 10 },
-        { poItemId: 8, qty: 80 }
+        { poDate: "2026-03-05", itemName: "Semen Portland 50 Kg", qty: 100 },
+        { poDate: "2026-03-05", itemName: "Pasir Pasang", qty: 10 },
+        { poDate: "2026-03-05", itemName: "Perekat Bata Ringan / Mortar 40 Kg", qty: 80 },
       ]
     },
     {
-      poId: 2,
+      poDate: "2026-03-05",
       deliveryDate: "2026-03-20",
       items: [
-        { poItemId: 5, qty: 50 }
+        { poDate: "2026-03-05", itemName: "Semen Portland 50 Kg", qty: 50 },
       ]
     },
+    // PO 3: poDate=2026-03-10
     {
-      poId: 3,
+      poDate: "2026-03-10",
       deliveryDate: "2026-03-12",
       items: [
-        { poItemId: 10, qty: 10 },
-        { poItemId: 11, qty: 50 },
-        { poItemId: 12, qty: 100 }
+        { poDate: "2026-03-10", itemName: "Batu Pecah / Split 1/2", qty: 10 },
+        { poDate: "2026-03-10", itemName: "Papan Cor 2/20 Meranti", qty: 50 },
+        { poDate: "2026-03-10", itemName: "Kaso 5/7 Meranti", qty: 100 },
       ]
     },
     {
-      poId: 3,
+      poDate: "2026-03-10",
       deliveryDate: "2026-03-18",
       items: [
-        { poItemId: 12, qty: 100 },
-        { poItemId: 13, qty: 50 }
+        { poDate: "2026-03-10", itemName: "Kaso 5/7 Meranti", qty: 100 },
+        { poDate: "2026-03-10", itemName: "Triplek / Multiplek 9mm", qty: 50 },
       ]
     },
+    // PO 4: poDate=2026-03-12
     {
-      poId: 4,
+      poDate: "2026-03-12",
       deliveryDate: "2026-03-15",
       items: [
-        { poItemId: 14, qty: 100 },
-        { poItemId: 15, qty: 150 },
-        { poItemId: 16, qty: 150 },
-        { poItemId: 17, qty: 20 }
+        { poDate: "2026-03-12", itemName: "Besi Beton Polos 8mm x 12m", qty: 100 },
+        { poDate: "2026-03-12", itemName: "Besi Beton Polos 10mm x 12m", qty: 150 },
+        { poDate: "2026-03-12", itemName: "Besi Beton Ulir 13mm x 12m", qty: 150 },
+        { poDate: "2026-03-12", itemName: "Kawat Bendrat", qty: 20 },
       ]
     },
+    // PO 5: poDate=2026-04-05
     {
-      poId: 5,
+      poDate: "2026-04-05",
       deliveryDate: "2026-04-10",
       items: [
-        { poItemId: 18, qty: 60 },
-        { poItemId: 19, qty: 40 },
-        { poItemId: 20, qty: 10 },
-        { poItemId: 21, qty: 25 },
-        { poItemId: 22, qty: 5 },
-        { poItemId: 23, qty: 20 }
+        { poDate: "2026-04-05", itemName: "Granit Tile 60x60 (Cream)", qty: 60 },
+        { poDate: "2026-04-05", itemName: "Keramik Dinding 30x60", qty: 40 },
+        { poDate: "2026-04-05", itemName: "Pipa PVC 4 inch tipe AW", qty: 10 },
+        { poDate: "2026-04-05", itemName: "Pipa PVC 1/2 inch tipe AW", qty: 25 },
+        { poDate: "2026-04-05", itemName: "Kabel NYM 3x2.5mm", qty: 5 },
+        { poDate: "2026-04-05", itemName: "Lampu Downlight LED 12W", qty: 20 },
       ]
     },
     {
-      poId: 5,
+      poDate: "2026-04-05",
       deliveryDate: "2026-04-12",
       items: [
-        { poItemId: 18, qty: 40 }
+        { poDate: "2026-04-05", itemName: "Granit Tile 60x60 (Cream)", qty: 40 },
       ]
     },
+    // PO 6: poDate=2026-04-15
     {
-      poId: 6,
+      poDate: "2026-04-15",
       deliveryDate: "2026-04-18",
       items: [
-        { poItemId: 24, qty: 15 },
-        { poItemId: 25, qty: 10 }
+        { poDate: "2026-04-15", itemName: "Cat Tembok Interior 25kg (Pail)", qty: 15 },
+        { poDate: "2026-04-15", itemName: "Cat Tembok Eksterior 20L", qty: 10 },
       ]
     },
+    // PO 7: poDate=2026-04-20
     {
-      poId: 7,
+      poDate: "2026-04-20",
       deliveryDate: "2026-04-22",
       items: [
-        { poItemId: 27, qty: 10 },
-        { poItemId: 28, qty: 80 }
+        { poDate: "2026-04-20", itemName: "Tukang Batu / Pekerja", qty: 10 },
+        { poDate: "2026-04-20", itemName: "Triplek / Multiplek 12mm", qty: 80 },
       ]
     },
     {
-      poId: 7,
+      poDate: "2026-04-20",
       deliveryDate: "2026-05-02",
       items: [
-        { poItemId: 27, qty: 10 },
-        { poItemId: 28, qty: 80 },
-        { poItemId: 29, qty: 5 }
+        { poDate: "2026-04-20", itemName: "Tukang Batu / Pekerja", qty: 10 },
+        { poDate: "2026-04-20", itemName: "Triplek / Multiplek 12mm", qty: 80 },
+        { poDate: "2026-04-20", itemName: "Cat Tembok Interior 25kg (Pail)", qty: 5 },
       ]
     },
+    // PO 8: poDate=2026-04-25
     {
-      poId: 8,
+      poDate: "2026-04-25",
       deliveryDate: "2026-04-28",
       items: [
-        { poItemId: 30, qty: 12 }, // > 100% (ordered 10)
-        { poItemId: 31, qty: 40 }  // < 100% (ordered 50)
+        { poDate: "2026-04-25", itemName: "Kabel NYM 3x2.5mm", qty: 12 }, // > 100% (ordered 10)
+        { poDate: "2026-04-25", itemName: "Lampu Downlight LED 12W", qty: 40 } // < 100% (ordered 50)
       ]
     },
+    // PO 9: poDate=2026-05-10
     {
-      poId: 9,
+      poDate: "2026-05-10",
       deliveryDate: "2026-05-15",
       items: [
-        { poItemId: 32, qty: 100 },
-        { poItemId: 34, qty: 50 }
+        { poDate: "2026-05-10", itemName: "Sewa Excavator PC100", qty: 100 },
+        { poDate: "2026-05-10", itemName: "Pasir Pasang", qty: 50 },
       ]
     },
+    // PO 10: poDate=2026-05-15
     {
-      poId: 10,
+      poDate: "2026-05-15",
       deliveryDate: "2026-05-20",
       items: [
-        { poItemId: 35, qty: 200 }
+        { poDate: "2026-05-15", itemName: "Besi Beton Ulir 16mm x 12m", qty: 200 },
       ]
     },
     {
-      poId: 10,
+      poDate: "2026-05-15",
       deliveryDate: "2026-05-25",
       items: [
-        { poItemId: 35, qty: 200 }
+        { poDate: "2026-05-15", itemName: "Besi Beton Ulir 16mm x 12m", qty: 200 },
       ]
     }
   ];
 
   for (const d of deliveries) {
+    const poId = poDateMap.get(d.poDate);
+    if (!poId) {
+      console.warn(`Could not find PO with date '${d.poDate}'. Skipping delivery.`);
+      continue;
+    }
+
     const exists = await deliveryRepo.exists({
-      po_id: d.poId,
+      po_id: poId,
       delivery_date: d.deliveryDate
     }, true);
+
     if (!exists) {
-      await deliveryRepo.createWithItems(
-        { po_id: d.poId, delivery_date: d.deliveryDate },
-        d.items.map(it => ({ po_item_id: it.poItemId, qty: it.qty }))
-      );
+      const resolvedItems: { po_item_id: string; qty: number }[] = [];
+
+      for (const it of d.items) {
+        const itemPoId = poDateMap.get(it.poDate);
+        if (!itemPoId) {
+          console.warn(`Could not find PO '${it.poDate}' for item '${it.itemName}'. Skipping item.`);
+          continue;
+        }
+        const poItemId = poItemMap.get(`${itemPoId}|${it.itemName}`);
+        if (!poItemId) {
+          console.warn(`Could not find po_item for PO '${it.poDate}' + item '${it.itemName}'. Skipping item.`);
+          continue;
+        }
+        resolvedItems.push({ po_item_id: poItemId, qty: it.qty });
+      }
+
+      if (resolvedItems.length > 0) {
+        await deliveryRepo.createWithItems(
+          { po_id: poId, delivery_date: d.deliveryDate },
+          resolvedItems
+        );
+      }
     }
   }
 }

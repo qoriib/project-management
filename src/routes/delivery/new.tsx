@@ -13,7 +13,7 @@ function NewDeliveryPage() {
   const navigate = useNavigate();
   const { po: initialPoId } = Route.useSearch();
 
-  function handleSuccess(poId: number) {
+  function handleSuccess(poId: string) {
     navigate({ to: `/po/${poId}` });
   }
 

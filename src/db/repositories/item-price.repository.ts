@@ -25,7 +25,7 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
   /**
    * Get all active price variants for a specific item.
    */
-  async findByItem(itemId: number): Promise<ItemPrice[]> {
+  async findByItem(itemId: string): Promise<ItemPrice[]> {
     try {
       const { sql, params } = new QueryBuilder()
         .select("*")
@@ -45,7 +45,7 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
    * Get all active price variants for an item, enriched with a has_relation flag
    * indicating whether the price is used in any BOM or PO line.
    */
-  async findByItemWithRelation(itemId: number): Promise<ItemPriceWithRelation[]> {
+  async findByItemWithRelation(itemId: string): Promise<ItemPriceWithRelation[]> {
     try {
       const sql = `
         SELECT ip.*,
@@ -58,7 +58,7 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
         WHERE ip.item_id = $1 AND ip.deleted_at IS NULL
         ORDER BY ip.item_price_id ASC
       `;
-      interface RawRow { item_price_id: number; item_id: number; price: number; deleted_at: string | null; has_relation: number; }
+      interface RawRow { item_price_id: string; item_id: string; price: number; deleted_at: string | null; has_relation: number; }
       const rows = await this.rawSelect<RawRow>(sql, [itemId]);
       return rows.map(r => ({
         item_price_id: r.item_price_id,
@@ -76,14 +76,14 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
    * Get all active price variants for multiple items at once.
    * Returns a map of item_id → ItemPrice[].
    */
-  async findByItems(itemIds: number[]): Promise<Map<number, ItemPrice[]>> {
+  async findByItems(itemIds: string[]): Promise<Map<string, ItemPrice[]>> {
     if (itemIds.length === 0) return new Map();
     try {
       const placeholders = itemIds.map((_, i) => `$${i + 1}`).join(", ");
       const sql = `SELECT * FROM item_prices WHERE item_id IN (${placeholders}) AND deleted_at IS NULL ORDER BY item_id, item_price_id ASC`;
       const rows = await this.rawSelect<ItemPrice>(sql, itemIds);
 
-      const map = new Map<number, ItemPrice[]>();
+      const map = new Map<string, ItemPrice[]>();
       for (const row of rows) {
         const existing = map.get(row.item_id) ?? [];
         existing.push(row);

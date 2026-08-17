@@ -38,8 +38,8 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
       try {
         const data = {
           item_name: value.item_name,
-          category_id: parseInt(value.category_id),
-          unit_id: parseInt(value.unit_id)
+          category_id: value.category_id,
+          unit_id: value.unit_id
         };
 
         if (initialData) {

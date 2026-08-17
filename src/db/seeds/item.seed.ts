@@ -42,8 +42,8 @@ export async function seedItems(): Promise<void> {
   const categories = await itemCategoryRepo.findAll();
   const units = await unitRepo.findAll();
 
-  const catMap = new Map(categories.map(c => [c.category_name, c.category_id]));
-  const unitMap = new Map(units.map(u => [u.unit_name, u.unit_id]));
+  const catMap = new Map<string, string>(categories.map(c => [c.category_name, c.category_id]));
+  const unitMap = new Map<string, string>(units.map(u => [u.unit_name, u.unit_id]));
 
   for (const it of items) {
     const exists = await itemRepo.exists({ item_name: it.itemName }, true);

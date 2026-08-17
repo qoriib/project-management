@@ -8,7 +8,7 @@ import type { DeliveryItemRow } from "./delivery.schema";
  * dengan qty = 0 (mode tambah baru).
  */
 export async function loadPOItemsAsDeliveryRows(
-  poId: number
+  poId: string
 ): Promise<DeliveryItemRow[]> {
   const poItems = await purchaseOrderRepo.findItems(poId);
 
@@ -39,7 +39,7 @@ export async function loadPOItemsAsDeliveryRows(
  * Mengembalikan header delivery (po_id, delivery_date) dan
  * item rows dengan sisa yang sudah dikembalikan (sisa + oldQty).
  */
-export async function loadDeliveryEditData(deliveryId: number): Promise<{
+export async function loadDeliveryEditData(deliveryId: string): Promise<{
   po_id: string;
   delivery_date: string;
   items: DeliveryItemRow[];
@@ -81,7 +81,7 @@ export async function loadDeliveryEditData(deliveryId: number): Promise<{
   });
 
   return {
-    po_id: String(delivery.po_id),
+    po_id: delivery.po_id,
     delivery_date: delivery.delivery_date,
     items,
   };
@@ -92,7 +92,7 @@ export async function loadDeliveryEditData(deliveryId: number): Promise<{
 /** Filter hanya item dengan qty > 0 sebagai payload simpan */
 export function buildDeliveryItemPayload(
   items: DeliveryItemRow[]
-): { po_item_id: number; qty: number }[] {
+): { po_item_id: string; qty: number }[] {
   const receivedItems = items.filter((it) => it.qty > 0);
 
   return receivedItems.map((it) => ({

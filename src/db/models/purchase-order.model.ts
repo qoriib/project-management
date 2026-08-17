@@ -1,8 +1,8 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 export interface PurchaseOrder {
-  po_id: number;
-  project_id: number;
+  po_id: string;
+  project_id: string;
   po_date: string;
   created_at: string;
   deleted_at: string | null;

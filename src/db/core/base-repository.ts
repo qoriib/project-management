@@ -13,6 +13,7 @@ import { getDB } from "@/db/index";
 import { QueryBuilder } from "./query-builder";
 import { DbError, NotFoundError, wrapDbError } from "./errors";
 import type { ModelDefinition, FindOptions, OrderByClause } from "./types";
+import { uuidv7 } from "uuidv7";
 
 export abstract class BaseRepository<
   TEntity extends object,
@@ -80,10 +81,10 @@ export abstract class BaseRepository<
   }
 
   /**
-   * Find a single record by its primary key.
+   * Find a single record by its primary key (UUID string).
    * Returns null if not found (or if soft-deleted).
    */
-  async findById(id: number, includeDeleted = false): Promise<TEntity | null> {
+  async findById(id: string, includeDeleted = false): Promise<TEntity | null> {
     try {
       const qb = new QueryBuilder()
         .select("*")
@@ -104,10 +105,10 @@ export abstract class BaseRepository<
   }
 
   /**
-   * Find a single record by its primary key.
+   * Find a single record by its primary key (UUID string).
    * Throws NotFoundError if not found.
    */
-  async findByIdOrFail(id: number, includeDeleted = false): Promise<TEntity> {
+  async findByIdOrFail(id: string, includeDeleted = false): Promise<TEntity> {
     const record = await this.findById(id, includeDeleted);
     if (!record) {
       throw new NotFoundError(this.model.tableName, id);
@@ -170,14 +171,16 @@ export abstract class BaseRepository<
   // ── WRITE ────────────────────────────────────────────────────────────────
 
   /**
-   * Insert a new record and return the auto-generated ID.
+   * Insert a new record with a generated UUID v4 as primary key.
+   * Returns the UUID string of the newly created record.
    */
-  async create(data: TCreate): Promise<number> {
+  async create(data: TCreate): Promise<string> {
     try {
-      const columns: string[] = [];
-      const placeholders: string[] = [];
-      const params: unknown[] = [];
-      let paramIdx = 1;
+      const id = uuidv7();
+      const columns: string[] = [this.model.primaryKey];
+      const placeholders: string[] = ["$1"];
+      const params: unknown[] = [id];
+      let paramIdx = 2;
 
       for (const col of this.model.createColumns) {
         const value = (data as Record<string, unknown>)[col];
@@ -188,24 +191,20 @@ export abstract class BaseRepository<
         }
       }
 
-      if (columns.length === 0) {
-        throw new DbError("Tidak ada data yang diberikan untuk insert");
-      }
-
       const sql = `INSERT INTO ${this.model.tableName} (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
       const db = await this.db();
-      const result = await db.execute(sql, params);
-      return result.lastInsertId as number;
+      await db.execute(sql, params);
+      return id;
     } catch (error) {
       throw wrapDbError(error, this.model.tableName);
     }
   }
 
   /**
-   * Update an existing record by its primary key.
+   * Update an existing record by its primary key (UUID string).
    * Only updates columns that are present in the data object and allowed by the model.
    */
-  async update(id: number, data: TUpdate): Promise<void> {
+  async update(id: string, data: TUpdate): Promise<void> {
     try {
       const setClauses: string[] = [];
       const params: unknown[] = [];
@@ -234,7 +233,7 @@ export abstract class BaseRepository<
    * Soft-delete a record by setting `deleted_at` to current timestamp.
    * Falls back to hard delete if the model doesn't support soft delete.
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     try {
       const db = await this.db();
 
@@ -255,7 +254,7 @@ export abstract class BaseRepository<
    * Permanently delete a record from the database.
    * Use with caution — this bypasses soft delete.
    */
-  async hardDelete(id: number): Promise<void> {
+  async hardDelete(id: string): Promise<void> {
     try {
       const db = await this.db();
       await db.execute(
@@ -270,7 +269,7 @@ export abstract class BaseRepository<
   /**
    * Restore a soft-deleted record by clearing `deleted_at`.
    */
-  async restore(id: number): Promise<void> {
+  async restore(id: string): Promise<void> {
     if (!this.model.softDelete) {
       throw new DbError(`Tabel ${this.model.tableName} tidak mendukung soft delete`);
     }
@@ -317,12 +316,12 @@ export abstract class BaseRepository<
    * Execute a raw SQL statement (INSERT/UPDATE/DELETE).
    * Used by subclasses for batch operations.
    */
-  protected async rawExecute(sql: string, params?: unknown[]): Promise<{ lastInsertId: number; rowsAffected: number }> {
+  protected async rawExecute(sql: string, params?: unknown[]): Promise<{ lastInsertId: string | number; rowsAffected: number }> {
     try {
       const db = await this.db();
       const result = await db.execute(sql, params);
       return {
-        lastInsertId: result.lastInsertId as number,
+        lastInsertId: result.lastInsertId,
         rowsAffected: result.rowsAffected,
       };
     } catch (error) {
@@ -346,6 +345,7 @@ export abstract class BaseRepository<
   /**
    * Bulk insert multiple rows in a single query.
    * Reduces IPC calls from O(N) to O(1).
+   * Each row must include the UUID primary key as the first element.
    */
   protected async bulkInsert(table: string, columns: string[], data: unknown[][]): Promise<void> {
     if (data.length === 0) return;
@@ -372,5 +372,13 @@ export abstract class BaseRepository<
       const sql = `INSERT INTO ${table} (${columns.join(", ")}) VALUES ${placeholders.join(", ")}`;
       await db.execute(sql, params);
     }
+  }
+
+  /**
+   * Generate a UUID v7 string. Convenience helper for subclasses
+   * that need to create UUIDs for bulk inserts.
+   */
+  protected generateId(): string {
+    return uuidv7();
   }
 }

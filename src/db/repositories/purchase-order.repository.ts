@@ -22,11 +22,11 @@ export type POWithSummary = PurchaseOrder & {
 };
 
 export type POItemDetail = {
-  po_item_id: number;
-  po_id: number | null;
-  item_id: number | null;
-  vendor_id: number | null;
-  item_price_id: number;
+  po_item_id: string;
+  po_id: string | null;
+  item_id: string | null;
+  vendor_id: string | null;
+  item_price_id: string;
   /** Resolved price from joined item_prices */
   price: number;
   qty: number;
@@ -38,16 +38,16 @@ export type POItemDetail = {
 };
 
 export interface POFilters {
-  project_id?: number;
+  project_id?: string;
   tanggal_dari?: string;
   tanggal_sampai?: string;
 }
 
 export interface POItemInput {
-  po_item_id?: number;
-  item_id: number | null;
-  vendor_id: number | null;
-  item_price_id: number;
+  po_item_id?: string;
+  item_id: string | null;
+  vendor_id: string | null;
+  item_price_id: string;
   qty: number;
 }
 
@@ -101,7 +101,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
   /**
    * Get a single PO by ID with summary info.
    */
-  async findByIdWithSummary(id: number): Promise<POWithSummary | null> {
+  async findByIdWithSummary(id: string): Promise<POWithSummary | null> {
     const { sql, params } = new QueryBuilder()
       .select(
         "po.po_id", "po.project_id", "po.po_date", "po.created_at",
@@ -126,7 +126,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
   /**
    * Get all items for a specific PO, with joined details.
    */
-  async findItems(poId: number): Promise<POItemDetail[]> {
+  async findItems(poId: string): Promise<POItemDetail[]> {
     const { sql, params } = new QueryBuilder()
       .select(
         "poi.po_item_id", "poi.po_id", "poi.item_id", "poi.vendor_id",
@@ -155,12 +155,19 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
   async createWithItems(
     po: CreatePurchaseOrder,
     items: Omit<POItemInput, "po_item_id">[]
-  ): Promise<number> {
+  ): Promise<string> {
     return this.transaction(async () => {
       const poId = await this.create(po);
 
-      const rows = items.map(it => [poId, it.item_id ?? null, it.vendor_id ?? null, it.item_price_id, it.qty]);
-      await this.bulkInsert("po_items", ["po_id", "item_id", "vendor_id", "item_price_id", "qty"], rows);
+      const rows = items.map(it => [
+        this.generateId(),
+        poId,
+        it.item_id ?? null,
+        it.vendor_id ?? null,
+        it.item_price_id,
+        it.qty,
+      ]);
+      await this.bulkInsert("po_items", ["po_item_id", "po_id", "item_id", "vendor_id", "item_price_id", "qty"], rows);
 
       return poId;
     });
@@ -170,7 +177,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
    * Update a PO and sync its items (upsert + delete diff).
    */
   async updateWithItems(
-    poId: number,
+    poId: string,
     po: UpdatePurchaseOrder,
     items: POItemInput[]
   ): Promise<void> {
@@ -179,7 +186,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
       await this.update(poId, po);
 
       // Sync items
-      const existing = await this.rawSelect<{ po_item_id: number }>(
+      const existing = await this.rawSelect<{ po_item_id: string }>(
         "SELECT po_item_id FROM po_items WHERE po_id = $1",
         [poId]
       );
@@ -195,8 +202,15 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
       const existingItems = items.filter(it => it.po_item_id);
 
       if (newItems.length > 0) {
-        const rows = newItems.map(it => [poId, it.item_id ?? null, it.vendor_id ?? null, it.item_price_id, it.qty]);
-        await this.bulkInsert("po_items", ["po_id", "item_id", "vendor_id", "item_price_id", "qty"], rows);
+        const rows = newItems.map(it => [
+          this.generateId(),
+          poId,
+          it.item_id ?? null,
+          it.vendor_id ?? null,
+          it.item_price_id,
+          it.qty,
+        ]);
+        await this.bulkInsert("po_items", ["po_item_id", "po_id", "item_id", "vendor_id", "item_price_id", "qty"], rows);
       }
 
       for (const item of existingItems) {

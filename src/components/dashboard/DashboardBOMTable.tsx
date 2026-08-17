@@ -10,7 +10,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 interface DashboardBOMTableProps {
   report: DashboardBOMReportItem[];
   loading: boolean;
-  onLogClick: (itemId: number, itemPriceId: number, itemName: string) => void;
+  onLogClick: (itemId: string, itemPriceId: string, itemName: string) => void;
 }
 
 type EnrichedReportItem = DashboardBOMReportItem & Record<string, unknown> & {
@@ -27,7 +27,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
 
   const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows<EnrichedReportItem>({
     data: enrichedReport,
-    groupBy: (item) => item.stage_name || "Lainnya",
+    groupBy: (item) => item.category || "Lainnya",
     collapsedGroups,
     onToggleGroup: (key) => {
       setCollapsedGroups((prev) => {

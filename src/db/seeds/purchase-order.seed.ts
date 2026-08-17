@@ -131,12 +131,12 @@ export async function seedPurchaseOrders(): Promise<void> {
   const vendors = await vendorRepo.findAll();
   const items = await itemRepo.findAll();
 
-  const projMap = new Map(projects.map(p => [p.project_name, p.project_id]));
-  const vendMap = new Map(vendors.map(v => [v.vendor_name, v.vendor_id]));
-  const itemMap = new Map(items.map(i => [i.item_name, i.item_id]));
+  const projMap = new Map<string, string>(projects.map(p => [p.project_name, p.project_id]));
+  const vendMap = new Map<string, string>(vendors.map(v => [v.vendor_name, v.vendor_id]));
+  const itemMap = new Map<string, string>(items.map(i => [i.item_name, i.item_id]));
 
   // Cache item prices
-  const itemPriceCache = new Map<number, { item_price_id: number; price: number }[]>();
+  const itemPriceCache = new Map<string, { item_price_id: string; price: number }[]>();
 
   for (const po of pos) {
     const projectId = projMap.get(po.projectName);

@@ -14,7 +14,7 @@ type DeliveryRow = DeliverySummary & Record<string, unknown>;
 
 export function DeliveryTable() {
   const navigate = useNavigate();
-  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);

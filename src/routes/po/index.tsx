@@ -13,7 +13,7 @@ function POListPage() {
     navigate({ to: "/po/new" });
   }
 
-  function openEdit(id: number) {
+  function openEdit(id: string) {
     navigate({ to: `/po/${id}/edit` });
   }
 
