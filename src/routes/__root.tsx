@@ -5,6 +5,7 @@ import { IconButton } from "@astryxdesign/core/IconButton";
 import { ListItem } from "@astryxdesign/core/List";
 import { useEffect } from "react";
 import { Sun, Moon } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { getDB } from "@/db";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -22,12 +23,29 @@ function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const activeNav = useAppStore((s) => s.activeNav);
-  const setActiveNav = useAppStore((s) => s.setActiveNav);
-  const resolvedMode = useAppStore((s) => s.resolvedMode);
-  const toggleThemeMode = useAppStore((s) => s.toggleThemeMode);
-
-  const { dbReady, setDbReady, setGlobalError, selectedProjectId, setSelectedProjectId } = useAppStore();
+  const {
+    activeNav,
+    setActiveNav,
+    resolvedMode,
+    toggleThemeMode,
+    dbReady,
+    setDbReady,
+    setGlobalError,
+    selectedProjectId,
+    setSelectedProjectId
+  } = useAppStore(
+    useShallow((s) => ({
+      activeNav: s.activeNav,
+      setActiveNav: s.setActiveNav,
+      resolvedMode: s.resolvedMode,
+      toggleThemeMode: s.toggleThemeMode,
+      dbReady: s.dbReady,
+      setDbReady: s.setDbReady,
+      setGlobalError: s.setGlobalError,
+      selectedProjectId: s.selectedProjectId,
+      setSelectedProjectId: s.setSelectedProjectId,
+    }))
+  );
 
   const projects = useMasterStore((state) => state.projects);
   const activeProject = projects.find(p => p.project_id === selectedProjectId);
