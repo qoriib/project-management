@@ -4,6 +4,7 @@ import { HStack, Table, Text, IconButton, Button, VStack, Divider } from "@astry
 import { proportional, pixel, type TableColumn, useTableGroupedRows, type TablePlugin } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { BOMGroupDialog } from "@/components/bom/BOMGroupDialog";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useBOMStore } from "@/store/useBOMStore";
@@ -26,9 +27,10 @@ interface BOMTableProps {
 }
 
 export function BOMTable({ refreshTrigger }: BOMTableProps) {
-  const { boms, deleteBOM, loadBOMs } = useBOMStore();
+  const { boms, bomGroups = [], deleteBOM, loadBOMs } = useBOMStore();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
 
   // State untuk form inline
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -208,17 +210,26 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   // Create a map to get group names from group ids
   const groupNameMap = useMemo(() => {
     const map: Record<string, string> = {};
+    for (const bg of bomGroups) {
+      map[bg.bom_group_id] = bg.group_name;
+    }
     for (const b of boms) {
-      if (b.bom_group_id) {
+      if (b.bom_group_id && !map[b.bom_group_id]) {
         map[b.bom_group_id] = b.bom_group_name || "Lainnya";
       }
     }
     return map;
-  }, [boms]);
+  }, [boms, bomGroups]);
 
   const dataWithFooters = useMemo(() => {
     const list = [...boms] as BomRow[];
     const groupIds = new Set(boms.map(b => b.bom_group_id));
+    
+    // Add all empty groups from bomGroups
+    for (const bg of bomGroups) {
+      groupIds.add(bg.bom_group_id);
+    }
+
     for (const gid of groupIds) {
       if (gid) {
         if (editingId === `new-${gid}`) {
@@ -318,19 +329,28 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         data={groupedData}
         idKey={groupedIdKey}
         plugins={{ grouping: groupedPlugin, footer: footerPlugin }}
-        emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan terlebih dahulu di Master Proyek." />}
+        emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan melalui tombol di bawah." />}
       />
-      {boms.length > 0 && (
-        <VStack>
-          <Divider />
-          <HStack justify="end" paddingBlock={3} gap={2}>
-            <Text weight="bold" size="lg">Total:</Text>
-            <Text weight="bold" size="lg" color="primary">
-              {formatRupiah(grandTotal)}
-            </Text>
-          </HStack>
-        </VStack>
-      )}
+      <VStack>
+        <Divider />
+        <HStack justify="between" paddingBlock={3} gap={2}>
+          {!isApproved ? (
+            <Button
+              variant="secondary"
+              label="Kelola Grup Pekerjaan"
+              onClick={() => setIsGroupDialogOpen(true)}
+            />
+          ) : <div />}
+          {boms.length > 0 && (
+            <HStack justify="end" gap={2} style={{ flex: 1 }}>
+              <Text weight="bold" size="lg">Total:</Text>
+              <Text weight="bold" size="lg" color="primary">
+                {formatRupiah(grandTotal)}
+              </Text>
+            </HStack>
+          )}
+        </HStack>
+      </VStack>
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -338,6 +358,11 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         title="Hapus Kebutuhan"
         message="Apakah Anda yakin ingin menghapus material ini dari rencana (BOM)?"
         isLoading={deleting}
+      />
+      <BOMGroupDialog
+        isOpen={isGroupDialogOpen}
+        onClose={() => setIsGroupDialogOpen(false)}
+        project={currentProject || null}
       />
     </>
   );

@@ -2,7 +2,6 @@ import { createRootRoute, Outlet, useNavigate, useLocation, redirect } from '@ta
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Text, VStack, Heading } from "@astryxdesign/core";
-import { ListItem } from "@astryxdesign/core/List";
 import { useEffect } from "react";
 import { useShallow } from 'zustand/react/shallow';
 import { getDB } from "@/db";
@@ -52,7 +51,6 @@ function AppLayout() {
     setDbReady,
     setGlobalError,
     selectedProjectId,
-    setSelectedProjectId
   } = useAppStore(
     useShallow((s) => ({
       activeNav: s.activeNav,
@@ -61,7 +59,6 @@ function AppLayout() {
       setDbReady: s.setDbReady,
       setGlobalError: s.setGlobalError,
       selectedProjectId: s.selectedProjectId,
-      setSelectedProjectId: s.setSelectedProjectId,
     }))
   );
 
@@ -113,23 +110,7 @@ function AppLayout() {
           header={
             <SideNavHeading
               heading={activeProject ? activeProject.project_name : APP.title}
-              subheading={activeProject ? `${activeProject.company_name} - ${activeProject.fiscal_year}` : "Pilih Proyek Aktif"}
-              menu={
-                <>
-                  {projects.map((p) => (
-                    <ListItem
-                      key={p.project_id}
-                      label={p.project_name}
-                      description={`${p.company_name} - ${p.fiscal_year}`}
-                      onClick={() => setSelectedProjectId(p.project_id)}
-                      isSelected={p.project_id === selectedProjectId}
-                    />
-                  ))}
-                  {selectedProjectId && (
-                    <ListItem label="Kosongkan Pilihan" onClick={() => setSelectedProjectId(null)} />
-                  )}
-                </>
-              }
+              subheading={activeProject ? `${activeProject.company_name} - ${activeProject.fiscal_year}` : "Pilih Proyek di Master Data"}
             />
           }
           footer={

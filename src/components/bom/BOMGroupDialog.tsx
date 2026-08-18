@@ -14,6 +14,7 @@ import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
 import type { BOMGroup, ProjectWithRelations } from "@/db/repositories";
 import * as v from "valibot";
+import { useBOMStore } from "@/store/useBOMStore";
 
 type GroupRow = BOMGroup & Record<string, unknown>;
 
@@ -21,19 +22,20 @@ const bomGroupSchema = v.object({
   group_name: v.pipe(v.string(), v.nonEmpty("Nama grup pekerjaan harus diisi.")),
 });
 
-interface MasterProjectBOMGroupDialogProps {
+interface BOMGroupDialogProps {
   isOpen: boolean;
   onClose: () => void;
   project: ProjectWithRelations | null;
 }
 
-export function MasterProjectBOMGroupDialog({ isOpen, onClose, project }: MasterProjectBOMGroupDialogProps) {
+export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps) {
   const showToast = useToast();
 
   const [editTarget, setEditTarget] = useState<BOMGroup | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<BOMGroup | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const { boms } = useBOMStore();
   const [groups, setGroups] = useState<BOMGroup[]>([]);
 
   const form = useForm({
@@ -128,6 +130,7 @@ export function MasterProjectBOMGroupDialog({ isOpen, onClose, project }: Master
       header: "",
       width: pixel(100),
       renderCell: (row: BOMGroup) => {
+        const isUsed = boms.some(b => b.bom_group_id === row.bom_group_id);
         return (
           <HStack justify="end" gap={1}>
             <IconButton size="sm" variant="secondary" icon={<Pencil size={16} />} label="Edit" onClick={() => startEdit(row)} />
@@ -135,6 +138,7 @@ export function MasterProjectBOMGroupDialog({ isOpen, onClose, project }: Master
               variant="destructive"
               icon={<Trash2 size={16} />} label="Hapus"
               onClick={() => setDeleteTarget(row)}
+              isDisabled={isUsed}
             />
           </HStack>
         );

@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { bomRepo, type BOMDetail } from '@/db/repositories';
+import { bomRepo, bomGroupRepo, type BOMDetail, type BOMGroup } from '@/db/repositories';
 
 interface BOMStore {
   boms: BOMDetail[];
+  bomGroups: BOMGroup[];
   isLoadingBOMs: boolean;
   loadBOMs: (projectId: string) => Promise<void>;
   createBOM: (data: { project_id: string; bom_group_id: string; item_id: string; qty: number; item_price_id: string }) => Promise<void>;
@@ -12,16 +13,20 @@ interface BOMStore {
 
 export const useBOMStore = create<BOMStore>((set, get) => ({
   boms: [],
+  bomGroups: [],
   isLoadingBOMs: false,
 
   loadBOMs: async (projectId) => {
     set({ isLoadingBOMs: true });
     try {
-      const boms = await bomRepo.findAllWithDetails({ project_id: projectId });
-      set({ boms });
+      const [boms, bomGroups] = await Promise.all([
+        bomRepo.findAllWithDetails({ project_id: projectId }),
+        bomGroupRepo.findByProject(projectId)
+      ]);
+      set({ boms, bomGroups });
     } catch (err) {
       console.error("Failed to load BOMs", err);
-      set({ boms: [] });
+      set({ boms: [], bomGroups: [] });
     } finally {
       set({ isLoadingBOMs: false });
     }
