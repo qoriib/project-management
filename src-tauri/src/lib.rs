@@ -1,37 +1,71 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
-mod constants;
-mod db_sync;
 mod auth;
+mod db_sync;
+
+use tauri_plugin_sql::{Migration, MigrationKind};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    use tauri_plugin_sql::{Migration, MigrationKind};
+    use tauri_plugin_log::{Target, TargetKind};
 
-    let migrations = vec![
-        Migration {
-            version: 1,
-            description: "init_schema",
-            sql: include_str!("../migrations/001_init.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 2,
-            description: "add_updated_at",
-            sql: include_str!("../migrations/002_add_updated_at.sql"),
-            kind: MigrationKind::Up,
-        }
-    ];
+    // Log level: Debug in dev builds, Info in release builds
+    #[cfg(debug_assertions)]
+    let log_level = log::LevelFilter::Debug;
+    #[cfg(not(debug_assertions))]
+    let log_level = log::LevelFilter::Info;
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
         .plugin(
-            tauri_plugin_sql::Builder::default()
-                .add_migrations("sqlite:proyek.db", migrations)
+            tauri_plugin_log::Builder::new()
+                .level(log_level)
+                .targets([
+                    Target::new(TargetKind::Stdout),
+                    Target::new(TargetKind::LogDir {
+                        file_name: Some("project-management".into()),
+                    }),
+                ])
+                .max_file_size(10_000_000) // 10 MB
+                .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
                 .build(),
         )
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .setup(|_app| Ok(()))
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations(
+                    "sqlite:proyek.db",
+                    vec![
+                        Migration {
+                            version: 1,
+                            description: "init_schema",
+                            sql: include_str!("../migrations/001_init.sql"),
+                            kind: MigrationKind::Up,
+                        },
+                        Migration {
+                            version: 2,
+                            description: "add_updated_at",
+                            sql: include_str!("../migrations/002_add_updated_at.sql"),
+                            kind: MigrationKind::Up,
+                        },
+                        Migration {
+                            version: 3,
+                            description: "add_bom_approval",
+                            sql: include_str!("../migrations/003_add_bom_approval.sql"),
+                            kind: MigrationKind::Up,
+                        },
+                        Migration {
+                            version: 4,
+                            description: "bom_validation_triggers",
+                            sql: include_str!("../migrations/004_bom_validation_triggers.sql"),
+                            kind: MigrationKind::Up,
+                        },
+                    ],
+                )
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![
             db_sync::reset_db,
             db_sync::export_csv_zip,

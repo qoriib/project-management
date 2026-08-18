@@ -1,6 +1,6 @@
 import { Pencil, Trash2, Check, X } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
-import { HStack, Table, Text, IconButton, Divider, Button } from "@astryxdesign/core";
+import { HStack, VStack, Table, Text, IconButton, Divider, Button } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn, useTableGroupedRows, type TablePlugin } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -9,6 +9,7 @@ import type { BOMDetail } from "@/db/repositories";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useBOMStore } from "@/store/useBOMStore";
+import { useMasterStore } from "@/store/useMasterStore";
 import { Plus } from "lucide-react";
 import { useBOMForm } from "./form/useBOMForm";
 import { ItemSelectorCell, QtyInputCell, PriceSelectorCell, TotalEstimasiCell } from "./BOMItemCells";
@@ -36,6 +37,16 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   const [editingGroupId, setEditingGroupId] = useState<string | undefined>(undefined);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const projects = useMasterStore((s) => s.projects);
+  const currentProject = projects.find(p => p.project_id === selectedProjectId);
+  const isApproved = currentProject?.bom_is_approved === 1;
+  const role = import.meta.env.VITE_APP_ROLE || 'logistics_staff';
+  const isManager = role === 'manager';
+
+  // For approval dialog
+  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const approveProjectBOM = useMasterStore((s) => s.approveProjectBOM);
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -166,26 +177,30 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
 
         return (
           <HStack gap={2} justify="end">
-            <IconButton
-              size="sm"
-              variant="secondary"
-              label="Edit"
-              icon={<Pencil size={16} />}
-              isDisabled={!!editingId}
-              onClick={() => {
-                setEditingId(row.bom_id);
-                setEditingData(row as BOMDetail);
-                setEditingGroupId(row.bom_group_id);
-              }}
-            />
-            <IconButton
-              size="sm"
-              variant="destructive"
-              label="Hapus"
-              icon={<Trash2 size={16} />}
-              isDisabled={!!editingId}
-              onClick={() => setDeleteTarget(row.bom_id)}
-            />
+            {!isApproved && (
+              <>
+                <IconButton
+                  size="sm"
+                  variant="secondary"
+                  label="Edit"
+                  icon={<Pencil size={16} />}
+                  isDisabled={!!editingId}
+                  onClick={() => {
+                    setEditingId(row.bom_id);
+                    setEditingData(row as BOMDetail);
+                    setEditingGroupId(row.bom_group_id);
+                  }}
+                />
+                <IconButton
+                  size="sm"
+                  variant="destructive"
+                  label="Hapus"
+                  icon={<Trash2 size={16} />}
+                  isDisabled={!!editingId}
+                  onClick={() => setDeleteTarget(row.bom_id)}
+                />
+              </>
+            )}
           </HStack>
         );
       },
@@ -269,7 +284,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
           ...props,
           children: (
             <td colSpan={999} style={{ padding: "8px 16px", background: "var(--color-bg-base)", borderBottom: "1px solid var(--color-border)" }}>
-              {!hideButton && (
+              {!hideButton && !isApproved && (
                 <Button 
                   variant="secondary" 
                   size="sm" 
@@ -316,15 +331,29 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan terlebih dahulu di Master Proyek." />}
       />
       {boms.length > 0 && (
-        <>
+        <VStack gap={4}>
           <Divider />
-          <HStack justify="end" gap={2}>
-            <Text weight="bold" size="lg">Total:</Text>
-            <Text weight="bold" size="lg" color="primary">
-              {formatRupiah(grandTotal)}
-            </Text>
+          <HStack justify="between" align="center">
+            <HStack gap={2}>
+              {isApproved && (
+                <Text weight="bold" style={{ color: 'var(--color-success)' }}>✓ BOM Telah Disetujui (Terkunci)</Text>
+              )}
+              {!isApproved && isManager && (
+                <Button 
+                  variant="primary" 
+                  label="ACC BOM" 
+                  onClick={() => setShowApproveConfirm(true)}
+                />
+              )}
+            </HStack>
+            <HStack gap={2}>
+              <Text weight="bold" size="lg">Total:</Text>
+              <Text weight="bold" size="lg" color="primary">
+                {formatRupiah(grandTotal)}
+              </Text>
+            </HStack>
           </HStack>
-        </>
+        </VStack>
       )}
       <ConfirmDialog
         isOpen={!!deleteTarget}
@@ -333,6 +362,23 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         title="Hapus Kebutuhan"
         message="Apakah Anda yakin ingin menghapus material ini dari rencana (BOM)?"
         isLoading={deleting}
+      />
+      <ConfirmDialog
+        isOpen={showApproveConfirm}
+        onClose={() => setShowApproveConfirm(false)}
+        onConfirm={async () => {
+          if (!selectedProjectId) return;
+          setApproving(true);
+          try {
+            await approveProjectBOM(selectedProjectId);
+            setShowApproveConfirm(false);
+          } finally {
+            setApproving(false);
+          }
+        }}
+        title="ACC BOM Proyek"
+        message="Apakah Anda yakin ingin menyetujui BOM proyek ini? Setelah disetujui, semua data BOM pada proyek ini akan dikunci dan tidak dapat diubah lagi."
+        isLoading={approving}
       />
     </>
   );

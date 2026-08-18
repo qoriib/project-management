@@ -1,21 +1,52 @@
+/**
+ * Database access layer.
+ * Uses @tauri-apps/plugin-sql
+ */
+
+import Database from "@tauri-apps/plugin-sql";
+
 export interface DatabaseLike {
   select<T>(sql: string, params?: any[]): Promise<T>;
-  execute(sql: string, params?: any[]): Promise<{ lastInsertId: number; rowsAffected: number } | any>;
+  execute(
+    sql: string,
+    params?: any[]
+  ): Promise<{ lastInsertId: number; rowsAffected: number } | any>;
 }
 
-let _tauriDb: any = null;
+let dbInstance: Database | null = null;
 
-export async function getDB(): Promise<DatabaseLike> {
-  // If running in Node.js (command line seed script)
-  if (typeof window === "undefined") {
-    const { getLocalNodeDb } = await import("./node-db");
-    return getLocalNodeDb() as any as DatabaseLike;
+async function getTauriDb(): Promise<DatabaseLike> {
+  if (!dbInstance) {
+    dbInstance = await Database.load("sqlite:proyek.db");
   }
 
-  if (_tauriDb) return _tauriDb as DatabaseLike;
+  return {
+    select: <T>(sql: string, params?: any[]): Promise<T> =>
+      dbInstance!.select<T>(sql, params),
+    execute: async (
+      sql: string,
+      params?: any[]
+    ): Promise<{ lastInsertId: number; rowsAffected: number }> => {
+      const res = await dbInstance!.execute(sql, params);
+      return {
+        lastInsertId: res.lastInsertId ?? 0,
+        rowsAffected: res.rowsAffected
+      };
+    },
+  };
+}
 
-  const Database = (await import("@tauri-apps/plugin-sql")).default;
-  _tauriDb = await Database.load("sqlite:proyek.db");
+/**
+ * Node.js fallback — used by seed scripts (`vite-node`) which run outside Tauri.
+ */
+async function getNodeDb(): Promise<DatabaseLike> {
+  const { getLocalNodeDb } = await import("./node-db");
+  return getLocalNodeDb() as any as DatabaseLike;
+}
 
-  return _tauriDb as DatabaseLike;
+export async function getDB(): Promise<DatabaseLike> {
+  if (typeof window === "undefined") {
+    return getNodeDb();
+  }
+  return getTauriDb();
 }

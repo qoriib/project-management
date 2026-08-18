@@ -5,17 +5,18 @@ export interface Project {
   project_name: string;
   company_name: string;
   fiscal_year: number;
+  bom_is_approved: number;
   created_at: string;
   deleted_at: string | null;
 }
 
 export type CreateProject = Pick<Project, "project_name" | "company_name" | "fiscal_year">;
-export type UpdateProject = Partial<CreateProject>;
+export type UpdateProject = Partial<CreateProject & Pick<Project, "bom_is_approved">>;
 
 export const ProjectModel: ModelDefinition = {
   tableName: "projects",
   primaryKey: "project_id",
   createColumns: ["project_name", "company_name", "fiscal_year"],
-  updateColumns: ["project_name", "company_name", "fiscal_year"],
+  updateColumns: ["project_name", "company_name", "fiscal_year", "bom_is_approved"],
   softDelete: true,
 };

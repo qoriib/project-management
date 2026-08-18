@@ -99,6 +99,13 @@ export function wrapDbError(error: unknown, table: string): DbError {
     return new ValidationError(column, "nilai tidak boleh kosong");
   }
 
+  // Custom TRIGGER validations (RAISE ABORT)
+  if (message.includes("Gagal:")) {
+    // Extract the message after 'Gagal:' or just return the whole message gracefully
+    const customMessage = message.split("Gagal:")[1]?.trim() || message;
+    return new DbError(`Gagal: ${customMessage}`, "TRIGGER_VALIDATION");
+  }
+
   // Fallback: wrap in generic DbError
   return new DbError(`Database error pada tabel ${table}: ${message}`);
 }

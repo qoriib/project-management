@@ -1,10 +1,11 @@
-use crate::constants::APP_GENERAL_KEY;
-use rusqlite::types::ValueRef;
 use std::fs::File;
 use std::io::Read;
 use tauri::Manager;
 use zip::write::FileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
+use sqlx::{Row, Column, TypeInfo};
+use sqlx::sqlite::SqlitePoolOptions;
+use sqlx::ValueRef;
 
 const TABLES: &[(&str, &str, &str)] = &[
     ("projects", "project_id", "project_name = excluded.project_name, company_name = excluded.company_name, fiscal_year = excluded.fiscal_year, deleted_at = excluded.deleted_at"),
@@ -22,6 +23,7 @@ const TABLES: &[(&str, &str, &str)] = &[
 ];
 
 fn get_db_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    // tauri-plugin-sql default path
     let mut db_path = app.path().app_local_data_dir().map_err(|e| e.to_string())?;
     db_path.push("proyek.db");
 
@@ -41,8 +43,6 @@ fn get_db_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
     Ok(db_path)
 }
 
-// Fixed internal password for encryption, stored as bytes to slightly obfuscate it in the binary.
-
 #[tauri::command]
 pub fn reset_db(app: tauri::AppHandle) -> Result<(), String> {
     let db_path = get_db_path(&app)?;
@@ -51,24 +51,16 @@ pub fn reset_db(app: tauri::AppHandle) -> Result<(), String> {
         std::fs::remove_file(&db_path).map_err(|e| e.to_string())?;
     }
 
-    // Also try to remove WAL and SHM files to completely reset
-    let mut wal_path = db_path.clone();
-    wal_path.set_extension("db-wal");
-    if wal_path.exists() {
-        let _ = std::fs::remove_file(wal_path);
-    }
-
-    let mut shm_path = db_path.clone();
-    shm_path.set_extension("db-shm");
-    if shm_path.exists() {
-        let _ = std::fs::remove_file(shm_path);
-    }
+    let wal = db_path.with_extension("db-wal");
+    let shm = db_path.with_extension("db-shm");
+    if wal.exists() { let _ = std::fs::remove_file(wal); }
+    if shm.exists() { let _ = std::fs::remove_file(shm); }
 
     app.restart();
 }
 
 #[tauri::command]
-pub fn export_csv_zip(
+pub async fn export_csv_zip(
     app: tauri::AppHandle,
     target_path: String,
     project_id: Option<String>,
@@ -78,15 +70,17 @@ pub fn export_csv_zip(
         return Err("Database utama tidak ditemukan!".into());
     }
 
-    let conn = rusqlite::Connection::open(&db_path).map_err(|e| e.to_string())?;
+    let uri = format!("sqlite:{}", db_path.to_string_lossy());
+    let pool = SqlitePoolOptions::new()
+        .connect(&uri)
+        .await
+        .map_err(|e| e.to_string())?;
 
     let file = File::create(&target_path).map_err(|e| e.to_string())?;
     let mut zip = ZipWriter::new(file);
 
-    let pass_str = std::str::from_utf8(APP_GENERAL_KEY).unwrap();
     let options: FileOptions<'_, ()> = FileOptions::default()
-        .compression_method(CompressionMethod::Deflated)
-        .with_aes_encryption(zip::AesMode::Aes256, pass_str);
+        .compression_method(CompressionMethod::Deflated);
 
     for &(table, _, _) in TABLES {
         zip.start_file(format!("{}.csv", table), options)
@@ -105,39 +99,44 @@ pub fn export_csv_zip(
             _ => format!("SELECT * FROM {}", table),
         };
 
-        let mut stmt = conn
-            .prepare(&query)
-            .map_err(|e| format!("Error querying table {}: {}", table, e))?;
+        let rows = sqlx::query(&query).fetch_all(&pool).await.map_err(|e| e.to_string())?;
 
-        let cols: Vec<String> = stmt.column_names().iter().map(|s| s.to_string()).collect();
-        wtr.write_record(&cols).map_err(|e| e.to_string())?;
+        if !rows.is_empty() {
+            let cols: Vec<String> = rows[0].columns().iter().map(|c| c.name().to_string()).collect();
+            wtr.write_record(&cols).map_err(|e| e.to_string())?;
 
-        let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
-        while let Some(row) = rows.next().map_err(|e| e.to_string())? {
-            let mut record = Vec::new();
-            for i in 0..cols.len() {
-                let val = row.get_ref(i).map_err(|e| e.to_string())?;
-                let s = match val {
-                    ValueRef::Null => "".to_string(),
-                    ValueRef::Integer(i) => i.to_string(),
-                    ValueRef::Real(f) => f.to_string(),
-                    ValueRef::Text(t) => String::from_utf8_lossy(t).to_string(),
-                    ValueRef::Blob(_) => "".to_string(),
-                };
-                record.push(s);
+            for row in rows {
+                let mut record = Vec::new();
+                for i in 0..cols.len() {
+                    let val_ref = row.try_get_raw(i).map_err(|e| e.to_string())?;
+                    let s = if val_ref.is_null() {
+                        "".to_string()
+                    } else {
+                        let type_info = val_ref.type_info();
+                        match type_info.name() {
+                            "INTEGER" | "INT" | "NUMERIC" => row.try_get::<i64, _>(i).map(|v| v.to_string()).unwrap_or_default(),
+                            "REAL" | "FLOAT" | "DOUBLE" => row.try_get::<f64, _>(i).map(|v| v.to_string()).unwrap_or_default(),
+                            "TEXT" | "VARCHAR" => row.try_get::<String, _>(i).unwrap_or_default(),
+                            "BOOLEAN" => row.try_get::<bool, _>(i).map(|v| if v { "1".to_string() } else { "0".to_string() }).unwrap_or_default(),
+                            _ => row.try_get::<String, _>(i).unwrap_or_default(),
+                        }
+                    };
+                    record.push(s);
+                }
+                wtr.write_record(&record).map_err(|e| e.to_string())?;
             }
-            wtr.write_record(&record).map_err(|e| e.to_string())?;
         }
         wtr.flush().map_err(|e| e.to_string())?;
     }
 
     zip.finish().map_err(|e| e.to_string())?;
+    pool.close().await;
 
     Ok(())
 }
 
 #[tauri::command]
-pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), String> {
+pub async fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), String> {
     let db_path = get_db_path(&app)?;
 
     let file = File::open(&source_path).map_err(|e| e.to_string())?;
@@ -149,80 +148,68 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
         std::fs::copy(&db_path, &temp_path).map_err(|e| e.to_string())?;
     }
 
-    let mut conn = rusqlite::Connection::open(&temp_path).map_err(|e| e.to_string())?;
+    let uri = format!("sqlite:{}", temp_path.to_string_lossy());
+    let pool = SqlitePoolOptions::new()
+        .connect(&uri)
+        .await
+        .map_err(|e| e.to_string())?;
 
     for &(table, pk, update_cols) in TABLES {
         let file_name = format!("{}.csv", table);
-        let pass_str = std::str::from_utf8(APP_GENERAL_KEY).unwrap();
-
-        let zip_file_result = archive.by_name_decrypt(&file_name, pass_str.as_bytes()).ok();
-
-        let mut zip_file = match zip_file_result {
-            Some(f) => f,
-            None => continue,
-        };
 
         let mut csv_data = String::new();
-        zip_file
-            .read_to_string(&mut csv_data)
-            .map_err(|e| e.to_string())?;
+        {
+            let zip_file_result = archive.by_name(&file_name).ok();
+            if let Some(mut zip_file) = zip_file_result {
+                zip_file
+                    .read_to_string(&mut csv_data)
+                    .map_err(|e| e.to_string())?;
+            } else {
+                continue;
+            }
+        }
 
-        // Parse CSV
         let mut rdr = csv::Reader::from_reader(csv_data.as_bytes());
         let headers = rdr.headers().map_err(|e| e.to_string())?.clone();
 
-        // Create temp table with same structure
         let temp_table = format!("temp_{}", table);
-        conn.execute(&format!("DROP TABLE IF EXISTS {}", temp_table), [])
-            .map_err(|e| e.to_string())?;
-        conn.execute(
-            &format!(
-                "CREATE TEMP TABLE {} AS SELECT * FROM {} WHERE 0",
-                temp_table, table
-            ),
-            [],
-        )
-        .map_err(|e| e.to_string())?;
+        sqlx::query(&format!("DROP TABLE IF EXISTS {}", temp_table))
+            .execute(&pool).await.map_err(|e| e.to_string())?;
+            
+        sqlx::query(&format!("CREATE TEMP TABLE {} AS SELECT * FROM {} WHERE 0", temp_table, table))
+            .execute(&pool).await.map_err(|e| e.to_string())?;
 
-        // Insert into temp table
         let placeholders = vec!["?"; headers.len()].join(", ");
         let insert_temp = format!("INSERT INTO {} VALUES ({})", temp_table, placeholders);
 
-        let tx = conn.transaction().map_err(|e| e.to_string())?;
-        {
-            let mut stmt = tx.prepare(&insert_temp).map_err(|e| e.to_string())?;
-            for result in rdr.records() {
-                let record = result.map_err(|e| e.to_string())?;
-                let mut params: Vec<&dyn rusqlite::ToSql> = Vec::new();
-                let mut string_vals = Vec::new();
-                for field in record.iter() {
-                    string_vals.push(if field.is_empty() {
-                        None
-                    } else {
-                        Some(field.to_string())
-                    });
+        let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+        
+        for result in rdr.records() {
+            let record = result.map_err(|e| e.to_string())?;
+            
+            let mut q = sqlx::query(&insert_temp);
+            for field in record.iter() {
+                if field.is_empty() {
+                    q = q.bind(None::<String>);
+                } else {
+                    q = q.bind(field.to_string());
                 }
-                for val in &string_vals {
-                    params.push(val);
-                }
-                stmt.execute(rusqlite::params_from_iter(params))
-                    .map_err(|e| e.to_string())?;
             }
+            q.execute(&mut *tx).await.map_err(|e| e.to_string())?;
         }
-        tx.commit().map_err(|e| e.to_string())?;
+        tx.commit().await.map_err(|e| e.to_string())?;
 
-        // Upsert into main table from temp table
         let upsert_sql = format!(
             "INSERT INTO {table} SELECT * FROM {temp_table} \
              ON CONFLICT({pk}) DO UPDATE SET \
              {update_cols}, updated_at = excluded.updated_at \
              WHERE excluded.updated_at > {table}.updated_at"
         );
-        conn.execute(&upsert_sql, [])
+        sqlx::query(&upsert_sql).execute(&pool).await
             .map_err(|e| format!("Gagal sinkronisasi tabel {}: {}", table, e))?;
     }
 
-    drop(conn);
+    pool.close().await;
 
     std::fs::copy(&temp_path, &db_path).map_err(|e| e.to_string())?;
     let _ = std::fs::remove_file(temp_path);

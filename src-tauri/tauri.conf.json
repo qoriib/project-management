@@ -24,13 +24,7 @@
       "csp": null
     }
   },
-  "plugins": {
-    "sql": {
-      "preload": [
-        "sqlite:proyek.db"
-      ]
-    }
-  },
+  "plugins": {},
   "bundle": {
     "active": true,
     "targets": "all",
