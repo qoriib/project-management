@@ -1,26 +1,39 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
-import { HStack, Table, Text, IconButton, Divider } from "@astryxdesign/core";
-import { proportional, pixel, type TableColumn, useTableGroupedRows } from "@astryxdesign/core/Table";
+import { HStack, Table, Text, IconButton, Divider, Button } from "@astryxdesign/core";
+import { proportional, pixel, type TableColumn, useTableGroupedRows, type TablePlugin } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { type BOMDetail } from "@/db/repositories";
+import type { BOMDetail } from "@/db/repositories";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useBOMStore } from "@/store/useBOMStore";
+import { Plus } from "lucide-react";
+import { useBOMForm } from "./form/useBOMForm";
+import { ItemSelectorCell, QtyInputCell, PriceSelectorCell, TotalEstimasiCell } from "./BOMItemCells";
 
-type BomRow = BOMDetail & Record<string, unknown>;
+type BomRow = {
+  [K in keyof BOMDetail]: BOMDetail[K];
+} & {
+  isFooter?: boolean;
+  isDraft?: boolean;
+  [key: string]: unknown;
+};
 
 interface BOMTableProps {
   refreshTrigger?: number;
-  onEdit: (id: string, data: BOMDetail) => void;
 }
 
-export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
+export function BOMTable({ refreshTrigger }: BOMTableProps) {
   const { boms, deleteBOM, loadBOMs } = useBOMStore();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  
+  // State untuk form inline
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingData, setEditingData] = useState<BOMDetail | undefined>(undefined);
+  const [editingGroupId, setEditingGroupId] = useState<string | undefined>(undefined);
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
@@ -32,9 +45,7 @@ export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
 
   async function handleDelete() {
     if (!deleteTarget) return;
-
     setDeleting(true);
-
     try {
       await deleteBOM(deleteTarget);
       setDeleteTarget(null);
@@ -43,59 +54,141 @@ export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
     }
   }
 
+  const { form, priceOptions, items, handleItemChange } = useBOMForm({
+    initialData: editingData,
+    defaultGroupId: editingGroupId || "",
+    onSuccess: () => {
+      setEditingId(null);
+      setEditingData(undefined);
+      setEditingGroupId(undefined);
+    },
+  });
+
   const columns: TableColumn<BomRow>[] = [
     {
       key: "item_id",
       header: "No. Barang",
       width: pixel(120),
-      renderCell: (row: BomRow) => <EntityCode prefix="BRG" id={row.item_id} />
+      renderCell: (row: BomRow) => {
+        if (row.isFooter) return null;
+        if (row.isDraft) return <Text color="secondary" size="sm">Baru</Text>;
+        return <EntityCode prefix="BRG" id={row.item_id} />;
+      }
     },
     {
       key: "item_name",
       header: "Nama Item",
-      width: proportional(1)
+      width: proportional(1),
+      renderCell: (row: BomRow) => {
+        if (row.isFooter) return null;
+        if (row.bom_id === editingId) {
+          return <ItemSelectorCell form={form} items={items} handleItemChange={handleItemChange} />;
+        }
+        return row.item_name;
+      }
     },
     {
       key: "qty",
       header: "Volume Rencana",
-      width: pixel(140),
-      renderCell: (row: BomRow) => `${formatNumber(row.qty, 2)} ${row.unit || ""}`
+      width: pixel(180),
+      renderCell: (row: BomRow) => {
+        if (row.isFooter) return null;
+        if (row.bom_id === editingId) {
+          return <QtyInputCell form={form} />;
+        }
+        return `${formatNumber(row.qty, 2)} ${row.unit || ""}`;
+      }
     },
     {
       key: "price",
       header: "Harga Rencana",
-      width: pixel(160),
-      renderCell: (row: BomRow) => formatRupiah(row.price)
+      width: pixel(200),
+      renderCell: (row: BomRow) => {
+        if (row.isFooter) return null;
+        if (row.bom_id === editingId) {
+          return <PriceSelectorCell form={form} priceOptions={priceOptions} />;
+        }
+        return formatRupiah(row.price);
+      }
     },
     {
       key: "estimation",
       header: "Total Estimasi",
       width: pixel(180),
-      renderCell: (row: BomRow) => formatRupiah(row.estimated_total || 0),
+      renderCell: (row: BomRow) => {
+        if (row.isFooter) return null;
+        if (row.bom_id === editingId) {
+           return <TotalEstimasiCell form={form} priceOptions={priceOptions} />;
+        }
+        return formatRupiah(row.estimated_total || 0);
+      }
     },
     {
       key: "actions",
       header: "Aksi",
       align: "end",
       width: pixel(100),
-      renderCell: (row: BomRow) => (
-        <HStack gap={2} justify="end">
-          <IconButton
-            size="sm"
-            variant="secondary"
-            label="Edit"
-            icon={<Pencil size={16} />}
-            onClick={() => onEdit(row.bom_id, row)}
-          />
-          <IconButton
-            size="sm"
-            variant="destructive"
-            label="Hapus"
-            icon={<Trash2 size={16} />}
-            onClick={() => setDeleteTarget(row.bom_id)}
-          />
-        </HStack>
-      ),
+      renderCell: (row: BomRow) => {
+        if (row.isFooter) return null;
+        
+        if (row.bom_id === editingId) {
+          return (
+            <HStack gap={2} justify="end">
+              <form.Subscribe selector={(s) => s.canSubmit}>
+                {(canSubmit) => (
+                  <IconButton
+                    size="sm"
+                    variant="primary"
+                    label="Simpan"
+                    icon={<Check size={16} />}
+                    isDisabled={!canSubmit}
+                    onClick={() => {
+                      form.handleSubmit();
+                    }}
+                  />
+                )}
+              </form.Subscribe>
+              <IconButton
+                size="sm"
+                variant="secondary"
+                label="Batal"
+                icon={<X size={16} />}
+                onClick={() => {
+                  setEditingId(null);
+                  setEditingData(undefined);
+                  setEditingGroupId(undefined);
+                  form.reset();
+                }}
+              />
+            </HStack>
+          );
+        }
+
+        return (
+          <HStack gap={2} justify="end">
+            <IconButton
+              size="sm"
+              variant="secondary"
+              label="Edit"
+              icon={<Pencil size={16} />}
+              isDisabled={!!editingId}
+              onClick={() => {
+                setEditingId(row.bom_id);
+                setEditingData(row as BOMDetail);
+                setEditingGroupId(row.bom_group_id);
+              }}
+            />
+            <IconButton
+              size="sm"
+              variant="destructive"
+              label="Hapus"
+              icon={<Trash2 size={16} />}
+              isDisabled={!!editingId}
+              onClick={() => setDeleteTarget(row.bom_id)}
+            />
+          </HStack>
+        );
+      },
     },
   ];
 
@@ -103,7 +196,7 @@ export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
     let grand = 0;
     const subtotals: Record<string, number> = {};
     for (const b of boms) {
-      const cat = b.bom_group_name || "LAINNYA";
+      const cat = b.bom_group_id || "LAINNYA";
       const total = b.estimated_total || 0;
       grand += total;
       subtotals[cat] = (subtotals[cat] || 0) + total;
@@ -111,28 +204,105 @@ export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
     return { grandTotal: grand, categorySubtotals: subtotals };
   }, [boms]);
 
+  // Create a map to get group names from group ids
+  const groupNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const b of boms) {
+      if (b.bom_group_id) {
+        map[b.bom_group_id] = b.bom_group_name || "Lainnya";
+      }
+    }
+    return map;
+  }, [boms]);
+
+  const dataWithFooters = useMemo(() => {
+    const list = [...boms] as BomRow[];
+    const groupIds = new Set(boms.map(b => b.bom_group_id));
+    for (const gid of groupIds) {
+      if (gid) {
+        if (editingId === `new-${gid}`) {
+          list.push({ bom_id: `new-${gid}`, bom_group_id: gid, isDraft: true } as unknown as BomRow);
+        }
+        list.push({ isFooter: true, bom_group_id: gid, bom_id: `footer-${gid}` } as unknown as BomRow);
+      }
+    }
+    return list;
+  }, [boms, editingId]);
+
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
-  const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows({
-    data: boms as BomRow[],
-    groupBy: (item) => item.bom_group_name || "LAINNYA",
+  const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows<BomRow>({
+    data: dataWithFooters,
+    groupBy: (item) => item.bom_group_id || "LAINNYA",
     collapsedGroups,
     onToggleGroup: (key) => {
-      setCollapsedGroups((prev) => {
-        const next = new Set(prev);
-        if (next.has(key)) next.delete(key);
-        else next.add(key);
-        return next;
-      });
+      if (!editingId) {
+        setCollapsedGroups((prev) => {
+          const next = new Set(prev);
+          if (next.has(key)) next.delete(key);
+          else next.add(key);
+          return next;
+        });
+      }
     },
     getRowKey: (item) => String(item.bom_id),
-    renderGroupHeader: (key) => (
-      <HStack justify="between" align="center" paddingInline={1} width="100%">
-        <Text weight="bold">{key}</Text>
-        <Text weight="bold">{formatRupiah(categorySubtotals[key] || 0)}</Text>
-      </HStack>
-    ),
+    renderGroupHeader: (key) => {
+      const groupName = groupNameMap[key] || "Lainnya";
+      return (
+        <HStack justify="between" align="center" paddingInline={1} width="100%">
+          <Text weight="bold">{groupName}</Text>
+          <Text weight="bold">{formatRupiah(categorySubtotals[key] || 0)}</Text>
+        </HStack>
+      );
+    },
   });
+
+  const footerPlugin = useMemo((): TablePlugin<BomRow> => ({
+    transformBodyRow(props, item) {
+      if ((item as any).isFooter) {
+        const groupId = item.bom_group_id;
+        
+        // Hide Tambah Kebutuhan if we are already adding/editing something
+        const hideButton = !!editingId;
+
+        return {
+          ...props,
+          children: (
+            <td colSpan={999} style={{ padding: "8px 16px", background: "var(--color-bg-base)", borderBottom: "1px solid var(--color-border)" }}>
+              {!hideButton && (
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  icon={<Plus size={16} />}
+                  label="Tambah Kebutuhan" 
+                  onClick={() => {
+                    setEditingData(undefined);
+                    setEditingGroupId(groupId);
+                    setEditingId(`new-${groupId}`);
+                    setCollapsedGroups(prev => {
+                      const next = new Set(prev);
+                      next.delete(groupId);
+                      return next;
+                    });
+                  }} 
+                />
+              )}
+            </td>
+          )
+        };
+      }
+      
+      // Give a slight highlighted background to the active editing row
+      if (item.bom_id === editingId) {
+        return {
+          ...props,
+          xstyle: [...props.xstyle, { background: "var(--color-bg-muted)" }]
+        };
+      }
+      
+      return props;
+    }
+  }), [editingId]);
 
   return (
     <>
@@ -142,8 +312,8 @@ export function BOMTable({ refreshTrigger, onEdit }: BOMTableProps) {
         columns={columns}
         data={groupedData}
         idKey={groupedIdKey}
-        plugins={{ grouping: groupedPlugin }}
-        emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini. Isi form di bawah untuk mulai menambahkan." />}
+        plugins={{ grouping: groupedPlugin, footer: footerPlugin }}
+        emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan terlebih dahulu di Master Proyek." />}
       />
       {boms.length > 0 && (
         <>

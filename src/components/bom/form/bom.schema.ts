@@ -16,8 +16,8 @@ export type BOMFormValues = {
 
 import type { BOMDetail } from "@/db/repositories";
 
-export function buildDefaultValues(initialData?: BOMDetail & { bom_group_id?: string }): BOMFormValues {
-  const bom_group_id = initialData?.bom_group_id ?? "";
+export function buildDefaultValues(initialData?: BOMDetail & { bom_group_id?: string }, defaultGroupId?: string): BOMFormValues {
+  const bom_group_id = initialData?.bom_group_id ?? defaultGroupId ?? "";
   const item_id = initialData?.item_id ?? "";
   const qty = initialData?.qty ? Number(initialData.qty) : 0;
   const item_price_id = initialData?.item_price_id ?? "";
@@ -27,7 +27,6 @@ export function buildDefaultValues(initialData?: BOMDetail & { bom_group_id?: st
 
 export interface BOMFormProps {
   initialData?: BOMDetail;
-  isDisabled?: boolean;
+  defaultGroupId?: string;
   onSuccess: () => void;
-  onCancel: () => void;
 }

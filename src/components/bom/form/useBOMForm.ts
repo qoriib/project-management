@@ -15,8 +15,9 @@ import { loadAvailablePriceOptions } from "./bom.utils";
  */
 export function useBOMForm({
   initialData,
+  defaultGroupId,
   onSuccess,
-}: Pick<BOMFormProps, "initialData" | "onSuccess">) {
+}: Pick<BOMFormProps, "initialData" | "defaultGroupId" | "onSuccess">) {
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
@@ -28,7 +29,7 @@ export function useBOMForm({
   const [priceOptions, setPriceOptions] = useState<{ value: string; label: string }[]>([]);
 
   const form = useForm({
-    defaultValues: buildDefaultValues(initialData),
+    defaultValues: buildDefaultValues(initialData, defaultGroupId),
     validators: { onChange: bomSchema },
     onSubmit: async ({ value }) => {
       try {
@@ -94,13 +95,13 @@ export function useBOMForm({
     const isEditMode = initialData !== undefined;
 
     if (isEditMode) {
-      form.reset(buildDefaultValues(initialData));
+      form.reset(buildDefaultValues(initialData, defaultGroupId));
       loadAvailablePriceOptions(String(initialData.item_id), initialData).then(setPriceOptions);
     } else {
-      form.reset(buildDefaultValues());
+      form.reset(buildDefaultValues(undefined, defaultGroupId));
       setPriceOptions([]);
     }
-  }, [initialData]);
+  }, [initialData, defaultGroupId]);
 
   return {
     form,
