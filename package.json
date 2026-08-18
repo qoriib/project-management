@@ -9,9 +9,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "dev:staff_logistics": "cross-env VITE_APP_ROLE=logistics_staff tauri dev",
+    "dev:staff": "cross-env VITE_APP_ROLE=logistics_staff tauri dev",
     "dev:manager": "cross-env VITE_APP_ROLE=manager tauri dev",
-    "build:staff_logistics": "cross-env VITE_APP_ROLE=logistics_staff tauri build",
+    "build:staff": "cross-env VITE_APP_ROLE=logistics_staff tauri build",
     "build:manager": "cross-env VITE_APP_ROLE=manager tauri build",
     "preview": "vite preview",
     "tauri": "tauri",

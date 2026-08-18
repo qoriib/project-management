@@ -4,8 +4,6 @@ import { HStack, Table, Text, IconButton, Button, VStack, Divider } from "@astry
 import { proportional, pixel, type TableColumn, useTableGroupedRows, type TablePlugin } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
-import { EntityCode } from "@/components/shared/EntityCode";
-import type { BOMDetail } from "@/db/repositories";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useBOMStore } from "@/store/useBOMStore";
@@ -13,6 +11,7 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { Plus } from "lucide-react";
 import { useBOMForm } from "./form/useBOMForm";
 import { ItemSelectorCell, QtyInputCell, PriceSelectorCell, TotalEstimasiCell } from "./BOMItemCells";
+import type { BOMDetail } from "@/db/repositories";
 
 type BomRow = {
   [K in keyof BOMDetail]: BOMDetail[K];
@@ -69,16 +68,6 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   });
 
   const baseColumns: TableColumn<BomRow>[] = [
-    {
-      key: "item_id",
-      header: "No. Barang",
-      width: pixel(120),
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) return null;
-        if (row.isDraft) return <Text color="secondary" size="sm">Baru</Text>;
-        return <EntityCode prefix="BRG" id={row.item_id} />;
-      }
-    },
     {
       key: "item_name",
       header: "Nama Item",

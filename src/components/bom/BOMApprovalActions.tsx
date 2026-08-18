@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@astryxdesign/core";
+import { Button, Badge } from "@astryxdesign/core";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
@@ -17,7 +17,16 @@ export function BOMApprovalActions() {
   const [loading, setLoading] = useState(false);
   const { approveProjectBOM, cancelApproveProjectBOM } = useMasterStore();
 
-  if (!selectedProjectId || !isManager) return null;
+  if (!selectedProjectId) return null;
+
+  if (!isManager) {
+    return (
+      <Badge
+        variant={isApproved ? "success" : "warning"}
+        label={isApproved ? "Sudah Disetujui" : "Belum Disetujui"}
+      />
+    );
+  }
 
   const handleApprove = async () => {
     setLoading(true);
