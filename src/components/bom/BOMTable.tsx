@@ -40,7 +40,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   const projects = useMasterStore((s) => s.projects);
   const currentProject = projects.find(p => p.project_id === selectedProjectId);
   const isApproved = currentProject?.bom_is_approved === 1;
-  const role = import.meta.env.VITE_APP_ROLE || 'logistics_staff';
+  const role = import.meta.env.VITE_APP_ROLE || 'staff_logistics';
   const isManager = role === 'manager';
 
   // For approval dialog

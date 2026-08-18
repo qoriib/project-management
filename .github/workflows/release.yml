@@ -12,13 +12,13 @@ jobs:
       matrix:
         include:
           - platform: 'windows-latest'
-            args: '--target i686-pc-windows-msvc'
-            target: 'i686-pc-windows-msvc'
-            arch: '32bit'
+            args: '--target x86_64-pc-windows-msvc'
+            target: 'x86_64-pc-windows-msvc'
+            role: 'manager'
           - platform: 'windows-latest'
             args: '--target x86_64-pc-windows-msvc'
             target: 'x86_64-pc-windows-msvc'
-            arch: '64bit'
+            role: 'staff_logistics'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -39,12 +39,12 @@ jobs:
         run: npm install
 
       - name: build tauri app
-        run: npm run tauri build -- ${{ matrix.args }}
+        run: npm run build:${{ matrix.role }} -- ${{ matrix.args }}
 
       - name: upload installer artifact
         uses: actions/upload-artifact@v7
         with:
-          name: Manajemen-Proyek-Windows-${{ matrix.arch }}
+          name: Manajemen-Proyek-Windows-${{ matrix.role }}
           path: |
             src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
             src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi

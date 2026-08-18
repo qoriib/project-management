@@ -184,7 +184,7 @@ export abstract class BaseRepository<
   // ── WRITE ────────────────────────────────────────────────────────────────
 
   /**
-   * Insert a new record with a generated UUID v4 as primary key.
+   * Insert a new record with a generated UUID v7 as primary key.
    * Returns the UUID string of the newly created record.
    */
   async create(data: TCreate): Promise<string> {

@@ -8,10 +8,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:logistics_staff": "vite --mode logistics_staff",
+    "dev:staff_logistics": "vite --mode staff_logistics",
     "dev:manager": "vite --mode manager",
     "build": "tsc && vite build",
-    "build:logistics_staff": "tsc && vite build --mode logistics_staff && tauri build",
+    "build:staff_logistics": "tsc && vite build --mode staff_logistics && tauri build",
     "build:manager": "tsc && vite build --mode manager && tauri build",
     "preview": "vite preview",
     "tauri": "tauri",
@@ -35,7 +35,6 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "uuid": "^14.0.1",
-    "uuidv7": "^1.2.1",
     "valibot": "^1.4.2",
     "zustand": "^5.0.15"
   },

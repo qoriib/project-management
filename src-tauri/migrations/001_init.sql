@@ -1,6 +1,6 @@
 -- 001_init.sql
 -- Initialize core database schema with soft delete structure
--- Primary keys use UUID v4 (TEXT), generated at application layer
+-- Primary keys use UUID v7 (TEXT), generated at application layer
 
 CREATE TABLE IF NOT EXISTS `projects` (
 	`project_id` text NOT NULL PRIMARY KEY,
