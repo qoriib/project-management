@@ -17,7 +17,7 @@ function DeliveryPage() {
     <Section padding={6}>
       <VStack gap={4}>
         <PageHeader
-          title="Daftar Penerimaan (DLV)"
+          title="Daftar Penerimaan (NP)"
           subtitle="Log kronologis penerimaan item di lapangan"
           actions={(selectedProjectId && isValidProject) ? <Button variant="primary" label="Buat Baru" onClick={() => navigate({ to: "/delivery/new" })} /> : null}
         />

@@ -37,12 +37,14 @@ function DeliveryItemsCardInner({
       key: "remaining",
       header: "Dipesan / Diterima",
       width: pixel(180),
+      align: "end",
       renderCell: (row) => <DeliveryRemainingCell row={row} />,
     },
     {
       key: "qty",
       header: "Volume Diterima",
       width: pixel(180),
+      align: "end",
       renderCell: (row) => {
         const idx = items.indexOf(row);
         return <DeliveryQtyCell form={form} row={row} idx={idx} />;

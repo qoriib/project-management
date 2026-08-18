@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { VStack, Card, HStack, Button } from "@astryxdesign/core";
+import { TextInput } from "@astryxdesign/core/TextInput";
 import { DateInput } from "@astryxdesign/core/DateInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { POItemFormTable } from "./POItemFormTable";
@@ -14,6 +15,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { useNavigate } from "@tanstack/react-router";
 
 const headerSchema = v.object({
+  po_code: v.pipe(v.string(), v.nonEmpty("Nomor PO harus diisi.")),
   po_date: v.pipe(v.string(), v.nonEmpty("Tanggal PO harus diisi.")),
 });
 
@@ -33,6 +35,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
 
   const form = useForm({
     defaultValues: {
+      po_code: po?.po_code || "",
       po_date: po?.po_date || todayISO(),
     },
     validators: { onChange: headerSchema },
@@ -52,11 +55,11 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
 
       try {
         if (po) {
-          await updatePO(po.po_id, { po_date: value.po_date, project_id: selectedProjectId }, itemInputs);
+          await updatePO(po.po_id, { po_date: value.po_date, project_id: selectedProjectId, po_code: value.po_code }, itemInputs);
           showToast({ body: "PO berhasil diperbarui.", type: "info" });
           navigate({ to: `/po/${po.po_id}` });
         } else {
-          const newPoId = await createPO({ po_date: value.po_date, project_id: selectedProjectId }, itemInputs);
+          const newPoId = await createPO({ po_date: value.po_date, project_id: selectedProjectId, po_code: value.po_code }, itemInputs);
           showToast({ body: "PO berhasil dibuat.", type: "info" });
           navigate({ to: `/po/${newPoId}` });
         }
@@ -75,8 +78,27 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
       }}
     >
       <VStack gap={6}>
-        <HStack>
-          <VStack gap={1}>
+        <HStack gap={4}>
+          <VStack gap={1} style={{ flex: 1 }}>
+            <form.Field name="po_code">
+              {(field) => (
+                <TextInput
+                  label="Nomor PO"
+                  placeholder="Misal: PO/2026/08/001"
+                  value={field.state.value}
+                  onChange={(v) => field.handleChange(v || "")}
+                  onBlur={field.handleBlur}
+                  isRequired
+                  statusVariant="attached"
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    !!field.state.meta.isTouched
+                  )}
+                />
+              )}
+            </form.Field>
+          </VStack>
+          <VStack gap={1} style={{ flex: 1 }}>
             <form.Field name="po_date">
               {(field) => (
                 <DateInput

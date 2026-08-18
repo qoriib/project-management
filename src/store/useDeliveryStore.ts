@@ -14,8 +14,8 @@ interface DeliveryStore {
   loadAllDeliveries: (projectId?: string) => Promise<void>;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
-  createDelivery: (data: { po_id: string; delivery_date: string }, items: { po_item_id: string; qty: number }[]) => Promise<void>;
-  updateDelivery: (id: string, data: { po_id: string; delivery_date: string }, items: { po_item_id: string; qty: number }[]) => Promise<void>;
+  createDelivery: (data: { po_id: string; delivery_date: string; delivery_code: string }, items: { po_item_id: string; qty: number }[]) => Promise<void>;
+  updateDelivery: (id: string, data: { po_id: string; delivery_date: string; delivery_code: string }, items: { po_item_id: string; qty: number }[]) => Promise<void>;
   deleteDelivery: (id: string) => Promise<void>;
 }
 

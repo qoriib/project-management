@@ -53,8 +53,9 @@ export function DashboardItemLogDialog({
       key: "qty",
       header: "Volume",
       width: pixel(100),
+      align: "end",
       renderCell: (r: LogRow) => (
-        <Text>{formatNumber(r.qty, 2)}</Text>
+        <Text type="code">{formatNumber(r.qty, 2)}</Text>
       )
     },
     {

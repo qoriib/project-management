@@ -32,14 +32,21 @@ export function POItemTrackingTable() {
     {
       key: "price",
       header: "Harga (Rp)",
+      align: "end",
       width: pixel(240),
       renderCell: (row) => {
         const bomItem = bomData.find(b => b.item_id === row.item_id && b.item_price_id === row.item_price_id);
         const bomPrice = bomItem?.price || 0;
         return (
-          <VStack gap={0.5}>
-            <Text weight="medium">Realisasi: {formatNumber(row.price)}</Text>
-            <Text size="sm" color="secondary">Rencana: {formatNumber(bomPrice)}</Text>
+          <VStack gap={0.5} align="end">
+            <HStack gap={1} justify="end">
+              <Text weight="medium">Realisasi:</Text>
+              <Text type="code">{formatNumber(row.price)}</Text>
+            </HStack>
+            <HStack gap={1} justify="end">
+              <Text size="sm" color="secondary">Rencana:</Text>
+              <Text type="code" size="sm" color="secondary">{formatNumber(bomPrice)}</Text>
+            </HStack>
           </VStack>
         );
       }
@@ -59,9 +66,15 @@ export function POItemTrackingTable() {
         const bomItem = bomData.find((b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id);
         const bomQty = bomItem?.planned_volume || 0;
         return (
-          <VStack gap={0.5}>
-            <Text weight="medium">Realisasi: {formatNumber(row.qty, 2)}</Text>
-            <Text size="sm" color="secondary">Rencana: {formatNumber(bomQty, 2)}</Text>
+          <VStack gap={0.5} align="end">
+            <HStack gap={1} justify="end">
+              <Text weight="medium">Realisasi:</Text>
+              <Text type="code">{formatNumber(row.qty, 2)}</Text>
+            </HStack>
+            <HStack gap={1} justify="end">
+              <Text size="sm" color="secondary">Rencana:</Text>
+              <Text type="code" size="sm" color="secondary">{formatNumber(bomQty, 2)}</Text>
+            </HStack>
           </VStack>
         );
       }
@@ -69,6 +82,7 @@ export function POItemTrackingTable() {
     {
       key: "subtotal",
       header: "Total Harga",
+      align: "end",
       width: pixel(240),
       renderCell: (row) => {
         const bomItem = bomData.find(b => b.item_id === row.item_id && b.item_price_id === row.item_price_id);
@@ -77,9 +91,15 @@ export function POItemTrackingTable() {
         const totalPO = (row.qty || 0) * (row.price || 0);
 
         return (
-          <VStack gap={0.5}>
-            <Text weight="medium">Realisasi: {formatNumber(totalPO)}</Text>
-            <Text size="sm" color="secondary">Rencana: {formatNumber(totalBOM)}</Text>
+          <VStack gap={0.5} align="end">
+            <HStack gap={1} justify="end">
+              <Text weight="medium">Realisasi:</Text>
+              <Text type="code">{formatNumber(totalPO)}</Text>
+            </HStack>
+            <HStack gap={1} justify="end">
+              <Text size="sm" color="secondary">Rencana:</Text>
+              <Text type="code" size="sm" color="secondary">{formatNumber(totalBOM)}</Text>
+            </HStack>
           </VStack>
         );
       }
@@ -87,6 +107,7 @@ export function POItemTrackingTable() {
     {
       key: "progress",
       header: "Pengiriman",
+      align: "end",
       width: pixel(180),
       renderCell: (row) => {
         const pct = row.qty > 0 ? ((row.total_delivered || 0) / row.qty) * 100 : 0;
@@ -96,10 +117,11 @@ export function POItemTrackingTable() {
         return (
           <VStack gap={0.5}>
             <HStack justify="between">
-              <Text size="sm" color="secondary" weight="medium">
+              <Text type="code" size="sm" color="secondary" weight="medium">
                 {`${formatNumber(row.total_delivered || 0, 2)} / ${formatNumber(row.qty || 0, 2)}`}
               </Text>
               <Text
+                type="code"
                 size="sm"
                 color={isOver ? undefined : "primary"}
                 weight="bold"

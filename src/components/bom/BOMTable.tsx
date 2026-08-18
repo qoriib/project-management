@@ -120,10 +120,10 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
       align: "end",
       renderCell: (row: BomRow) => {
         if (row.isFooter) {
-          return <Text weight="bold">{formatNumber(row.price)}</Text>;
+          return <Text type="code" weight="bold">{formatNumber(row.price)}</Text>;
         }
         const subtotal = (row.qty || 0) * (row.price || 0);
-        return <Text weight="medium">{formatNumber(subtotal)}</Text>;
+        return <Text type="code" weight="medium">{formatNumber(subtotal)}</Text>;
       }
     },
     {
@@ -136,7 +136,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         if (row.bom_id === editingId) {
           return <QtyInputCell form={form} />;
         }
-        return formatNumber(row.qty, 6);
+        return <Text type="code">{formatNumber(row.qty, 6)}</Text>;
       }
     },
     {
@@ -149,7 +149,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         if (row.bom_id === editingId) {
           return <PriceSelectorCell form={form} editingId={editingId} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
         }
-        return formatNumber(row.price);
+        return <Text type="code">{formatNumber(row.price)}</Text>;
       }
     },
     {
@@ -162,7 +162,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         if (row.bom_id === editingId) {
           return <TotalEstimasiCell form={form} />;
         }
-        return formatNumber(row.estimated_total || 0);
+        return <Text type="code">{formatNumber(row.estimated_total || 0)}</Text>;
       }
     },
     {
@@ -311,7 +311,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         <HStack justify="between" align="center" paddingInline={1} width="100%">
           <Text weight="bold">{groupName}</Text>
           <HStack paddingInline={2}>
-            <Text weight="bold">{formatNumber(categorySubtotals[key] || 0)}</Text>
+            <Text type="code" weight="bold">{formatNumber(categorySubtotals[key] || 0)}</Text>
           </HStack>
         </HStack>
       );
@@ -389,7 +389,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
           {boms.length > 0 && (
             <HStack justify="end" gap={2} style={{ flex: 1 }}>
               <Text weight="bold" size="lg">Total (Rp):</Text>
-              <Text weight="bold" size="lg" color="primary">
+              <Text type="code" weight="bold" size="lg" color="primary">
                 {formatNumber(grandTotal)}
               </Text>
             </HStack>

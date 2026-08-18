@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, HStack, IconButton, Button } from "@astryxdesign/core";
+import { Table, HStack, IconButton, Button, Text } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -54,7 +54,9 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
     {
       key: "fiscal_year",
       header: "Tahun",
-      width: pixel(100)
+      width: pixel(100),
+      align: "end",
+      renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year}</Text>
     },
     {
       key: "actions",

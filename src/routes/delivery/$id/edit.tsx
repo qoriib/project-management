@@ -21,7 +21,7 @@ function EditDeliveryPage() {
     <Section padding={6}>
       <VStack gap={4}>
         <PageHeader
-          title={`Edit Penerimaan ${formatEntityCode("DLV", id)}`}
+          title={`Edit Penerimaan`}
           subtitle="Ubah log penerimaan item di lapangan"
         />
         <ProjectRequired>

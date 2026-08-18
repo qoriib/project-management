@@ -114,7 +114,7 @@ function AppLayout() {
             />
           }
           footer={
-            <VStack gap={1} paddingInline={2}>
+            <VStack paddingInline={2}>
               <Text weight="normal" color="secondary">{userRole}</Text>
               <Heading level={3}>{APP.companyName}</Heading>
             </VStack>

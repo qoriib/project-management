@@ -133,6 +133,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
     {
       key: "price_info",
       header: "Harga & Variasi (Rp)",
+      align: "end",
       width: pixel(240),
       renderCell: (row: POItemRow) => {
         if (row.isFooter) return null;
@@ -154,7 +155,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
             </form.Subscribe>
           );
         }
-        return <Text weight="medium">{formatNumber(row.price)}</Text>;
+        return <Text type="code" weight="medium">{formatNumber(row.price)}</Text>;
       }
     },
     {
@@ -214,7 +215,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
             <QtyInputCell form={form} initialBalance={initialBalance} />
           );
         }
-        return <Text weight="medium">{formatNumber(row.qty, 2)}</Text>;
+        return <Text type="code" weight="medium">{formatNumber(row.qty, 2)}</Text>;
       }
     },
     {
@@ -227,7 +228,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
         if (row.po_item_id === editingId) {
           return null; // or calculate preview
         }
-        return formatNumber((row.qty || 0) * (row.price || 0));
+        return <Text type="code">{formatNumber((row.qty || 0) * (row.price || 0))}</Text>;
       }
     },
     {

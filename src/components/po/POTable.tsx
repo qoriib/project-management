@@ -1,6 +1,6 @@
 import { Pencil, Trash2, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
-import { HStack, Table, Badge, IconButton, Timestamp } from "@astryxdesign/core";
+import { HStack, Table, Badge, IconButton, Timestamp, Text } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -11,7 +11,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { usePOStore } from "@/store/usePOStore";
 import { type POWithSummary } from "@/db/repositories";
 
-type PORow = POWithSummary & Record<string, unknown>;
+type PORow = POWithSummary & Record<string, unknown> & { po_code: string };
 
 interface POTableProps {
   onEdit: (id: string) => void;
@@ -44,10 +44,10 @@ export function POTable({ onEdit }: POTableProps) {
 
   const columns: TableColumn<PORow>[] = [
     {
-      key: "po_id",
+      key: "po_code",
       header: "No. PO",
-      width: pixel(120),
-      renderCell: (row: PORow) => <EntityCode prefix="PO" id={row.po_id} />
+      width: pixel(180),
+      renderCell: (row: PORow) => <Text weight="medium">{row.po_code}</Text>
     },
     {
       key: "po_date",
@@ -70,14 +70,16 @@ export function POTable({ onEdit }: POTableProps) {
     {
       key: "item_count",
       header: "Total Item",
+      align: "end",
       width: pixel(140),
-      renderCell: (row: PORow) => `${row.item_count} Item`
+      renderCell: (row: PORow) => <Text type="code">{row.item_count} Item</Text>
     },
     {
       key: "total_price",
       header: "Total Biaya (Rp)",
+      align: "end",
       width: pixel(200),
-      renderCell: (row: PORow) => formatNumber(row.total_price),
+      renderCell: (row: PORow) => <Text type="code">{formatNumber(row.total_price)}</Text>,
     },
     {
       key: "actions",
@@ -105,7 +107,7 @@ export function POTable({ onEdit }: POTableProps) {
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            onClick={() => setDeleteTarget({ id: row.po_id, label: formatEntityCode("PO", row.po_id) })}
+            onClick={() => setDeleteTarget({ id: row.po_id, label: row.po_code })}
           />
         </HStack>
       ),

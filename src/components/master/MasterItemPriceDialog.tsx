@@ -1,6 +1,6 @@
 import { Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Table, Badge, IconButton, Card } from "@astryxdesign/core";
+import { Dialog, VStack, HStack, Button, Table, Badge, IconButton, Card, Text } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -97,9 +97,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       key: "price",
       header: "Harga (Rp)",
       width: proportional(1),
+      align: "end",
       renderCell: (row: ItemPriceWithRelation) => (
-        <HStack gap={2} align="center">
-          <Badge variant="neutral" label={formatNumber(row.price)} />
+        <HStack gap={2} align="center" justify="end">
+          <Text type="code">{formatNumber(row.price)}</Text>
           {row.has_relation && <Badge variant="info" label="Digunakan" />}
         </HStack>
       ),

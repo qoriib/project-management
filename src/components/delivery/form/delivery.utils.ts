@@ -42,6 +42,7 @@ export async function loadPOItemsAsDeliveryRows(
 export async function loadDeliveryEditData(deliveryId: string): Promise<{
   po_id: string;
   delivery_date: string;
+  delivery_code: string;
   items: DeliveryItemRow[];
 } | null> {
   const delivery = await deliveryRepo.findById(deliveryId);
@@ -83,6 +84,7 @@ export async function loadDeliveryEditData(deliveryId: string): Promise<{
   return {
     po_id: delivery.po_id,
     delivery_date: delivery.delivery_date,
+    delivery_code: delivery.delivery_code || "",
     items,
   };
 }

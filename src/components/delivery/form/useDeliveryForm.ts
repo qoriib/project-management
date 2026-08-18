@@ -27,6 +27,7 @@ export function useDeliveryForm({
   const form = useForm({
     defaultValues: {
       po_id: initialPoId ?? "",
+      delivery_code: "",
       delivery_date: todayISO(),
       items: [] as DeliveryItemRow[],
     },
@@ -36,6 +37,7 @@ export function useDeliveryForm({
 
       const header = {
         po_id: value.po_id,
+        delivery_code: value.delivery_code,
         delivery_date: value.delivery_date,
       };
 
@@ -76,6 +78,7 @@ export function useDeliveryForm({
 
         if (hasData) {
           form.setFieldValue("po_id", editData!.po_id);
+          form.setFieldValue("delivery_code", editData!.delivery_code);
           form.setFieldValue("delivery_date", editData!.delivery_date);
           form.setFieldValue("items", editData!.items);
         }

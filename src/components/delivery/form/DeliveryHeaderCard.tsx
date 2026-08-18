@@ -1,4 +1,6 @@
-import { Card, HStack } from "@astryxdesign/core";
+import { Card, HStack, VStack } from "@astryxdesign/core";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { getFieldError } from "@/utils/form";
 import { DeliveryPOSelector } from "./DeliveryPOSelector";
 import { DeliveryDateField } from "./DeliveryDateField";
 import type { useDeliveryForm } from "./useDeliveryForm";
@@ -28,7 +30,25 @@ export function DeliveryHeaderCard({
           isEdit={isEdit}
           handlePOChange={handlePOChange}
         />
-        <DeliveryDateField form={form} />
+        <VStack gap={4} width={320}>
+          <form.Field name="delivery_code">
+            {(field) => (
+              <TextInput
+                label="Kode Pengiriman"
+                value={field.state.value}
+                onChange={(v) => field.handleChange(v)}
+                onBlur={field.handleBlur}
+                statusVariant="attached"
+                status={getFieldError(
+                  field.state.meta.errors,
+                  !!field.state.meta.isTouched
+                )}
+                isRequired
+              />
+            )}
+          </form.Field>
+          <DeliveryDateField form={form} />
+        </VStack>
       </HStack>
     </Card>
   );

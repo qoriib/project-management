@@ -68,7 +68,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
     try {
       const qb = new QueryBuilder()
         .select(
-          "po.po_id", "po.project_id", "po.po_date", "po.created_at",
+          "po.po_id", "po.po_code", "po.project_id", "po.po_date", "po.created_at",
           "p.project_name"
         )
         .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
@@ -107,7 +107,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
   async findByIdWithSummary(id: string): Promise<POWithSummary | null> {
     const { sql, params } = new QueryBuilder()
       .select(
-        "po.po_id", "po.project_id", "po.po_date", "po.created_at",
+        "po.po_id", "po.po_code", "po.project_id", "po.po_date", "po.created_at",
         "p.project_name"
       )
       .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")

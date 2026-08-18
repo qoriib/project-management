@@ -2,7 +2,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { HStack, Table, Badge, IconButton, Timestamp } from "@astryxdesign/core";
+import { HStack, Table, Badge, IconButton, Timestamp, Text } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -40,7 +40,7 @@ export function DeliveryTable() {
       key: "delivery_id",
       header: "No. Pengiriman",
       width: pixel(140),
-      renderCell: (row) => <EntityCode prefix="DLV" id={row.delivery_id} />
+      renderCell: (row) => <Text weight="medium">{row.delivery_code}</Text>
     },
     {
       key: "delivery_date",
@@ -51,8 +51,8 @@ export function DeliveryTable() {
     {
       key: "po_id",
       header: "Ref. PO",
-      width: pixel(120),
-      renderCell: (row) => <EntityCode prefix="PO" id={row.po_id} />
+      width: pixel(180),
+      renderCell: (row) => <Text weight="medium">{row.po_code || row.po_id}</Text>
     },
     {
       key: "vendor_names",
@@ -70,7 +70,8 @@ export function DeliveryTable() {
       key: "item_count",
       header: "Total Item",
       width: pixel(120),
-      renderCell: (row) => `${row.item_count} Item`
+      align: "end",
+      renderCell: (row) => <Text type="code">{row.item_count} Item</Text>
     },
     {
       key: "actions",

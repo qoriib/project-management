@@ -92,6 +92,7 @@ CREATE TABLE `bill_of_materials` (
 CREATE TABLE `purchase_orders` (
 	`po_id` text NOT NULL PRIMARY KEY,
 	`project_id` text NOT NULL,
+	`po_code` text,
 	`po_date` text NOT NULL,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
@@ -116,6 +117,7 @@ CREATE TABLE `po_items` (
 CREATE TABLE `deliveries` (
 	`delivery_id` text NOT NULL PRIMARY KEY,
 	`po_id` text NOT NULL,
+	`delivery_code` text,
 	`delivery_date` text NOT NULL,
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL,

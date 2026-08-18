@@ -1,4 +1,4 @@
-import { ClipboardList, Folder, Home, ShoppingCart, Truck, Settings } from "lucide-react";
+import { ClipboardList, Folder, ShoppingCart, Truck, Settings, LayoutDashboard } from "lucide-react";
 
 export enum AppRole {
   MANAGER = 'Manager',
@@ -11,7 +11,7 @@ export const APP = {
   sidenav: [
     {
       label: "Laporan",
-      icon: Home,
+      icon: LayoutDashboard,
       href: "/"
     },
     {
@@ -25,7 +25,7 @@ export const APP = {
       href: "/po"
     },
     {
-      label: "Penerimaan (DLV)",
+      label: "Penerimaan (NP)",
       icon: Truck,
       href: "/delivery"
     },

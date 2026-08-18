@@ -216,8 +216,11 @@ export async function seedDeliveries(): Promise<void> {
       }
 
       if (resolvedItems.length > 0) {
+        const timestamp = new Date(d.deliveryDate).getTime().toString().slice(-4);
+        const generatedCode = `NP/${timestamp}`;
+
         await deliveryRepo.createWithItems(
-          { po_id: poId, delivery_date: d.deliveryDate },
+          { po_id: poId, delivery_date: d.deliveryDate, delivery_code: generatedCode },
           resolvedItems
         );
       }

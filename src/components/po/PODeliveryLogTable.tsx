@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Table, proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { IconButton } from "@astryxdesign/core/IconButton";
-import { Timestamp } from "@astryxdesign/core";
+import { Timestamp, Text } from "@astryxdesign/core";
 import { Pencil } from "lucide-react";
 import { formatNumber } from "@/utils/formatters";
 import type { DeliveryItemByPO } from "@/db/repositories";
@@ -18,9 +18,9 @@ export function PODeliveryLogTable() {
   const deliveryColumns: TableColumn<DeliveryItemByPO>[] = [
     {
       key: "delivery_id",
-      header: "No. DLV",
-      width: pixel(100),
-      renderCell: (row) => <EntityCode prefix="DLV" id={row.delivery_id} />
+      header: "No. NP",
+      width: pixel(180),
+      renderCell: (row) => <Text weight="medium">{row.delivery_code || row.delivery_id}</Text>
     },
     {
       key: "delivery_date",
@@ -37,8 +37,9 @@ export function PODeliveryLogTable() {
     {
       key: "qty",
       header: "Volume Diterima",
+      align: "end",
       width: pixel(180),
-      renderCell: (row) => `${formatNumber(row.qty, 2)} ${row.unit ?? ""}`
+      renderCell: (row) => <Text type="code">{formatNumber(row.qty, 2)} {row.unit ?? ""}</Text>
     },
     {
       key: "actions",

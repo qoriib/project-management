@@ -23,6 +23,7 @@ function atLeastOneItemReceived(items: unknown): boolean {
 
 export const deliverySchema = v.object({
   po_id: v.pipe(v.string(), v.nonEmpty("PO harus dipilih.")),
+  delivery_code: v.pipe(v.string(), v.nonEmpty("Kode pengiriman harus diisi.")),
   delivery_date: v.pipe(v.string(), v.nonEmpty("Tanggal kirim harus diisi.")),
   items: v.pipe(
     v.array(
@@ -49,6 +50,7 @@ export type DeliveryItemRow = {
 
 export type DeliveryFormValues = {
   po_id: string;
+  delivery_code: string;
   delivery_date: string;
   items: DeliveryItemRow[];
 };

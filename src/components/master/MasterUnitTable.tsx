@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, HStack, IconButton } from "@astryxdesign/core";
+import { Table, HStack, IconButton, Text } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -54,7 +54,8 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
       key: "count",
       header: "Jumlah Item",
       width: pixel(150),
-      renderCell: (row: UnitRow) => String(row.count)
+      align: "end",
+      renderCell: (row: UnitRow) => <Text type="code">{String(row.count)}</Text>
     },
     {
       key: "actions",

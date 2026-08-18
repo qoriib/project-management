@@ -17,6 +17,8 @@ export type DeliverySummary = Delivery & {
   item_count?: number;
   vendor_names?: string;
   project_name?: string;
+  po_code?: string;
+  delivery_code?: string;
 };
 
 export type DeliveryItemDetail = {
@@ -31,6 +33,7 @@ export type DeliveryItemDetail = {
 
 export type DeliveryItemByPO = DeliveryItemDetail & {
   delivery_date: string;
+  delivery_code: string;
 };
 
 export interface DeliveryFilters {
@@ -48,7 +51,7 @@ export interface DeliveryItemInput {
 // ── Repository ───────────────────────────────────────────────────────────────
 
 // Use Record<string, unknown> as TUpdate since deliveries are not typically updated
-type UpdateDelivery = Partial<Pick<Delivery, "po_id" | "delivery_date">>;
+type UpdateDelivery = Partial<Pick<Delivery, "po_id" | "delivery_date" | "delivery_code">>;
 
 class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, UpdateDelivery> {
   constructor() {
@@ -61,7 +64,7 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
   async findAllWithSummary(filters?: DeliveryFilters): Promise<DeliverySummary[]> {
     try {
       const qb = new QueryBuilder()
-        .select("d.delivery_id", "d.po_id", "d.delivery_date", "p.project_name")
+        .select("d.delivery_id", "d.delivery_code", "d.po_id", "po.po_code", "d.delivery_date", "p.project_name")
         .selectRaw("COUNT(di.delivery_item_id) as item_count")
         .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
         .from("deliveries", "d")
@@ -117,7 +120,7 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
    */
   async findItemsByPO(poId: string): Promise<DeliveryItemByPO[]> {
     const { sql, params } = new QueryBuilder()
-      .select("di.*", "d.delivery_date", "i.item_name", "u.unit_name as unit", "v.vendor_name")
+      .select("di.*", "d.delivery_date", "d.delivery_code", "i.item_name", "u.unit_name as unit", "v.vendor_name")
       .from("delivery_items", "di")
       .join("deliveries", "d", "d.delivery_id = di.delivery_id")
       .join("po_items", "poi", "poi.po_item_id = di.po_item_id")
@@ -136,13 +139,14 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
    * Create a delivery with its items.
    */
   async createWithItems(
-    header: { po_id: string; delivery_date: string },
+    header: { po_id: string; delivery_date: string; delivery_code: string },
     items: DeliveryItemInput[]
   ): Promise<void> {
     return this.transaction(async () => {
       const deliveryId = await this.create({
         po_id: header.po_id,
         delivery_date: header.delivery_date,
+        delivery_code: header.delivery_code,
       });
 
       const itemsToInsert = items.filter(it => it.qty > 0);

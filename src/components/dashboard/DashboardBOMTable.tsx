@@ -61,12 +61,19 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       key: "price",
       header: "Harga Satuan (Rp)",
       width: pixel(180),
+      align: "end",
       renderCell: (r) => {
         const poPrice = r.total_ordered > 0 ? r.total_po_price / r.total_ordered : 0;
         return (
-          <VStack gap={0.5}>
-            <Text weight="medium">Realisasi: {formatNumber(poPrice)}</Text>
-            <Text size="sm" color="secondary">Rencana: {formatNumber(r.price || 0)}</Text>
+          <VStack gap={0.5} align="end">
+            <HStack gap={1} justify="end">
+              <Text weight="medium">Realisasi:</Text>
+              <Text type="code">{formatNumber(poPrice)}</Text>
+            </HStack>
+            <HStack gap={1} justify="end">
+              <Text size="sm" color="secondary">Rencana:</Text>
+              <Text type="code" size="sm" color="secondary">{formatNumber(r.price || 0)}</Text>
+            </HStack>
           </VStack>
         );
       }
@@ -81,10 +88,17 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       key: "qty",
       header: "Volume",
       width: pixel(140),
+      align: "end",
       renderCell: (r) => (
-        <VStack gap={0.5}>
-          <Text weight="medium">Realisasi: {formatNumber(r.total_ordered, 2)}</Text>
-          <Text size="sm" color="secondary">Rencana: {formatNumber(r.planned_volume, 2)}</Text>
+        <VStack gap={0.5} align="end">
+          <HStack gap={1} justify="end">
+            <Text weight="medium">Realisasi:</Text>
+            <Text type="code">{formatNumber(r.total_ordered, 2)}</Text>
+          </HStack>
+          <HStack gap={1} justify="end">
+            <Text size="sm" color="secondary">Rencana:</Text>
+            <Text type="code" size="sm" color="secondary">{formatNumber(r.planned_volume, 2)}</Text>
+          </HStack>
         </VStack>
       )
     },
@@ -94,9 +108,15 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       width: pixel(200),
       align: "end",
       renderCell: (r) => (
-        <VStack gap={0.5}>
-          <Text weight="medium">Realisasi: {formatNumber(r.total_po_price || 0)}</Text>
-          <Text size="sm" color="secondary">Rencana: {formatNumber(r.planned_budget || 0)}</Text>
+        <VStack gap={0.5} align="end">
+          <HStack gap={1} justify="end">
+            <Text weight="medium">Realisasi:</Text>
+            <Text type="code">{formatNumber(r.total_po_price || 0)}</Text>
+          </HStack>
+          <HStack gap={1} justify="end">
+            <Text size="sm" color="secondary">Rencana:</Text>
+            <Text type="code" size="sm" color="secondary">{formatNumber(r.planned_budget || 0)}</Text>
+          </HStack>
         </VStack>
       )
     },
@@ -104,6 +124,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       key: "ordered",
       header: "Dipesan (PO)",
       width: pixel(180),
+      align: "end",
       renderCell: (r) => {
         const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
         const isOver = percent > 100;
@@ -111,10 +132,11 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
         return (
           <VStack gap={0.5}>
             <HStack justify="between">
-              <Text size="sm" color="secondary" weight="medium">
+              <Text type="code" size="sm" color="secondary" weight="medium">
                 {`${formatNumber(r.total_ordered, 2)} / ${formatNumber(r.planned_volume, 2)}`}
               </Text>
               <Text
+                type="code"
                 size="sm"
                 color={isOver ? undefined : "primary"}
                 weight="bold"
@@ -130,8 +152,9 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
     },
     {
       key: "delivered",
-      header: "Diterima (DLV)",
+      header: "Diterima (NP)",
       width: pixel(180),
+      align: "end",
       renderCell: (r) => {
         const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
         const isOver = percent > 100;
@@ -139,10 +162,11 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
         return (
           <VStack gap={0.5}>
             <HStack justify="between">
-              <Text size="sm" color="secondary" weight="medium">
+              <Text type="code" size="sm" color="secondary" weight="medium">
                 {`${formatNumber(r.total_delivered, 2)} / ${formatNumber(r.total_ordered, 2)}`}
               </Text>
               <Text
+                type="code"
                 size="sm"
                 color={isOver ? undefined : "primary"}
                 weight="bold"

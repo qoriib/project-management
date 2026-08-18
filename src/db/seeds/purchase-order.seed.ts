@@ -167,8 +167,11 @@ export async function seedPurchaseOrders(): Promise<void> {
         return { item_id: itemId, item_price_id: matched.item_price_id, qty: it.qty, vendor_id: vendorId };
       }));
 
+      const timestamp = new Date(po.poDate).getTime().toString().slice(-4);
+      const generatedPoCode = `PO/${timestamp}`;
+
       await purchaseOrderRepo.createWithItems(
-        { project_id: projectId, po_date: po.poDate },
+        { project_id: projectId, po_date: po.poDate, po_code: generatedPoCode },
         dbItems
       );
     }

@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, HStack, IconButton } from "@astryxdesign/core";
+import { Table, HStack, IconButton, Text } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -48,7 +48,9 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
     {
       key: "phone",
       header: "Telepon",
-      width: pixel(150)
+      width: pixel(150),
+      align: "end",
+      renderCell: (row) => <Text type="code">{row.phone}</Text>
     },
     {
       key: "address",
