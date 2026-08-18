@@ -10,9 +10,9 @@ use zip::{CompressionMethod, ZipArchive, ZipWriter};
 const TABLES: &[(&str, &str, &str)] = &[
     ("projects", "project_id", "project_name = excluded.project_name, company_name = excluded.company_name, fiscal_year = excluded.fiscal_year, deleted_at = excluded.deleted_at"),
     ("vendors", "vendor_id", "vendor_name = excluded.vendor_name, phone = excluded.phone, address = excluded.address, deleted_at = excluded.deleted_at"),
-    ("item_categories", "category_id", "category_name = excluded.category_name, deleted_at = excluded.deleted_at"),
+    ("item_categories", "category_id", "prefix = excluded.prefix, category_code = excluded.category_code, category_name = excluded.category_name, deleted_at = excluded.deleted_at"),
     ("units", "unit_id", "unit_name = excluded.unit_name, deleted_at = excluded.deleted_at"),
-    ("items", "item_id", "item_name = excluded.item_name, category_id = excluded.category_id, unit_id = excluded.unit_id, deleted_at = excluded.deleted_at"),
+    ("items", "item_id", "item_code = excluded.item_code, item_name = excluded.item_name, category_id = excluded.category_id, unit_id = excluded.unit_id, deleted_at = excluded.deleted_at"),
     ("item_prices", "item_price_id", "item_id = excluded.item_id, price = excluded.price, deleted_at = excluded.deleted_at"),
     ("bom_groups", "bom_group_id", "project_id = excluded.project_id, group_name = excluded.group_name, deleted_at = excluded.deleted_at"),
     ("bill_of_materials", "bom_id", "project_id = excluded.project_id, bom_group_id = excluded.bom_group_id, item_id = excluded.item_id, item_price_id = excluded.item_price_id, qty = excluded.qty, deleted_at = excluded.deleted_at"),

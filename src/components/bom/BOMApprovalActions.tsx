@@ -17,7 +17,7 @@ export function BOMApprovalActions() {
   const [loading, setLoading] = useState(false);
   const { approveProjectBOM, cancelApproveProjectBOM } = useMasterStore();
 
-  if (!selectedProjectId) return null;
+  if (!selectedProjectId || !currentProject) return null;
 
   if (!isManager) {
     return (

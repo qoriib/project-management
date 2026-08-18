@@ -1,4 +1,4 @@
-import { Pencil, Trash2, X } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Dialog, VStack, HStack, Button, Table, Badge, IconButton, Card } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
@@ -10,10 +10,10 @@ import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
 import { formatRupiah } from "@/utils/formatters";
 import { itemPriceRepo, type ItemPriceWithRelation } from "@/db/repositories";
-import { EntityCode } from "@/components/shared/EntityCode";
+import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
-import type { ItemPrice, ItemWithDetails } from "@/db/repositories";
+import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
 type PriceRow = ItemPriceWithRelation & Record<string, unknown>;
@@ -30,8 +30,8 @@ interface MasterItemPriceDialogProps {
 
 export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPriceDialogProps) {
   const showToast = useToast();
+  const { createItemPrice, deleteItemPrice } = useMasterStore();
 
-  const [editTarget, setEditTarget] = useState<ItemPriceWithRelation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -48,16 +48,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       if (!item) return;
 
       try {
-        if (editTarget) {
-          await itemPriceRepo.update(editTarget.item_price_id, { price: value.price });
-          showToast({ body: "Harga berhasil diubah.", type: "info" });
-        } else {
-          await itemPriceRepo.create({ item_id: item.item_id, price: value.price });
-          showToast({ body: "Harga berhasil ditambahkan.", type: "info" });
-        }
+        await createItemPrice({ item_id: item.item_id, price: value.price });
+        showToast({ body: "Harga berhasil ditambahkan.", type: "info" });
 
         form.reset();
-        setEditTarget(null);
         await loadPrices();
       } catch (err: any) {
         showToast({ body: err.message || "Gagal menyimpan harga.", type: "error" });
@@ -79,26 +73,15 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
   useEffect(() => {
     if (isOpen && item) {
       form.reset();
-      setEditTarget(null);
       loadPrices();
     }
   }, [isOpen, item]);
-
-  function startEdit(price: ItemPriceWithRelation) {
-    setEditTarget(price);
-    form.setFieldValue("price", price.price);
-  }
-
-  function cancelEdit() {
-    setEditTarget(null);
-    form.reset();
-  }
 
   async function handleDelete() {
     if (!deleteTarget || !item) return;
     setDeleting(true);
     try {
-      await itemPriceRepo.delete(deleteTarget.item_price_id);
+      await deleteItemPrice(deleteTarget.item_price_id, item.item_id);
       showToast({ body: "Harga berhasil dihapus.", type: "info" });
       setDeleteTarget(null);
       await loadPrices();
@@ -110,14 +93,6 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
   }
 
   const columns: TableColumn<PriceRow>[] = [
-    {
-      key: "item_price_id",
-      header: "#",
-      width: pixel(60),
-      renderCell: (row: ItemPrice) => (
-        <EntityCode prefix="" id={row.item_price_id} padding={3} />
-      ),
-    },
     {
       key: "price",
       header: "Harga (Rp)",
@@ -137,7 +112,6 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         const locked = row.has_relation;
         return (
           <HStack justify="end" gap={1}>
-            <IconButton size="sm" variant="secondary" icon={<Pencil size={16} />} label="Edit" onClick={() => startEdit(row)} isDisabled={locked} />
             <IconButton size="sm"
               variant="destructive"
               icon={<Trash2 size={16} />} label="Hapus"
@@ -186,6 +160,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                         onBlur={field.handleBlur}
                         isRequired
                         min={0}
+                        step={0.01}
                         statusVariant="attached"
                         status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
                       />
@@ -193,16 +168,13 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                   />
                 </FormLayout>
                 <HStack justify="end" gap={2}>
-                  {editTarget && (
-                    <Button type="button" variant="secondary" label="Batal" onClick={cancelEdit} />
-                  )}
                   <form.Subscribe
                     selector={(state) => [state.canSubmit, state.isSubmitting] as const}
                     children={([canSubmit, isSubmitting]) => (
                       <Button
                         type="submit"
                         variant="primary"
-                        label={editTarget ? "Simpan" : "Tambah"}
+                        label="Tambah"
                         isLoading={isSubmitting}
                         isDisabled={!canSubmit}
                       />

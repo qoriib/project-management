@@ -6,7 +6,7 @@ export function formatRupiah(value: number | undefined | null): string {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 

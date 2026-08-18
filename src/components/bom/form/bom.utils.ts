@@ -1,6 +1,6 @@
 import { useMasterStore } from "@/store/useMasterStore";
 import { useBOMStore } from "@/store/useBOMStore";
-import { formatRupiah } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 import type { BOMDetail, ItemWithDetails } from "@/db/repositories";
 
 /**
@@ -35,7 +35,7 @@ export async function loadAvailablePriceOptions(
 
   const options = availablePrices.map((p) => ({
     value: p.item_price_id,
-    label: formatRupiah(p.price),
+    label: formatNumber(p.price),
   }));
 
   return options;

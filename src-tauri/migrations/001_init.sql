@@ -25,6 +25,8 @@ CREATE TABLE `vendors` (
 
 CREATE TABLE `item_categories` (
 	`category_id` text NOT NULL PRIMARY KEY,
+	`prefix` text NOT NULL,
+	`category_code` text NOT NULL,
 	`category_name` text NOT NULL,
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL
@@ -39,6 +41,7 @@ CREATE TABLE `units` (
 
 CREATE TABLE `items` (
 	`item_id` text NOT NULL PRIMARY KEY,
+	`item_code` text NOT NULL,
 	`item_name` text NOT NULL,
 	`category_id` text NOT NULL,
 	`unit_id` text NOT NULL,

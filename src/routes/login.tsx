@@ -85,7 +85,6 @@ function LoginPage() {
                       onBlur={field.handleBlur}
                       statusVariant="tooltip"
                       status={fieldError ? { type: 'error', message: fieldError } : undefined}
-                      style={{ textAlign: 'center', letterSpacing: '1em' }}
                       hasAutoFocus
                     />
                   );

@@ -4,10 +4,13 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { POTable } from "@/components/po/POTable";
 import { useAppStore } from "@/store/useAppStore";
+import { useMasterStore } from "@/store/useMasterStore";
 
 function POListPage() {
   const navigate = useNavigate();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const projects = useMasterStore((s) => s.projects);
+  const isValidProject = projects.some((p) => p.project_id === selectedProjectId);
 
   function openNew() {
     navigate({ to: "/po/new" });
@@ -23,7 +26,7 @@ function POListPage() {
         <PageHeader
           title="Daftar Pemesanan (PO)"
           subtitle="Manajemen dan pelacakan seluruh pemesanan"
-          actions={selectedProjectId ? <Button variant="primary" label="Buat Baru" onClick={openNew} /> : null}
+          actions={(selectedProjectId && isValidProject) ? <Button variant="primary" label="Buat Baru" onClick={openNew} /> : null}
         />
         <ProjectRequired>
           <POTable onEdit={openEdit} />

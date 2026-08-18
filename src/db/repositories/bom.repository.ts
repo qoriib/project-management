@@ -16,6 +16,9 @@ import {
 
 export type BOMDetail = BillOfMaterial & {
   item_name?: string;
+  item_code?: string;
+  category_prefix?: string;
+  category_code?: string;
   unit?: string;
   project_name?: string;
   bom_group_name?: string;
@@ -46,7 +49,8 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
           "b.bom_id", "b.project_id", "b.bom_group_id", "b.item_id",
           "b.item_price_id", "b.qty", "b.created_at",
           "ip.price",
-          "i.item_name", "u.unit_name as unit", "c.category_name as category",
+          "i.item_name", "i.item_code", "u.unit_name as unit", "c.category_name as category",
+          "c.prefix as category_prefix", "c.category_code",
           "g.group_name as bom_group_name",
           "p.project_name"
         )

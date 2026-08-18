@@ -50,7 +50,11 @@ export async function seedItems(): Promise<void> {
     if (!exists) {
       let catId = catMap.get(it.category);
       if (!catId) {
-        catId = await itemCategoryRepo.create({ category_name: it.category });
+        catId = await itemCategoryRepo.create({ 
+          prefix: it.category.charAt(0).toUpperCase(),
+          category_code: "",
+          category_name: it.category 
+        });
         catMap.set(it.category, catId);
       }
 
@@ -61,6 +65,7 @@ export async function seedItems(): Promise<void> {
       }
 
       await itemRepo.create({
+        item_code: "",
         item_name: it.itemName,
         category_id: catId,
         unit_id: unitId

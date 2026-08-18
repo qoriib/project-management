@@ -4,6 +4,7 @@ import { Table, HStack, IconButton } from "@astryxdesign/core";
 import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 
@@ -44,7 +45,19 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   }));
 
   const columns: TableColumn<CategoryRow>[] = [
+    {
+      key: "prefix",
+      header: "Prefix",
+      width: pixel(80),
+      renderCell: (row: CategoryRow) => <EntityCode prefix="" id={row.prefix} />
+    },
 
+    {
+      key: "category_code",
+      header: "Kode Kategori",
+      width: pixel(150),
+      renderCell: (row: CategoryRow) => <EntityCode prefix="" id={row.category_code} />
+    },
     {
       key: "category_name",
       header: "Nama Kategori",

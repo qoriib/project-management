@@ -9,6 +9,7 @@ import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
 const itemSchema = v.object({
+  item_code: v.optional(v.string(), ""),
   item_name: v.pipe(v.string(), v.nonEmpty("Nama item harus diisi.")),
   category_id: v.pipe(v.string(), v.nonEmpty("Pilih kategori terlebih dahulu.")),
   unit_id: v.pipe(v.string(), v.nonEmpty("Pilih satuan terlebih dahulu."))
@@ -27,6 +28,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
 
   const form = useForm({
     defaultValues: {
+      item_code: "",
       item_name: "",
       category_id: "",
       unit_id: "",
@@ -37,6 +39,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
     onSubmit: async ({ value }) => {
       try {
         const data = {
+          item_code: value.item_code,
           item_name: value.item_name,
           category_id: value.category_id,
           unit_id: value.unit_id
@@ -61,12 +64,14 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
     if (isOpen) {
       if (initialData) {
         form.reset({
+          item_code: initialData.item_code || "",
           item_name: initialData.item_name,
           category_id: String(initialData.category_id),
           unit_id: String(initialData.unit_id)
         });
       } else {
         form.reset({
+          item_code: "",
           item_name: "",
           category_id: categories.length > 0 ? String(categories[0].category_id) : "",
           unit_id: units.length > 0 ? String(units[0].unit_id) : ""
@@ -97,6 +102,20 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
         <VStack gap={3}>
           <Heading level={3}>{initialData ? "Edit Item" : "Tambah Item"}</Heading>
           <FormLayout>
+            <form.Field
+              name="item_code"
+              children={(field) => (
+                <TextInput
+                  label="Kode Item (Opsional)"
+                  placeholder="Kosongkan untuk auto-generate"
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val)}
+                  onBlur={field.handleBlur}
+                  statusVariant="attached"
+                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                />
+              )}
+            />
             <form.Field
               name="item_name"
               children={(field) => (

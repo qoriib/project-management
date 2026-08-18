@@ -3,7 +3,7 @@ import * as v from "valibot";
 export const bomSchema = v.object({
   bom_group_id: v.pipe(v.string(), v.nonEmpty("Grup pekerjaan harus dipilih.")),
   item_id: v.pipe(v.string(), v.nonEmpty("Material harus dipilih.")),
-  qty: v.pipe(v.number(), v.minValue(0.001, "Volume harus lebih dari 0.")),
+  qty: v.pipe(v.number(), v.minValue(0, "Volume tidak boleh negatif.")),
   item_price_id: v.pipe(v.string(), v.nonEmpty("Pilih harga terlebih dahulu.")),
 });
 

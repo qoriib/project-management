@@ -1,6 +1,6 @@
 import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Table, IconButton, Card } from "@astryxdesign/core";
+import { Dialog, VStack, HStack, Button, Table, IconButton, Card, Badge } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -35,8 +35,7 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
   const [deleteTarget, setDeleteTarget] = useState<BOMGroup | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { boms } = useBOMStore();
-  const [groups, setGroups] = useState<BOMGroup[]>([]);
+  const { boms, bomGroups, loadBOMs } = useBOMStore();
 
   const form = useForm({
     defaultValues: {
@@ -68,13 +67,7 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
 
   async function loadGroups() {
     if (!project) return;
-
-    try {
-      const data = await bomGroupRepo.findByProject(project.project_id);
-      setGroups(data);
-    } catch {
-      setGroups([]);
-    }
+    await loadBOMs(project.project_id);
   }
 
   useEffect(() => {
@@ -113,17 +106,18 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
 
   const columns: TableColumn<GroupRow>[] = [
     {
-      key: "bom_group_id",
-      header: "#",
-      width: pixel(60),
-      renderCell: (row: BOMGroup) => (
-        <EntityCode prefix="" id={row.bom_group_id} padding={3} />
-      ),
-    },
-    {
       key: "group_name",
       header: "Nama Grup Pekerjaan",
       width: proportional(1),
+      renderCell: (row: BOMGroup) => {
+        const isUsed = boms.some(b => b.bom_group_id === row.bom_group_id);
+        return (
+          <HStack gap={2} align="center">
+            <span>{row.group_name}</span>
+            {isUsed && <Badge variant="info" label="Digunakan" />}
+          </HStack>
+        );
+      },
     },
     {
       key: "actions",
@@ -156,7 +150,7 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
           />
           <Table
             columns={columns}
-            data={groups as GroupRow[]}
+            data={bomGroups as GroupRow[]}
             idKey="bom_group_id"
             textOverflow="truncate"
             emptyState={<TableEmptyState message="Belum ada grup pekerjaan. Tambahkan di bawah." />}

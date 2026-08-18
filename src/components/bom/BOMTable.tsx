@@ -4,14 +4,17 @@ import { HStack, Table, Text, IconButton, Button, VStack, Divider } from "@astry
 import { proportional, pixel, type TableColumn, useTableGroupedRows, type TablePlugin } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { EntityCode } from "@/components/shared/EntityCode";
 import { BOMGroupDialog } from "@/components/bom/BOMGroupDialog";
+import { MasterItemForm } from "@/components/master/MasterItemForm";
+import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { formatRupiah, formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useBOMStore } from "@/store/useBOMStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { Plus } from "lucide-react";
 import { useBOMForm } from "./form/useBOMForm";
-import { ItemSelectorCell, QtyInputCell, PriceSelectorCell, TotalEstimasiCell } from "./BOMItemCells";
+import { ItemSelectorCell, QtyInputCell, PriceSelectorCell, TotalEstimasiCell, UnitDisplayCell, ItemCodeDisplayCell } from "./BOMItemCells";
 import type { BOMDetail } from "@/db/repositories";
 
 type BomRow = {
@@ -31,6 +34,8 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
+  const [isItemFormOpen, setIsItemFormOpen] = useState(false);
+  const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
 
   // State untuk form inline
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -71,38 +76,65 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
 
   const baseColumns: TableColumn<BomRow>[] = [
     {
+      key: "item_code_full",
+      header: "Kode Item",
+      width: pixel(160),
+      renderCell: (row: BomRow) => {
+        if (row.isFooter) return null;
+        if (row.bom_id === editingId) {
+          // You could display the code of the selected item here using a new cell, or just skip it
+          return <ItemCodeDisplayCell form={form} items={items} />;
+        }
+        const code = `${row.category_prefix || ""} ${row.category_code || ""} ${row.item_code || ""}`.trim();
+        return code ? <EntityCode prefix="" id={code} /> : "-";
+      }
+    },
+    {
       key: "item_name",
       header: "Nama Item",
       width: proportional(1),
       renderCell: (row: BomRow) => {
         if (row.isFooter) return null;
         if (row.bom_id === editingId) {
-          return <ItemSelectorCell form={form} items={items} handleItemChange={handleItemChange} />;
+          return <ItemSelectorCell form={form} items={items} handleItemChange={handleItemChange} onAddNewItem={() => setIsItemFormOpen(true)} />;
         }
         return row.item_name;
       }
     },
     {
+      key: "unit",
+      header: "Satuan",
+      width: pixel(80),
+      renderCell: (row: BomRow) => {
+        if (row.isFooter) return null;
+        if (row.bom_id === editingId) {
+          return <UnitDisplayCell form={form} items={items} />;
+        }
+        return row.unit || "-";
+      }
+    },
+    {
       key: "qty",
       header: "Volume Rencana",
-      width: pixel(180),
+      width: pixel(140),
+      align: "end",
       renderCell: (row: BomRow) => {
         if (row.isFooter) return null;
         if (row.bom_id === editingId) {
           return <QtyInputCell form={form} />;
         }
-        return `${formatNumber(row.qty, 2)} ${row.unit || ""}`;
+        return formatNumber(row.qty, 6);
       }
     },
     {
       key: "price",
       header: "Harga Rencana (Rp)",
-      width: pixel(200),
+      width: pixel(220),
       align: "end",
       renderCell: (row: BomRow) => {
         if (row.isFooter) return null;
         if (row.bom_id === editingId) {
-          return <PriceSelectorCell form={form} priceOptions={priceOptions} />;
+          return <PriceSelectorCell form={form} priceOptions={priceOptions} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
         }
         return formatNumber(row.price);
       }
@@ -110,7 +142,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
     {
       key: "estimation",
       header: "Total Estimasi (Rp)",
-      width: pixel(180),
+      width: pixel(260),
       align: "end",
       renderCell: (row: BomRow) => {
         if (row.isFooter) return null;
@@ -224,7 +256,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   const dataWithFooters = useMemo(() => {
     const list = [...boms] as BomRow[];
     const groupIds = new Set(boms.map(b => b.bom_group_id));
-    
+
     // Add all empty groups from bomGroups
     for (const bg of bomGroups) {
       groupIds.add(bg.bom_group_id);
@@ -363,6 +395,19 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         isOpen={isGroupDialogOpen}
         onClose={() => setIsGroupDialogOpen(false)}
         project={currentProject || null}
+      />
+      <MasterItemForm
+        isOpen={isItemFormOpen}
+        onClose={() => setIsItemFormOpen(false)}
+        initialData={null}
+      />
+      <MasterItemPriceDialog
+        isOpen={isPriceFormOpen}
+        onClose={() => {
+          setIsPriceFormOpen(false);
+          handleItemChange(form.getFieldValue("item_id"));
+        }}
+        item={items.find((i: any) => i.item_id === form.getFieldValue("item_id")) as any || null}
       />
     </>
   );

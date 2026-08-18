@@ -9,6 +9,8 @@ import type { ItemCategory } from "@/db/repositories";
 import * as v from "valibot";
 
 const categorySchema = v.object({
+  prefix: v.pipe(v.string(), v.regex(/^[A-Za-z]$/, "Prefix harus berupa 1 huruf."), v.transform(val => val.toUpperCase())),
+  category_code: v.optional(v.string(), ""),
   category_name: v.pipe(v.string(), v.nonEmpty("Nama kategori harus diisi.")),
 });
 
@@ -25,6 +27,8 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
 
   const form = useForm({
     defaultValues: {
+      prefix: "",
+      category_code: "",
       category_name: "",
     },
     validators: {
@@ -53,6 +57,8 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
 
       if (initialData) {
         form.reset({
+          prefix: initialData.prefix || "",
+          category_code: initialData.category_code || "",
           category_name: initialData.category_name
         })
       }
@@ -71,6 +77,36 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
         <VStack gap={3}>
           <Heading level={3}>{initialData ? "Edit Kategori" : "Tambah Kategori"}</Heading>
           <FormLayout>
+            <form.Field
+              name="prefix"
+              children={(field) => (
+                <TextInput
+                  label="Prefix"
+                  placeholder="Contoh: A"
+                  maxLength={1}
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val.toUpperCase())}
+                  onBlur={field.handleBlur}
+                  isRequired
+                  statusVariant="attached"
+                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                />
+              )}
+            />
+            <form.Field
+              name="category_code"
+              children={(field) => (
+                <TextInput
+                  label="Kode Kategori (Opsional)"
+                  placeholder="Kosongkan untuk auto-generate"
+                  value={field.state.value}
+                  onChange={(val) => field.handleChange(val)}
+                  onBlur={field.handleBlur}
+                  statusVariant="attached"
+                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                />
+              )}
+            />
             <form.Field
               name="category_name"
               children={(field) => (

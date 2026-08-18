@@ -1,10 +1,11 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, Badge, HStack, IconButton, Button } from "@astryxdesign/core";
+import { Table, Badge, HStack, IconButton, Button, Text } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
+import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 
@@ -41,6 +42,15 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   }
 
   const columns: TableColumn<ItemRow>[] = [
+    {
+      key: "item_code",
+      header: "Kode Item",
+      width: pixel(180),
+      renderCell: (row: ItemRow) => {
+        const code = `${row.category_prefix || ""} ${row.category_code || ""} ${row.item_code || ""}`.trim();
+        return code ? <EntityCode prefix="" id={code} /> : "-";
+      }
+    },
 
     {
       key: "item_name",

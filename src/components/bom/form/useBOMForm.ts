@@ -5,7 +5,6 @@ import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useBOMStore } from "@/store/useBOMStore";
 import { bomSchema, buildDefaultValues, type BOMFormProps } from "./bom.schema";
-import { loadAvailablePriceOptions } from "./bom.utils";
 
 /**
  * Custom hook yang mengorkestrasikan seluruh logic form BOM:
@@ -21,12 +20,10 @@ export function useBOMForm({
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
-  const { items, bomGroups } = useMasterStore();
-  const { boms: existingBoms, createBOM, updateBOM } = useBOMStore();
+  const { items } = useMasterStore();
+  const { boms: existingBoms, bomGroups, createBOM, updateBOM } = useBOMStore();
 
-  const projectBomGroups = bomGroups.filter(g => g.project_id === selectedProjectId);
-
-  const [priceOptions, setPriceOptions] = useState<{ value: string; label: string }[]>([]);
+  const projectBomGroups = bomGroups;
 
   const form = useForm({
     defaultValues: buildDefaultValues(initialData, defaultGroupId),
@@ -57,7 +54,6 @@ export function useBOMForm({
         } else {
           await createBOM(payload);
           form.reset();
-          setPriceOptions([]);
         }
 
         onSuccess();
@@ -75,16 +71,25 @@ export function useBOMForm({
 
     const hasItem = itemId.length > 0;
     if (!hasItem) {
-      setPriceOptions([]);
       return;
     }
 
-    const opts = await loadAvailablePriceOptions(itemId, initialData);
+    const { itemPricesMap, loadItemPrices } = useMasterStore.getState();
+    let prices = itemPricesMap.get(itemId);
+    if (!prices) {
+      prices = await loadItemPrices(itemId);
+    }
+    
+    // Automatically select the first available price
+    const { boms } = useBOMStore.getState();
+    const isEditingThisBom = (bomId: string) => initialData !== undefined && bomId === initialData.bom_id;
+    const usedPriceIds = boms
+      .filter((b) => b.item_id === itemId && !isEditingThisBom(b.bom_id))
+      .map((b) => b.item_price_id);
+    const availablePrices = prices.filter(p => !usedPriceIds.includes(p.item_price_id));
 
-    setPriceOptions(opts);
-
-    if (opts.length > 0) {
-      form.setFieldValue("item_price_id", opts[0].value, { dontValidate: true });
+    if (availablePrices.length > 0) {
+      form.setFieldValue("item_price_id", availablePrices[0].item_price_id, { dontValidate: true });
     } else {
       form.setFieldValue("item_price_id", "", { dontValidate: true });
     }
@@ -96,16 +101,17 @@ export function useBOMForm({
 
     if (isEditMode) {
       form.reset(buildDefaultValues(initialData, defaultGroupId));
-      loadAvailablePriceOptions(String(initialData.item_id), initialData).then(setPriceOptions);
+      const { loadItemPrices, itemPricesMap } = useMasterStore.getState();
+      if (!itemPricesMap.has(String(initialData.item_id))) {
+         loadItemPrices(String(initialData.item_id));
+      }
     } else {
       form.reset(buildDefaultValues(undefined, defaultGroupId));
-      setPriceOptions([]);
     }
   }, [initialData, defaultGroupId]);
 
   return {
     form,
-    priceOptions,
     items,
     bomGroups: projectBomGroups,
     existingBoms,
