@@ -219,6 +219,8 @@ export abstract class BaseRepository<
       }
 
       if (setClauses.length === 0) return; // Nothing to update
+      
+      setClauses.push(`updated_at = datetime('now', 'localtime')`);
 
       params.push(id);
       const sql = `UPDATE ${this.model.tableName} SET ${setClauses.join(", ")} WHERE ${this.model.primaryKey} = $${paramIdx}`;
@@ -239,7 +241,7 @@ export abstract class BaseRepository<
 
       if (this.model.softDelete) {
         await db.execute(
-          `UPDATE ${this.model.tableName} SET deleted_at = datetime('now', 'localtime') WHERE ${this.model.primaryKey} = $1`,
+          `UPDATE ${this.model.tableName} SET deleted_at = datetime('now', 'localtime'), updated_at = datetime('now', 'localtime') WHERE ${this.model.primaryKey} = $1`,
           [id]
         );
       } else {
@@ -277,7 +279,7 @@ export abstract class BaseRepository<
     try {
       const db = await this.db();
       await db.execute(
-        `UPDATE ${this.model.tableName} SET deleted_at = NULL WHERE ${this.model.primaryKey} = $1`,
+        `UPDATE ${this.model.tableName} SET deleted_at = NULL, updated_at = datetime('now', 'localtime') WHERE ${this.model.primaryKey} = $1`,
         [id]
       );
     } catch (error) {

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as MasterRouteImport } from './routes/master'
 import { Route as BomIndexRouteImport } from './routes/bom/index'
 import { Route as DeliveryIndexRouteImport } from './routes/delivery/index'
@@ -21,6 +22,7 @@ import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
 import { Route as MasterVendorRouteImport } from './routes/master/vendor'
 import { Route as PoIndexRouteImport } from './routes/po/index'
 import { Route as PoNewRouteImport } from './routes/po/new'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as DeliveryIdEditRouteImport } from './routes/delivery/$id/edit'
 import { Route as PoIdIndexRouteImport } from './routes/po/$id/index'
 import { Route as PoIdEditRouteImport } from './routes/po/$id/edit'
@@ -28,6 +30,11 @@ import { Route as PoIdEditRouteImport } from './routes/po/$id/edit'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MasterRoute = MasterRouteImport.update({
@@ -85,6 +92,11 @@ const PoNewRoute = PoNewRouteImport.update({
   path: '/po/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DeliveryIdEditRoute = DeliveryIdEditRouteImport.update({
   id: '/delivery/$id/edit',
   path: '/delivery/$id/edit',
@@ -103,6 +115,7 @@ const PoIdEditRoute = PoIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/master': typeof MasterRouteWithChildren
   '/delivery/new': typeof DeliveryNewRoute
   '/master/item': typeof MasterItemRoute
@@ -114,12 +127,14 @@ export interface FileRoutesByFullPath {
   '/bom/': typeof BomIndexRoute
   '/delivery/': typeof DeliveryIndexRoute
   '/po/': typeof PoIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/delivery/$id/edit': typeof DeliveryIdEditRoute
   '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/master': typeof MasterRouteWithChildren
   '/delivery/new': typeof DeliveryNewRoute
   '/master/item': typeof MasterItemRoute
@@ -131,6 +146,7 @@ export interface FileRoutesByTo {
   '/bom': typeof BomIndexRoute
   '/delivery': typeof DeliveryIndexRoute
   '/po': typeof PoIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/delivery/$id/edit': typeof DeliveryIdEditRoute
   '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id': typeof PoIdIndexRoute
@@ -138,6 +154,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/master': typeof MasterRouteWithChildren
   '/delivery/new': typeof DeliveryNewRoute
   '/master/item': typeof MasterItemRoute
@@ -149,6 +166,7 @@ export interface FileRoutesById {
   '/bom/': typeof BomIndexRoute
   '/delivery/': typeof DeliveryIndexRoute
   '/po/': typeof PoIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/delivery/$id/edit': typeof DeliveryIdEditRoute
   '/po/$id/edit': typeof PoIdEditRoute
   '/po/$id/': typeof PoIdIndexRoute
@@ -157,6 +175,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
     | '/master'
     | '/delivery/new'
     | '/master/item'
@@ -168,12 +187,14 @@ export interface FileRouteTypes {
     | '/bom/'
     | '/delivery/'
     | '/po/'
+    | '/settings/'
     | '/delivery/$id/edit'
     | '/po/$id/edit'
     | '/po/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
     | '/master'
     | '/delivery/new'
     | '/master/item'
@@ -185,12 +206,14 @@ export interface FileRouteTypes {
     | '/bom'
     | '/delivery'
     | '/po'
+    | '/settings'
     | '/delivery/$id/edit'
     | '/po/$id/edit'
     | '/po/$id'
   id:
     | '__root__'
     | '/'
+    | '/login'
     | '/master'
     | '/delivery/new'
     | '/master/item'
@@ -202,6 +225,7 @@ export interface FileRouteTypes {
     | '/bom/'
     | '/delivery/'
     | '/po/'
+    | '/settings/'
     | '/delivery/$id/edit'
     | '/po/$id/edit'
     | '/po/$id/'
@@ -209,12 +233,14 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
   MasterRoute: typeof MasterRouteWithChildren
   DeliveryNewRoute: typeof DeliveryNewRoute
   PoNewRoute: typeof PoNewRoute
   BomIndexRoute: typeof BomIndexRoute
   DeliveryIndexRoute: typeof DeliveryIndexRoute
   PoIndexRoute: typeof PoIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   DeliveryIdEditRoute: typeof DeliveryIdEditRoute
   PoIdEditRoute: typeof PoIdEditRoute
   PoIdIndexRoute: typeof PoIdIndexRoute
@@ -227,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/master': {
@@ -306,6 +339,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/delivery/$id/edit': {
       id: '/delivery/$id/edit'
       path: '/delivery/$id/edit'
@@ -351,12 +391,14 @@ const MasterRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
   MasterRoute: MasterRouteWithChildren,
   DeliveryNewRoute: DeliveryNewRoute,
   PoNewRoute: PoNewRoute,
   BomIndexRoute: BomIndexRoute,
   DeliveryIndexRoute: DeliveryIndexRoute,
   PoIndexRoute: PoIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   DeliveryIdEditRoute: DeliveryIdEditRoute,
   PoIdEditRoute: PoIdEditRoute,
   PoIdIndexRoute: PoIdIndexRoute,

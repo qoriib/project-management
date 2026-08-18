@@ -1,4 +1,9 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+
+mod constants;
+mod db_sync;
+mod auth;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     use tauri_plugin_sql::{Migration, MigrationKind};
@@ -8,6 +13,12 @@ pub fn run() {
             version: 1,
             description: "init_schema",
             sql: include_str!("../migrations/001_init.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "add_updated_at",
+            sql: include_str!("../migrations/002_add_updated_at.sql"),
             kind: MigrationKind::Up,
         }
     ];
@@ -21,8 +32,13 @@ pub fn run() {
         )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![])
+        .invoke_handler(tauri::generate_handler![
+            db_sync::reset_db,
+            db_sync::export_csv_zip,
+            db_sync::import_csv_zip,
+            auth::check_pin,
+            auth::change_pin
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-

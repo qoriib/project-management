@@ -1,4 +1,4 @@
-import { createRootRoute, Outlet, useNavigate, useLocation } from '@tanstack/react-router';
+import { createRootRoute, Outlet, useNavigate, useLocation, redirect } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Text, VStack } from "@astryxdesign/core";
 import { IconButton } from "@astryxdesign/core/IconButton";
@@ -10,12 +10,31 @@ import { getDB } from "@/db";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { APP } from '@/configs/app.config';
+import { checkIsAuthenticated } from '@/services/auth';
 
 export const Route = createRootRoute({
   component: RootComponent,
+  beforeLoad: ({ location }) => {
+    if (!checkIsAuthenticated() && location.pathname !== '/login') {
+      throw redirect({
+        to: '/login',
+      })
+    }
+  },
 });
 
 function RootComponent() {
+  const location = useLocation();
+  
+  if (location.pathname === '/login') {
+    return (
+      <>
+        <Outlet />
+        {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}
+      </>
+    );
+  }
+  
   return <AppLayout />;
 }
 

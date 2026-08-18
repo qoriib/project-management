@@ -1,4 +1,4 @@
-import { ClipboardList, Folder, Home, ShoppingCart, Truck } from "lucide-react";
+import { ClipboardList, Folder, Home, ShoppingCart, Truck, Settings } from "lucide-react";
 
 export const APP = {
   title: "Manajemen Proyek",
@@ -33,6 +33,11 @@ export const APP = {
         { label: "Kategori", href: "/master/kategori" },
         { label: "Satuan", href: "/master/satuan" },
       ]
+    },
+    {
+      label: "Pengaturan",
+      icon: Settings,
+      href: "/settings"
     }
   ]
 }
