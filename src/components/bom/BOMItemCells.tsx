@@ -107,12 +107,12 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId }: PriceSelec
   const { boms } = useBOMStore();
 
   return (
-    <form.Subscribe selector={(s) => s.values.item_id}>
-      {(itemId) => {
+    <form.Subscribe selector={(s) => ({ itemId: s.values.item_id, groupId: s.values.bom_group_id })}>
+      {({ itemId, groupId }) => {
         let priceOptions: { value: string; label: string }[] = [];
         if (itemId) {
           const prices = itemPricesMap.get(itemId) || [];
-          const usedIds = boms.filter(b => b.item_id === itemId && b.bom_id !== editingId).map(b => b.item_price_id);
+          const usedIds = boms.filter(b => b.item_id === itemId && b.bom_id !== editingId && (b.bom_group_id || "") === (groupId || "")).map(b => b.item_price_id);
           priceOptions = prices.filter(p => !usedIds.includes(p.item_price_id)).map(p => ({
             value: p.item_price_id,
             label: formatNumber(p.price)

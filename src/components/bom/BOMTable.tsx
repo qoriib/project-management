@@ -8,7 +8,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { BOMGroupDialog } from "@/components/bom/BOMGroupDialog";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
-import { formatRupiah, formatNumber } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useBOMStore } from "@/store/useBOMStore";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -111,6 +111,19 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
           return <UnitDisplayCell form={form} items={items} />;
         }
         return row.unit || "-";
+      }
+    },
+    {
+      key: "subtotal",
+      header: "Subtotal (Rp)",
+      width: pixel(220),
+      align: "end",
+      renderCell: (row: BomRow) => {
+        if (row.isFooter) {
+          return <Text weight="bold">{formatNumber(row.price)}</Text>;
+        }
+        const subtotal = (row.qty || 0) * (row.price || 0);
+        return <Text weight="medium">{formatNumber(subtotal)}</Text>;
       }
     },
     {
@@ -247,7 +260,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
     }
     for (const b of boms) {
       if (b.bom_group_id && !map[b.bom_group_id]) {
-        map[b.bom_group_id] = b.bom_group_name || "Lainnya";
+        map[b.bom_group_id] = b.bom_group_name || "Grup Tidak Diketahui";
       }
     }
     return map;
@@ -263,13 +276,13 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
     }
 
     for (const gid of groupIds) {
-      if (gid) {
-        if (editingId === `new-${gid}`) {
-          list.push({ bom_id: `new-${gid}`, bom_group_id: gid, isDraft: true } as unknown as BomRow);
-        }
-        if (!isApproved) {
-          list.push({ isFooter: true, bom_group_id: gid, bom_id: `footer-${gid}` } as unknown as BomRow);
-        }
+      if (!gid) continue;
+      
+      if (editingId === `new-${gid}`) {
+        list.push({ bom_id: `new-${gid}`, bom_group_id: gid, isDraft: true } as unknown as BomRow);
+      }
+      if (!isApproved) {
+        list.push({ isFooter: true, bom_group_id: gid, bom_id: `footer-${gid}` } as unknown as BomRow);
       }
     }
     return list;
@@ -279,7 +292,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
 
   const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows<BomRow>({
     data: dataWithFooters,
-    groupBy: (item) => item.bom_group_id || "LAINNYA",
+    groupBy: (item) => item.bom_group_id,
     collapsedGroups,
     onToggleGroup: (key) => {
       if (!editingId) {
@@ -293,7 +306,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
     },
     getRowKey: (item) => String(item.bom_id),
     renderGroupHeader: (key) => {
-      const groupName = groupNameMap[key] || "Lainnya";
+      const groupName = groupNameMap[key] || "Grup Tidak Diketahui";
       return (
         <HStack justify="between" align="center" paddingInline={1} width="100%">
           <Text weight="bold">{groupName}</Text>
@@ -375,9 +388,9 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
           ) : <div />}
           {boms.length > 0 && (
             <HStack justify="end" gap={2} style={{ flex: 1 }}>
-              <Text weight="bold" size="lg">Total:</Text>
+              <Text weight="bold" size="lg">Total (Rp):</Text>
               <Text weight="bold" size="lg" color="primary">
-                {formatRupiah(grandTotal)}
+                {formatNumber(grandTotal)}
               </Text>
             </HStack>
           )}

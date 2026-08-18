@@ -21,10 +21,11 @@ interface POStore {
   // ── Load Actions ───────────────────────────────────────────────────────────
   loadAllPOs: (projectId?: string) => Promise<void>;
   loadPODetail: (id: string) => Promise<void>;
+  loadBOMReportForProject: (projectId: string) => Promise<void>;
   clearPODetail: () => void;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
-  createPO: (data: { po_date: string; project_id: string }, items: POItemInput[]) => Promise<void>;
+  createPO: (data: { po_date: string; project_id: string }, items: POItemInput[]) => Promise<string>;
   updatePO: (id: string, data: { po_date: string; project_id: string }, items: POItemInput[]) => Promise<void>;
   deletePO: (id: string) => Promise<void>;
 }
@@ -59,10 +60,16 @@ export const usePOStore = create<POStore>((set, get) => ({
     set({ currentPO: null, currentItems: [], currentDeliveryItems: [], currentBOMData: [] });
   },
 
+  loadBOMReportForProject: async (projectId) => {
+    const bom = await getBOMReport(projectId);
+    set({ currentBOMData: bom });
+  },
+
   createPO: async (data, items) => {
-    await purchaseOrderRepo.createWithItems(data, items);
+    const poId = await purchaseOrderRepo.createWithItems(data, items);
     await get().loadAllPOs(data.project_id);
     await useBOMStore.getState().loadBOMs(data.project_id);
+    return poId;
   },
 
   updatePO: async (id, data, items) => {
@@ -77,8 +84,6 @@ export const usePOStore = create<POStore>((set, get) => ({
   },
 
   deletePO: async (id) => {
-    // Need to get project_id before delete if we want to refresh correctly,
-    // or just rely on component re-fetching via selectedProjectId
     const { pos } = get();
     const po = pos.find(p => p.po_id === id);
     await purchaseOrderRepo.delete(id);
@@ -89,6 +94,5 @@ export const usePOStore = create<POStore>((set, get) => ({
       await get().loadAllPOs();
     }
   }
-
 
 }));

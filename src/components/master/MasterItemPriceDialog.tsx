@@ -8,7 +8,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
-import { formatRupiah } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 import { itemPriceRepo, type ItemPriceWithRelation } from "@/db/repositories";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
@@ -99,7 +99,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       width: proportional(1),
       renderCell: (row: ItemPriceWithRelation) => (
         <HStack gap={2} align="center">
-          <Badge variant="neutral" label={formatRupiah(row.price)} />
+          <Badge variant="neutral" label={formatNumber(row.price)} />
           {row.has_relation && <Badge variant="info" label="Digunakan" />}
         </HStack>
       ),
@@ -191,7 +191,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Harga"
-        message={`Hapus harga ${deleteTarget ? formatRupiah(deleteTarget.price) : ""}? Harga yang masih digunakan di BOM/PO tidak bisa dihapus.`}
+        message={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}? Harga yang masih digunakan di BOM/PO tidak bisa dihapus.`}
         isLoading={deleting}
       />
     </>

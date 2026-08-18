@@ -1,14 +1,6 @@
 // ── Currency ──────────────────────────────────────────────────────────────────
 
-export function formatRupiah(value: number | undefined | null): string {
-  if (value === undefined || value === null || isNaN(value)) return "Rp 0";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
+
 
 export function formatNumber(value: number | undefined | null, decimals = 2): string {
   if (value === undefined || value === null || isNaN(value)) return "0";

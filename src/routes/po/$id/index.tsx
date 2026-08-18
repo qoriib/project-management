@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from "react";
-import { Button, HStack, Text, VStack, Section, Timestamp, Card, Heading } from "@astryxdesign/core";
+import { Button, HStack, Text, VStack, Section, Card, Heading, Timestamp } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { formatRupiah } from "@/utils/formatters";
 import { usePOStore } from "@/store/usePOStore";
 import { POItemTrackingTable } from "@/components/po/POItemTrackingTable";
 import { PODeliveryLogTable } from "@/components/po/PODeliveryLogTable";
@@ -12,7 +11,7 @@ function PODetailPage() {
   const navigate = useNavigate();
 
   const { id } = useParams({ strict: false });
-  const { currentPO: po, currentItems, currentBOMData, loadPODetail, clearPODetail } = usePOStore();
+  const { currentPO: po, loadPODetail, clearPODetail } = usePOStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,43 +38,31 @@ function PODetailPage() {
 
   if (!po) return <Section padding={6}><Text color="secondary">PO tidak ditemukan.</Text></Section>;
 
-  // Hitung Rencana Total berdasarkan item-item yang ada di PO ini
-  const totalRencana = currentItems.reduce((acc, row) => {
-    const bomItem = currentBOMData.find((b) => b.item_id === row.item_id);
-    const bomPrice = bomItem?.price || 0;
-    return acc + ((row.qty || 0) * bomPrice);
-  }, 0);
-
-  // Hitung Realisasi Total
-  const totalRealisasi = currentItems.reduce((acc, row) => {
-    return acc + ((row.qty || 0) * (row.price || 0));
-  }, 0);
-
   return (
     <Section padding={6}>
       <VStack gap={6}>
         <PageHeader
           title={`Detail ${formatEntityCode("PO", po.po_id)}`}
-          actions={<Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/po" })} />}
+          actions={
+            <HStack gap={2}>
+              <Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/po" })} />
+              <Button variant="primary" label="Edit PO" onClick={() => navigate({ to: `/po/${po.po_id}/edit` })} />
+            </HStack>
+          }
         />
         <HStack gap={8}>
           <VStack gap={1}>
-            <Text color="secondary" size="sm">Dibuat Pada</Text>
+            <Text color="secondary" size="sm">Tanggal PO</Text>
             <Text weight="medium">
               {po.po_date ? <Timestamp value={po.po_date} format="system_date" size="base" /> : "-"}
             </Text>
           </VStack>
-          <VStack gap={1}>
-            <Text color="secondary" size="sm">Rencana Total</Text>
-            <Text weight="medium">{formatRupiah(totalRencana)}</Text>
-          </VStack>
-          <VStack gap={1}>
-            <Text color="secondary" size="sm">Realisasi Total</Text>
-            <Text weight="medium" color="primary">{formatRupiah(totalRealisasi)}</Text>
-          </VStack>
         </HStack>
         <Card padding={4}>
-          <POItemTrackingTable />
+          <VStack gap={4}>
+            <Heading level={3}>Item PO (Rencana & Realisasi)</Heading>
+            <POItemTrackingTable />
+          </VStack>
         </Card>
         <Card padding={4}>
           <VStack gap={4}>

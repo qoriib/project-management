@@ -1,5 +1,5 @@
 import { Grid, GridSpan, Card, VStack, Text, Heading } from "@astryxdesign/core";
-import { formatRupiah } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 
 interface DashboardSummaryCardsProps {
   totalBudget: number;
@@ -13,16 +13,16 @@ export function DashboardSummaryCards({ totalBudget, totalPO, loading }: Dashboa
       <GridSpan columns={1}>
         <Card padding={4}>
           <VStack gap={2}>
-            <Text size="sm" color="secondary">Nilai Rencana (BOM)</Text>
-            <Heading level={2}>{loading ? "…" : formatRupiah(totalBudget)}</Heading>
+            <Text size="sm" color="secondary">Nilai Rencana BOM (Rp)</Text>
+            <Heading level={2}>{loading ? "…" : formatNumber(totalBudget)}</Heading>
           </VStack>
         </Card>
       </GridSpan>
       <GridSpan columns={1}>
         <Card padding={4}>
           <VStack gap={2}>
-            <Text size="sm" color="secondary">Nilai Realisasi (PO)</Text>
-            <Heading level={2}>{loading ? "…" : formatRupiah(totalPO)}</Heading>
+            <Text size="sm" color="secondary">Nilai Realisasi PO (Rp)</Text>
+            <Heading level={2}>{loading ? "…" : formatNumber(totalPO)}</Heading>
           </VStack>
         </Card>
       </GridSpan>

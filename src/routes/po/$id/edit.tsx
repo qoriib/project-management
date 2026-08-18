@@ -1,30 +1,52 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Section, VStack } from "@astryxdesign/core";
+import { createFileRoute, useParams } from '@tanstack/react-router';
+import { useEffect, useState } from "react";
+import { VStack, Section, Text } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { POForm } from "@/components/po/POForm";
-import { formatEntityCode } from '@/components/shared/EntityCode';
+import { usePOStore } from "@/store/usePOStore";
+import { formatEntityCode } from "@/components/shared/EntityCode";
 
-function EditPOPage() {
-  const { id } = Route.useParams();
-  const navigate = useNavigate();
+function POEditPage() {
+  const { id } = useParams({ strict: false });
+  const { currentPO: po, currentItems, currentBOMData, loadPODetail, clearPODetail } = usePOStore();
+  const [loading, setLoading] = useState(true);
 
-  function goBack() {
-    navigate({ to: "/po" });
+  useEffect(() => {
+    if (!id) return;
+    async function load() {
+      setLoading(true);
+      await loadPODetail(id as string);
+      setLoading(false);
+    }
+    load();
+
+    return () => {
+      clearPODetail();
+    };
+  }, [id, loadPODetail, clearPODetail]);
+
+  if (loading) {
+    return (
+      <Section padding={6}>
+        <Text color="secondary">Memuat data PO…</Text>
+      </Section>
+    );
   }
+
+  if (!po) return <Section padding={6}><Text color="secondary">PO tidak ditemukan.</Text></Section>;
 
   return (
     <Section padding={6}>
-      <VStack gap={4}>
+      <VStack gap={6}>
         <PageHeader
-          title={`Edit Pemesanan ${formatEntityCode("PO", id)}`}
-          subtitle="Ubah pesanan pembelian item ke vendor"
+          title={`Edit ${formatEntityCode("PO", po.po_id)}`}
         />
-        <POForm initialEditId={id} onSuccess={goBack} onCancel={goBack} />
+        <POForm po={po} initialItems={currentItems} bomData={currentBOMData} />
       </VStack>
     </Section>
   );
 }
 
 export const Route = createFileRoute('/po/$id/edit')({
-  component: EditPOPage,
+  component: POEditPage,
 });

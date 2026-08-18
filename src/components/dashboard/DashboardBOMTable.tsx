@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { VStack, Text, HStack, IconButton, Table } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { proportional, pixel, useTableGroupedRows, type TableColumn } from "@astryxdesign/core/Table";
-import { formatRupiah, formatNumber } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 import { Eye } from "lucide-react";
 import type { BOMReportItem } from "@/db/services";
 import { EntityCode } from "@/components/shared/EntityCode";
@@ -59,37 +59,43 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
     },
     {
       key: "price",
-      header: "Harga",
-      width: pixel(160),
+      header: "Harga Satuan (Rp)",
+      width: pixel(180),
       renderCell: (r) => {
         const poPrice = r.total_ordered > 0 ? r.total_po_price / r.total_ordered : 0;
         return (
           <VStack gap={0.5}>
-            <Text weight="medium">Realisasi: {formatRupiah(poPrice)}</Text>
-            <Text size="sm" color="secondary">Rencana: {formatRupiah(r.price || 0)}</Text>
+            <Text weight="medium">Realisasi: {formatNumber(poPrice)}</Text>
+            <Text size="sm" color="secondary">Rencana: {formatNumber(r.price || 0)}</Text>
           </VStack>
         );
       }
     },
     {
+      key: "unit",
+      header: "Satuan",
+      width: pixel(100),
+      renderCell: (r) => r.unit || "-",
+    },
+    {
       key: "qty",
       header: "Volume",
-      width: pixel(160),
+      width: pixel(140),
       renderCell: (r) => (
         <VStack gap={0.5}>
-          <Text weight="medium">Realisasi: {formatNumber(r.total_ordered, 2)} {r.unit}</Text>
-          <Text size="sm" color="secondary">Rencana: {formatNumber(r.planned_volume, 2)} {r.unit}</Text>
+          <Text weight="medium">Realisasi: {formatNumber(r.total_ordered, 2)}</Text>
+          <Text size="sm" color="secondary">Rencana: {formatNumber(r.planned_volume, 2)}</Text>
         </VStack>
       )
     },
     {
       key: "subtotal",
-      header: "Total Harga",
+      header: "Total Harga (Rp)",
       width: pixel(200),
       renderCell: (r) => (
         <VStack gap={0.5}>
-          <Text weight="medium">Realisasi: {formatRupiah(r.total_po_price || 0)}</Text>
-          <Text size="sm" color="secondary">Rencana: {formatRupiah(r.planned_budget || 0)}</Text>
+          <Text weight="medium">Realisasi: {formatNumber(r.total_po_price || 0)}</Text>
+          <Text size="sm" color="secondary">Rencana: {formatNumber(r.planned_budget || 0)}</Text>
         </VStack>
       )
     },
@@ -105,7 +111,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
           <VStack gap={0.5}>
             <HStack justify="between">
               <Text size="sm" color="secondary" weight="medium">
-                {`${formatNumber(r.total_ordered, 2)} / ${formatNumber(r.planned_volume, 2)} ${r.unit}`}
+                {`${formatNumber(r.total_ordered, 2)} / ${formatNumber(r.planned_volume, 2)}`}
               </Text>
               <Text
                 size="sm"
@@ -133,7 +139,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
           <VStack gap={0.5}>
             <HStack justify="between">
               <Text size="sm" color="secondary" weight="medium">
-                {`${formatNumber(r.total_delivered, 2)} / ${formatNumber(r.total_ordered, 2)} ${r.unit}`}
+                {`${formatNumber(r.total_delivered, 2)} / ${formatNumber(r.total_ordered, 2)}`}
               </Text>
               <Text
                 size="sm"

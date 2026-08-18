@@ -4,7 +4,7 @@ import { HStack, Table, Badge, IconButton, Timestamp } from "@astryxdesign/core"
 import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
-import { formatRupiah } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 import { EntityCode, formatEntityCode } from "@/components/shared/EntityCode";
 import { useNavigate } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
@@ -75,9 +75,9 @@ export function POTable({ onEdit }: POTableProps) {
     },
     {
       key: "total_price",
-      header: "Total Biaya",
+      header: "Total Biaya (Rp)",
       width: pixel(200),
-      renderCell: (row: PORow) => formatRupiah(row.total_price),
+      renderCell: (row: PORow) => formatNumber(row.total_price),
     },
     {
       key: "actions",

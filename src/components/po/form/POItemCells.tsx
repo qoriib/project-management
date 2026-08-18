@@ -1,56 +1,44 @@
+import { HStack, IconButton, VStack, Text } from "@astryxdesign/core";
 import { Selector } from "@astryxdesign/core";
-import { useMasterStore } from "@/store/useMasterStore";
-import { formatRupiah } from "@/utils/formatters";
+import { NumberInput } from "@astryxdesign/core/NumberInput";
+import { formatNumber } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
-import type { usePOForm } from "./usePOForm";
-import type { ItemPrice, Vendor, BOMDetail } from "@/db/repositories";
+import { Check, X, Plus } from "lucide-react";
+import type { usePOItemForm } from "./usePOItemForm";
+import type { ItemPrice, Vendor } from "@/db/repositories";
+import type { BOMReportItem } from "@/db/services/report.service";
 
 export interface CellFormProps {
-  form: ReturnType<typeof usePOForm>["form"];
-  idx: number;
+  form: ReturnType<typeof usePOItemForm>["form"];
 }
 
 interface ItemSelectorCellProps extends CellFormProps {
-  bomOptions: BOMDetail[];
+  bomOptions: BOMReportItem[];
   selectedItemIds: Set<string>;
+  onChangeItem: (itemId: string) => Promise<void>;
+  editingId: string | null;
 }
 
 export function ItemSelectorCell({
   form,
-  idx,
   bomOptions,
   selectedItemIds,
+  onChangeItem,
+  editingId,
 }: ItemSelectorCellProps) {
-  const loadItemPrices = useMasterStore((s) => s.loadItemPrices);
-
   return (
-    <form.Field name={`items[${idx}].item_id`}>
+    <form.Field name="item_id">
       {(field) => {
         const currentVal = field.state.value;
 
         const options = bomOptions
           .filter(
-            (b) => b.item_id === currentVal || !selectedItemIds.has(b.item_id)
+            (b) => b.item_id === currentVal || (!selectedItemIds.has(b.item_id) || editingId !== "new-item")
           )
           .map((b) => ({
             value: b.item_id,
             label: `${b.item_name} (${b.unit ?? ""})`,
           }));
-
-      const handleChange = async (v: string) => {
-          field.handleChange(v);
-
-          if (v) {
-            await loadItemPrices(v);
-
-            const bomItem = bomOptions.find((b) => b.item_id === v);
-            const bomItemPrice = bomItem?.item_price_id ?? ""
-
-            form.setFieldValue(`items[${idx}].item_price_id`, bomItemPrice);
-          } else {
-            form.setFieldValue(`items[${idx}].item_price_id`, "");
-          }
-        };
 
         return (
           <Selector
@@ -61,7 +49,7 @@ export function ItemSelectorCell({
             statusVariant="tooltip"
             value={field.state.value}
             options={options}
-            onChange={handleChange}
+            onChange={(v) => onChangeItem(v)}
             onBlur={field.handleBlur}
             status={getFieldError(
               field.state.meta.errors,
@@ -77,46 +65,56 @@ export function ItemSelectorCell({
 interface PriceSelectorCellProps extends CellFormProps {
   itemId: string;
   prices: ItemPrice[];
+  onAddNewPrice: () => void;
 }
 
 export function PriceSelectorCell({
   form,
-  idx,
   itemId,
   prices,
+  onAddNewPrice,
 }: PriceSelectorCellProps) {
   return (
-    <form.Field name={`items[${idx}].item_price_id`}>
+    <form.Field name="item_price_id">
       {(field) => {
         const options = prices.map((p) => ({
           value: String(p.item_price_id),
-          label: formatRupiah(p.price),
+          label: formatNumber(p.price),
         }));
 
-        const handleChange = (v: string) => field.handleChange(v);
-
         return (
-          <Selector
-            label="Harga"
-            isLabelHidden
-            placeholder={
-              !itemId
-                ? "Pilih item dahulu..."
-                : prices.length === 0
-                  ? "Belum ada harga"
-                  : "Pilih harga..."
-            }
-            options={options}
-            value={field.state.value}
-            onChange={handleChange}
-            onBlur={field.handleBlur}
-            statusVariant="tooltip"
-            status={getFieldError(
-              field.state.meta.errors,
-              !!field.state.meta.isTouched
-            )}
-            isDisabled={!itemId || prices.length === 0}
-          />
+          <HStack gap={2} align="center">
+            <div style={{ flex: 1 }}>
+              <Selector
+                label="Harga"
+                isLabelHidden
+                placeholder={
+                  !itemId
+                    ? "Pilih item dahulu..."
+                    : prices.length === 0
+                      ? "Belum ada harga"
+                      : "Pilih harga..."
+                }
+                options={options}
+                value={field.state.value}
+                onChange={(v) => field.handleChange(v)}
+                onBlur={field.handleBlur}
+                statusVariant="tooltip"
+                status={getFieldError(
+                  field.state.meta.errors,
+                  !!field.state.meta.isTouched
+                )}
+                isDisabled={!itemId}
+              />
+            </div>
+            <IconButton
+              variant="secondary"
+              icon={<Plus size={16} />}
+              label="Tambah Harga"
+              onClick={onAddNewPrice}
+              isDisabled={!itemId}
+            />
+          </HStack>
         );
       }}
     </form.Field>
@@ -125,40 +123,132 @@ export function PriceSelectorCell({
 
 interface VendorSelectorCellProps extends CellFormProps {
   vendors: Vendor[];
+  onAddNewVendor: () => void;
 }
 
 export function VendorSelectorCell({
   form,
-  idx,
   vendors,
+  onAddNewVendor,
 }: VendorSelectorCellProps) {
   return (
-    <form.Field name={`items[${idx}].vendor_id`}>
+    <form.Field name="vendor_id">
       {(field) => {
         const options = vendors.map((v) => ({
           value: String(v.vendor_id),
           label: v.vendor_name,
         }));
 
-        const handleChange = (v: string) => field.handleChange(v);
-
         return (
-          <Selector
-            label="Vendor"
-            isLabelHidden
-            placeholder="Pilih vendor..."
-            options={options}
-            value={field.state.value}
-            onChange={handleChange}
-            onBlur={field.handleBlur}
-            statusVariant="tooltip"
-            status={getFieldError(
-              field.state.meta.errors,
-              !!field.state.meta.isTouched
-            )}
-          />
+          <HStack gap={2} align="center">
+            <div style={{ flex: 1 }}>
+              <Selector
+                label="Vendor"
+                isLabelHidden
+                placeholder="Pilih vendor..."
+                options={options}
+                value={field.state.value}
+                onChange={(v) => field.handleChange(v)}
+                onBlur={field.handleBlur}
+                statusVariant="tooltip"
+                status={getFieldError(
+                  field.state.meta.errors,
+                  !!field.state.meta.isTouched
+                )}
+              />
+            </div>
+            <IconButton
+              variant="secondary"
+              icon={<Plus size={16} />}
+              label="Tambah Vendor"
+              onClick={onAddNewVendor}
+            />
+          </HStack>
         );
       }}
     </form.Field>
+  );
+}
+
+interface QtyInputCellProps extends CellFormProps {
+  initialBalance: number;
+}
+
+export function QtyInputCell({ form, initialBalance }: QtyInputCellProps) {
+  return (
+    <form.Field
+      name="qty"
+      validators={{
+        onChange: ({ value }) =>
+          value > initialBalance
+            ? `Melebihi sisa BOM (${formatNumber(initialBalance, 2)}).`
+            : undefined,
+      }}
+    >
+      {(field) => (
+        <NumberInput
+          label="Volume"
+          isLabelHidden
+          value={field.state.value}
+          onChange={(v) => field.handleChange(v || 0)}
+          onBlur={field.handleBlur}
+          statusVariant="tooltip"
+          status={getFieldError(
+            field.state.meta.errors,
+            !!field.state.meta.isTouched
+          )}
+        />
+      )}
+    </form.Field>
+  );
+}
+
+export function EditActionsCell({
+  onCancel,
+  isSubmitting,
+}: {
+  onCancel: () => void;
+  isSubmitting: boolean;
+}) {
+  return (
+    <HStack gap={2} justify="end">
+      <IconButton
+        icon={<Check size={16} />}
+        size="sm"
+        type="submit"
+        label="Simpan"
+        isLoading={isSubmitting}
+      />
+      <IconButton
+        icon={<X size={16} />}
+        size="sm"
+        variant="secondary"
+        type="button"
+        label="Batal"
+        onClick={onCancel}
+        isDisabled={isSubmitting}
+      />
+    </HStack>
+  );
+}
+
+export function BomInfoCell({ 
+  totalOrdered, 
+  plannedVolume, 
+  unit 
+}: { 
+  totalOrdered: number; 
+  plannedVolume: number; 
+  unit: string; 
+}) {
+  return (
+    <VStack gap={0.5}>
+      <Text weight="medium">
+        Realisasi: {formatNumber(totalOrdered, 2)} {unit}
+      </Text>
+      <Text size="sm" color="secondary">
+        Rencana: {formatNumber(plannedVolume, 2)} {unit}
+      </Text>
+    </VStack>
   );
 }

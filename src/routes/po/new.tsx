@@ -1,15 +1,21 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { POForm } from "@/components/po/POForm";
+import { usePOStore } from '@/store/usePOStore';
+import { useEffect } from 'react';
+import { useAppStore } from '@/store/useAppStore';
 
 function NewPOPage() {
-  const navigate = useNavigate();
+  const { currentBOMData, loadBOMReportForProject } = usePOStore();
+  const selectedProjectId = useAppStore(s => s.selectedProjectId);
 
-  function goBack() {
-    navigate({ to: "/po" });
-  }
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadBOMReportForProject(selectedProjectId);
+    }
+  }, [selectedProjectId, loadBOMReportForProject]);
 
   return (
     <Section padding={6}>
@@ -18,9 +24,8 @@ function NewPOPage() {
           title="Pemesanan Baru"
           subtitle="Buat pesanan pembelian item ke vendor"
         />
-
         <ProjectRequired>
-          <POForm onSuccess={goBack} onCancel={goBack} />
+          <POForm bomData={currentBOMData} />
         </ProjectRequired>
       </VStack>
     </Section>

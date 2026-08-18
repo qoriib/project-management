@@ -78,19 +78,8 @@ export function useBOMForm({
       prices = await loadItemPrices(itemId);
     }
 
-    // Automatically select the first available price
-    const { boms } = useBOMStore.getState();
-    const isEditingThisBom = (bomId: string) => initialData !== undefined && bomId === initialData.bom_id;
-    const usedPriceIds = boms
-      .filter((b) => b.item_id === itemId && !isEditingThisBom(b.bom_id))
-      .map((b) => b.item_price_id);
-    const availablePrices = prices.filter(p => !usedPriceIds.includes(p.item_price_id));
-
-    if (availablePrices.length > 0) {
-      form.setFieldValue("item_price_id", availablePrices[0].item_price_id, { dontValidate: true });
-    } else {
-      form.setFieldValue("item_price_id", "", { dontValidate: true });
-    }
+    // Selalu kosongkan harga agar user memilih secara manual
+    form.setFieldValue("item_price_id", "", { dontValidate: true });
   }
 
   // Sync form ke initialData saat mode edit atau saat stage berubah

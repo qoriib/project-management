@@ -1,24 +1,69 @@
-import { VStack } from "@astryxdesign/core";
-import { usePOForm } from "./form/usePOForm";
-import { PODateCard } from "./form/PODateCard";
-import { POItemsCard } from "./form/POItemsCard";
-import { POFormActions } from "./form/POFormActions";
-export type { POItemRow } from "./form/po.schema";
+import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { VStack, Card, HStack, Button } from "@astryxdesign/core";
+import { DateInput } from "@astryxdesign/core/DateInput";
+import { useToast } from "@astryxdesign/core/Toast";
+import { POItemFormTable } from "./POItemFormTable";
+import { todayISO } from "@/utils/formatters";
+import { getFieldError } from "@/utils/form";
+import * as v from "valibot";
+import type { POWithSummary, POItemDetail, POItemInput } from "@/db/repositories";
+import type { BOMReportItem } from "@/db/services";
+import { usePOStore } from "@/store/usePOStore";
+import { useAppStore } from "@/store/useAppStore";
+import { useNavigate } from "@tanstack/react-router";
 
-interface POFormProps {
-  initialEditId?: string;
-  onSuccess: () => void;
-  onCancel: () => void;
+const headerSchema = v.object({
+  po_date: v.pipe(v.string(), v.nonEmpty("Tanggal PO harus diisi.")),
+});
+
+export interface POFormProps {
+  po?: POWithSummary;
+  initialItems?: POItemDetail[];
+  bomData: BOMReportItem[];
 }
 
-/**
- * Main entry component for Create / Edit Purchase Order form.
- * Composes sub-components while logic resides in `usePOForm`.
- */
-export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
-  const { form, bomData, itemPricesMap, vendors } = usePOForm({
-    initialEditId,
-    onSuccess,
+export function POForm({ po, initialItems = [], bomData }: POFormProps) {
+  const navigate = useNavigate();
+  const showToast = useToast();
+  const { createPO, updatePO } = usePOStore();
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
+  const [items, setItems] = useState<POItemDetail[]>(initialItems);
+
+  const form = useForm({
+    defaultValues: {
+      po_date: po?.po_date || todayISO(),
+    },
+    validators: { onChange: headerSchema },
+    onSubmit: async ({ value }) => {
+      if (!selectedProjectId) {
+        showToast({ body: "Proyek belum dipilih.", type: "error" });
+        return;
+      }
+
+      const itemInputs: POItemInput[] = items.map(i => ({
+        po_item_id: i.po_item_id.startsWith("draft-") ? undefined : i.po_item_id,
+        item_id: i.item_id,
+        vendor_id: i.vendor_id,
+        item_price_id: i.item_price_id,
+        qty: i.qty,
+      }));
+
+      try {
+        if (po) {
+          await updatePO(po.po_id, { po_date: value.po_date, project_id: selectedProjectId }, itemInputs);
+          showToast({ body: "PO berhasil diperbarui.", type: "info" });
+          navigate({ to: `/po/${po.po_id}` });
+        } else {
+          const newPoId = await createPO({ po_date: value.po_date, project_id: selectedProjectId }, itemInputs);
+          showToast({ body: "PO berhasil dibuat.", type: "info" });
+          navigate({ to: `/po/${newPoId}` });
+        }
+      } catch (error: any) {
+        showToast({ body: error.message || "Terjadi kesalahan saat menyimpan PO", type: "error" });
+      }
+    }
   });
 
   return (
@@ -29,18 +74,53 @@ export function POForm({ initialEditId, onSuccess, onCancel }: POFormProps) {
         form.handleSubmit();
       }}
     >
-      <VStack gap={4}>
-        <PODateCard form={form} />
-        <POItemsCard
-          form={form}
-          bomData={bomData}
-          itemPricesMap={itemPricesMap}
-          vendors={vendors}
-        />
-        <POFormActions
-          form={form}
-          onCancel={onCancel}
-        />
+      <VStack gap={6}>
+        <HStack>
+          <VStack gap={1}>
+            <form.Field name="po_date">
+              {(field) => (
+                <DateInput
+                  label="Tanggal PO"
+                  value={field.state.value as any}
+                  onChange={(v) => field.handleChange(v as any)}
+                  onBlur={field.handleBlur}
+                  isRequired
+                  statusVariant="attached"
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    !!field.state.meta.isTouched
+                  )}
+                />
+              )}
+            </form.Field>
+          </VStack>
+        </HStack>
+
+        <Card padding={0}>
+          <POItemFormTable items={items} onChange={setItems} bomData={bomData} />
+        </Card>
+
+        <HStack justify="end" gap={2}>
+          <Button
+            variant="secondary"
+            type="button"
+            label="Batal"
+            onClick={() => {
+              if (po) navigate({ to: `/po/${po.po_id}` });
+              else navigate({ to: "/po" });
+            }}
+          />
+          <form.Subscribe selector={s => s.canSubmit}>
+            {(canSubmit) => (
+              <Button
+                variant="primary"
+                type="submit"
+                label={po ? "Simpan Perubahan" : "Buat PO"}
+                isDisabled={!canSubmit}
+              />
+            )}
+          </form.Subscribe>
+        </HStack>
       </VStack>
     </form>
   );

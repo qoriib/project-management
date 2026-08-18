@@ -31,6 +31,9 @@ export type POItemDetail = {
   price: number;
   qty: number;
   item_name?: string;
+  category_prefix?: string;
+  category_code?: string;
+  item_code?: string;
   unit?: string;
   vendor_name?: string;
   total_delivered?: number;
@@ -132,13 +135,14 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
         "poi.po_item_id", "poi.po_id", "poi.item_id", "poi.vendor_id",
         "poi.item_price_id", "poi.qty",
         "ip.price",
-        "i.item_name", "u.unit_name as unit", "v.vendor_name"
+        "i.item_name", "i.item_code", "c.prefix as category_prefix", "c.category_code", "u.unit_name as unit", "v.vendor_name"
       )
       .selectRaw("COALESCE(SUM(d.qty), 0) as total_delivered")
       .selectRaw("poi.qty - COALESCE(SUM(d.qty), 0) as remaining")
       .from("po_items", "poi")
       .leftJoin("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
       .leftJoin("items", "i", "i.item_id = poi.item_id")
+      .leftJoin("item_categories", "c", "c.category_id = i.category_id")
       .leftJoin("units", "u", "i.unit_id = u.unit_id")
       .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
       .leftJoin("delivery_items", "d", "d.po_item_id = poi.po_item_id")
@@ -220,6 +224,38 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
         );
       }
     });
+  }
+
+  /**
+   * Add a single item to an existing PO.
+   */
+  async createItem(poId: string, item: Omit<POItemInput, "po_item_id">): Promise<string> {
+    const poItemId = this.generateId();
+    await this.rawExecute(
+      `INSERT INTO po_items (po_item_id, po_id, item_id, vendor_id, item_price_id, qty)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [poItemId, poId, item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty]
+    );
+    return poItemId;
+  }
+
+  /**
+   * Update a single item.
+   */
+  async updateItem(poItemId: string, item: POItemInput): Promise<void> {
+    await this.rawExecute(
+      `UPDATE po_items 
+       SET item_id = $1, vendor_id = $2, item_price_id = $3, qty = $4 
+       WHERE po_item_id = $5`,
+      [item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty, poItemId]
+    );
+  }
+
+  /**
+   * Delete a single item.
+   */
+  async deleteItem(poItemId: string): Promise<void> {
+    await this.rawExecute(`DELETE FROM po_items WHERE po_item_id = $1`, [poItemId]);
   }
 }
 
