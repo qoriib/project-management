@@ -64,7 +64,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
     }
   }
 
-  const { form, priceOptions, items, handleItemChange } = useBOMForm({
+  const { form, items, handleItemChange } = useBOMForm({
     initialData: editingData,
     defaultGroupId: editingGroupId || "",
     onSuccess: () => {
@@ -134,7 +134,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
       renderCell: (row: BomRow) => {
         if (row.isFooter) return null;
         if (row.bom_id === editingId) {
-          return <PriceSelectorCell form={form} priceOptions={priceOptions} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
+          return <PriceSelectorCell form={form} editingId={editingId} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
         }
         return formatNumber(row.price);
       }
@@ -147,7 +147,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
       renderCell: (row: BomRow) => {
         if (row.isFooter) return null;
         if (row.bom_id === editingId) {
-          return <TotalEstimasiCell form={form} priceOptions={priceOptions} />;
+          return <TotalEstimasiCell form={form} />;
         }
         return formatNumber(row.estimated_total || 0);
       }

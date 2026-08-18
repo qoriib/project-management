@@ -1,8 +1,10 @@
 import { Selector, NumberInput, HStack, IconButton } from "@astryxdesign/core";
 import { Plus } from "lucide-react";
-import { formatRupiah, formatNumber } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import { EntityCode } from "@/components/shared/EntityCode";
+import { useMasterStore } from "@/store/useMasterStore";
+import { useBOMStore } from "@/store/useBOMStore";
 import type { useBOMForm } from "./form/useBOMForm";
 
 interface BaseCellProps {
@@ -96,57 +98,77 @@ export function QtyInputCell({ form }: BaseCellProps) {
 }
 
 interface PriceSelectorCellProps extends BaseCellProps {
-  priceOptions: { value: string; label: string }[];
   onAddNewPrice: () => void;
+  editingId: string;
 }
 
-export function PriceSelectorCell({ form, priceOptions, onAddNewPrice }: PriceSelectorCellProps) {
+export function PriceSelectorCell({ form, onAddNewPrice, editingId }: PriceSelectorCellProps) {
+  const { itemPricesMap } = useMasterStore();
+  const { boms } = useBOMStore();
+
   return (
-    <HStack gap={1} align="start" width="100%">
-      <div style={{ flex: 1 }}>
-        <form.Field name="item_price_id">
-          {(field) => (
-            <Selector
-              isLabelHidden
-              label="Harga"
-              placeholder="Pilih harga..."
-              value={field.state.value}
-              onChange={(v) => field.handleChange(v)}
-              onBlur={field.handleBlur}
-              options={priceOptions}
-              isDisabled={priceOptions.length === 0}
-              statusVariant="tooltip"
-              status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+    <form.Subscribe selector={(s) => s.values.item_id}>
+      {(itemId) => {
+        let priceOptions: { value: string; label: string }[] = [];
+        if (itemId) {
+          const prices = itemPricesMap.get(itemId) || [];
+          const usedIds = boms.filter(b => b.item_id === itemId && b.bom_id !== editingId).map(b => b.item_price_id);
+          priceOptions = prices.filter(p => !usedIds.includes(p.item_price_id)).map(p => ({
+            value: p.item_price_id,
+            label: formatNumber(p.price)
+          }));
+        }
+
+        return (
+          <HStack gap={1} align="start" width="100%">
+            <div style={{ flex: 1 }}>
+              <form.Field name="item_price_id">
+                {(field) => (
+                  <Selector
+                    isLabelHidden
+                    label="Harga"
+                    placeholder="Pilih harga..."
+                    value={field.state.value}
+                    onChange={(v) => field.handleChange(v)}
+                    onBlur={field.handleBlur}
+                    options={priceOptions}
+                    isDisabled={priceOptions.length === 0}
+                    statusVariant="tooltip"
+                    status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  />
+                )}
+              </form.Field>
+            </div>
+            <IconButton
+              variant="secondary"
+              icon={<Plus size={16} />}
+              label="Tambah Harga Baru"
+              onClick={onAddNewPrice}
+              isDisabled={!itemId}
+              aria-label="Tambah Harga Baru"
             />
-          )}
-        </form.Field>
-      </div>
-      <form.Subscribe selector={(s) => s.values.item_id}>
-        {(itemId) => (
-          <IconButton
-            variant="secondary"
-            icon={<Plus size={16} />}
-            label="Tambah Harga Baru"
-            onClick={onAddNewPrice}
-            isDisabled={!itemId}
-            aria-label="Tambah Harga Baru"
-          />
-        )}
-      </form.Subscribe>
-    </HStack>
+          </HStack>
+        );
+      }}
+    </form.Subscribe>
   );
 }
 
-interface TotalEstimasiCellProps extends BaseCellProps {
-  priceOptions: { value: string; label: string }[];
-}
+// we don't need editingId here since it doesn't affect the calculation
+export function TotalEstimasiCell({ form }: BaseCellProps) {
+  const { itemPricesMap } = useMasterStore();
 
-export function TotalEstimasiCell({ form, priceOptions }: TotalEstimasiCellProps) {
   return (
-    <form.Subscribe selector={(s) => ({ qty: s.values.qty, priceId: s.values.item_price_id })}>
-      {({ qty, priceId }) => {
-        const activePrice = priceOptions.find(p => p.value === priceId)?.label;
-        const priceNum = activePrice ? Number(activePrice.replace(/[^0-9,-]+/g, "")) : 0;
+    <form.Subscribe selector={(s) => ({ qty: s.values.qty, priceId: s.values.item_price_id, itemId: s.values.item_id })}>
+      {({ qty, priceId, itemId }) => {
+        let priceNum = 0;
+        if (itemId && priceId) {
+          const prices = itemPricesMap.get(itemId) || [];
+          const priceObj = prices.find(p => p.item_price_id === priceId);
+          if (priceObj) {
+            priceNum = priceObj.price;
+          }
+        }
         return formatNumber(qty * priceNum);
       }}
     </form.Subscribe>

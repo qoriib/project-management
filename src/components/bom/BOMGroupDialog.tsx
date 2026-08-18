@@ -9,7 +9,6 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
 import { bomGroupRepo } from "@/db/repositories";
-import { EntityCode } from "@/components/shared/EntityCode";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
 import type { BOMGroup, ProjectWithRelations } from "@/db/repositories";

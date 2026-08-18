@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useAppStore } from "@/store/useAppStore";
@@ -21,9 +21,7 @@ export function useBOMForm({
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const { items } = useMasterStore();
-  const { boms: existingBoms, bomGroups, createBOM, updateBOM } = useBOMStore();
-
-  const projectBomGroups = bomGroups;
+  const { createBOM, updateBOM } = useBOMStore();
 
   const form = useForm({
     defaultValues: buildDefaultValues(initialData, defaultGroupId),
@@ -79,7 +77,7 @@ export function useBOMForm({
     if (!prices) {
       prices = await loadItemPrices(itemId);
     }
-    
+
     // Automatically select the first available price
     const { boms } = useBOMStore.getState();
     const isEditingThisBom = (bomId: string) => initialData !== undefined && bomId === initialData.bom_id;
@@ -103,7 +101,7 @@ export function useBOMForm({
       form.reset(buildDefaultValues(initialData, defaultGroupId));
       const { loadItemPrices, itemPricesMap } = useMasterStore.getState();
       if (!itemPricesMap.has(String(initialData.item_id))) {
-         loadItemPrices(String(initialData.item_id));
+        loadItemPrices(String(initialData.item_id));
       }
     } else {
       form.reset(buildDefaultValues(undefined, defaultGroupId));
@@ -113,9 +111,6 @@ export function useBOMForm({
   return {
     form,
     items,
-    bomGroups: projectBomGroups,
-    existingBoms,
-    selectedProjectId,
     handleItemChange,
   };
 }
