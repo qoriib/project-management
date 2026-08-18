@@ -2,6 +2,7 @@
 import { DatabaseSync } from "node:sqlite";
 import * as path from "node:path";
 import * as os from "node:os";
+import { DB_NAME } from "@/configs/database.config";
 
 class NodeDatabaseWrapper {
   private db: DatabaseSync;
@@ -46,7 +47,7 @@ export function getLocalNodeDb(): NodeDatabaseWrapper {
     baseDir = path.join(os.homedir(), ".local", "share");
   }
 
-  const dbPath = path.join(baseDir, appIdentifier, "proyek.db");
+  const dbPath = path.join(baseDir, appIdentifier, DB_NAME);
   console.log("Connecting node:sqlite to:", dbPath);
   _nodeDb = new NodeDatabaseWrapper(dbPath);
   return _nodeDb;

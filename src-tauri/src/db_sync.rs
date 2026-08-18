@@ -1,11 +1,11 @@
+use crate::constants::DB_NAME;
+use rusqlite::types::ValueRef;
+use rusqlite::Connection;
 use std::fs::File;
-use std::io::Read;
+use std::path::PathBuf;
 use tauri::Manager;
 use zip::write::FileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
-use sqlx::{Row, Column, TypeInfo};
-use sqlx::sqlite::SqlitePoolOptions;
-use sqlx::ValueRef;
 
 const TABLES: &[(&str, &str, &str)] = &[
     ("projects", "project_id", "project_name = excluded.project_name, company_name = excluded.company_name, fiscal_year = excluded.fiscal_year, deleted_at = excluded.deleted_at"),
@@ -22,197 +22,157 @@ const TABLES: &[(&str, &str, &str)] = &[
     ("delivery_items", "delivery_item_id", "delivery_id = excluded.delivery_id, po_item_id = excluded.po_item_id, qty = excluded.qty"),
 ];
 
-fn get_db_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
-    // tauri-plugin-sql default path
-    let mut db_path = app.path().app_local_data_dir().map_err(|e| e.to_string())?;
-    db_path.push("proyek.db");
+fn get_db_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let candidates = [
+        app.path().app_local_data_dir(),
+        app.path().app_data_dir(),
+        app.path().app_config_dir(),
+    ];
 
-    if !db_path.exists() {
-        let mut alt_path = app.path().app_data_dir().map_err(|e| e.to_string())?;
-        alt_path.push("proyek.db");
-        if alt_path.exists() {
-            db_path = alt_path;
-        } else {
-            let mut alt_path2 = app.path().app_config_dir().map_err(|e| e.to_string())?;
-            alt_path2.push("proyek.db");
-            if alt_path2.exists() {
-                db_path = alt_path2;
-            }
+    for dir in candidates.into_iter().flatten() {
+        let path = dir.join(DB_NAME);
+        if path.exists() {
+            return Ok(path);
         }
     }
-    Ok(db_path)
+
+    app.path()
+        .app_local_data_dir()
+        .map(|p| p.join(DB_NAME))
+        .map_err(|e| e.to_string())
+}
+
+fn get_export_query(table: &str, project_id: Option<&str>) -> String {
+    let Some(pid) = project_id else {
+        return format!("SELECT * FROM {table}");
+    };
+
+    match table {
+        "projects" | "bom_groups" | "bill_of_materials" | "purchase_orders" => {
+            format!("SELECT * FROM {table} WHERE project_id = '{pid}'")
+        }
+        "po_items" | "deliveries" => {
+            format!("SELECT * FROM {table} WHERE po_id IN (SELECT po_id FROM purchase_orders WHERE project_id = '{pid}')")
+        }
+        "delivery_items" => {
+            format!("SELECT * FROM delivery_items WHERE delivery_id IN (SELECT delivery_id FROM deliveries WHERE po_id IN (SELECT po_id FROM purchase_orders WHERE project_id = '{pid}'))")
+        }
+        _ => format!("SELECT * FROM {table}"),
+    }
 }
 
 #[tauri::command]
 pub fn reset_db(app: tauri::AppHandle) -> Result<(), String> {
     let db_path = get_db_path(&app)?;
-
     if db_path.exists() {
-        std::fs::remove_file(&db_path).map_err(|e| e.to_string())?;
+        let _ = std::fs::remove_file(&db_path);
+        let _ = std::fs::remove_file(db_path.with_extension("db-wal"));
+        let _ = std::fs::remove_file(db_path.with_extension("db-shm"));
     }
-
-    let wal = db_path.with_extension("db-wal");
-    let shm = db_path.with_extension("db-shm");
-    if wal.exists() { let _ = std::fs::remove_file(wal); }
-    if shm.exists() { let _ = std::fs::remove_file(shm); }
-
     app.restart();
 }
 
 #[tauri::command]
-pub async fn export_csv_zip(
+pub fn export_csv_zip(
     app: tauri::AppHandle,
     target_path: String,
     project_id: Option<String>,
 ) -> Result<(), String> {
     let db_path = get_db_path(&app)?;
-    if !db_path.exists() {
-        return Err("Database utama tidak ditemukan!".into());
-    }
-
-    let uri = format!("sqlite:{}", db_path.to_string_lossy());
-    let pool = SqlitePoolOptions::new()
-        .connect(&uri)
-        .await
-        .map_err(|e| e.to_string())?;
+    let conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
 
     let file = File::create(&target_path).map_err(|e| e.to_string())?;
     let mut zip = ZipWriter::new(file);
-
-    let options: FileOptions<'_, ()> = FileOptions::default()
-        .compression_method(CompressionMethod::Deflated);
+    let options = FileOptions::<'_, ()>::default().compression_method(CompressionMethod::Deflated);
 
     for &(table, _, _) in TABLES {
-        zip.start_file(format!("{}.csv", table), options)
+        zip.start_file(format!("{table}.csv"), options)
             .map_err(|e| e.to_string())?;
-
         let mut wtr = csv::Writer::from_writer(&mut zip);
 
-        let query = match table {
-            "projects" if project_id.is_some() => format!("SELECT * FROM projects WHERE project_id = '{}'", project_id.as_ref().unwrap()),
-            "bom_groups" if project_id.is_some() => format!("SELECT * FROM bom_groups WHERE project_id = '{}'", project_id.as_ref().unwrap()),
-            "bill_of_materials" if project_id.is_some() => format!("SELECT * FROM bill_of_materials WHERE project_id = '{}'", project_id.as_ref().unwrap()),
-            "purchase_orders" if project_id.is_some() => format!("SELECT * FROM purchase_orders WHERE project_id = '{}'", project_id.as_ref().unwrap()),
-            "po_items" if project_id.is_some() => format!("SELECT * FROM po_items WHERE po_id IN (SELECT po_id FROM purchase_orders WHERE project_id = '{}')", project_id.as_ref().unwrap()),
-            "deliveries" if project_id.is_some() => format!("SELECT * FROM deliveries WHERE po_id IN (SELECT po_id FROM purchase_orders WHERE project_id = '{}')", project_id.as_ref().unwrap()),
-            "delivery_items" if project_id.is_some() => format!("SELECT * FROM delivery_items WHERE delivery_id IN (SELECT delivery_id FROM deliveries WHERE po_id IN (SELECT po_id FROM purchase_orders WHERE project_id = '{}'))", project_id.as_ref().unwrap()),
-            _ => format!("SELECT * FROM {}", table),
-        };
+        let query = get_export_query(table, project_id.as_deref());
+        let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
+        let col_count = stmt.column_count();
 
-        let rows = sqlx::query(&query).fetch_all(&pool).await.map_err(|e| e.to_string())?;
+        let cols: Vec<String> = stmt.column_names().into_iter().map(String::from).collect();
+        wtr.write_record(&cols).map_err(|e| e.to_string())?;
 
-        if !rows.is_empty() {
-            let cols: Vec<String> = rows[0].columns().iter().map(|c| c.name().to_string()).collect();
-            wtr.write_record(&cols).map_err(|e| e.to_string())?;
-
-            for row in rows {
-                let mut record = Vec::new();
-                for i in 0..cols.len() {
-                    let val_ref = row.try_get_raw(i).map_err(|e| e.to_string())?;
-                    let s = if val_ref.is_null() {
-                        "".to_string()
-                    } else {
-                        let type_info = val_ref.type_info();
-                        match type_info.name() {
-                            "INTEGER" | "INT" | "NUMERIC" => row.try_get::<i64, _>(i).map(|v| v.to_string()).unwrap_or_default(),
-                            "REAL" | "FLOAT" | "DOUBLE" => row.try_get::<f64, _>(i).map(|v| v.to_string()).unwrap_or_default(),
-                            "TEXT" | "VARCHAR" => row.try_get::<String, _>(i).unwrap_or_default(),
-                            "BOOLEAN" => row.try_get::<bool, _>(i).map(|v| if v { "1".to_string() } else { "0".to_string() }).unwrap_or_default(),
-                            _ => row.try_get::<String, _>(i).unwrap_or_default(),
-                        }
-                    };
-                    record.push(s);
-                }
-                wtr.write_record(&record).map_err(|e| e.to_string())?;
+        let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
+        while let Some(row) = rows.next().map_err(|e| e.to_string())? {
+            let mut record = Vec::with_capacity(col_count);
+            for i in 0..col_count {
+                let val_str = match row.get_ref(i).map_err(|e| e.to_string())? {
+                    ValueRef::Null => String::new(),
+                    ValueRef::Integer(v) => v.to_string(),
+                    ValueRef::Real(v) => v.to_string(),
+                    ValueRef::Text(v) => String::from_utf8_lossy(v).into_owned(),
+                    ValueRef::Blob(_) => String::new(),
+                };
+                record.push(val_str);
             }
+            wtr.write_record(&record).map_err(|e| e.to_string())?;
         }
         wtr.flush().map_err(|e| e.to_string())?;
     }
 
     zip.finish().map_err(|e| e.to_string())?;
-    pool.close().await;
-
     Ok(())
 }
 
 #[tauri::command]
-pub async fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), String> {
+pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), String> {
     let db_path = get_db_path(&app)?;
-
-    let file = File::open(&source_path).map_err(|e| e.to_string())?;
-    let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
-
-    let mut temp_path = std::env::temp_dir();
-    temp_path.push("proyek_merge.db");
-    if db_path.exists() {
-        std::fs::copy(&db_path, &temp_path).map_err(|e| e.to_string())?;
-    }
-
-    let uri = format!("sqlite:{}", temp_path.to_string_lossy());
-    let pool = SqlitePoolOptions::new()
-        .connect(&uri)
-        .await
+    let mut archive = ZipArchive::new(File::open(&source_path).map_err(|e| e.to_string())?)
         .map_err(|e| e.to_string())?;
 
+    let mut conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
     for &(table, pk, update_cols) in TABLES {
-        let file_name = format!("{}.csv", table);
+        let Ok(file) = archive.by_name(&format!("{table}.csv")) else {
+            continue;
+        };
 
-        let mut csv_data = String::new();
+        let mut rdr = csv::Reader::from_reader(file);
+        let headers = rdr.headers().map_err(|e| e.to_string())?;
+        let col_count = headers.len();
+        if col_count == 0 {
+            continue;
+        }
+
+        let temp_table = format!("temp_{table}");
+        tx.execute_batch(&format!(
+            "DROP TABLE IF EXISTS {temp_table}; \
+             CREATE TEMP TABLE {temp_table} AS SELECT * FROM {table} WHERE 0;"
+        ))
+        .map_err(|e| e.to_string())?;
+
+        let placeholders = vec!["?"; col_count].join(",");
+        let insert_sql = format!("INSERT INTO {temp_table} VALUES ({placeholders})");
         {
-            let zip_file_result = archive.by_name(&file_name).ok();
-            if let Some(mut zip_file) = zip_file_result {
-                zip_file
-                    .read_to_string(&mut csv_data)
+            let mut stmt = tx.prepare(&insert_sql).map_err(|e| e.to_string())?;
+            for record in rdr.records() {
+                let rec = record.map_err(|e| e.to_string())?;
+                let params: Vec<Option<&str>> = rec
+                    .iter()
+                    .map(|f| if f.is_empty() { None } else { Some(f) })
+                    .collect();
+                stmt.execute(rusqlite::params_from_iter(params))
                     .map_err(|e| e.to_string())?;
-            } else {
-                continue;
             }
         }
-
-        let mut rdr = csv::Reader::from_reader(csv_data.as_bytes());
-        let headers = rdr.headers().map_err(|e| e.to_string())?.clone();
-
-        let temp_table = format!("temp_{}", table);
-        sqlx::query(&format!("DROP TABLE IF EXISTS {}", temp_table))
-            .execute(&pool).await.map_err(|e| e.to_string())?;
-            
-        sqlx::query(&format!("CREATE TEMP TABLE {} AS SELECT * FROM {} WHERE 0", temp_table, table))
-            .execute(&pool).await.map_err(|e| e.to_string())?;
-
-        let placeholders = vec!["?"; headers.len()].join(", ");
-        let insert_temp = format!("INSERT INTO {} VALUES ({})", temp_table, placeholders);
-
-        let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-        
-        for result in rdr.records() {
-            let record = result.map_err(|e| e.to_string())?;
-            
-            let mut q = sqlx::query(&insert_temp);
-            for field in record.iter() {
-                if field.is_empty() {
-                    q = q.bind(None::<String>);
-                } else {
-                    q = q.bind(field.to_string());
-                }
-            }
-            q.execute(&mut *tx).await.map_err(|e| e.to_string())?;
-        }
-        tx.commit().await.map_err(|e| e.to_string())?;
 
         let upsert_sql = format!(
             "INSERT INTO {table} SELECT * FROM {temp_table} \
              ON CONFLICT({pk}) DO UPDATE SET \
              {update_cols}, updated_at = excluded.updated_at \
-             WHERE excluded.updated_at > {table}.updated_at"
+             WHERE excluded.updated_at > {table}.updated_at; \
+             DROP TABLE {temp_table};"
         );
-        sqlx::query(&upsert_sql).execute(&pool).await
-            .map_err(|e| format!("Gagal sinkronisasi tabel {}: {}", table, e))?;
+        tx.execute_batch(&upsert_sql)
+            .map_err(|e| format!("Gagal sinkronisasi tabel {table}: {e}"))?;
     }
 
-    pool.close().await;
-
-    std::fs::copy(&temp_path, &db_path).map_err(|e| e.to_string())?;
-    let _ = std::fs::remove_file(temp_path);
-
+    tx.commit().map_err(|e| e.to_string())?;
     app.restart();
 }

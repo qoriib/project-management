@@ -1,8 +1,10 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 mod auth;
+mod constants;
 mod db_sync;
 
+use constants::DB_SQLITE_URL;
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -36,7 +38,7 @@ pub fn run() {
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations(
-                    "sqlite:proyek.db",
+                    DB_SQLITE_URL,
                     vec![
                         Migration {
                             version: 1,

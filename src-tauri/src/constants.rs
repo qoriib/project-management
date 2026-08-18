@@ -1,1 +1,2 @@
-pub const APP_GENERAL_KEY: &[u8] = b"ProjectAppSecureGeneralKey_v1";
+pub const DB_NAME: &str = "proyek.db";
+pub const DB_SQLITE_URL: &str = "sqlite:proyek.db";

@@ -4,6 +4,7 @@
  */
 
 import Database from "@tauri-apps/plugin-sql";
+import { DB_SQLITE_URL } from "@/configs/database.config";
 
 export interface DatabaseLike {
   select<T>(sql: string, params?: any[]): Promise<T>;
@@ -17,7 +18,7 @@ let dbInstance: Database | null = null;
 
 async function getTauriDb(): Promise<DatabaseLike> {
   if (!dbInstance) {
-    dbInstance = await Database.load("sqlite:proyek.db");
+    dbInstance = await Database.load(DB_SQLITE_URL);
   }
 
   return {
