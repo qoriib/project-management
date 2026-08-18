@@ -3,6 +3,7 @@ import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { BOMTable } from "@/components/bom/BOMTable";
+import { BOMApprovalActions } from "@/components/bom/BOMApprovalActions";
 
 function BOMPage() {
   return (
@@ -12,6 +13,7 @@ function BOMPage() {
           <PageHeader
             title="Rencana Kebutuhan (BOM)"
             subtitle="Rincian item yang dibutuhkan untuk proyek ini"
+            actions={<BOMApprovalActions />}
           />
           <ProjectRequired>
             <BOMTable />

@@ -1,6 +1,6 @@
 import { Pencil, Trash2, Check, X } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
-import { HStack, VStack, Table, Text, IconButton, Divider, Button } from "@astryxdesign/core";
+import { HStack, Table, Text, IconButton, Button, VStack, Divider } from "@astryxdesign/core";
 import { proportional, pixel, type TableColumn, useTableGroupedRows, type TablePlugin } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -30,7 +30,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   const { boms, deleteBOM, loadBOMs } = useBOMStore();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  
+
   // State untuk form inline
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<BOMDetail | undefined>(undefined);
@@ -40,13 +40,6 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   const projects = useMasterStore((s) => s.projects);
   const currentProject = projects.find(p => p.project_id === selectedProjectId);
   const isApproved = currentProject?.bom_is_approved === 1;
-  const role = import.meta.env.VITE_APP_ROLE || 'staff_logistics';
-  const isManager = role === 'manager';
-
-  // For approval dialog
-  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
-  const [approving, setApproving] = useState(false);
-  const approveProjectBOM = useMasterStore((s) => s.approveProjectBOM);
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -75,7 +68,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
     },
   });
 
-  const columns: TableColumn<BomRow>[] = [
+  const baseColumns: TableColumn<BomRow>[] = [
     {
       key: "item_id",
       header: "No. Barang",
@@ -112,26 +105,28 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
     },
     {
       key: "price",
-      header: "Harga Rencana",
+      header: "Harga Rencana (Rp)",
       width: pixel(200),
+      align: "end",
       renderCell: (row: BomRow) => {
         if (row.isFooter) return null;
         if (row.bom_id === editingId) {
           return <PriceSelectorCell form={form} priceOptions={priceOptions} />;
         }
-        return formatRupiah(row.price);
+        return formatNumber(row.price);
       }
     },
     {
       key: "estimation",
-      header: "Total Estimasi",
+      header: "Total Estimasi (Rp)",
       width: pixel(180),
+      align: "end",
       renderCell: (row: BomRow) => {
         if (row.isFooter) return null;
         if (row.bom_id === editingId) {
-           return <TotalEstimasiCell form={form} priceOptions={priceOptions} />;
+          return <TotalEstimasiCell form={form} priceOptions={priceOptions} />;
         }
-        return formatRupiah(row.estimated_total || 0);
+        return formatNumber(row.estimated_total || 0);
       }
     },
     {
@@ -141,7 +136,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
       width: pixel(100),
       renderCell: (row: BomRow) => {
         if (row.isFooter) return null;
-        
+
         if (row.bom_id === editingId) {
           return (
             <HStack gap={2} justify="end">
@@ -207,6 +202,8 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
     },
   ];
 
+  const columns = isApproved ? baseColumns.slice(0, -1) : baseColumns;
+
   const { grandTotal, categorySubtotals } = useMemo(() => {
     let grand = 0;
     const subtotals: Record<string, number> = {};
@@ -238,11 +235,13 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         if (editingId === `new-${gid}`) {
           list.push({ bom_id: `new-${gid}`, bom_group_id: gid, isDraft: true } as unknown as BomRow);
         }
-        list.push({ isFooter: true, bom_group_id: gid, bom_id: `footer-${gid}` } as unknown as BomRow);
+        if (!isApproved) {
+          list.push({ isFooter: true, bom_group_id: gid, bom_id: `footer-${gid}` } as unknown as BomRow);
+        }
       }
     }
     return list;
-  }, [boms, editingId]);
+  }, [boms, editingId, isApproved]);
 
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
@@ -266,7 +265,9 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
       return (
         <HStack justify="between" align="center" paddingInline={1} width="100%">
           <Text weight="bold">{groupName}</Text>
-          <Text weight="bold">{formatRupiah(categorySubtotals[key] || 0)}</Text>
+          <HStack paddingInline={2}>
+            <Text weight="bold">{formatNumber(categorySubtotals[key] || 0)}</Text>
+          </HStack>
         </HStack>
       );
     },
@@ -276,7 +277,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
     transformBodyRow(props, item) {
       if ((item as any).isFooter) {
         const groupId = item.bom_group_id;
-        
+
         // Hide Tambah Kebutuhan if we are already adding/editing something
         const hideButton = !!editingId;
 
@@ -285,11 +286,11 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
           children: (
             <td colSpan={999} style={{ padding: "8px 16px", background: "var(--color-bg-base)", borderBottom: "1px solid var(--color-border)" }}>
               {!hideButton && !isApproved && (
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
+                <Button
+                  variant="secondary"
+                  size="sm"
                   icon={<Plus size={16} />}
-                  label="Tambah Kebutuhan" 
+                  label="Tambah Kebutuhan"
                   onClick={() => {
                     setEditingData(undefined);
                     setEditingGroupId(groupId);
@@ -299,14 +300,14 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
                       next.delete(groupId);
                       return next;
                     });
-                  }} 
+                  }}
                 />
               )}
             </td>
           )
         };
       }
-      
+
       // Give a slight highlighted background to the active editing row
       if (item.bom_id === editingId) {
         return {
@@ -314,7 +315,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
           xstyle: [...props.xstyle, { background: "var(--color-bg-muted)" }]
         };
       }
-      
+
       return props;
     }
   }), [editingId]);
@@ -331,27 +332,13 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan terlebih dahulu di Master Proyek." />}
       />
       {boms.length > 0 && (
-        <VStack gap={4}>
+        <VStack>
           <Divider />
-          <HStack justify="between" align="center">
-            <HStack gap={2}>
-              {isApproved && (
-                <Text weight="bold" style={{ color: 'var(--color-success)' }}>✓ BOM Telah Disetujui (Terkunci)</Text>
-              )}
-              {!isApproved && isManager && (
-                <Button 
-                  variant="primary" 
-                  label="ACC BOM" 
-                  onClick={() => setShowApproveConfirm(true)}
-                />
-              )}
-            </HStack>
-            <HStack gap={2}>
-              <Text weight="bold" size="lg">Total:</Text>
-              <Text weight="bold" size="lg" color="primary">
-                {formatRupiah(grandTotal)}
-              </Text>
-            </HStack>
+          <HStack justify="end" paddingBlock={3} gap={2}>
+            <Text weight="bold" size="lg">Total:</Text>
+            <Text weight="bold" size="lg" color="primary">
+              {formatRupiah(grandTotal)}
+            </Text>
           </HStack>
         </VStack>
       )}
@@ -362,23 +349,6 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         title="Hapus Kebutuhan"
         message="Apakah Anda yakin ingin menghapus material ini dari rencana (BOM)?"
         isLoading={deleting}
-      />
-      <ConfirmDialog
-        isOpen={showApproveConfirm}
-        onClose={() => setShowApproveConfirm(false)}
-        onConfirm={async () => {
-          if (!selectedProjectId) return;
-          setApproving(true);
-          try {
-            await approveProjectBOM(selectedProjectId);
-            setShowApproveConfirm(false);
-          } finally {
-            setApproving(false);
-          }
-        }}
-        title="ACC BOM Proyek"
-        message="Apakah Anda yakin ingin menyetujui BOM proyek ini? Setelah disetujui, semua data BOM pada proyek ini akan dikunci dan tidak dapat diubah lagi."
-        isLoading={approving}
       />
     </>
   );

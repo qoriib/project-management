@@ -8,11 +8,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:staff_logistics": "vite --mode staff_logistics",
-    "dev:manager": "vite --mode manager",
     "build": "tsc && vite build",
-    "build:staff_logistics": "tsc && vite build --mode staff_logistics && tauri build",
-    "build:manager": "tsc && vite build --mode manager && tauri build",
+    "dev:staff_logistics": "cross-env VITE_APP_ROLE=logistics_staff tauri dev",
+    "dev:manager": "cross-env VITE_APP_ROLE=manager tauri dev",
+    "build:staff_logistics": "cross-env VITE_APP_ROLE=logistics_staff tauri build",
+    "build:manager": "cross-env VITE_APP_ROLE=manager tauri build",
     "preview": "vite preview",
     "tauri": "tauri",
     "db:seed": "vite-node src/db/seeds/run-cli.ts",
@@ -47,6 +47,7 @@
     "@types/react-dom": "^19.2.4",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^6.0.5",
+    "cross-env": "^10.1.0",
     "typescript": "~7.0.2",
     "vite": "^8.2.1",
     "vite-node": "^6.0.0"

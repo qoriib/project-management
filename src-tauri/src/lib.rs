@@ -46,24 +46,6 @@ pub fn run() {
                             sql: include_str!("../migrations/001_init.sql"),
                             kind: MigrationKind::Up,
                         },
-                        Migration {
-                            version: 2,
-                            description: "add_updated_at",
-                            sql: include_str!("../migrations/002_add_updated_at.sql"),
-                            kind: MigrationKind::Up,
-                        },
-                        Migration {
-                            version: 3,
-                            description: "add_bom_approval",
-                            sql: include_str!("../migrations/003_add_bom_approval.sql"),
-                            kind: MigrationKind::Up,
-                        },
-                        Migration {
-                            version: 4,
-                            description: "bom_validation_triggers",
-                            sql: include_str!("../migrations/004_bom_validation_triggers.sql"),
-                            kind: MigrationKind::Up,
-                        },
                     ],
                 )
                 .build(),

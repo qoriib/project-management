@@ -9,6 +9,11 @@
     "dialog:default",
     "fs:default",
     "log:default",
-    "core:webview:allow-set-webview-zoom"
+    "core:webview:allow-set-webview-zoom",
+    "sql:default",
+    "sql:allow-execute",
+    "sql:allow-load",
+    "sql:allow-select",
+    "sql:allow-close"
   ]
 }

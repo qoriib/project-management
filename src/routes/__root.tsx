@@ -1,15 +1,14 @@
 import { createRootRoute, Outlet, useNavigate, useLocation, redirect } from '@tanstack/react-router';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Text, VStack } from "@astryxdesign/core";
-import { IconButton } from "@astryxdesign/core/IconButton";
+import { AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Text, VStack, Heading } from "@astryxdesign/core";
 import { ListItem } from "@astryxdesign/core/List";
 import { useEffect } from "react";
-import { Sun, Moon } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { getDB } from "@/db";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
-import { APP } from '@/configs/app.config';
+import { APP, AppRole } from '@/configs/app.config';
 import { checkIsAuthenticated } from '@/services/auth';
 
 export const Route = createRootRoute({
@@ -25,7 +24,7 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   const location = useLocation();
-  
+
   if (location.pathname === '/login') {
     return (
       <>
@@ -34,7 +33,7 @@ function RootComponent() {
       </>
     );
   }
-  
+
   return <AppLayout />;
 }
 
@@ -42,11 +41,13 @@ function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const envRole = import.meta.env.VITE_APP_ROLE?.toUpperCase() || 'MANAGER';
+  const roleKey = envRole as keyof typeof AppRole;
+  const userRole = AppRole[roleKey] || AppRole.MANAGER;
+
   const {
     activeNav,
     setActiveNav,
-    resolvedMode,
-    toggleThemeMode,
     dbReady,
     setDbReady,
     setGlobalError,
@@ -56,8 +57,6 @@ function AppLayout() {
     useShallow((s) => ({
       activeNav: s.activeNav,
       setActiveNav: s.setActiveNav,
-      resolvedMode: s.resolvedMode,
-      toggleThemeMode: s.toggleThemeMode,
       dbReady: s.dbReady,
       setDbReady: s.setDbReady,
       setGlobalError: s.setGlobalError,
@@ -73,6 +72,16 @@ function AppLayout() {
   useEffect(() => {
     setActiveNav(location.pathname);
   }, [location.pathname, setActiveNav]);
+
+  useEffect(() => {
+    const title = `${APP.title} - ${userRole}`;
+    try {
+      getCurrentWindow().setTitle(title);
+    } catch (e) {
+      // Fallback if running outside Tauri
+      document.title = title;
+    }
+  }, [userRole]);
 
   useEffect(() => {
     getDB()
@@ -123,13 +132,11 @@ function AppLayout() {
               }
             />
           }
-          footerIcons={
-            <IconButton
-              label={resolvedMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              icon={resolvedMode === 'dark' ? <Sun size="1em" aria-hidden /> : <Moon size="1em" aria-hidden />}
-              variant="ghost"
-              onClick={toggleThemeMode}
-            />
+          footer={
+            <VStack gap={1} paddingInline={2}>
+              <Text weight="normal" color="secondary">{userRole}</Text>
+              <Heading level={3}>{APP.companyName}</Heading>
+            </VStack>
           }
         >
           <SideNavSection title="Menu Utama" isHeaderHidden>

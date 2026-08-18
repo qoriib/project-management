@@ -9,12 +9,23 @@ import { invoke } from '@tauri-apps/api/core';
 import { save, open } from '@tauri-apps/plugin-dialog';
 import { useState, useEffect } from 'react';
 import { projectRepo } from '@/db/repositories/project.repository';
-import type { Project } from '@/db/models';
 import { SettingsResetDialog } from '@/components/settings/SettingsResetDialog';
 import { changePin } from '@/services/auth';
+import { useAppStore } from '@/store/useAppStore';
+import { useShallow } from 'zustand/react/shallow';
+import { Sun, Moon } from 'lucide-react';
+import type { Project } from '@/db/models';
 
 function SettingsPage() {
-  const [activeTab, setActiveTab] = useState('sync');
+  const [activeTab, setActiveTab] = useState('appearance');
+
+  // Theme state
+  const { resolvedMode, toggleThemeMode } = useAppStore(
+    useShallow((s) => ({
+      resolvedMode: s.resolvedMode,
+      toggleThemeMode: s.toggleThemeMode,
+    }))
+  );
 
   // Sync state
   const [isExporting, setIsExporting] = useState(false);
@@ -157,11 +168,31 @@ function SettingsPage() {
             />
 
             <TabList value={activeTab} onChange={setActiveTab} hasDivider>
+              <Tab value="appearance" label="Tampilan" />
               <Tab value="sync" label="Sinkronisasi Data" />
               <Tab value="security" label="Keamanan (PIN)" />
             </TabList>
 
             <VStack gap={6} style={{ maxWidth: '600px', marginTop: 'var(--spacing-4)' }}>
+              {activeTab === 'appearance' && (
+                <VStack gap={4}>
+                  <VStack gap={2}>
+                    <Text size="lg" weight="bold">Tampilan Aplikasi</Text>
+                    <Text color="secondary">
+                      Sesuaikan tema warna aplikasi sesuai dengan preferensi Anda.
+                    </Text>
+                  </VStack>
+                  <div>
+                    <Button
+                      variant="secondary"
+                      onClick={toggleThemeMode}
+                      label={resolvedMode === 'dark' ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'}
+                      icon={resolvedMode === 'dark' ? <Sun size="1em" /> : <Moon size="1em" />}
+                    />
+                  </div>
+                </VStack>
+              )}
+
               {activeTab === 'sync' && (
                 <>
                   <VStack gap={2}>

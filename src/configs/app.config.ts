@@ -1,7 +1,13 @@
 import { ClipboardList, Folder, Home, ShoppingCart, Truck, Settings } from "lucide-react";
 
+export enum AppRole {
+  MANAGER = 'Manager',
+  LOGISTICS_STAFF = 'Staff Logistik'
+}
+
 export const APP = {
   title: "Manajemen Proyek",
+  companyName: "Nusantara Fiktif PT",
   sidenav: [
     {
       label: "Laporan",
