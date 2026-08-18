@@ -54,7 +54,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
       const prices = itemPricesMap.get(payload.item_id) || [];
       const priceDef = prices.find(p => p.item_price_id === payload.item_price_id);
       const vendorDef = vendors.find(v => v.vendor_id === payload.vendor_id);
-      
+
       const newDetail: POItemDetail = {
         po_item_id: editingData ? editingData.po_item_id : `draft-${Date.now()}`,
         po_id: "",
@@ -133,7 +133,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
     {
       key: "price_info",
       header: "Harga & Variasi (Rp)",
-      width: pixel(200),
+      width: pixel(240),
       renderCell: (row: POItemRow) => {
         if (row.isFooter) return null;
         if (row.po_item_id === editingId) {
@@ -160,7 +160,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
     {
       key: "vendor",
       header: "Vendor Pemasok",
-      width: pixel(200),
+      width: pixel(280),
       renderCell: (row: POItemRow) => {
         if (row.isFooter) return null;
         if (row.po_item_id === editingId) {
@@ -172,7 +172,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
     {
       key: "unit",
       header: "Satuan",
-      width: pixel(100),
+      width: pixel(80),
       renderCell: (row: POItemRow) => {
         if (row.isFooter) return null;
         if (row.po_item_id === editingId) {
@@ -200,16 +200,16 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
           const currentItemId = form.getFieldValue("item_id");
           const currentPriceId = form.getFieldValue("item_price_id");
           const bomItem = bomData.find(b => b.item_id === currentItemId && b.item_price_id === currentPriceId);
-          
+
           let totalOrdered = bomItem?.total_ordered || 0;
           let plannedVolume = bomItem?.planned_volume || 0;
-          
+
           if (editingData) {
             // Subtract current qty if editing to get true remaining balance
             totalOrdered -= (editingData.qty || 0);
           }
           const initialBalance = plannedVolume - totalOrdered;
-          
+
           return (
             <QtyInputCell form={form} initialBalance={initialBalance} />
           );
@@ -221,6 +221,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
       key: "subtotal",
       header: "Subtotal (Rp)",
       width: pixel(180),
+      align: "end",
       renderCell: (row: POItemRow) => {
         if (row.isFooter) return null;
         if (row.po_item_id === editingId) {
@@ -241,8 +242,11 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
           return (
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
-                <EditActionsCell 
+                <EditActionsCell
                   isSubmitting={isSubmitting}
+                  onSave={() => {
+                    form.handleSubmit();
+                  }}
                   onCancel={() => {
                     setEditingId(null);
                     setEditingData(undefined);

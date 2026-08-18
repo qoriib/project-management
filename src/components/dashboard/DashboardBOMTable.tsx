@@ -92,6 +92,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
       key: "subtotal",
       header: "Total Harga (Rp)",
       width: pixel(200),
+      align: "end",
       renderCell: (r) => (
         <VStack gap={0.5}>
           <Text weight="medium">Realisasi: {formatNumber(r.total_po_price || 0)}</Text>

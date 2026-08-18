@@ -95,11 +95,9 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
             </form.Field>
           </VStack>
         </HStack>
-
-        <Card padding={0}>
+        <Card>
           <POItemFormTable items={items} onChange={setItems} bomData={bomData} />
         </Card>
-
         <HStack justify="end" gap={2}>
           <Button
             variant="secondary"

@@ -108,6 +108,7 @@ export function PriceSelectorCell({
               />
             </div>
             <IconButton
+              type="button"
               variant="secondary"
               icon={<Plus size={16} />}
               label="Tambah Harga"
@@ -158,6 +159,7 @@ export function VendorSelectorCell({
               />
             </div>
             <IconButton
+              type="button"
               variant="secondary"
               icon={<Plus size={16} />}
               label="Tambah Vendor"
@@ -178,12 +180,6 @@ export function QtyInputCell({ form, initialBalance }: QtyInputCellProps) {
   return (
     <form.Field
       name="qty"
-      validators={{
-        onChange: ({ value }) =>
-          value > initialBalance
-            ? `Melebihi sisa BOM (${formatNumber(initialBalance, 2)}).`
-            : undefined,
-      }}
     >
       {(field) => (
         <NumberInput
@@ -205,9 +201,11 @@ export function QtyInputCell({ form, initialBalance }: QtyInputCellProps) {
 
 export function EditActionsCell({
   onCancel,
+  onSave,
   isSubmitting,
 }: {
   onCancel: () => void;
+  onSave: () => void;
   isSubmitting: boolean;
 }) {
   return (
@@ -215,8 +213,9 @@ export function EditActionsCell({
       <IconButton
         icon={<Check size={16} />}
         size="sm"
-        type="submit"
+        type="button"
         label="Simpan"
+        onClick={onSave}
         isLoading={isSubmitting}
       />
       <IconButton

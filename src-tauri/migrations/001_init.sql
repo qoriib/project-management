@@ -140,7 +140,7 @@ BEFORE INSERT ON bill_of_materials
 FOR EACH ROW
 WHEN (SELECT bom_is_approved FROM projects WHERE project_id = NEW.project_id) = 1
 BEGIN
-    SELECT RAISE(ABORT, 'Gagal: BOM untuk proyek ini telah di-ACC dan dikunci.');
+    SELECT RAISE(ABORT, 'Gagal: BOM untuk proyek ini telah dikunci.');
 END;
 
 -- 2. Mencegah UPDATE
@@ -149,7 +149,7 @@ BEFORE UPDATE ON bill_of_materials
 FOR EACH ROW
 WHEN (SELECT bom_is_approved FROM projects WHERE project_id = NEW.project_id) = 1
 BEGIN
-    SELECT RAISE(ABORT, 'Gagal: BOM untuk proyek ini telah di-ACC dan dikunci.');
+    SELECT RAISE(ABORT, 'Gagal: BOM untuk proyek ini telah dikunci.');
 END;
 
 -- 3. Mencegah DELETE
@@ -158,5 +158,5 @@ BEFORE DELETE ON bill_of_materials
 FOR EACH ROW
 WHEN (SELECT bom_is_approved FROM projects WHERE project_id = OLD.project_id) = 1
 BEGIN
-    SELECT RAISE(ABORT, 'Gagal: BOM untuk proyek ini telah di-ACC dan dikunci.');
+    SELECT RAISE(ABORT, 'Gagal: BOM untuk proyek ini telah dikunci.');
 END;
