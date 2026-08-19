@@ -60,6 +60,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
       renderCell: (row: UnitRow) => <Text type="code">{String(row.count)}</Text>,
     },
     {
+      align: "end",
       header: "Aksi",
       key: "actions",
       width: pixel(120),

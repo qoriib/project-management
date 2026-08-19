@@ -58,6 +58,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
       width: proportional(2),
     },
     {
+      align: "end",
       header: "Aksi",
       key: "actions",
       width: pixel(120),

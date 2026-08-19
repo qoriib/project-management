@@ -15,7 +15,7 @@ interface MasterItemTableProps {
   onEdit: (item: ItemWithDetails) => void;
 }
 
-interface ItemRow extends ItemWithDetails, Record<string, unknown> { }
+interface ItemRow extends ItemWithDetails, Record<string, unknown> {}
 
 export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   const showToast = useToast();
@@ -72,6 +72,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       renderCell: (row: ItemRow) => <Badge variant="neutral" label={row.category_name || "—"} />,
     },
     {
+      align: "end",
       header: "Aksi",
       key: "actions",
       width: pixel(180),

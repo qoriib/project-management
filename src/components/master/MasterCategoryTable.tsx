@@ -74,6 +74,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       renderCell: (row: CategoryRow) => <Text type="code">{String(row.count)}</Text>,
     },
     {
+      align: "end",
       header: "Aksi",
       key: "actions",
       width: pixel(120),

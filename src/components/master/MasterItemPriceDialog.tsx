@@ -26,7 +26,7 @@ import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
-interface PriceRow extends ItemPriceWithRelation, Record<string, unknown> { }
+interface PriceRow extends ItemPriceWithRelation, Record<string, unknown> {}
 
 const priceSchema = v.object({
   price: v.pipe(v.number("Harga harus berupa angka"), v.minValue(0, "Harga tidak valid.")),
@@ -39,11 +39,11 @@ interface MasterItemPriceDialogProps {
 }
 
 export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPriceDialogProps) {
-  const showToast = useToast()
-  const { createItemPrice, deleteItemPrice } = useMasterStore()
-  const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null)
-  const [deleting, setDeleting] = useState(false)
-  const [prices, setPrices] = useState<ItemPriceWithRelation[]>([])
+  const showToast = useToast();
+  const { createItemPrice, deleteItemPrice } = useMasterStore();
+  const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [prices, setPrices] = useState<ItemPriceWithRelation[]>([]);
 
   const form = useForm({
     defaultValues: {
@@ -118,6 +118,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       ),
     },
     {
+      align: "end",
       header: "Aksi",
       key: "actions",
       width: pixel(100),
@@ -135,7 +136,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
             />
           </HStack>
         );
-      }
+      },
     },
   ];
 

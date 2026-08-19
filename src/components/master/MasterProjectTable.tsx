@@ -14,7 +14,7 @@ interface MasterProjectTableProps {
   onEdit: (project: Project) => void;
 }
 
-interface ProjectRow extends ProjectWithRelations, Record<string, unknown> { }
+interface ProjectRow extends ProjectWithRelations, Record<string, unknown> {}
 
 export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   const showToast = useToast();
@@ -63,6 +63,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year}</Text>,
     },
     {
+      align: "end",
       header: "Aksi",
       key: "actions",
       width: pixel(300),
