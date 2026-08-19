@@ -13,6 +13,7 @@ export enum AppRole {
 }
 
 export const APP = {
+  defaultRole: AppRole.MANAGER,
   companyName: "Nusantara Fiktif PT",
   sidenav: [
     {
@@ -54,3 +55,9 @@ export const APP = {
   ],
   title: "Manajemen Proyek",
 };
+
+export function getUserRole(): AppRole {
+  const envRole = import.meta.env.VITE_APP_ROLE?.toUpperCase();
+  const roleKey = envRole as keyof typeof AppRole;
+  return AppRole[roleKey] || APP.defaultRole;
+}

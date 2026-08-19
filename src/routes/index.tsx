@@ -9,7 +9,7 @@ import { DashboardItemLogDialog } from "@/components/dashboard/DashboardItemLogD
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { DashboardBOMTable } from "@/components/dashboard/DashboardBOMTable";
 
-function Dashboard() {
+function DashboardPage() {
   const [report, setReport] = useState<BOMReportItem[]>([]),
     [loading, setLoading] = useState(true),
     [logItem, setLogItem] = useState<{
@@ -77,5 +77,5 @@ function Dashboard() {
 }
 
 export const Route = createFileRoute("/")({
-  component: Dashboard,
+  component: DashboardPage,
 });

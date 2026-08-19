@@ -14,9 +14,6 @@ interface AppStore {
   dbReady: boolean;
   setDbReady: (ready: boolean) => void;
 
-  globalError: string | null;
-  setGlobalError: (err: string | null) => void;
-
   activeNav: string;
   setActiveNav: (nav: string) => void;
 
@@ -36,12 +33,10 @@ export const useAppStore = create<AppStore>()(
       },
       activeNav: "/",
       dbReady: false,
-      globalError: null,
       resolvedMode: getSystemMode(), // will be corrected after persist rehydrates
       selectedProjectId: null,
       setActiveNav: (nav) => set({ activeNav: nav }),
       setDbReady: (ready) => set({ dbReady: ready }),
-      setGlobalError: (err) => set({ globalError: err }),
       setSelectedProjectId: (id) => set({ selectedProjectId: id }),
       setThemeMode: (mode) => {
         const systemMode = getSystemMode();
