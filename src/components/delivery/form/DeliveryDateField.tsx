@@ -1,4 +1,3 @@
-import { VStack } from "@astryxdesign/core";
 import { DateInput } from "@astryxdesign/core/DateInput";
 import { getFieldError } from "@/utils/form";
 import type { useDeliveryForm } from "./useDeliveryForm";

@@ -22,11 +22,10 @@ export interface POItemRow extends POItemDetail, Record<string, unknown> {
 
 interface UsePOItemFormColumnsProps {
   editingId: string | null;
-  editingData: POItemDetail | undefined;
   form: ReturnType<typeof usePOItemForm>["form"];
   items: POItemDetail[];
   bomData: BOMReportItem[];
-  handleItemChange: (itemId: string) => void;
+  handleItemChange: (itemId: string) => void | Promise<void>;
   setEditingId: (id: string | null) => void;
   setEditingData: (data: POItemDetail | undefined) => void;
   setDeleteTarget: (id: string | null) => void;
@@ -36,7 +35,6 @@ interface UsePOItemFormColumnsProps {
 
 export function usePOItemFormColumns({
   editingId,
-  editingData,
   form,
   items,
   bomData,
@@ -88,7 +86,7 @@ export function usePOItemFormColumns({
                 form={form}
                 bomOptions={bomData}
                 selectedItemIds={selectedItemIds}
-                onChangeItem={handleItemChange}
+                onChangeItem={handleItemChange as (itemId: string) => Promise<void>}
                 editingId={editingId}
               />
             );
@@ -174,22 +172,7 @@ export function usePOItemFormColumns({
         renderCell: (row: POItemRow) => {
           if (row.isFooter) return null;
           if (row.po_item_id === editingId) {
-            const currentItemId = form.getFieldValue("item_id");
-            const currentPriceId = form.getFieldValue("item_price_id");
-            const bomItem = bomData.find(
-              (b) => b.item_id === currentItemId && b.item_price_id === currentPriceId,
-            );
-
-            let totalOrdered = bomItem?.total_ordered || 0;
-            let plannedVolume = bomItem?.planned_volume || 0;
-
-            if (editingData) {
-              // Subtract current qty if editing to get true remaining balance
-              totalOrdered -= editingData.qty || 0;
-            }
-            const initialBalance = plannedVolume - totalOrdered;
-
-            return <QtyInputCell form={form} initialBalance={initialBalance} />;
+            return <QtyInputCell form={form} />;
           }
           return (
             <Text type="code" weight="medium">

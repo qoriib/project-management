@@ -9,7 +9,7 @@ import type { ItemCategory } from "@/db/repositories";
 import * as v from "valibot";
 
 const categorySchema = v.object({
-  category_code: v.optional(v.string(), ""),
+  category_code: v.string(),
   category_name: v.pipe(v.string(), v.nonEmpty("Nama kategori harus diisi.")),
   prefix: v.pipe(
     v.string(),
@@ -85,9 +85,8 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
                 <TextInput
                   label="Prefix"
                   placeholder="Contoh: A"
-                  maxLength={1}
                   value={field.state.value}
-                  onChange={(val) => field.handleChange(val.toUpperCase())}
+                  onChange={(val) => field.handleChange(val.toUpperCase().slice(0, 1))}
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"

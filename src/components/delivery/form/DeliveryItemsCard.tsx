@@ -1,6 +1,5 @@
 import { Card, Text, VStack } from "@astryxdesign/core";
 import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
-import { useState } from "react";
 import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
 import { DeliveryQtyCell } from "./DeliveryQtyCell";
@@ -65,24 +64,7 @@ function DeliveryItemsCardInner({
   return (
     <Card padding={4}>
       <VStack gap={4}>
-        <Toolbar
-          label="Aksi Tabel"
-          endContent={
-            <MultiSelector
-              label="Kolom"
-              isLabelHidden
-              options={selectorOptions}
-              value={[...state.activeColumnKeys]}
-              onChange={state.setActiveColumnKeys}
-            />
-          }
-        />
-        <Table
-          textOverflow="truncate"
-          columns={columns}
-          data={items}
-          plugins={{ columnSettings: plugin }}
-        />
+        <Table textOverflow="truncate" columns={columns} data={items} />
       </VStack>
     </Card>
   );

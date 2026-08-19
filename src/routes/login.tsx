@@ -1,44 +1,56 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button, Card, Center, Icon, Text, TextInput, VStack } from "@astryxdesign/core";
 import { Lock } from "lucide-react";
-import { useState } from "react";
 import { login } from "@/services/auth";
 import { useForm } from "@tanstack/react-form";
 import * as v from "valibot";
+import { APP } from "@/configs/app.config";
 
 const loginSchema = v.object({
   pin: v.pipe(v.string(), v.length(6, "PIN harus tepat 6 digit")),
 });
 
 function LoginPage() {
-  const navigate = useNavigate(),
-    [error, setError] = useState(""),
-    form = useForm({
-      defaultValues: {
-        pin: "",
-      },
-      onSubmit: async ({ value }) => {
-        setError("");
+  const navigate = useNavigate();
+
+  const form = useForm({
+    defaultValues: {
+      pin: "",
+    },
+    validators: {
+      onChange: loginSchema,
+      onSubmitAsync: async ({ value, formApi }) => {
         try {
           const success = await login(value.pin);
+
           if (success) {
-            navigate({ to: "/" });
+            return null;
           } else {
-            setError("PIN salah. Silakan coba lagi.");
-            form.setFieldValue("pin", "");
+            formApi.setFieldValue("pin", "");
+
+            return {
+              fields: {
+                pin: "PIN salah. Silakan coba lagi.",
+              },
+            };
           }
         } catch (err: any) {
-          setError(err.message || "Gagal login. Terjadi kesalahan internal.");
+          return {
+            fields: {
+              pin: err.message || "Gagal login. Terjadi kesalahan internal.",
+            },
+          };
         }
       },
-      validators: {
-        onChange: loginSchema,
-      },
-    });
+    },
+    onSubmit: () => {
+      navigate({ to: "/" });
+    },
+  });
 
   return (
-    <Center style={{ backgroundColor: "var(--color-surface-dimmed)", minHeight: "100vh" }}>
-      <Card padding={8} style={{ maxWidth: "90vw", width: "400px" }}>
+    <Center minHeight="100vh">
+      <Card padding={8} width={400}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -58,55 +70,52 @@ function LoginPage() {
             >
               <Icon size="lg" color="primary" icon={Lock} />
             </Center>
-
             <VStack gap={2} align="center">
               <Text size="lg" weight="bold">
-                Aplikasi Proyek
+                {APP.title}
               </Text>
-              <Text color="secondary">Masukkan 6-digit PIN untuk mengakses aplikasi</Text>
+              <Text color="secondary">Masukkan PIN untuk mengakses aplikasi</Text>
             </VStack>
-
-            <VStack gap={4} style={{ width: "100%" }}>
+            <VStack gap={4} width="100%">
               <form.Field
                 name="pin"
                 children={(field) => {
                   const fieldError =
                     field.state.meta.errors.length > 0
                       ? field.state.meta.errors[0]?.toString()
-                      : error || undefined;
+                      : undefined;
 
                   return (
                     <TextInput
                       isLabelHidden
+                      hasAutoFocus
                       label="PIN"
                       type="text"
                       size="lg"
+                      statusVariant="attached"
                       placeholder="• • • • • •"
                       value={field.state.value}
+                      status={fieldError ? { message: fieldError, type: "error" } : undefined}
+                      onBlur={field.handleBlur}
                       onChange={(val) => {
                         const cleaned = (val || "").replaceAll(/\D/g, "").slice(0, 6);
                         field.handleChange(cleaned);
                       }}
-                      onBlur={field.handleBlur}
-                      statusVariant="tooltip"
-                      status={fieldError ? { message: fieldError, type: "error" } : undefined}
-                      hasAutoFocus
                     />
                   );
                 }}
               />
-
               <form.Subscribe
                 selector={(state) => [state.canSubmit, state.isSubmitting] as const}
                 children={([canSubmit, isSubmitting]) => (
                   <Button
-                    type="submit"
+                    width="100%"
                     size="lg"
+                    type="submit"
                     variant="primary"
-                    style={{ width: "100%" }}
+                    label="Buka Aplikasi"
                     isLoading={isSubmitting}
                     isDisabled={!canSubmit}
-                    label="Buka Aplikasi"
                   />
                 )}
               />

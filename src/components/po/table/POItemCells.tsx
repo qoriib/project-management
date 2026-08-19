@@ -156,11 +156,9 @@ export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSele
   );
 }
 
-interface QtyInputCellProps extends CellFormProps {
-  initialBalance: number;
-}
+interface QtyInputCellProps extends CellFormProps {}
 
-export function QtyInputCell({ form, initialBalance }: QtyInputCellProps) {
+export function QtyInputCell({ form }: QtyInputCellProps) {
   return (
     <form.Field name="qty">
       {(field) => (

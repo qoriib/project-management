@@ -12,7 +12,7 @@ import {
   UnitDisplayCell,
 } from "@/components/bom/table/BOMItemCells";
 import type { BOMDetail } from "@/db/repositories";
-import type { useBOMForm } from "@/components/bom/table/useBOMForm";
+import { useBOMForm } from "@/components/bom/form/useBOMForm";
 
 export interface BomRow extends BOMDetail, Record<string, unknown> {
   isFooter?: boolean;

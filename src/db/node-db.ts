@@ -1,4 +1,3 @@
-// @ts-expect-error
 import { DatabaseSync } from "node:sqlite";
 import * as path from "node:path";
 import * as os from "node:os";

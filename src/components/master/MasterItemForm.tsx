@@ -10,7 +10,7 @@ import * as v from "valibot";
 
 const itemSchema = v.object({
   category_id: v.pipe(v.string(), v.nonEmpty("Pilih kategori terlebih dahulu.")),
-  item_code: v.optional(v.string(), ""),
+  item_code: v.string(),
   item_name: v.pipe(v.string(), v.nonEmpty("Nama item harus diisi.")),
   unit_id: v.pipe(v.string(), v.nonEmpty("Pilih satuan terlebih dahulu.")),
 });

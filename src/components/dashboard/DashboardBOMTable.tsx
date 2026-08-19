@@ -7,8 +7,6 @@ import {
   proportional,
   useTableGroupedRows,
 } from "@astryxdesign/core/Table";
-import { MultiSelector } from "@astryxdesign/core/MultiSelector";
-import { Toolbar } from "@astryxdesign/core/Toolbar";
 import { formatNumber } from "@/utils/formatters";
 import { Eye } from "lucide-react";
 import type { BOMReportItem } from "@/db/services";

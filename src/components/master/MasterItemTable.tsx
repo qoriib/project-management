@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Badge, Button, HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { Badge, Button, HStack, IconButton, Table } from "@astryxdesign/core";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";

@@ -3,7 +3,6 @@ import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { DeliveryForm } from "@/components/delivery/DeliveryForm";
-import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function EditDeliveryPage() {
   const navigate = useNavigate(),

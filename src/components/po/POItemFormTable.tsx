@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button, Table } from "@astryxdesign/core";
+import { type TablePlugin } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -74,7 +75,6 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
     }),
     columns = usePOItemFormColumns({
       bomData,
-      editingData,
       editingId,
       form,
       handleItemChange,
@@ -95,7 +95,7 @@ export function POItemFormTable({ items, onChange, bomData }: POItemFormTablePro
     }, [items, editingId]),
     footerPlugin = useMemo(
       (): TablePlugin<POItemRow> => ({
-        transformBodyRow(props, item) {
+        transformBodyRow(props: any, item: POItemRow) {
           if ((item as any).isFooter) {
             const hideButton = Boolean(editingId);
             return {

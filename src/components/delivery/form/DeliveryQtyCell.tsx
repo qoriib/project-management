@@ -29,7 +29,8 @@ export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
               name={`items[${idx}].qty`}
               validators={{
                 onChange: ({ value }) => {
-                  if (value > (row.remaining || 0)) {
+                  const val = value as number;
+                  if (val > (row.remaining || 0)) {
                     return `Melebihi sisa PO (${formatNumber(row.remaining, 2)}).`;
                   }
                   return;
@@ -46,7 +47,7 @@ export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
                   <NumberInput
                     label="Volume"
                     isLabelHidden
-                    value={qtyField.state.value}
+                    value={qtyField.state.value as number}
                     onChange={(v) => qtyField.handleChange(v || 0)}
                     onBlur={qtyField.handleBlur}
                     statusVariant="tooltip"

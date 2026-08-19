@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { HStack, Table, Text, VStack } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
@@ -8,9 +7,11 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { usePOStore } from "@/store/usePOStore";
 import type { POItemDetail } from "@/db/repositories";
 
+type TrackingRow = POItemDetail & Record<string, unknown>;
+
 export function POItemTrackingTable() {
   const { currentItems: items, currentBOMData: bomData } = usePOStore(),
-    itemColumns: TableColumn<POItemDetail>[] = [
+    itemColumns: TableColumn<TrackingRow>[] = [
       {
         header: "Kode Item",
         key: "item_code_full",
@@ -167,7 +168,7 @@ export function POItemTrackingTable() {
       idKey="po_item_id"
       textOverflow="truncate"
       columns={itemColumns}
-      data={items}
+      data={items as TrackingRow[]}
       emptyState={<TableEmptyState message="Tidak ada item dalam PO ini." />}
     />
   );
