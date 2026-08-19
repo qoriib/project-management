@@ -1,4 +1,4 @@
-import { HStack, IconButton, NumberInput, Selector } from "@astryxdesign/core";
+import { HStack, IconButton, NumberInput, Selector, VStack } from "@astryxdesign/core";
 import { Plus } from "lucide-react";
 import { formatNumber } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
@@ -6,13 +6,14 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useBOMStore } from "@/store/useBOMStore";
 import type { useBOMForm } from "@/components/bom/form/useBOMForm";
+import type { ItemWithDetails } from "@/db/repositories";
 
 interface BaseCellProps {
   form: ReturnType<typeof useBOMForm>["form"];
 }
 
 interface ItemSelectorCellProps extends BaseCellProps {
-  items: { item_id: string; item_name: string; unit_name?: string }[];
+  items: ItemWithDetails[];
   handleItemChange: (v: string) => void;
   onAddNewItem: () => void;
 }
@@ -25,7 +26,7 @@ export function ItemSelectorCell({
 }: ItemSelectorCellProps) {
   return (
     <HStack gap={1} align="start" width="100%">
-      <div style={{ flex: 1 }}>
+      <VStack width="100%">
         <form.Field name="item_id">
           {(field) => (
             <Selector
@@ -45,13 +46,12 @@ export function ItemSelectorCell({
             />
           )}
         </form.Field>
-      </div>
+      </VStack>
       <IconButton
         variant="secondary"
-        icon={<Plus size={16} />}
         label="Tambah Item Baru"
+        icon={<Plus size={16} />}
         onClick={onAddNewItem}
-        aria-label="Tambah Item Baru"
       />
     </HStack>
   );
@@ -78,12 +78,15 @@ export function ItemCodeDisplayCell({
   return (
     <form.Subscribe selector={(s) => s.values.item_id}>
       {(itemId) => {
-        const selected = items.find((i) => i.item_id === itemId) as any;
+        const selected = items.find((i) => i.item_id === itemId);
+
         if (!selected) {
           return <span>-</span>;
         }
+
         const code =
           `${selected.category_prefix || ""} ${selected.category_code || ""} ${selected.item_code || ""}`.trim();
+
         return code ? <EntityCode id={code} /> : <span>-</span>;
       }}
     </form.Subscribe>
@@ -126,18 +129,21 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId }: PriceSelec
     >
       {({ itemId, groupId }) => {
         let priceOptions: { value: string; label: string }[] = [];
+
         if (itemId) {
-          const prices = itemPricesMap.get(itemId) || [],
-            usedIds = new Set(
-              boms
-                .filter(
-                  (b) =>
-                    b.item_id === itemId &&
-                    b.bom_id !== editingId &&
-                    (b.bom_group_id || "") === (groupId || ""),
-                )
-                .map((b) => b.item_price_id),
-            );
+          const prices = itemPricesMap.get(itemId) || [];
+
+          const usedIds = new Set(
+            boms
+              .filter(
+                (b) =>
+                  b.item_id === itemId &&
+                  b.bom_id !== editingId &&
+                  (b.bom_group_id || "") === (groupId || ""),
+              )
+              .map((b) => b.item_price_id),
+          );
+
           priceOptions = prices
             .filter((p) => !usedIds.has(p.item_price_id))
             .map((p) => ({
@@ -148,7 +154,7 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId }: PriceSelec
 
         return (
           <HStack gap={1} align="start" width="100%">
-            <div style={{ flex: 1 }}>
+            <VStack width="100%">
               <form.Field name="item_price_id">
                 {(field) => (
                   <Selector
@@ -165,7 +171,7 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId }: PriceSelec
                   />
                 )}
               </form.Field>
-            </div>
+            </VStack>
             <IconButton
               variant="secondary"
               icon={<Plus size={16} />}
@@ -182,7 +188,7 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId }: PriceSelec
 }
 
 // We don't need editingId here since it doesn't affect the calculation
-export function TotalEstimasiCell({ form }: BaseCellProps) {
+export function TotalEstimationCell({ form }: BaseCellProps) {
   const { itemPricesMap } = useMasterStore();
 
   return (

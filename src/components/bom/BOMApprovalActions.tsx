@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { Badge, Button } from "@astryxdesign/core";
+import { useToast } from "@astryxdesign/core/Toast";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
+import { AppRole, getUserRole } from "@/configs/app.config";
+import { handleFormError } from "@/utils/form";
 
 export function BOMApprovalActions() {
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId),
-    projects = useMasterStore((s) => s.projects),
-    currentProject = projects.find((p) => p.project_id === selectedProjectId),
-    isApproved = currentProject?.bom_is_approved === 1,
-    envRole = import.meta.env.VITE_APP_ROLE?.toUpperCase() || "MANAGER",
-    isManager = envRole === "MANAGER",
-    [showApproveConfirm, setShowApproveConfirm] = useState(false),
-    [showCancelConfirm, setShowCancelConfirm] = useState(false),
-    [loading, setLoading] = useState(false),
-    { approveProjectBOM, cancelApproveProjectBOM } = useMasterStore();
+  const showToast = useToast();
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const projects = useMasterStore((s) => s.projects);
+  const currentProject = projects.find((p) => p.project_id === selectedProjectId);
+  const isApproved = currentProject?.bom_is_approved === 1;
+  const isManager = getUserRole() === AppRole.MANAGER;
+
+  const [confirmType, setConfirmType] = useState<"approve" | "cancel" | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { approveProjectBOM, cancelApproveProjectBOM } = useMasterStore();
 
   if (!selectedProjectId || !currentProject) {
     return null;
@@ -29,24 +32,25 @@ export function BOMApprovalActions() {
     );
   }
 
-  const handleApprove = async () => {
-      setLoading(true);
-      try {
+  const handleConfirm = async () => {
+    if (!confirmType) return;
+
+    setLoading(true);
+    try {
+      if (confirmType === "approve") {
         await approveProjectBOM(selectedProjectId);
-        setShowApproveConfirm(false);
-      } finally {
-        setLoading(false);
-      }
-    },
-    handleCancelApprove = async () => {
-      setLoading(true);
-      try {
+      } else {
         await cancelApproveProjectBOM(selectedProjectId);
-        setShowCancelConfirm(false);
-      } finally {
-        setLoading(false);
       }
-    };
+      setConfirmType(null);
+    } catch (err: any) {
+      handleFormError(err, showToast);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isApprove = confirmType === "approve";
 
   return (
     <>
@@ -54,33 +58,27 @@ export function BOMApprovalActions() {
         <Button
           variant="secondary"
           label="Batalkan Persetujuan"
-          onClick={() => setShowCancelConfirm(true)}
+          onClick={() => setConfirmType("cancel")}
         />
       ) : (
         <Button
           variant="primary"
           label="Setujui Rancangan"
-          onClick={() => setShowApproveConfirm(true)}
+          onClick={() => setConfirmType("approve")}
         />
       )}
       <ConfirmDialog
-        isOpen={showApproveConfirm}
-        onClose={() => setShowApproveConfirm(false)}
-        onConfirm={handleApprove}
-        title="Setujui Rancangan"
-        message="Apakah Anda yakin ingin menyetujui BOM proyek ini? Setelah disetujui, semua data BOM pada proyek ini akan dikunci dan tidak dapat diubah lagi."
-        confirmLabel="Setuju"
-        isDestructive={false}
-        isLoading={loading}
-      />
-      <ConfirmDialog
-        isOpen={showCancelConfirm}
-        onClose={() => setShowCancelConfirm(false)}
-        onConfirm={handleCancelApprove}
-        title="Batal Persetujuan"
-        message="Apakah Anda yakin ingin membatalkan persetujuan BOM ini? Data BOM akan dapat diedit kembali."
-        confirmLabel="Batalkan Persetujuan"
-        isDestructive={true}
+        isOpen={Boolean(confirmType)}
+        onClose={() => setConfirmType(null)}
+        onConfirm={handleConfirm}
+        title={isApprove ? "Setujui Rancangan" : "Batal Persetujuan"}
+        message={
+          isApprove
+            ? "Apakah Anda yakin ingin menyetujui BOM proyek ini? Setelah disetujui, semua data BOM pada proyek ini akan dikunci dan tidak dapat diubah lagi."
+            : "Apakah Anda yakin ingin membatalkan persetujuan BOM ini? Data BOM akan dapat diedit kembali."
+        }
+        confirmLabel={isApprove ? "Setuju" : "Batalkan Persetujuan"}
+        isDestructive={!isApprove}
         isLoading={loading}
       />
     </>

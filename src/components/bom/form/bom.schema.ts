@@ -1,3 +1,4 @@
+import type { BOMDetail } from "@/db/repositories";
 import * as v from "valibot";
 
 export const bomSchema = v.object({
@@ -14,16 +15,14 @@ export interface BOMFormValues {
   item_price_id: string;
 }
 
-import type { BOMDetail } from "@/db/repositories";
-
 export function buildDefaultValues(
   initialData?: BOMDetail & { bom_group_id?: string },
   defaultGroupId?: string,
 ): BOMFormValues {
-  const bom_group_id = initialData?.bom_group_id ?? defaultGroupId ?? "",
-    item_id = initialData?.item_id ?? "",
-    qty = initialData?.qty ? Number(initialData.qty) : 0,
-    item_price_id = initialData?.item_price_id ?? "";
+  const bom_group_id = initialData?.bom_group_id ?? defaultGroupId ?? "";
+  const item_id = initialData?.item_id ?? "";
+  const qty = initialData?.qty ? Number(initialData.qty) : 0;
+  const item_price_id = initialData?.item_price_id ?? "";
 
   return { bom_group_id, item_id, item_price_id, qty };
 }

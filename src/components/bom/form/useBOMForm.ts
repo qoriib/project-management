@@ -4,6 +4,7 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useBOMStore } from "@/store/useBOMStore";
+import { handleFormError } from "@/utils/form";
 import { type BOMFormProps, bomSchema, buildDefaultValues } from "./bom.schema";
 
 /**
@@ -17,63 +18,47 @@ export function useBOMForm({
   defaultGroupId,
   onSuccess,
 }: Pick<BOMFormProps, "initialData" | "defaultGroupId" | "onSuccess">) {
-  const showToast = useToast(),
-    selectedProjectId = useAppStore((s) => s.selectedProjectId),
-    { items } = useMasterStore(),
-    { createBOM, updateBOM } = useBOMStore(),
-    form = useForm({
-      defaultValues: buildDefaultValues(initialData, defaultGroupId),
-      onSubmit: async ({ value }) => {
-        try {
-          const isReady = selectedProjectId;
+  const showToast = useToast();
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const { items } = useMasterStore();
+  const { createBOM, updateBOM } = useBOMStore();
 
-          if (!isReady) return;
+  const form = useForm({
+    defaultValues: buildDefaultValues(initialData, defaultGroupId),
+    validators: { onChange: bomSchema },
+    onSubmit: async ({ value }) => {
+      try {
+        if (!selectedProjectId) return;
 
-          const payload = {
-            project_id: selectedProjectId,
-            bom_group_id: value.bom_group_id,
-            item_id: value.item_id,
-            qty: value.qty,
-            item_price_id: value.item_price_id,
-          };
+        const payload = {
+          project_id: selectedProjectId,
+          ...value,
+        };
 
-          const isEditMode = initialData !== undefined;
-
-          if (isEditMode) {
-            await updateBOM(initialData.bom_id, {
-              bom_group_id: payload.bom_group_id,
-              item_id: payload.item_id,
-              qty: payload.qty,
-              item_price_id: payload.item_price_id,
-            });
-          } else {
-            await createBOM(payload);
-            form.reset();
-          }
-
-          onSuccess();
-        } catch (error: unknown) {
-          const isError = error instanceof Error;
-          const msg = isError ? error.message : "Terjadi kesalahan";
-          showToast({ body: msg, type: "error" });
+        if (initialData) {
+          await updateBOM(initialData.bom_id, payload);
+        } else {
+          await createBOM(payload);
+          form.reset();
         }
-      },
-      validators: { onChange: bomSchema },
-    });
+
+        onSuccess();
+      } catch (error: any) {
+        handleFormError(error, showToast);
+      }
+    },
+  });
 
   /** Muat & set price options untuk item_id yang diberikan */
   async function handleItemChange(itemId: string) {
     form.setFieldValue("item_id", itemId, { dontValidate: true });
 
-    const hasItem = itemId.length > 0;
-    if (!hasItem) {
-      return;
-    }
+    if (!itemId) return;
 
     const { itemPricesMap, loadItemPrices } = useMasterStore.getState();
-    let prices = itemPricesMap.get(itemId);
-    if (!prices) {
-      prices = await loadItemPrices(itemId);
+
+    if (!itemPricesMap.has(itemId)) {
+      await loadItemPrices(itemId);
     }
 
     // Selalu kosongkan harga agar user memilih secara manual
@@ -82,16 +67,15 @@ export function useBOMForm({
 
   // Sync form ke initialData saat mode edit atau saat stage berubah
   useEffect(() => {
-    const isEditMode = initialData !== undefined;
+    form.reset(buildDefaultValues(initialData, defaultGroupId));
 
-    if (isEditMode) {
-      form.reset(buildDefaultValues(initialData, defaultGroupId));
+    if (initialData?.item_id) {
       const { loadItemPrices, itemPricesMap } = useMasterStore.getState();
-      if (!itemPricesMap.has(String(initialData.item_id))) {
-        loadItemPrices(String(initialData.item_id));
+      const itemIdStr = initialData.item_id;
+
+      if (!itemPricesMap.has(itemIdStr)) {
+        loadItemPrices(itemIdStr);
       }
-    } else {
-      form.reset(buildDefaultValues(undefined, defaultGroupId));
     }
   }, [initialData, defaultGroupId]);
 

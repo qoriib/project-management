@@ -7,13 +7,13 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { bomGroupRepo } from "@/db/repositories";
 import { useForm } from "@tanstack/react-form";
-import { getFieldError } from "@/utils/form";
+import { getFieldError, handleFormError } from "@/utils/form";
+import { useBOMStore } from "@/store/useBOMStore";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { BOMGroup, ProjectWithRelations } from "@/db/repositories";
 import * as v from "valibot";
-import { useBOMStore } from "@/store/useBOMStore";
 
 interface GroupRow extends BOMGroup, Record<string, unknown> {}
 
@@ -28,41 +28,39 @@ interface BOMGroupDialogProps {
 }
 
 export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps) {
-  const showToast = useToast(),
-    [editTarget, setEditTarget] = useState<BOMGroup | null>(null),
-    [deleteTarget, setDeleteTarget] = useState<BOMGroup | null>(null),
-    [deleting, setDeleting] = useState(false),
-    { boms, bomGroups, loadBOMs } = useBOMStore(),
-    form = useForm({
-      defaultValues: {
-        group_name: "",
-      },
-      onSubmit: async ({ value }) => {
-        if (!project) return;
+  const showToast = useToast();
+  const [editTarget, setEditTarget] = useState<BOMGroup | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BOMGroup | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const { boms, bomGroups, loadBOMs } = useBOMStore();
 
-        try {
-          if (editTarget) {
-            await bomGroupRepo.update(editTarget.bom_group_id, { group_name: value.group_name });
-            showToast({ body: "Grup pekerjaan berhasil diubah.", type: "info" });
-          } else {
-            await bomGroupRepo.create({
-              project_id: project.project_id,
-              group_name: value.group_name,
-            });
-            showToast({ body: "Grup pekerjaan berhasil ditambahkan.", type: "info" });
-          }
+  const form = useForm({
+    defaultValues: {
+      group_name: "",
+    },
+    onSubmit: async ({ value }) => {
+      if (!project) return;
 
-          form.reset();
-          setEditTarget(null);
-          await loadGroups();
-        } catch (err: any) {
-          showToast({ body: err.message || "Gagal menyimpan grup pekerjaan.", type: "error" });
+      try {
+        if (editTarget) {
+          await bomGroupRepo.update(editTarget.bom_group_id, { group_name: value.group_name });
+        } else {
+          await bomGroupRepo.create({
+            project_id: project.project_id,
+            group_name: value.group_name,
+          });
         }
-      },
-      validators: {
-        onChange: bomGroupSchema,
-      },
-    });
+        form.reset();
+        setEditTarget(null);
+        await loadGroups();
+      } catch (err: any) {
+        handleFormError(err, showToast);
+      }
+    },
+    validators: {
+      onChange: bomGroupSchema,
+    },
+  });
 
   async function loadGroups() {
     if (!project) {
@@ -96,12 +94,10 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
     setDeleting(true);
     try {
       await bomGroupRepo.delete(deleteTarget.bom_group_id);
-      showToast({ body: "Grup pekerjaan berhasil dihapus.", type: "info" });
       setDeleteTarget(null);
       await loadGroups();
     } catch (error: any) {
-      // Typically we handle foreign key errors here if the group is already used in BOMs
-      showToast({ body: error.message || "Gagal menghapus grup pekerjaan.", type: "error" });
+      handleFormError(error, showToast);
     } finally {
       setDeleting(false);
     }
@@ -111,6 +107,7 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
     {
       header: "Nama Grup Pekerjaan",
       key: "group_name",
+      width: proportional(1),
       renderCell: (row: BOMGroup) => {
         const isUsed = boms.some((b) => b.bom_group_id === row.bom_group_id);
         return (
@@ -120,11 +117,12 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
           </HStack>
         );
       },
-      width: proportional(1),
     },
     {
-      header: "",
+      align: "end",
+      header: "Aksi",
       key: "actions",
+      width: pixel(100),
       renderCell: (row: BOMGroup) => {
         const isUsed = boms.some((b) => b.bom_group_id === row.bom_group_id);
         return (
@@ -132,22 +130,21 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
             <IconButton
               size="sm"
               variant="secondary"
-              icon={<Pencil size={16} />}
               label="Edit"
+              icon={<Pencil size={16} />}
               onClick={() => startEdit(row)}
             />
             <IconButton
               size="sm"
               variant="destructive"
-              icon={<Trash2 size={16} />}
               label="Hapus"
+              icon={<Trash2 size={16} />}
               onClick={() => setDeleteTarget(row)}
               isDisabled={isUsed}
             />
           </HStack>
         );
       },
-      width: pixel(100),
     },
   ];
 
@@ -226,7 +223,7 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Grup Pekerjaan"
-        message={`Hapus grup pekerjaan "${deleteTarget?.group_name}"? Grup yang masih digunakan di BOM tidak bisa dihapus.`}
+        message={`Hapus grup pekerjaan "${deleteTarget?.group_name}"?`}
         isLoading={deleting}
       />
     </>
