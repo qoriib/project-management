@@ -8,7 +8,7 @@ import { getDB } from "@/db";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { APP, getUserRole } from "@/configs/app.config";
-import { checkIsAuthenticated } from "@/services/auth";
+import { checkIsAuthenticated } from "@/db/services/auth.service";
 import { AppSideNav } from "@/components/shared/AppSideNav";
 
 function RootComponent() {

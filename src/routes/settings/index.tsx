@@ -17,7 +17,7 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import { projectRepo } from "@/db/repositories/project.repository";
 import { SettingsResetDialog } from "@/components/settings/SettingsResetDialog";
-import { changePin } from "@/services/auth";
+import { changePin } from "@/db/services/auth.service";
 import { useAppStore } from "@/store/useAppStore";
 import { useShallow } from "zustand/react/shallow";
 import { Moon, Sun } from "lucide-react";

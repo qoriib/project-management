@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Avatar, Button, Card, Center, Text, TextInput, VStack } from "@astryxdesign/core";
-import { login } from "@/services/auth";
+import { login } from "@/db/services/auth.service";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
 import { APP } from "@/configs/app.config";
