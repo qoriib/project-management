@@ -116,7 +116,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
               )}
             />
           </FormLayout>
-          <HStack gap={2} justify="end" style={{ marginTop: "1rem" }}>
+          <HStack gap={2} justify="end">
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting] as const}

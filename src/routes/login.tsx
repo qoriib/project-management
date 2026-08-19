@@ -50,6 +50,7 @@ function LoginPage() {
     <Center minHeight="100vh">
       <Card padding={8} width={400}>
         <form
+          autoComplete="off"
           onSubmit={(e) => {
             e.preventDefault();
             e.stopPropagation();

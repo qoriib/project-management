@@ -5,8 +5,8 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
-import type { Unit } from "@/db/repositories";
 import * as v from "valibot";
+import type { Unit } from "@/db/repositories";
 
 const unitSchema = v.object({
   unit_name: v.pipe(v.string(), v.nonEmpty("Nama satuan harus diisi.")),
@@ -84,7 +84,7 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
               )}
             />
           </FormLayout>
-          <HStack gap={2} justify="end" style={{ marginTop: "1rem" }}>
+          <HStack gap={2} justify="end">
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting] as const}

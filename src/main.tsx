@@ -4,14 +4,16 @@ import { Theme } from "@astryxdesign/core/theme";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 import { routeTree } from "@/routeTree.gen";
 import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
+import { useAppStore } from "@/store/useAppStore";
+import { InternationalizationProvider } from "@astryxdesign/core/i18n";
 import "@astryxdesign/core/reset.css";
 import "@astryxdesign/core/astryx.css";
 import "@astryxdesign/theme-neutral/theme.css";
-import { useAppStore } from "@/store/useAppStore";
+import "./app.css";
 
 // Create a new router instance
-const hashHistory = createHashHistory(),
-  router = createRouter({ history: hashHistory, routeTree });
+const hashHistory = createHashHistory();
+const router = createRouter({ history: hashHistory, routeTree });
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
@@ -23,9 +25,19 @@ declare module "@tanstack/react-router" {
 /** Inner component that reads themeMode from the store and passes it to <Theme>. */
 function ThemedApp() {
   const themeMode = useAppStore((s) => s.themeMode);
+
   return (
     <Theme theme={neutralTheme} mode={themeMode}>
-      <RouterProvider router={router} />
+      <InternationalizationProvider
+        locale="en"
+        overrides={{
+          en: {
+            "@astryx.field.required": "*",
+          },
+        }}
+      >
+        <RouterProvider router={router} />
+      </InternationalizationProvider>
     </Theme>
   );
 }
