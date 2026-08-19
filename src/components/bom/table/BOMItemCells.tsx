@@ -84,7 +84,7 @@ export function ItemCodeDisplayCell({
         }
         const code =
           `${selected.category_prefix || ""} ${selected.category_code || ""} ${selected.item_code || ""}`.trim();
-        return code ? <EntityCode prefix="" id={code} /> : <span>-</span>;
+        return code ? <EntityCode id={code} /> : <span>-</span>;
       }}
     </form.Subscribe>
   );

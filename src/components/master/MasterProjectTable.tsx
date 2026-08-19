@@ -8,6 +8,7 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
 import type { Project, ProjectWithRelations } from "@/db/repositories";
+import { handleFormError } from "@/utils/form";
 
 interface MasterProjectTableProps {
   onEdit: (project: Project) => void;
@@ -16,11 +17,12 @@ interface MasterProjectTableProps {
 interface ProjectRow extends ProjectWithRelations, Record<string, unknown> {}
 
 export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
-  const showToast = useToast(),
-    { projects, deleteProject } = useMasterStore(),
-    { selectedProjectId, setSelectedProjectId } = useAppStore(),
-    [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null),
-    [deleting, setDeleting] = useState(false);
+  const showToast = useToast();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const { projects, deleteProject } = useMasterStore();
+  const { selectedProjectId, setSelectedProjectId } = useAppStore();
 
   async function handleDelete() {
     if (!deleteTarget) {
@@ -31,10 +33,12 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
 
     try {
       await deleteProject(deleteTarget.id);
-      showToast({ body: "Project berhasil dihapus", type: "info" });
+      if (selectedProjectId === deleteTarget.id) {
+        setSelectedProjectId(null);
+      }
       setDeleteTarget(null);
     } catch (error: any) {
-      showToast({ body: error.message || "Gagal menghapus project", type: "error" });
+      handleFormError(error, showToast);
     } finally {
       setDeleting(false);
     }
@@ -55,12 +59,13 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       align: "end",
       header: "Tahun",
       key: "fiscal_year",
-      renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year}</Text>,
       width: pixel(100),
+      renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year}</Text>,
     },
     {
-      header: "",
+      header: "Aksi",
       key: "actions",
+      width: pixel(300),
       renderCell: (row: ProjectRow) => {
         const isActive = row.project_id === selectedProjectId;
         return (
@@ -89,7 +94,6 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
           </HStack>
         );
       },
-      width: pixel(300),
     },
   ];
 

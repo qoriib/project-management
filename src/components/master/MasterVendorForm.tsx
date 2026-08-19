@@ -4,7 +4,7 @@ import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
-import { getFieldError } from "@/utils/form";
+import { getFieldError, handleFormError } from "@/utils/form";
 import type { Vendor } from "@/db/repositories";
 import * as v from "valibot";
 
@@ -21,33 +21,32 @@ interface MasterVendorFormProps {
 }
 
 export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorFormProps) {
-  const showToast = useToast(),
-    { createVendor, updateVendor } = useMasterStore(),
-    form = useForm({
-      defaultValues: {
-        address: "",
-        phone: "",
-        vendor_name: "",
-      },
-      onSubmit: async ({ value }) => {
-        try {
-          if (initialData) {
-            await updateVendor(initialData.vendor_id, value);
-            showToast({ body: "Vendor berhasil diubah", type: "info" });
-          } else {
-            await createVendor(value);
-            showToast({ body: "Vendor berhasil ditambahkan", type: "info" });
-          }
-        } catch (error: any) {
-          showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-        } finally {
-          onClose();
+  const showToast = useToast();
+  const { createVendor, updateVendor } = useMasterStore();
+
+  const form = useForm({
+    defaultValues: {
+      address: "",
+      phone: "",
+      vendor_name: "",
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        if (initialData) {
+          await updateVendor(initialData.vendor_id, value);
+        } else {
+          await createVendor(value);
         }
-      },
-      validators: {
-        onChange: vendorSchema,
-      },
-    });
+      } catch (error: any) {
+        handleFormError(error, showToast);
+      } finally {
+        onClose();
+      }
+    },
+    validators: {
+      onChange: vendorSchema,
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {

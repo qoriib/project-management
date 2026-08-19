@@ -7,6 +7,7 @@ import { formatNumber } from "@/utils/formatters";
 import type { DeliveryItemByPO } from "@/db/repositories";
 import { usePOStore } from "@/store/usePOStore";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
+import { EntityCode } from "@/components/shared/EntityCode";
 
 type LogRow = DeliveryItemByPO & Record<string, unknown>;
 
@@ -17,7 +18,7 @@ export function PODeliveryLogTable() {
       {
         header: "No. NP",
         key: "delivery_id",
-        renderCell: (row) => <Text weight="medium">{row.delivery_code || row.delivery_id}</Text>,
+        renderCell: (row) => <EntityCode id={row.delivery_code || row.delivery_id} />,
         width: pixel(180),
       },
       {

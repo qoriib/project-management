@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Badge, HStack, IconButton, Text, Timestamp } from "@astryxdesign/core";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { type DeliverySummary } from "@/db/repositories";
+import { EntityCode } from "@/components/shared/EntityCode";
 
 export interface DeliveryRow extends DeliverySummary, Record<string, unknown> {}
 
@@ -16,7 +17,7 @@ export function useDeliveryColumns({ setDeleteTarget }: UseDeliveryColumnsProps)
       {
         header: "No. Pengiriman",
         key: "delivery_id",
-        renderCell: (row) => <Text weight="medium">{row.delivery_code}</Text>,
+        renderCell: (row) => <EntityCode id={row.delivery_code} />,
         width: pixel(140),
       },
       {
@@ -30,7 +31,7 @@ export function useDeliveryColumns({ setDeleteTarget }: UseDeliveryColumnsProps)
       {
         header: "Ref. PO",
         key: "po_id",
-        renderCell: (row) => <Text weight="medium">{row.po_code || row.po_id}</Text>,
+        renderCell: (row) => <EntityCode id={row.po_code || row.po_id} />,
         width: pixel(180),
       },
       {

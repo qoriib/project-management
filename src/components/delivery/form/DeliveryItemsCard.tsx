@@ -24,7 +24,7 @@ function DeliveryItemsCardInner({
           <VStack gap={0.5}>
             <Text weight="medium">{row.item_name}</Text>
             {row.item_id ? (
-              <EntityCode prefix="BRG" id={row.item_id} />
+              <EntityCode id={row.item_id} />
             ) : (
               <Text size="sm" color="secondary">
                 Non-Master

@@ -18,7 +18,7 @@ export function POItemTrackingTable() {
         renderCell: (row) => {
           const code =
             `${row.category_prefix || ""} ${row.category_code || ""} ${row.item_code || ""}`.trim();
-          return code ? <EntityCode prefix="" id={code} /> : "-";
+          return code ? <EntityCode id={code} /> : "-";
         },
         width: pixel(160),
       },

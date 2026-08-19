@@ -62,7 +62,7 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
         renderCell: (r) => (
           <VStack align="start" gap={0.5}>
             <Text weight="medium">{r.item_name}</Text>
-            <EntityCode prefix="BRG" id={r.item_id} />
+            <EntityCode id={r.item_id} />
           </VStack>
         ),
         width: proportional(1),

@@ -1,12 +1,13 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { HStack, IconButton, Table } from "@astryxdesign/core";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { Vendor } from "@/db/repositories";
+import { handleFormError } from "@/utils/form";
 
 interface MasterVendorTableProps {
   onEdit: (vendor: Vendor) => void;
@@ -17,10 +18,11 @@ interface VendorRow extends Vendor, Record<string, unknown> {
 }
 
 export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
-  const showToast = useToast(),
-    { vendors, deleteVendor } = useMasterStore(),
-    [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null),
-    [deleting, setDeleting] = useState(false);
+  const showToast = useToast();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const { vendors, deleteVendor } = useMasterStore();
 
   async function handleDelete() {
     if (!deleteTarget) {
@@ -31,10 +33,9 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
 
     try {
       await deleteVendor(deleteTarget.id);
-      showToast({ body: "Vendor berhasil dihapus", type: "info" });
       setDeleteTarget(null);
     } catch (error: any) {
-      showToast({ body: error.message || "Gagal menghapus vendor", type: "error" });
+      handleFormError(error, showToast);
     } finally {
       setDeleting(false);
     }
@@ -47,10 +48,8 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
       width: proportional(1.5),
     },
     {
-      align: "end",
       header: "Telepon",
       key: "phone",
-      renderCell: (row) => <Text type="code">{row.phone}</Text>,
       width: pixel(150),
     },
     {
@@ -59,8 +58,9 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
       width: proportional(2),
     },
     {
-      header: "",
+      header: "Aksi",
       key: "actions",
+      width: pixel(120),
       renderCell: (row: VendorRow) => (
         <HStack gap={2} justify="end">
           <IconButton
@@ -80,7 +80,6 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
           />
         </HStack>
       ),
-      width: pixel(120),
     },
   ];
 

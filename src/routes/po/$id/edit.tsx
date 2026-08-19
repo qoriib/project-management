@@ -46,7 +46,7 @@ function POEditPage() {
   return (
     <Section padding={6}>
       <VStack gap={6}>
-        <PageHeader title={`Edit ${po.po_code || formatEntityCode("PO", po.po_id)}`} />
+        <PageHeader title={`Edit ${po.po_code || formatEntityCode(po.po_id)}`} />
         <POForm po={po} initialItems={currentItems} bomData={currentBOMData} />
       </VStack>
     </Section>

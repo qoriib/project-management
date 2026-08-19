@@ -4,7 +4,7 @@ import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
-import { getFieldError } from "@/utils/form";
+import { getFieldError, handleFormError } from "@/utils/form";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
@@ -22,44 +22,40 @@ interface MasterItemFormProps {
 }
 
 export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormProps) {
-  const showToast = useToast(),
-    { categories, units, createItem, updateItem } = useMasterStore(),
-    form = useForm({
-      defaultValues: {
-        category_id: "",
-        item_code: "",
-        item_name: "",
-        unit_id: "",
-      },
-      onSubmit: async ({ value }) => {
-        try {
-          const data = {
-            item_code: value.item_code,
-            item_name: value.item_name,
-            category_id: value.category_id,
-            unit_id: value.unit_id,
-          };
+  const showToast = useToast();
+  const { categories, units, createItem, updateItem } = useMasterStore();
 
-          if (initialData) {
-            await updateItem(initialData.item_id, data);
-            showToast({ body: "Item berhasil diubah", type: "info" });
-          } else {
-            await createItem(data);
-            showToast({
-              body: "Item berhasil ditambahkan. Gunakan 'Harga' di tabel untuk menambahkan harga.",
-              type: "info",
-            });
-          }
-        } catch (error: any) {
-          showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-        } finally {
-          onClose();
+  const form = useForm({
+    defaultValues: {
+      category_id: "",
+      item_code: "",
+      item_name: "",
+      unit_id: "",
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        const data = {
+          item_code: value.item_code,
+          item_name: value.item_name,
+          category_id: value.category_id,
+          unit_id: value.unit_id,
+        };
+
+        if (initialData) {
+          await updateItem(initialData.item_id, data);
+        } else {
+          await createItem(data);
         }
-      },
-      validators: {
-        onChange: itemSchema,
-      },
-    });
+      } catch (error: any) {
+        handleFormError(error, showToast);
+      } finally {
+        onClose();
+      }
+    },
+    validators: {
+      onChange: itemSchema,
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {

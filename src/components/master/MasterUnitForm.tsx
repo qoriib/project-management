@@ -4,7 +4,7 @@ import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
-import { getFieldError } from "@/utils/form";
+import { getFieldError, handleFormError } from "@/utils/form";
 import * as v from "valibot";
 import type { Unit } from "@/db/repositories";
 
@@ -19,31 +19,30 @@ interface MasterUnitFormProps {
 }
 
 export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormProps) {
-  const showToast = useToast(),
-    { createUnit, updateUnit } = useMasterStore(),
-    form = useForm({
-      defaultValues: {
-        unit_name: "",
-      },
-      onSubmit: async ({ value }) => {
-        try {
-          if (initialData) {
-            await updateUnit(initialData.unit_id, value);
-            showToast({ body: "Satuan berhasil diubah", type: "info" });
-          } else {
-            await createUnit(value);
-            showToast({ body: "Satuan berhasil ditambahkan", type: "info" });
-          }
-        } catch (error: any) {
-          showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-        } finally {
-          onClose();
+  const showToast = useToast();
+  const { createUnit, updateUnit } = useMasterStore();
+
+  const form = useForm({
+    defaultValues: {
+      unit_name: "",
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        if (initialData) {
+          await updateUnit(initialData.unit_id, value);
+        } else {
+          await createUnit(value);
         }
-      },
-      validators: {
-        onChange: unitSchema,
-      },
-    });
+      } catch (error: any) {
+        handleFormError(error, showToast);
+      } finally {
+        onClose();
+      }
+    },
+    validators: {
+      onChange: unitSchema,
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -73,12 +72,12 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
               name="unit_name"
               children={(field) => (
                 <TextInput
+                  isRequired
                   label="Nama Satuan"
+                  statusVariant="attached"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
-                  isRequired
-                  statusVariant="attached"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
@@ -90,9 +89,9 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
               selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
                 <Button
+                  type="submit"
                   variant="primary"
                   label="Simpan"
-                  type="submit"
                   isLoading={isSubmitting}
                   isDisabled={!canSubmit}
                 />

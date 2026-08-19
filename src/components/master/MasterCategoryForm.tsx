@@ -4,7 +4,7 @@ import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
-import { getFieldError } from "@/utils/form";
+import { getFieldError, handleFormError } from "@/utils/form";
 import type { ItemCategory } from "@/db/repositories";
 import * as v from "valibot";
 
@@ -25,33 +25,32 @@ interface MasterCategoryFormProps {
 }
 
 export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCategoryFormProps) {
-  const showToast = useToast(),
-    { createCategory, updateCategory } = useMasterStore(),
-    form = useForm({
-      defaultValues: {
-        category_code: "",
-        category_name: "",
-        prefix: "",
-      },
-      onSubmit: async ({ value }) => {
-        try {
-          if (initialData) {
-            await updateCategory(initialData.category_id, value);
-            showToast({ body: "Kategori berhasil diubah", type: "info" });
-          } else {
-            await createCategory(value);
-            showToast({ body: "Kategori berhasil ditambahkan", type: "info" });
-          }
-        } catch (error: any) {
-          showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-        } finally {
-          onClose();
+  const showToast = useToast();
+  const { createCategory, updateCategory } = useMasterStore();
+
+  const form = useForm({
+    defaultValues: {
+      category_code: "",
+      category_name: "",
+      prefix: "",
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        if (initialData) {
+          await updateCategory(initialData.category_id, value);
+        } else {
+          await createCategory(value);
         }
-      },
-      validators: {
-        onChange: categorySchema,
-      },
-    });
+      } catch (error: any) {
+        handleFormError(error, showToast);
+      } finally {
+        onClose();
+      }
+    },
+    validators: {
+      onChange: categorySchema,
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {

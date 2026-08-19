@@ -58,7 +58,7 @@ function PODetailPage() {
     <Section padding={6}>
       <VStack gap={6}>
         <PageHeader
-          title={`Detail ${po.po_code || formatEntityCode("PO", po.po_id)}`}
+          title={`Detail ${po.po_code || formatEntityCode(po.po_id)}`}
           actions={
             <HStack gap={2}>
               <Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/po" })} />

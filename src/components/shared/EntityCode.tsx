@@ -1,37 +1,26 @@
 import { Code } from "@astryxdesign/core";
 
 export interface EntityCodeProps {
-  prefix: string;
   id: string | number | null | undefined;
-  padding?: number;
 }
 
 /**
- * Format an entity ID with a prefix and padding.
+ * Format an entity ID to string.
  * Use this for places that only accept strings (like titles or selector labels).
  */
-export function formatEntityCode(
-  prefix: string,
-  id: string | number | null | undefined,
-  padding: number = 4,
-): string {
-  if (id === null || id === undefined) {
+export function formatEntityCode(id: string | number | null | undefined): string {
+  if (id === null || id === undefined || id === "") {
     return "-";
   }
-  const formattedId = String(id).padStart(padding, "0");
-  if (!prefix) {
-    return formattedId;
-  }
-  return `${prefix}-${formattedId}`;
+  return String(id);
 }
 
 /**
  * Render a standardized entity code using Astryx's Code component.
  */
-export function EntityCode({ prefix, id, padding = 4 }: EntityCodeProps) {
-  return (
-    <Code style={{ background: "transparent", padding: 0 }}>
-      {formatEntityCode(prefix, id, padding)}
-    </Code>
-  );
+export function EntityCode({ id }: EntityCodeProps) {
+  if (id === null || id === undefined || id === "") {
+    return <Code style={{ background: "transparent", padding: 0 }}>-</Code>;
+  }
+  return <Code style={{ background: "transparent", padding: 0 }}>{String(id)}</Code>;
 }

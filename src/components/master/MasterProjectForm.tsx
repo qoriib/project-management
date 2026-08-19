@@ -3,10 +3,10 @@ import { Button, Dialog, HStack, Heading, TextInput, VStack } from "@astryxdesig
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
-import { type Project } from "@/db/repositories";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
-import { getFieldError } from "@/utils/form";
+import { getFieldError, handleFormError } from "@/utils/form";
+import { type Project } from "@/db/repositories";
 import * as v from "valibot";
 
 const projectSchema = v.object({
@@ -22,33 +22,32 @@ interface MasterProjectFormProps {
 }
 
 export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjectFormProps) {
-  const showToast = useToast(),
-    { createProject, updateProject } = useMasterStore(),
-    form = useForm({
-      defaultValues: {
-        company_name: "",
-        fiscal_year: new Date().getFullYear(),
-        project_name: "",
-      },
-      onSubmit: async ({ value }) => {
-        try {
-          if (initialData) {
-            await updateProject(initialData.project_id, value);
-            showToast({ body: "Project berhasil diubah", type: "info" });
-          } else {
-            await createProject(value);
-            showToast({ body: "Project berhasil ditambahkan.", type: "info" });
-          }
-        } catch (error: any) {
-          showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-        } finally {
-          onClose();
+  const showToast = useToast();
+  const { createProject, updateProject } = useMasterStore();
+
+  const form = useForm({
+    defaultValues: {
+      company_name: "",
+      fiscal_year: new Date().getFullYear(),
+      project_name: "",
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        if (initialData) {
+          await updateProject(initialData.project_id, value);
+        } else {
+          await createProject(value);
         }
-      },
-      validators: {
-        onChange: projectSchema,
-      },
-    });
+      } catch (error: any) {
+        handleFormError(error, showToast);
+      } finally {
+        onClose();
+      }
+    },
+    validators: {
+      onChange: projectSchema,
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {

@@ -4,6 +4,7 @@ import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table"
 import { formatNumber } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";
 import { type POWithSummary } from "@/db/repositories";
+import { EntityCode } from "@/components/shared/EntityCode";
 
 export interface PORow extends POWithSummary, Record<string, unknown> {
   po_code: string;
@@ -20,7 +21,7 @@ export function usePOTableColumns({ onEdit, setDeleteTarget }: UsePOTableColumns
       {
         header: "No. PO",
         key: "po_code",
-        renderCell: (row: PORow) => <Text weight="medium">{row.po_code}</Text>,
+        renderCell: (row: PORow) => <EntityCode id={row.po_code} />,
         width: pixel(180),
       },
       {

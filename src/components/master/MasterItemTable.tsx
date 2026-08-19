@@ -10,6 +10,7 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 
 import type { ItemWithDetails } from "@/db/repositories";
+import { handleFormError } from "@/utils/form";
 
 interface MasterItemTableProps {
   onEdit: (item: ItemWithDetails) => void;
@@ -18,11 +19,12 @@ interface MasterItemTableProps {
 interface ItemRow extends ItemWithDetails, Record<string, unknown> {}
 
 export function MasterItemTable({ onEdit }: MasterItemTableProps) {
-  const showToast = useToast(),
-    { items, deleteItem } = useMasterStore(),
-    [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null),
-    [deleting, setDeleting] = useState(false),
-    [priceItem, setPriceItem] = useState<ItemWithDetails | null>(null);
+  const showToast = useToast();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [priceItem, setPriceItem] = useState<ItemWithDetails | null>(null);
+
+  const { items, deleteItem } = useMasterStore();
 
   async function handleDelete() {
     if (!deleteTarget) {
@@ -33,10 +35,9 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
 
     try {
       await deleteItem(deleteTarget.id);
-      showToast({ body: "Item berhasil dihapus", type: "info" });
       setDeleteTarget(null);
     } catch (error: any) {
-      showToast({ body: error.message || "Gagal menghapus item", type: "error" });
+      handleFormError(error, showToast);
     } finally {
       setDeleting(false);
     }
@@ -46,12 +47,12 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
     {
       header: "Kode Item",
       key: "item_code",
+      width: pixel(180),
       renderCell: (row: ItemRow) => {
         const code =
           `${row.category_prefix || ""} ${row.category_code || ""} ${row.item_code || ""}`.trim();
-        return code ? <EntityCode prefix="" id={code} /> : "-";
+        return code ? <EntityCode id={code} /> : "-";
       },
-      width: pixel(180),
     },
 
     {
@@ -62,18 +63,19 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
     {
       header: "Satuan",
       key: "unit",
-      renderCell: (row: ItemRow) => row.unit_name,
       width: pixel(120),
+      renderCell: (row: ItemRow) => row.unit_name,
     },
     {
       header: "Kategori",
       key: "category",
-      renderCell: (row: ItemRow) => <Badge variant="neutral" label={row.category_name || "—"} />,
       width: pixel(150),
+      renderCell: (row: ItemRow) => <Badge variant="neutral" label={row.category_name || "—"} />,
     },
     {
-      header: "",
+      header: "Aksi",
       key: "actions",
+      width: pixel(180),
       renderCell: (row: ItemRow) => (
         <HStack gap={2} justify="end">
           <Button size="sm" variant="secondary" label="Harga" onClick={() => setPriceItem(row)} />
@@ -94,7 +96,6 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
           />
         </HStack>
       ),
-      width: pixel(180),
     },
   ];
 

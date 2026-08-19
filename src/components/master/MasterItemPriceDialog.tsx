@@ -22,7 +22,7 @@ import { formatNumber } from "@/utils/formatters";
 import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
-import { getFieldError } from "@/utils/form";
+import { getFieldError, handleFormError } from "@/utils/form";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
@@ -53,12 +53,11 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
         try {
           await createItemPrice({ item_id: item.item_id, price: value.price });
-          showToast({ body: "Harga berhasil ditambahkan.", type: "info" });
 
           form.reset();
           await loadPrices();
         } catch (err: any) {
-          showToast({ body: err.message || "Gagal menyimpan harga.", type: "error" });
+          handleFormError(err, showToast);
         }
       },
       validators: {
@@ -93,11 +92,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     setDeleting(true);
     try {
       await deleteItemPrice(deleteTarget.item_price_id, item.item_id);
-      showToast({ body: "Harga berhasil dihapus.", type: "info" });
       setDeleteTarget(null);
       await loadPrices();
     } catch (error: any) {
-      showToast({ body: error.message || "Gagal menghapus harga.", type: "error" });
+      handleFormError(error, showToast);
     } finally {
       setDeleting(false);
     }
