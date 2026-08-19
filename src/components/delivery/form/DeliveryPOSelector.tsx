@@ -29,7 +29,7 @@ export function DeliveryPOSelector({ form, pos, isEdit, handlePOChange }: Delive
           onChange={(v) => handlePOChange(v as string)}
           onBlur={field.handleBlur}
           statusVariant="attached"
-          status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
+          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
           isRequired
           isDisabled={isEdit}
           options={poOptions}

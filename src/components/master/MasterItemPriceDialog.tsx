@@ -183,10 +183,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                         min={0}
                         step={0.01}
                         statusVariant="attached"
-                        status={getFieldError(
-                          field.state.meta.errors,
-                          Boolean(field.state.meta.isTouched),
-                        )}
+                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       />
                     )}
                   />

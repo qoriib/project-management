@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Button, Card, Center, Icon, Text, TextInput, VStack } from "@astryxdesign/core";
-import { Lock } from "lucide-react";
+import { Avatar, Button, Card, Center, Text, TextInput, VStack } from "@astryxdesign/core";
 import { login } from "@/services/auth";
 import { useForm } from "@tanstack/react-form";
-import * as v from "valibot";
+import { getFieldError } from "@/utils/form";
 import { APP } from "@/configs/app.config";
+import * as v from "valibot";
 
 const loginSchema = v.object({
   pin: v.pipe(v.string(), v.length(6, "PIN harus tepat 6 digit")),
@@ -19,15 +19,13 @@ function LoginPage() {
     },
     validators: {
       onChange: loginSchema,
-      onSubmitAsync: async ({ value, formApi }) => {
+      onSubmitAsync: async ({ value }) => {
         try {
           const success = await login(value.pin);
 
           if (success) {
             return null;
           } else {
-            formApi.setFieldValue("pin", "");
-
             return {
               fields: {
                 pin: "PIN salah. Silakan coba lagi.",
@@ -59,17 +57,7 @@ function LoginPage() {
           }}
         >
           <VStack gap={6} align="center">
-            <Center
-              style={{
-                backgroundColor: "var(--color-surface)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "50%",
-                height: "64px",
-                width: "64px",
-              }}
-            >
-              <Icon size="lg" color="primary" icon={Lock} />
-            </Center>
+            <Avatar size={64} />
             <VStack gap={2} align="center">
               <Text size="lg" weight="bold">
                 {APP.title}
@@ -80,11 +68,6 @@ function LoginPage() {
               <form.Field
                 name="pin"
                 children={(field) => {
-                  const fieldError =
-                    field.state.meta.errors.length > 0
-                      ? field.state.meta.errors[0]?.toString()
-                      : undefined;
-
                   return (
                     <TextInput
                       isLabelHidden
@@ -95,12 +78,9 @@ function LoginPage() {
                       statusVariant="attached"
                       placeholder="• • • • • •"
                       value={field.state.value}
-                      status={fieldError ? { message: fieldError, type: "error" } : undefined}
+                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       onBlur={field.handleBlur}
-                      onChange={(val) => {
-                        const cleaned = (val || "").replaceAll(/\D/g, "").slice(0, 6);
-                        field.handleChange(cleaned);
-                      }}
+                      onChange={(val) => field.handleChange(sanitizePin(val))}
                     />
                   );
                 }}
@@ -126,6 +106,8 @@ function LoginPage() {
     </Center>
   );
 }
+
+const sanitizePin = (val?: string) => (val || "").replaceAll(/\D/g, "").slice(0, 6);
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,

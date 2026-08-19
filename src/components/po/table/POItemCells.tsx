@@ -53,7 +53,7 @@ export function ItemSelectorCell({
             options={options}
             onChange={(v) => onChangeItem(v)}
             onBlur={field.handleBlur}
-            status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
+            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
           />
         );
       }}
@@ -94,7 +94,7 @@ export function PriceSelectorCell({ form, itemId, prices, onAddNewPrice }: Price
                 onChange={(v) => field.handleChange(v)}
                 onBlur={field.handleBlur}
                 statusVariant="tooltip"
-                status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
+                status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 isDisabled={!itemId}
               />
             </div>
@@ -139,7 +139,7 @@ export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSele
                 onChange={(v) => field.handleChange(v)}
                 onBlur={field.handleBlur}
                 statusVariant="tooltip"
-                status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
+                status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
               />
             </div>
             <IconButton
@@ -169,7 +169,7 @@ export function QtyInputCell({ form }: QtyInputCellProps) {
           onChange={(v) => field.handleChange(v || 0)}
           onBlur={field.handleBlur}
           statusVariant="tooltip"
-          status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
+          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
         />
       )}
     </form.Field>

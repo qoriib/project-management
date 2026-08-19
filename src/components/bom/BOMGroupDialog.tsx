@@ -194,10 +194,7 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
                         onBlur={field.handleBlur}
                         isRequired
                         statusVariant="attached"
-                        status={getFieldError(
-                          field.state.meta.errors,
-                          Boolean(field.state.meta.isTouched),
-                        )}
+                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       />
                     )}
                   />

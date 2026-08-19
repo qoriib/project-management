@@ -79,10 +79,7 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    Boolean(field.state.meta.isTouched),
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />

@@ -112,10 +112,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    Boolean(field.state.meta.isTouched),
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -129,10 +126,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    Boolean(field.state.meta.isTouched),
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -147,10 +141,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    Boolean(field.state.meta.isTouched),
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -165,10 +156,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    Boolean(field.state.meta.isTouched),
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />

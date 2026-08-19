@@ -41,7 +41,7 @@ export function ItemSelectorCell({
                 value: it.item_id,
               }))}
               statusVariant="tooltip"
-              status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
+              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
             />
           )}
         </form.Field>
@@ -104,7 +104,7 @@ export function QtyInputCell({ form }: BaseCellProps) {
           min={0}
           step={0.000001}
           statusVariant="tooltip"
-          status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
+          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
         />
       )}
     </form.Field>
@@ -161,10 +161,7 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId }: PriceSelec
                     options={priceOptions}
                     isDisabled={priceOptions.length === 0}
                     statusVariant="tooltip"
-                    status={getFieldError(
-                      field.state.meta.errors,
-                      Boolean(field.state.meta.isTouched),
-                    )}
+                    status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   />
                 )}
               </form.Field>
