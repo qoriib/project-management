@@ -11,44 +11,39 @@ export interface POItemFormProps {
   onSubmitItem: (item: any) => void;
 }
 
-export function usePOItemForm({
-  initialData,
-  onSuccess,
-  onSubmitItem,
-}: POItemFormProps) {
-  const showToast = useToast();
+export function usePOItemForm({ initialData, onSuccess, onSubmitItem }: POItemFormProps) {
+  const showToast = useToast(),
+    form = useForm({
+      defaultValues: {
+        item_id: initialData?.item_id || "",
+        item_price_id: initialData?.item_price_id || "",
+        qty: initialData?.qty || 0,
+        vendor_id: initialData?.vendor_id || "",
+      },
+      onSubmit: async ({ value }) => {
+        try {
+          const payload = {
+            item_id: value.item_id,
+            vendor_id: value.vendor_id,
+            item_price_id: value.item_price_id,
+            qty: value.qty,
+          };
 
-  const form = useForm({
-    defaultValues: {
-      item_id: initialData?.item_id || "",
-      vendor_id: initialData?.vendor_id || "",
-      item_price_id: initialData?.item_price_id || "",
-      qty: initialData?.qty || 0,
-    },
-    validators: { onChange: poItemSchema },
-    onSubmit: async ({ value }) => {
-      try {
-        const payload = {
-          item_id: value.item_id,
-          vendor_id: value.vendor_id,
-          item_price_id: value.item_price_id,
-          qty: value.qty,
-        };
+          onSubmitItem(payload);
 
-        onSubmitItem(payload);
+          if (!initialData) {
+            form.reset();
+          }
 
-        if (!initialData) {
-          form.reset();
+          onSuccess();
+        } catch (error: unknown) {
+          const isError = error instanceof Error;
+          const msg = isError ? error.message : "Terjadi kesalahan";
+          showToast({ body: msg, type: "error" });
         }
-
-        onSuccess();
-      } catch (error: unknown) {
-        const isError = error instanceof Error;
-        const msg = isError ? error.message : "Terjadi kesalahan";
-        showToast({ body: msg, type: "error" });
-      }
-    },
-  });
+      },
+      validators: { onChange: poItemSchema },
+    });
 
   async function handleItemChange(itemId: string) {
     form.setFieldValue("item_id", itemId, { dontValidate: true });
@@ -73,9 +68,9 @@ export function usePOItemForm({
     if (isEditMode) {
       form.reset({
         item_id: initialData.item_id || "",
-        vendor_id: initialData.vendor_id || "",
         item_price_id: initialData.item_price_id || "",
         qty: initialData.qty || 0,
+        vendor_id: initialData.vendor_id || "",
       });
       const { loadItemPrices, itemPricesMap } = useMasterStore.getState();
       if (initialData.item_id && !itemPricesMap.has(initialData.item_id)) {
@@ -84,9 +79,9 @@ export function usePOItemForm({
     } else {
       form.reset({
         item_id: "",
-        vendor_id: "",
         item_price_id: "",
         qty: 0,
+        vendor_id: "",
       });
     }
   }, [initialData]);

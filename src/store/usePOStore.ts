@@ -1,14 +1,14 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
-  purchaseOrderRepo,
-  deliveryRepo,
-  type POWithSummary,
-  type POItemDetail,
   type DeliveryItemByPO,
+  type POItemDetail,
   type POItemInput,
-} from '@/db/repositories';
-import { getBOMReport, type BOMReportItem } from '@/db/services';
-import { useBOMStore } from '@/store/useBOMStore';
+  type POWithSummary,
+  deliveryRepo,
+  purchaseOrderRepo,
+} from "@/db/repositories";
+import { type BOMReportItem, getBOMReport } from "@/db/services";
+import { useBOMStore } from "@/store/useBOMStore";
 
 interface POStore {
   // ── States ─────────────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ interface POStore {
   currentItems: POItemDetail[];
   currentDeliveryItems: DeliveryItemByPO[];
   currentBOMData: BOMReportItem[];
-  
+
   // ── Load Actions ───────────────────────────────────────────────────────────
   loadAllPOs: (projectId?: string) => Promise<void>;
   loadPODetail: (id: string) => Promise<void>;
@@ -25,53 +25,70 @@ interface POStore {
   clearPODetail: () => void;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
-  createPO: (data: { po_date: string; project_id: string; po_code: string }, items: POItemInput[]) => Promise<string>;
-  updatePO: (id: string, data: { po_date: string; project_id: string; po_code: string }, items: POItemInput[]) => Promise<void>;
+  createPO: (
+    data: { po_date: string; project_id: string; po_code: string },
+    items: POItemInput[],
+  ) => Promise<string>;
+  updatePO: (
+    id: string,
+    data: { po_date: string; project_id: string; po_code: string },
+    items: POItemInput[],
+  ) => Promise<void>;
   deletePO: (id: string) => Promise<void>;
 }
 
 export const usePOStore = create<POStore>((set, get) => ({
-  pos: [],
-  currentPO: null,
-  currentItems: [],
-  currentDeliveryItems: [],
-  currentBOMData: [],
-
-  loadAllPOs: async (projectId) => {
-    const p = await purchaseOrderRepo.findAllWithSummary({ project_id: projectId });
-    set({ pos: p });
-  },
-
-  loadPODetail: async (id) => {
-    const p = await purchaseOrderRepo.findByIdWithSummary(id);
-    if (p) {
-      const [items, delItems, bom] = await Promise.all([
-        purchaseOrderRepo.findItems(id),
-        deliveryRepo.findItemsByPO(id),
-        getBOMReport(p.project_id)
-      ]);
-      set({ currentPO: p, currentItems: items, currentDeliveryItems: delItems, currentBOMData: bom });
-    } else {
-      set({ currentPO: null, currentItems: [], currentDeliveryItems: [], currentBOMData: [] });
-    }
-  },
-
   clearPODetail: () => {
     set({ currentPO: null, currentItems: [], currentDeliveryItems: [], currentBOMData: [] });
   },
-
-  loadBOMReportForProject: async (projectId) => {
-    const bom = await getBOMReport(projectId);
-    set({ currentBOMData: bom });
-  },
-
   createPO: async (data, items) => {
     const poId = await purchaseOrderRepo.createWithItems(data, items);
     await get().loadAllPOs(data.project_id);
     await useBOMStore.getState().loadBOMs(data.project_id);
     return poId;
   },
-
+  currentBOMData: [],
+  currentDeliveryItems: [],
+  currentItems: [],
+  currentPO: null,
+  deletePO: async (id) => {
+    const { pos } = get();
+    const po = pos.find((p) => p.po_id === id);
+    await purchaseOrderRepo.delete(id);
+    if (po) {
+      await get().loadAllPOs(po.project_id);
+      await useBOMStore.getState().loadBOMs(po.project_id);
+    } else {
+      await get().loadAllPOs();
+    }
+  },
+  loadAllPOs: async (projectId) => {
+    const p = await purchaseOrderRepo.findAllWithSummary({ project_id: projectId });
+    set({ pos: p });
+  },
+  loadBOMReportForProject: async (projectId) => {
+    const bom = await getBOMReport(projectId);
+    set({ currentBOMData: bom });
+  },
+  loadPODetail: async (id) => {
+    const p = await purchaseOrderRepo.findByIdWithSummary(id);
+    if (p) {
+      const [items, delItems, bom] = await Promise.all([
+        purchaseOrderRepo.findItems(id),
+        deliveryRepo.findItemsByPO(id),
+        getBOMReport(p.project_id),
+      ]);
+      set({
+        currentPO: p,
+        currentItems: items,
+        currentDeliveryItems: delItems,
+        currentBOMData: bom,
+      });
+    } else {
+      set({ currentPO: null, currentItems: [], currentDeliveryItems: [], currentBOMData: [] });
+    }
+  },
+  pos: [],
   updatePO: async (id, data, items) => {
     await purchaseOrderRepo.updateWithItems(id, data, items);
     await get().loadAllPOs(data.project_id);
@@ -82,17 +99,4 @@ export const usePOStore = create<POStore>((set, get) => ({
     }
     await useBOMStore.getState().loadBOMs(data.project_id);
   },
-
-  deletePO: async (id) => {
-    const { pos } = get();
-    const po = pos.find(p => p.po_id === id);
-    await purchaseOrderRepo.delete(id);
-    if (po) {
-      await get().loadAllPOs(po.project_id);
-      await useBOMStore.getState().loadBOMs(po.project_id);
-    } else {
-      await get().loadAllPOs();
-    }
-  }
-
 }));

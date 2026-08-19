@@ -1,4 +1,4 @@
-import { VStack, Spinner, Text } from "@astryxdesign/core";
+import { Spinner, Text, VStack } from "@astryxdesign/core";
 
 interface LoadingStateProps {
   message?: string;

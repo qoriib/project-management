@@ -1,10 +1,10 @@
-import { HStack, IconButton, VStack, Text } from "@astryxdesign/core";
+import { HStack, IconButton, Text, VStack } from "@astryxdesign/core";
 import { Selector } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { formatNumber } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
-import { Check, X, Plus } from "lucide-react";
-import type { usePOItemForm } from "./usePOItemForm";
+import { Check, Plus, X } from "lucide-react";
+import type { usePOItemForm } from "@/components/po/form/usePOItemForm";
 import type { ItemPrice, Vendor } from "@/db/repositories";
 import type { BOMReportItem } from "@/db/services/report.service";
 
@@ -29,16 +29,18 @@ export function ItemSelectorCell({
   return (
     <form.Field name="item_id">
       {(field) => {
-        const currentVal = field.state.value;
-
-        const options = bomOptions
-          .filter(
-            (b) => b.item_id === currentVal || (!selectedItemIds.has(b.item_id) || editingId !== "new-item")
-          )
-          .map((b) => ({
-            value: b.item_id,
-            label: `${b.item_name} (${b.unit ?? ""})`,
-          }));
+        const currentVal = field.state.value,
+          options = bomOptions
+            .filter(
+              (b) =>
+                b.item_id === currentVal ||
+                !selectedItemIds.has(b.item_id) ||
+                editingId !== "new-item",
+            )
+            .map((b) => ({
+              label: `${b.item_name} (${b.unit ?? ""})`,
+              value: b.item_id,
+            }));
 
         return (
           <Selector
@@ -51,10 +53,7 @@ export function ItemSelectorCell({
             options={options}
             onChange={(v) => onChangeItem(v)}
             onBlur={field.handleBlur}
-            status={getFieldError(
-              field.state.meta.errors,
-              !!field.state.meta.isTouched
-            )}
+            status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
           />
         );
       }}
@@ -68,18 +67,13 @@ interface PriceSelectorCellProps extends CellFormProps {
   onAddNewPrice: () => void;
 }
 
-export function PriceSelectorCell({
-  form,
-  itemId,
-  prices,
-  onAddNewPrice,
-}: PriceSelectorCellProps) {
+export function PriceSelectorCell({ form, itemId, prices, onAddNewPrice }: PriceSelectorCellProps) {
   return (
     <form.Field name="item_price_id">
       {(field) => {
         const options = prices.map((p) => ({
-          value: String(p.item_price_id),
           label: formatNumber(p.price),
+          value: String(p.item_price_id),
         }));
 
         return (
@@ -89,21 +83,18 @@ export function PriceSelectorCell({
                 label="Harga"
                 isLabelHidden
                 placeholder={
-                  !itemId
-                    ? "Pilih item dahulu..."
-                    : prices.length === 0
+                  itemId
+                    ? prices.length === 0
                       ? "Belum ada harga"
                       : "Pilih harga..."
+                    : "Pilih item dahulu..."
                 }
                 options={options}
                 value={field.state.value}
                 onChange={(v) => field.handleChange(v)}
                 onBlur={field.handleBlur}
                 statusVariant="tooltip"
-                status={getFieldError(
-                  field.state.meta.errors,
-                  !!field.state.meta.isTouched
-                )}
+                status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
                 isDisabled={!itemId}
               />
             </div>
@@ -127,17 +118,13 @@ interface VendorSelectorCellProps extends CellFormProps {
   onAddNewVendor: () => void;
 }
 
-export function VendorSelectorCell({
-  form,
-  vendors,
-  onAddNewVendor,
-}: VendorSelectorCellProps) {
+export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSelectorCellProps) {
   return (
     <form.Field name="vendor_id">
       {(field) => {
         const options = vendors.map((v) => ({
-          value: String(v.vendor_id),
           label: v.vendor_name,
+          value: String(v.vendor_id),
         }));
 
         return (
@@ -152,10 +139,7 @@ export function VendorSelectorCell({
                 onChange={(v) => field.handleChange(v)}
                 onBlur={field.handleBlur}
                 statusVariant="tooltip"
-                status={getFieldError(
-                  field.state.meta.errors,
-                  !!field.state.meta.isTouched
-                )}
+                status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
               />
             </div>
             <IconButton
@@ -178,9 +162,7 @@ interface QtyInputCellProps extends CellFormProps {
 
 export function QtyInputCell({ form, initialBalance }: QtyInputCellProps) {
   return (
-    <form.Field
-      name="qty"
-    >
+    <form.Field name="qty">
       {(field) => (
         <NumberInput
           label="Volume"
@@ -189,10 +171,7 @@ export function QtyInputCell({ form, initialBalance }: QtyInputCellProps) {
           onChange={(v) => field.handleChange(v || 0)}
           onBlur={field.handleBlur}
           statusVariant="tooltip"
-          status={getFieldError(
-            field.state.meta.errors,
-            !!field.state.meta.isTouched
-          )}
+          status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
         />
       )}
     </form.Field>
@@ -231,14 +210,14 @@ export function EditActionsCell({
   );
 }
 
-export function BomInfoCell({ 
-  totalOrdered, 
-  plannedVolume, 
-  unit 
-}: { 
-  totalOrdered: number; 
-  plannedVolume: number; 
-  unit: string; 
+export function BomInfoCell({
+  totalOrdered,
+  plannedVolume,
+  unit,
+}: {
+  totalOrdered: number;
+  plannedVolume: number;
+  unit: string;
 }) {
   return (
     <VStack gap={0.5}>

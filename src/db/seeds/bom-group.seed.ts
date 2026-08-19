@@ -2,20 +2,15 @@ import { bomGroupRepo, projectRepo } from "../repositories";
 
 export async function seedBOMGroups() {
   console.log("Seeding BOM Groups...");
-  
-  const projects = await projectRepo.findAll();
-  
-  const groups = [
-    "Base A",
-    "Base B",
-    "Umum"
-  ];
+
+  const projects = await projectRepo.findAll(),
+    groups = ["Base A", "Base B", "Umum"];
 
   let totalSeeded = 0;
 
   for (const project of projects) {
     for (const group of groups) {
-      await bomGroupRepo.create({ project_id: project.project_id, group_name: group });
+      await bomGroupRepo.create({ group_name: group, project_id: project.project_id });
       totalSeeded++;
     }
   }

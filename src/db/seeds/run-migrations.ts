@@ -3,20 +3,18 @@ import * as path from "node:path";
 import { getLocalNodeDb } from "../node-db";
 
 async function runMigrations() {
-  const db = getLocalNodeDb();
-  
-  const sqlFile = path.resolve(__dirname, "../../../src-tauri/migrations/001_init.sql");
-  const sql = fs.readFileSync(sqlFile, "utf-8");
-  
-  const statements = sql.split(";").filter(s => s.trim().length > 0);
+  const db = getLocalNodeDb(),
+    sqlFile = path.resolve(__dirname, "../../../src-tauri/migrations/001_init.sql"),
+    sql = fs.readFileSync(sqlFile, "utf8"),
+    statements = sql.split(";").filter((s) => s.trim().length > 0);
   for (const statement of statements) {
     try {
       await db.execute(statement);
-    } catch (e) {
-      console.error(`Failed to execute: ${statement.substring(0, 50)}...`, e);
+    } catch (error) {
+      console.error(`Failed to execute: ${statement.substring(0, 50)}...`, error);
     }
   }
-  
+
   console.log("Migrations applied manually.");
 }
 

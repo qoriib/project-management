@@ -1,4 +1,4 @@
-import { Grid, GridSpan, Card, VStack, Text, Heading } from "@astryxdesign/core";
+import { Card, Grid, GridSpan, Heading, Text, VStack } from "@astryxdesign/core";
 import { formatNumber } from "@/utils/formatters";
 
 interface DashboardSummaryCardsProps {
@@ -7,13 +7,19 @@ interface DashboardSummaryCardsProps {
   loading: boolean;
 }
 
-export function DashboardSummaryCards({ totalBudget, totalPO, loading }: DashboardSummaryCardsProps) {
+export function DashboardSummaryCards({
+  totalBudget,
+  totalPO,
+  loading,
+}: DashboardSummaryCardsProps) {
   return (
-    <Grid gap={4} columns={{ minWidth: 250, max: 3 }}>
+    <Grid gap={4} columns={{ max: 3, minWidth: 250 }}>
       <GridSpan columns={1}>
         <Card padding={4}>
           <VStack gap={2}>
-            <Text size="sm" color="secondary">Nilai Rencana BOM (Rp)</Text>
+            <Text size="sm" color="secondary">
+              Nilai Rencana BOM (Rp)
+            </Text>
             <Heading level={2}>{loading ? "…" : formatNumber(totalBudget)}</Heading>
           </VStack>
         </Card>
@@ -21,7 +27,9 @@ export function DashboardSummaryCards({ totalBudget, totalPO, loading }: Dashboa
       <GridSpan columns={1}>
         <Card padding={4}>
           <VStack gap={2}>
-            <Text size="sm" color="secondary">Nilai Realisasi PO (Rp)</Text>
+            <Text size="sm" color="secondary">
+              Nilai Realisasi PO (Rp)
+            </Text>
             <Heading level={2}>{loading ? "…" : formatNumber(totalPO)}</Heading>
           </VStack>
         </Card>

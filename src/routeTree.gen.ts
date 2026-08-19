@@ -8,374 +8,374 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as MasterRouteImport } from './routes/master'
-import { Route as BomIndexRouteImport } from './routes/bom/index'
-import { Route as DeliveryIndexRouteImport } from './routes/delivery/index'
-import { Route as DeliveryNewRouteImport } from './routes/delivery/new'
-import { Route as MasterItemRouteImport } from './routes/master/item'
-import { Route as MasterKategoriRouteImport } from './routes/master/kategori'
-import { Route as MasterProjectRouteImport } from './routes/master/project'
-import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
-import { Route as MasterVendorRouteImport } from './routes/master/vendor'
-import { Route as PoIndexRouteImport } from './routes/po/index'
-import { Route as PoNewRouteImport } from './routes/po/new'
-import { Route as SettingsIndexRouteImport } from './routes/settings/index'
-import { Route as DeliveryIdEditRouteImport } from './routes/delivery/$id/edit'
-import { Route as PoIdIndexRouteImport } from './routes/po/$id/index'
-import { Route as PoIdEditRouteImport } from './routes/po/$id/edit'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as LoginRouteImport } from "./routes/login";
+import { Route as MasterRouteImport } from "./routes/master";
+import { Route as BomIndexRouteImport } from "./routes/bom/index";
+import { Route as DeliveryIndexRouteImport } from "./routes/delivery/index";
+import { Route as DeliveryNewRouteImport } from "./routes/delivery/new";
+import { Route as MasterItemRouteImport } from "./routes/master/item";
+import { Route as MasterKategoriRouteImport } from "./routes/master/kategori";
+import { Route as MasterProjectRouteImport } from "./routes/master/project";
+import { Route as MasterSatuanRouteImport } from "./routes/master/satuan";
+import { Route as MasterVendorRouteImport } from "./routes/master/vendor";
+import { Route as PoIndexRouteImport } from "./routes/po/index";
+import { Route as PoNewRouteImport } from "./routes/po/new";
+import { Route as SettingsIndexRouteImport } from "./routes/settings/index";
+import { Route as DeliveryIdEditRouteImport } from "./routes/delivery/$id/edit";
+import { Route as PoIdIndexRouteImport } from "./routes/po/$id/index";
+import { Route as PoIdEditRouteImport } from "./routes/po/$id/edit";
 
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+  id: "/login",
+  path: "/login",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const MasterRoute = MasterRouteImport.update({
-  id: '/master',
-  path: '/master',
+  id: "/master",
+  path: "/master",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const BomIndexRoute = BomIndexRouteImport.update({
-  id: '/bom/',
-  path: '/bom/',
+  id: "/bom/",
+  path: "/bom/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DeliveryIndexRoute = DeliveryIndexRouteImport.update({
-  id: '/delivery/',
-  path: '/delivery/',
+  id: "/delivery/",
+  path: "/delivery/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DeliveryNewRoute = DeliveryNewRouteImport.update({
-  id: '/delivery/new',
-  path: '/delivery/new',
+  id: "/delivery/new",
+  path: "/delivery/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const MasterItemRoute = MasterItemRouteImport.update({
-  id: '/item',
-  path: '/item',
+  id: "/item",
+  path: "/item",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const MasterKategoriRoute = MasterKategoriRouteImport.update({
-  id: '/kategori',
-  path: '/kategori',
+  id: "/kategori",
+  path: "/kategori",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const MasterProjectRoute = MasterProjectRouteImport.update({
-  id: '/project',
-  path: '/project',
+  id: "/project",
+  path: "/project",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const MasterSatuanRoute = MasterSatuanRouteImport.update({
-  id: '/satuan',
-  path: '/satuan',
+  id: "/satuan",
+  path: "/satuan",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const MasterVendorRoute = MasterVendorRouteImport.update({
-  id: '/vendor',
-  path: '/vendor',
+  id: "/vendor",
+  path: "/vendor",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const PoIndexRoute = PoIndexRouteImport.update({
-  id: '/po/',
-  path: '/po/',
+  id: "/po/",
+  path: "/po/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const PoNewRoute = PoNewRouteImport.update({
-  id: '/po/new',
-  path: '/po/new',
+  id: "/po/new",
+  path: "/po/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/settings/',
-  path: '/settings/',
+  id: "/settings/",
+  path: "/settings/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DeliveryIdEditRoute = DeliveryIdEditRouteImport.update({
-  id: '/delivery/$id/edit',
-  path: '/delivery/$id/edit',
+  id: "/delivery/$id/edit",
+  path: "/delivery/$id/edit",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const PoIdIndexRoute = PoIdIndexRouteImport.update({
-  id: '/po/$id/',
-  path: '/po/$id/',
+  id: "/po/$id/",
+  path: "/po/$id/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const PoIdEditRoute = PoIdEditRouteImport.update({
-  id: '/po/$id/edit',
-  path: '/po/$id/edit',
+  id: "/po/$id/edit",
+  path: "/po/$id/edit",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/master': typeof MasterRouteWithChildren
-  '/delivery/new': typeof DeliveryNewRoute
-  '/master/item': typeof MasterItemRoute
-  '/master/kategori': typeof MasterKategoriRoute
-  '/master/project': typeof MasterProjectRoute
-  '/master/satuan': typeof MasterSatuanRoute
-  '/master/vendor': typeof MasterVendorRoute
-  '/po/new': typeof PoNewRoute
-  '/bom/': typeof BomIndexRoute
-  '/delivery/': typeof DeliveryIndexRoute
-  '/po/': typeof PoIndexRoute
-  '/settings/': typeof SettingsIndexRoute
-  '/delivery/$id/edit': typeof DeliveryIdEditRoute
-  '/po/$id/edit': typeof PoIdEditRoute
-  '/po/$id/': typeof PoIdIndexRoute
+  "/": typeof IndexRoute;
+  "/login": typeof LoginRoute;
+  "/master": typeof MasterRouteWithChildren;
+  "/delivery/new": typeof DeliveryNewRoute;
+  "/master/item": typeof MasterItemRoute;
+  "/master/kategori": typeof MasterKategoriRoute;
+  "/master/project": typeof MasterProjectRoute;
+  "/master/satuan": typeof MasterSatuanRoute;
+  "/master/vendor": typeof MasterVendorRoute;
+  "/po/new": typeof PoNewRoute;
+  "/bom/": typeof BomIndexRoute;
+  "/delivery/": typeof DeliveryIndexRoute;
+  "/po/": typeof PoIndexRoute;
+  "/settings/": typeof SettingsIndexRoute;
+  "/delivery/$id/edit": typeof DeliveryIdEditRoute;
+  "/po/$id/edit": typeof PoIdEditRoute;
+  "/po/$id/": typeof PoIdIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/master': typeof MasterRouteWithChildren
-  '/delivery/new': typeof DeliveryNewRoute
-  '/master/item': typeof MasterItemRoute
-  '/master/kategori': typeof MasterKategoriRoute
-  '/master/project': typeof MasterProjectRoute
-  '/master/satuan': typeof MasterSatuanRoute
-  '/master/vendor': typeof MasterVendorRoute
-  '/po/new': typeof PoNewRoute
-  '/bom': typeof BomIndexRoute
-  '/delivery': typeof DeliveryIndexRoute
-  '/po': typeof PoIndexRoute
-  '/settings': typeof SettingsIndexRoute
-  '/delivery/$id/edit': typeof DeliveryIdEditRoute
-  '/po/$id/edit': typeof PoIdEditRoute
-  '/po/$id': typeof PoIdIndexRoute
+  "/": typeof IndexRoute;
+  "/login": typeof LoginRoute;
+  "/master": typeof MasterRouteWithChildren;
+  "/delivery/new": typeof DeliveryNewRoute;
+  "/master/item": typeof MasterItemRoute;
+  "/master/kategori": typeof MasterKategoriRoute;
+  "/master/project": typeof MasterProjectRoute;
+  "/master/satuan": typeof MasterSatuanRoute;
+  "/master/vendor": typeof MasterVendorRoute;
+  "/po/new": typeof PoNewRoute;
+  "/bom": typeof BomIndexRoute;
+  "/delivery": typeof DeliveryIndexRoute;
+  "/po": typeof PoIndexRoute;
+  "/settings": typeof SettingsIndexRoute;
+  "/delivery/$id/edit": typeof DeliveryIdEditRoute;
+  "/po/$id/edit": typeof PoIdEditRoute;
+  "/po/$id": typeof PoIdIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/master': typeof MasterRouteWithChildren
-  '/delivery/new': typeof DeliveryNewRoute
-  '/master/item': typeof MasterItemRoute
-  '/master/kategori': typeof MasterKategoriRoute
-  '/master/project': typeof MasterProjectRoute
-  '/master/satuan': typeof MasterSatuanRoute
-  '/master/vendor': typeof MasterVendorRoute
-  '/po/new': typeof PoNewRoute
-  '/bom/': typeof BomIndexRoute
-  '/delivery/': typeof DeliveryIndexRoute
-  '/po/': typeof PoIndexRoute
-  '/settings/': typeof SettingsIndexRoute
-  '/delivery/$id/edit': typeof DeliveryIdEditRoute
-  '/po/$id/edit': typeof PoIdEditRoute
-  '/po/$id/': typeof PoIdIndexRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexRoute;
+  "/login": typeof LoginRoute;
+  "/master": typeof MasterRouteWithChildren;
+  "/delivery/new": typeof DeliveryNewRoute;
+  "/master/item": typeof MasterItemRoute;
+  "/master/kategori": typeof MasterKategoriRoute;
+  "/master/project": typeof MasterProjectRoute;
+  "/master/satuan": typeof MasterSatuanRoute;
+  "/master/vendor": typeof MasterVendorRoute;
+  "/po/new": typeof PoNewRoute;
+  "/bom/": typeof BomIndexRoute;
+  "/delivery/": typeof DeliveryIndexRoute;
+  "/po/": typeof PoIndexRoute;
+  "/settings/": typeof SettingsIndexRoute;
+  "/delivery/$id/edit": typeof DeliveryIdEditRoute;
+  "/po/$id/edit": typeof PoIdEditRoute;
+  "/po/$id/": typeof PoIdIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/login'
-    | '/master'
-    | '/delivery/new'
-    | '/master/item'
-    | '/master/kategori'
-    | '/master/project'
-    | '/master/satuan'
-    | '/master/vendor'
-    | '/po/new'
-    | '/bom/'
-    | '/delivery/'
-    | '/po/'
-    | '/settings/'
-    | '/delivery/$id/edit'
-    | '/po/$id/edit'
-    | '/po/$id/'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/login"
+    | "/master"
+    | "/delivery/new"
+    | "/master/item"
+    | "/master/kategori"
+    | "/master/project"
+    | "/master/satuan"
+    | "/master/vendor"
+    | "/po/new"
+    | "/bom/"
+    | "/delivery/"
+    | "/po/"
+    | "/settings/"
+    | "/delivery/$id/edit"
+    | "/po/$id/edit"
+    | "/po/$id/";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/'
-    | '/login'
-    | '/master'
-    | '/delivery/new'
-    | '/master/item'
-    | '/master/kategori'
-    | '/master/project'
-    | '/master/satuan'
-    | '/master/vendor'
-    | '/po/new'
-    | '/bom'
-    | '/delivery'
-    | '/po'
-    | '/settings'
-    | '/delivery/$id/edit'
-    | '/po/$id/edit'
-    | '/po/$id'
+    | "/"
+    | "/login"
+    | "/master"
+    | "/delivery/new"
+    | "/master/item"
+    | "/master/kategori"
+    | "/master/project"
+    | "/master/satuan"
+    | "/master/vendor"
+    | "/po/new"
+    | "/bom"
+    | "/delivery"
+    | "/po"
+    | "/settings"
+    | "/delivery/$id/edit"
+    | "/po/$id/edit"
+    | "/po/$id";
   id:
-    | '__root__'
-    | '/'
-    | '/login'
-    | '/master'
-    | '/delivery/new'
-    | '/master/item'
-    | '/master/kategori'
-    | '/master/project'
-    | '/master/satuan'
-    | '/master/vendor'
-    | '/po/new'
-    | '/bom/'
-    | '/delivery/'
-    | '/po/'
-    | '/settings/'
-    | '/delivery/$id/edit'
-    | '/po/$id/edit'
-    | '/po/$id/'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/"
+    | "/login"
+    | "/master"
+    | "/delivery/new"
+    | "/master/item"
+    | "/master/kategori"
+    | "/master/project"
+    | "/master/satuan"
+    | "/master/vendor"
+    | "/po/new"
+    | "/bom/"
+    | "/delivery/"
+    | "/po/"
+    | "/settings/"
+    | "/delivery/$id/edit"
+    | "/po/$id/edit"
+    | "/po/$id/";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  LoginRoute: typeof LoginRoute
-  MasterRoute: typeof MasterRouteWithChildren
-  DeliveryNewRoute: typeof DeliveryNewRoute
-  PoNewRoute: typeof PoNewRoute
-  BomIndexRoute: typeof BomIndexRoute
-  DeliveryIndexRoute: typeof DeliveryIndexRoute
-  PoIndexRoute: typeof PoIndexRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
-  DeliveryIdEditRoute: typeof DeliveryIdEditRoute
-  PoIdEditRoute: typeof PoIdEditRoute
-  PoIdIndexRoute: typeof PoIdIndexRoute
+  IndexRoute: typeof IndexRoute;
+  LoginRoute: typeof LoginRoute;
+  MasterRoute: typeof MasterRouteWithChildren;
+  DeliveryNewRoute: typeof DeliveryNewRoute;
+  PoNewRoute: typeof PoNewRoute;
+  BomIndexRoute: typeof BomIndexRoute;
+  DeliveryIndexRoute: typeof DeliveryIndexRoute;
+  PoIndexRoute: typeof PoIndexRoute;
+  SettingsIndexRoute: typeof SettingsIndexRoute;
+  DeliveryIdEditRoute: typeof DeliveryIdEditRoute;
+  PoIdEditRoute: typeof PoIdEditRoute;
+  PoIdIndexRoute: typeof PoIdIndexRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/master': {
-      id: '/master'
-      path: '/master'
-      fullPath: '/master'
-      preLoaderRoute: typeof MasterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bom/': {
-      id: '/bom/'
-      path: '/bom'
-      fullPath: '/bom/'
-      preLoaderRoute: typeof BomIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/delivery/': {
-      id: '/delivery/'
-      path: '/delivery'
-      fullPath: '/delivery/'
-      preLoaderRoute: typeof DeliveryIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/delivery/new': {
-      id: '/delivery/new'
-      path: '/delivery/new'
-      fullPath: '/delivery/new'
-      preLoaderRoute: typeof DeliveryNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/master/item': {
-      id: '/master/item'
-      path: '/item'
-      fullPath: '/master/item'
-      preLoaderRoute: typeof MasterItemRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/kategori': {
-      id: '/master/kategori'
-      path: '/kategori'
-      fullPath: '/master/kategori'
-      preLoaderRoute: typeof MasterKategoriRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/project': {
-      id: '/master/project'
-      path: '/project'
-      fullPath: '/master/project'
-      preLoaderRoute: typeof MasterProjectRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/satuan': {
-      id: '/master/satuan'
-      path: '/satuan'
-      fullPath: '/master/satuan'
-      preLoaderRoute: typeof MasterSatuanRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/vendor': {
-      id: '/master/vendor'
-      path: '/vendor'
-      fullPath: '/master/vendor'
-      preLoaderRoute: typeof MasterVendorRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/po/': {
-      id: '/po/'
-      path: '/po'
-      fullPath: '/po/'
-      preLoaderRoute: typeof PoIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/po/new': {
-      id: '/po/new'
-      path: '/po/new'
-      fullPath: '/po/new'
-      preLoaderRoute: typeof PoNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/': {
-      id: '/settings/'
-      path: '/settings'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/delivery/$id/edit': {
-      id: '/delivery/$id/edit'
-      path: '/delivery/$id/edit'
-      fullPath: '/delivery/$id/edit'
-      preLoaderRoute: typeof DeliveryIdEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/po/$id/': {
-      id: '/po/$id/'
-      path: '/po/$id'
-      fullPath: '/po/$id/'
-      preLoaderRoute: typeof PoIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/po/$id/edit': {
-      id: '/po/$id/edit'
-      path: '/po/$id/edit'
-      fullPath: '/po/$id/edit'
-      preLoaderRoute: typeof PoIdEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/login": {
+      id: "/login";
+      path: "/login";
+      fullPath: "/login";
+      preLoaderRoute: typeof LoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/master": {
+      id: "/master";
+      path: "/master";
+      fullPath: "/master";
+      preLoaderRoute: typeof MasterRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/bom/": {
+      id: "/bom/";
+      path: "/bom";
+      fullPath: "/bom/";
+      preLoaderRoute: typeof BomIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/delivery/": {
+      id: "/delivery/";
+      path: "/delivery";
+      fullPath: "/delivery/";
+      preLoaderRoute: typeof DeliveryIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/delivery/new": {
+      id: "/delivery/new";
+      path: "/delivery/new";
+      fullPath: "/delivery/new";
+      preLoaderRoute: typeof DeliveryNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/master/item": {
+      id: "/master/item";
+      path: "/item";
+      fullPath: "/master/item";
+      preLoaderRoute: typeof MasterItemRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/master/kategori": {
+      id: "/master/kategori";
+      path: "/kategori";
+      fullPath: "/master/kategori";
+      preLoaderRoute: typeof MasterKategoriRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/master/project": {
+      id: "/master/project";
+      path: "/project";
+      fullPath: "/master/project";
+      preLoaderRoute: typeof MasterProjectRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/master/satuan": {
+      id: "/master/satuan";
+      path: "/satuan";
+      fullPath: "/master/satuan";
+      preLoaderRoute: typeof MasterSatuanRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/master/vendor": {
+      id: "/master/vendor";
+      path: "/vendor";
+      fullPath: "/master/vendor";
+      preLoaderRoute: typeof MasterVendorRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/po/": {
+      id: "/po/";
+      path: "/po";
+      fullPath: "/po/";
+      preLoaderRoute: typeof PoIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/po/new": {
+      id: "/po/new";
+      path: "/po/new";
+      fullPath: "/po/new";
+      preLoaderRoute: typeof PoNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings/": {
+      id: "/settings/";
+      path: "/settings";
+      fullPath: "/settings/";
+      preLoaderRoute: typeof SettingsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/delivery/$id/edit": {
+      id: "/delivery/$id/edit";
+      path: "/delivery/$id/edit";
+      fullPath: "/delivery/$id/edit";
+      preLoaderRoute: typeof DeliveryIdEditRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/po/$id/": {
+      id: "/po/$id/";
+      path: "/po/$id";
+      fullPath: "/po/$id/";
+      preLoaderRoute: typeof PoIdIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/po/$id/edit": {
+      id: "/po/$id/edit";
+      path: "/po/$id/edit";
+      fullPath: "/po/$id/edit";
+      preLoaderRoute: typeof PoIdEditRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
 interface MasterRouteChildren {
-  MasterItemRoute: typeof MasterItemRoute
-  MasterKategoriRoute: typeof MasterKategoriRoute
-  MasterProjectRoute: typeof MasterProjectRoute
-  MasterSatuanRoute: typeof MasterSatuanRoute
-  MasterVendorRoute: typeof MasterVendorRoute
+  MasterItemRoute: typeof MasterItemRoute;
+  MasterKategoriRoute: typeof MasterKategoriRoute;
+  MasterProjectRoute: typeof MasterProjectRoute;
+  MasterSatuanRoute: typeof MasterSatuanRoute;
+  MasterVendorRoute: typeof MasterVendorRoute;
 }
 
 const MasterRouteChildren: MasterRouteChildren = {
@@ -384,10 +384,9 @@ const MasterRouteChildren: MasterRouteChildren = {
   MasterProjectRoute: MasterProjectRoute,
   MasterSatuanRoute: MasterSatuanRoute,
   MasterVendorRoute: MasterVendorRoute,
-}
+};
 
-const MasterRouteWithChildren =
-  MasterRoute._addFileChildren(MasterRouteChildren)
+const MasterRouteWithChildren = MasterRoute._addFileChildren(MasterRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -402,7 +401,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeliveryIdEditRoute: DeliveryIdEditRoute,
   PoIdEditRoute: PoIdEditRoute,
   PoIdIndexRoute: PoIdIndexRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();

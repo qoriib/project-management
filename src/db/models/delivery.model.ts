@@ -11,9 +11,9 @@ export interface Delivery {
 export type CreateDelivery = Pick<Delivery, "delivery_date" | "po_id" | "delivery_code">;
 
 export const DeliveryModel: ModelDefinition = {
-  tableName: "deliveries",
-  primaryKey: "delivery_id",
   createColumns: ["po_id", "delivery_date", "delivery_code"],
-  updateColumns: ["po_id", "delivery_date", "delivery_code"],
+  primaryKey: "delivery_id",
   softDelete: true,
+  tableName: "deliveries",
+  updateColumns: ["po_id", "delivery_date", "delivery_code"],
 };

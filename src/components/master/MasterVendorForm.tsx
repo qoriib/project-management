@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Dialog, TextInput, TextArea, VStack, HStack, Button, Heading } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, TextArea, TextInput, VStack } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -9,9 +9,9 @@ import type { Vendor } from "@/db/repositories";
 import * as v from "valibot";
 
 const vendorSchema = v.object({
-  vendor_name: v.pipe(v.string(), v.nonEmpty("Nama vendor harus diisi.")),
-  phone: v.string(),
   address: v.string(),
+  phone: v.string(),
+  vendor_name: v.pipe(v.string(), v.nonEmpty("Nama vendor harus diisi.")),
 });
 
 interface MasterVendorFormProps {
@@ -21,43 +21,41 @@ interface MasterVendorFormProps {
 }
 
 export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorFormProps) {
-  const showToast = useToast();
-
-  const { createVendor, updateVendor } = useMasterStore();
-
-  const form = useForm({
-    defaultValues: {
-      vendor_name: "",
-      phone: "",
-      address: "",
-    },
-    validators: {
-      onChange: vendorSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        if (initialData) {
-          await updateVendor(initialData.vendor_id, value);
-          showToast({ body: "Vendor berhasil diubah", type: "info" });
-        } else {
-          await createVendor(value);
-          showToast({ body: "Vendor berhasil ditambahkan", type: "info" });
+  const showToast = useToast(),
+    { createVendor, updateVendor } = useMasterStore(),
+    form = useForm({
+      defaultValues: {
+        address: "",
+        phone: "",
+        vendor_name: "",
+      },
+      onSubmit: async ({ value }) => {
+        try {
+          if (initialData) {
+            await updateVendor(initialData.vendor_id, value);
+            showToast({ body: "Vendor berhasil diubah", type: "info" });
+          } else {
+            await createVendor(value);
+            showToast({ body: "Vendor berhasil ditambahkan", type: "info" });
+          }
+        } catch (error: any) {
+          showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
+        } finally {
+          onClose();
         }
-      } catch (error: any) {
-        showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-      } finally {
-        onClose();
-      }
-    }
-  });
+      },
+      validators: {
+        onChange: vendorSchema,
+      },
+    });
 
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
         form.reset({
-          vendor_name: initialData.vendor_name,
-          phone: initialData.phone ?? "",
           address: initialData.address ?? "",
+          phone: initialData.phone ?? "",
+          vendor_name: initialData.vendor_name,
         });
       } else {
         form.reset();
@@ -87,7 +85,10 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
@@ -100,7 +101,10 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
@@ -113,17 +117,26 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
           </FormLayout>
-          <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
+          <HStack gap={2} justify="end" style={{ marginTop: "1rem" }}>
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
-                <Button variant="primary" label="Simpan" type="submit" isLoading={isSubmitting} isDisabled={!canSubmit} />
+                <Button
+                  variant="primary"
+                  label="Simpan"
+                  type="submit"
+                  isLoading={isSubmitting}
+                  isDisabled={!canSubmit}
+                />
               )}
             />
           </HStack>

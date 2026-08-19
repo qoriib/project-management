@@ -1,23 +1,24 @@
 import { useState } from "react";
-import { Button, Badge } from "@astryxdesign/core";
+import { Badge, Button } from "@astryxdesign/core";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
 
 export function BOMApprovalActions() {
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const projects = useMasterStore((s) => s.projects);
-  const currentProject = projects.find(p => p.project_id === selectedProjectId);
-  const isApproved = currentProject?.bom_is_approved === 1;
-  const envRole = import.meta.env.VITE_APP_ROLE?.toUpperCase() || 'MANAGER';
-  const isManager = envRole === 'MANAGER';
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId),
+    projects = useMasterStore((s) => s.projects),
+    currentProject = projects.find((p) => p.project_id === selectedProjectId),
+    isApproved = currentProject?.bom_is_approved === 1,
+    envRole = import.meta.env.VITE_APP_ROLE?.toUpperCase() || "MANAGER",
+    isManager = envRole === "MANAGER",
+    [showApproveConfirm, setShowApproveConfirm] = useState(false),
+    [showCancelConfirm, setShowCancelConfirm] = useState(false),
+    [loading, setLoading] = useState(false),
+    { approveProjectBOM, cancelApproveProjectBOM } = useMasterStore();
 
-  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { approveProjectBOM, cancelApproveProjectBOM } = useMasterStore();
-
-  if (!selectedProjectId || !currentProject) return null;
+  if (!selectedProjectId || !currentProject) {
+    return null;
+  }
 
   if (!isManager) {
     return (
@@ -29,24 +30,23 @@ export function BOMApprovalActions() {
   }
 
   const handleApprove = async () => {
-    setLoading(true);
-    try {
-      await approveProjectBOM(selectedProjectId);
-      setShowApproveConfirm(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancelApprove = async () => {
-    setLoading(true);
-    try {
-      await cancelApproveProjectBOM(selectedProjectId);
-      setShowCancelConfirm(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+      setLoading(true);
+      try {
+        await approveProjectBOM(selectedProjectId);
+        setShowApproveConfirm(false);
+      } finally {
+        setLoading(false);
+      }
+    },
+    handleCancelApprove = async () => {
+      setLoading(true);
+      try {
+        await cancelApproveProjectBOM(selectedProjectId);
+        setShowCancelConfirm(false);
+      } finally {
+        setLoading(false);
+      }
+    };
 
   return (
     <>

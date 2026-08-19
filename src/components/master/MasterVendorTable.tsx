@@ -1,29 +1,31 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, HStack, IconButton, Text } from "@astryxdesign/core";
-import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
+import { HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { Vendor } from "@/db/repositories";
 
-
 interface MasterVendorTableProps {
   onEdit: (vendor: Vendor) => void;
 }
 
-type VendorRow = Vendor & Record<string, unknown> & { has_relation?: boolean };
+interface VendorRow extends Vendor, Record<string, unknown> {
+  has_relation?: boolean;
+}
 
 export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
-  const showToast = useToast();
-
-  const { vendors, deleteVendor } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const showToast = useToast(),
+    { vendors, deleteVendor } = useMasterStore(),
+    [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null),
+    [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
 
     setDeleting(true);
 
@@ -31,36 +33,34 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
       await deleteVendor(deleteTarget.id);
       showToast({ body: "Vendor berhasil dihapus", type: "info" });
       setDeleteTarget(null);
-    } catch (err: any) {
-      showToast({ body: err.message || "Gagal menghapus vendor", type: "error" });
+    } catch (error: any) {
+      showToast({ body: error.message || "Gagal menghapus vendor", type: "error" });
     } finally {
       setDeleting(false);
     }
   }
 
   const columns: TableColumn<VendorRow>[] = [
-
     {
-      key: "vendor_name",
       header: "Nama Vendor",
-      width: proportional(1.5)
+      key: "vendor_name",
+      width: proportional(1.5),
     },
     {
-      key: "phone",
-      header: "Telepon",
-      width: pixel(150),
       align: "end",
-      renderCell: (row) => <Text type="code">{row.phone}</Text>
+      header: "Telepon",
+      key: "phone",
+      renderCell: (row) => <Text type="code">{row.phone}</Text>,
+      width: pixel(150),
     },
     {
-      key: "address",
       header: "Alamat",
-      width: proportional(2)
+      key: "address",
+      width: proportional(2),
     },
     {
-      key: "actions",
       header: "",
-      width: pixel(120),
+      key: "actions",
       renderCell: (row: VendorRow) => (
         <HStack gap={2} justify="end">
           <IconButton
@@ -80,6 +80,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
           />
         </HStack>
       ),
+      width: pixel(120),
     },
   ];
 
@@ -94,7 +95,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
         emptyState={<TableEmptyState message="Belum ada vendor." />}
       />
       <ConfirmDialog
-        isOpen={!!deleteTarget}
+        isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Master Data"

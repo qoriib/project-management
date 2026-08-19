@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Section, VStack, Button } from "@astryxdesign/core";
+import { Button, Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterProjectTable } from "@/components/master/MasterProjectTable";
 import { MasterProjectForm } from "@/components/master/MasterProjectForm";
@@ -11,13 +11,13 @@ export const Route = createFileRoute("/master/project")({
 });
 
 function MasterProjectPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<Project | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false),
+    [editTarget, setEditTarget] = useState<Project | null>(null);
 
   useEffect(() => {
     const handleOpen = () => openCreate();
-    window.addEventListener('openMasterCreate', handleOpen);
-    return () => window.removeEventListener('openMasterCreate', handleOpen);
+    window.addEventListener("openMasterCreate", handleOpen);
+    return () => window.removeEventListener("openMasterCreate", handleOpen);
   }, []);
 
   function openCreate() {
@@ -36,13 +36,7 @@ function MasterProjectPage() {
         <PageHeader
           title="Master Data Proyek"
           subtitle="Kelola data proyek dan tahapannya"
-          actions={
-            <Button
-              variant="primary"
-              label="Tambah Proyek"
-              onClick={openCreate}
-            />
-          }
+          actions={<Button variant="primary" label="Tambah Proyek" onClick={openCreate} />}
         />
         <MasterProjectTable onEdit={openEdit} />
         <MasterProjectForm

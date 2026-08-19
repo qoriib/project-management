@@ -7,15 +7,17 @@
  */
 export function getFieldError(
   errors: any[] | undefined,
-  isTouched = true
-): { type: 'error'; message: string } | undefined {
-  if (!isTouched || !errors || errors.length === 0) return undefined;
+  isTouched = true,
+): { type: "error"; message: string } | undefined {
+  if (!isTouched || !errors || errors.length === 0) {
+    return undefined;
+  }
 
-  const firstError = errors[0];
-  const message = typeof firstError === 'string' ? firstError : firstError?.message;
+  const firstError = errors[0],
+    message = typeof firstError === "string" ? firstError : firstError?.message;
 
   if (message) {
-    return { type: 'error', message };
+    return { message, type: "error" };
   }
 
   return undefined;

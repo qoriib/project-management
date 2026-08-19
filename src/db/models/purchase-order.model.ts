@@ -13,9 +13,9 @@ export type CreatePurchaseOrder = Pick<PurchaseOrder, "po_date" | "project_id" |
 export type UpdatePurchaseOrder = Partial<CreatePurchaseOrder>;
 
 export const PurchaseOrderModel: ModelDefinition = {
-  tableName: "purchase_orders",
-  primaryKey: "po_id",
   createColumns: ["project_id", "po_date", "po_code"],
-  updateColumns: ["project_id", "po_date", "po_code"],
+  primaryKey: "po_id",
   softDelete: true,
+  tableName: "purchase_orders",
+  updateColumns: ["project_id", "po_date", "po_code"],
 };

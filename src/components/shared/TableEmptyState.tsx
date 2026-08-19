@@ -1,4 +1,4 @@
-import { VStack, Text } from "@astryxdesign/core";
+import { Text, VStack } from "@astryxdesign/core";
 
 interface TableEmptyStateProps {
   message: string;

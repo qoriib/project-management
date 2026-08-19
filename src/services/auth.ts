@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from "@tauri-apps/api/core";
 
 let isAuthenticated = false;
 
@@ -8,7 +8,7 @@ let isAuthenticated = false;
  */
 export async function login(pin: string): Promise<boolean> {
   try {
-    const success: boolean = await invoke('check_pin', { pin });
+    const success: boolean = await invoke("check_pin", { pin });
     if (success) {
       isAuthenticated = true;
     }
@@ -38,9 +38,9 @@ export function logout(): void {
  */
 export async function changePin(oldPin: string, newPin: string): Promise<boolean> {
   try {
-    const success: boolean = await invoke('change_pin', { oldPin, newPin });
+    const success: boolean = await invoke("change_pin", { newPin, oldPin });
     return success;
   } catch (error: any) {
-    throw new Error(error.toString());
+    throw new Error(error.toString(), { cause: error });
   }
 }

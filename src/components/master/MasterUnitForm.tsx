@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Dialog, TextInput, VStack, HStack, Button, Heading } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, TextInput, VStack } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -19,39 +19,37 @@ interface MasterUnitFormProps {
 }
 
 export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormProps) {
-  const showToast = useToast();
-
-  const { createUnit, updateUnit } = useMasterStore();
-
-  const form = useForm({
-    defaultValues: {
-      unit_name: "",
-    },
-    validators: {
-      onChange: unitSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        if (initialData) {
-          await updateUnit(initialData.unit_id, value);
-          showToast({ body: "Satuan berhasil diubah", type: "info" });
-        } else {
-          await createUnit(value);
-          showToast({ body: "Satuan berhasil ditambahkan", type: "info" });
+  const showToast = useToast(),
+    { createUnit, updateUnit } = useMasterStore(),
+    form = useForm({
+      defaultValues: {
+        unit_name: "",
+      },
+      onSubmit: async ({ value }) => {
+        try {
+          if (initialData) {
+            await updateUnit(initialData.unit_id, value);
+            showToast({ body: "Satuan berhasil diubah", type: "info" });
+          } else {
+            await createUnit(value);
+            showToast({ body: "Satuan berhasil ditambahkan", type: "info" });
+          }
+        } catch (error: any) {
+          showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
+        } finally {
+          onClose();
         }
-      } catch (error: any) {
-        showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-      } finally {
-        onClose();
-      }
-    }
-  });
+      },
+      validators: {
+        onChange: unitSchema,
+      },
+    });
 
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
         form.reset({
-          unit_name: initialData.unit_name
+          unit_name: initialData.unit_name,
         });
       } else {
         form.reset();
@@ -81,17 +79,26 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
           </FormLayout>
-          <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
+          <HStack gap={2} justify="end" style={{ marginTop: "1rem" }}>
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
-                <Button variant="primary" label="Simpan" type="submit" isLoading={isSubmitting} isDisabled={!canSubmit} />
+                <Button
+                  variant="primary"
+                  label="Simpan"
+                  type="submit"
+                  isLoading={isSubmitting}
+                  isDisabled={!canSubmit}
+                />
               )}
             />
           </HStack>

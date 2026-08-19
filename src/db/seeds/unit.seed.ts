@@ -16,7 +16,7 @@ export async function seedUnits(): Promise<void> {
     "Ls",
     "Jam",
     "Hari",
-    "Bulan"
+    "Bulan",
   ];
 
   for (const name of units) {

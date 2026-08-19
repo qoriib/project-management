@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, Badge, HStack, IconButton, Button, Text } from "@astryxdesign/core";
-import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
+import { Badge, Button, HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
@@ -15,18 +15,19 @@ interface MasterItemTableProps {
   onEdit: (item: ItemWithDetails) => void;
 }
 
-type ItemRow = ItemWithDetails & Record<string, unknown>;
+interface ItemRow extends ItemWithDetails, Record<string, unknown> {}
 
 export function MasterItemTable({ onEdit }: MasterItemTableProps) {
-  const showToast = useToast();
-
-  const { items, deleteItem } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [priceItem, setPriceItem] = useState<ItemWithDetails | null>(null);
+  const showToast = useToast(),
+    { items, deleteItem } = useMasterStore(),
+    [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null),
+    [deleting, setDeleting] = useState(false),
+    [priceItem, setPriceItem] = useState<ItemWithDetails | null>(null);
 
   async function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
 
     setDeleting(true);
 
@@ -34,8 +35,8 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       await deleteItem(deleteTarget.id);
       showToast({ body: "Item berhasil dihapus", type: "info" });
       setDeleteTarget(null);
-    } catch (err: any) {
-      showToast({ body: err.message || "Gagal menghapus item", type: "error" });
+    } catch (error: any) {
+      showToast({ body: error.message || "Gagal menghapus item", type: "error" });
     } finally {
       setDeleting(false);
     }
@@ -43,44 +44,39 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
 
   const columns: TableColumn<ItemRow>[] = [
     {
-      key: "item_code",
       header: "Kode Item",
-      width: pixel(180),
+      key: "item_code",
       renderCell: (row: ItemRow) => {
-        const code = `${row.category_prefix || ""} ${row.category_code || ""} ${row.item_code || ""}`.trim();
+        const code =
+          `${row.category_prefix || ""} ${row.category_code || ""} ${row.item_code || ""}`.trim();
         return code ? <EntityCode prefix="" id={code} /> : "-";
-      }
+      },
+      width: pixel(180),
     },
 
     {
-      key: "item_name",
       header: "Nama Item",
-      width: proportional(1)
+      key: "item_name",
+      width: proportional(1),
     },
     {
-      key: "unit",
       header: "Satuan",
+      key: "unit",
+      renderCell: (row: ItemRow) => row.unit_name,
       width: pixel(120),
-      renderCell: (row: ItemRow) => row.unit_name
     },
     {
-      key: "category",
       header: "Kategori",
+      key: "category",
+      renderCell: (row: ItemRow) => <Badge variant="neutral" label={row.category_name || "—"} />,
       width: pixel(150),
-      renderCell: (row: ItemRow) => <Badge variant="neutral" label={row.category_name || "—"} />
     },
     {
-      key: "actions",
       header: "",
-      width: pixel(180),
+      key: "actions",
       renderCell: (row: ItemRow) => (
         <HStack gap={2} justify="end">
-          <Button
-            size="sm"
-            variant="secondary"
-            label="Harga"
-            onClick={() => setPriceItem(row)}
-          />
+          <Button size="sm" variant="secondary" label="Harga" onClick={() => setPriceItem(row)} />
           <IconButton
             size="sm"
             variant="secondary"
@@ -98,6 +94,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
           />
         </HStack>
       ),
+      width: pixel(180),
     },
   ];
 
@@ -112,7 +109,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
         emptyState={<TableEmptyState message="Belum ada item." />}
       />
       <ConfirmDialog
-        isOpen={!!deleteTarget}
+        isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Master Data"
@@ -120,7 +117,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
         isLoading={deleting}
       />
       <MasterItemPriceDialog
-        isOpen={!!priceItem}
+        isOpen={Boolean(priceItem)}
         onClose={() => setPriceItem(null)}
         item={priceItem}
       />

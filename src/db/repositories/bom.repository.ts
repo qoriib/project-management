@@ -5,12 +5,7 @@
 import { BaseRepository } from "@/db/core/base-repository";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
-import {
-  BOMModel,
-  type BillOfMaterial,
-  type CreateBOM,
-  type UpdateBOM,
-} from "@/db/models";
+import { BOMModel, type BillOfMaterial, type CreateBOM, type UpdateBOM } from "@/db/models";
 
 // ── Extended Types ───────────────────────────────────────────────────────────
 
@@ -46,13 +41,22 @@ class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM>
     try {
       const qb = new QueryBuilder()
         .select(
-          "b.bom_id", "b.project_id", "b.bom_group_id", "b.item_id",
-          "b.item_price_id", "b.qty", "b.created_at",
+          "b.bom_id",
+          "b.project_id",
+          "b.bom_group_id",
+          "b.item_id",
+          "b.item_price_id",
+          "b.qty",
+          "b.created_at",
           "ip.price",
-          "i.item_name", "i.item_code", "u.unit_name as unit", "c.category_name as category",
-          "c.prefix as category_prefix", "c.category_code",
+          "i.item_name",
+          "i.item_code",
+          "u.unit_name as unit",
+          "c.category_name as category",
+          "c.prefix as category_prefix",
+          "c.category_code",
           "g.group_name as bom_group_name",
-          "p.project_name"
+          "p.project_name",
         )
         .selectRaw("(b.qty * ip.price) as estimated_total")
         .from("bill_of_materials", "b")

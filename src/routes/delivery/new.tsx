@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { z } from 'zod';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
@@ -10,8 +10,8 @@ const searchSchema = z.object({
 });
 
 function NewDeliveryPage() {
-  const navigate = useNavigate();
-  const { po: initialPoId } = Route.useSearch();
+  const navigate = useNavigate(),
+    { po: initialPoId } = Route.useSearch();
 
   function handleSuccess(poId: string) {
     navigate({ to: `/po/${poId}` });
@@ -24,23 +24,16 @@ function NewDeliveryPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader
-          title="Penerimaan Baru"
-          subtitle="Catat log penerimaan item di lapangan"
-        />
+        <PageHeader title="Penerimaan Baru" subtitle="Catat log penerimaan item di lapangan" />
         <ProjectRequired>
-          <DeliveryForm
-            initialPoId={initialPoId}
-            onSuccess={handleSuccess}
-            onCancel={goBack}
-          />
+          <DeliveryForm initialPoId={initialPoId} onSuccess={handleSuccess} onCancel={goBack} />
         </ProjectRequired>
       </VStack>
     </Section>
   );
 }
 
-export const Route = createFileRoute('/delivery/new')({
-  validateSearch: searchSchema,
+export const Route = createFileRoute("/delivery/new")({
   component: NewDeliveryPage,
+  validateSearch: searchSchema,
 });

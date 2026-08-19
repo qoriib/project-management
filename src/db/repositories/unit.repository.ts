@@ -3,12 +3,7 @@
  */
 
 import { BaseRepository } from "@/db/core/base-repository";
-import {
-  UnitModel,
-  type Unit,
-  type CreateUnit,
-  type UpdateUnit,
-} from "@/db/models";
+import { type CreateUnit, type Unit, UnitModel, type UpdateUnit } from "@/db/models";
 
 class UnitRepository extends BaseRepository<Unit, CreateUnit, UpdateUnit> {
   constructor() {

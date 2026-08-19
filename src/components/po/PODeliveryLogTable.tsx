@@ -1,7 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Table, proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
+import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { useState } from "react";
 import { IconButton } from "@astryxdesign/core/IconButton";
-import { Timestamp, Text } from "@astryxdesign/core";
+import { Text, Timestamp } from "@astryxdesign/core";
 import { Pencil } from "lucide-react";
 import { formatNumber } from "@/utils/formatters";
 import type { DeliveryItemByPO } from "@/db/repositories";
@@ -10,53 +11,56 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
 
 export function PODeliveryLogTable() {
-  const navigate = useNavigate();
-
-  const { currentDeliveryItems: deliveryItems } = usePOStore();
-
-
-  const deliveryColumns: TableColumn<DeliveryItemByPO>[] = [
-    {
-      key: "delivery_id",
-      header: "No. NP",
-      width: pixel(180),
-      renderCell: (row) => <Text weight="medium">{row.delivery_code || row.delivery_id}</Text>
-    },
-    {
-      key: "delivery_date",
-      header: "Tanggal Kirim",
-      width: pixel(120),
-      renderCell: (row) => <Timestamp value={row.delivery_date} format="system_date" size="base" />
-    },
-    {
-      key: "item_name",
-      header: "Item",
-      width: proportional(1),
-      renderCell: (row) => row.item_name
-    },
-    {
-      key: "qty",
-      header: "Volume Diterima",
-      align: "end",
-      width: pixel(180),
-      renderCell: (row) => <Text type="code">{formatNumber(row.qty, 2)} {row.unit ?? ""}</Text>
-    },
-    {
-      key: "actions",
-      header: "Aksi",
-      align: "end",
-      width: pixel(60),
-      renderCell: (row) => (
-        <IconButton
-          size="sm"
-          variant="secondary"
-          label="Edit"
-          icon={<Pencil size={16} />}
-          onClick={() => navigate({ to: `/delivery/${row.delivery_id}/edit` })}
-        />
-      )
-    },
-  ];
+  const navigate = useNavigate(),
+    { currentDeliveryItems: deliveryItems } = usePOStore(),
+    deliveryColumns: TableColumn<DeliveryItemByPO>[] = [
+      {
+        header: "No. NP",
+        key: "delivery_id",
+        renderCell: (row) => <Text weight="medium">{row.delivery_code || row.delivery_id}</Text>,
+        width: pixel(180),
+      },
+      {
+        header: "Tanggal Kirim",
+        key: "delivery_date",
+        renderCell: (row) => (
+          <Timestamp value={row.delivery_date} format="system_date" size="base" />
+        ),
+        width: pixel(120),
+      },
+      {
+        header: "Item",
+        key: "item_name",
+        renderCell: (row) => row.item_name,
+        width: proportional(1),
+      },
+      {
+        align: "end",
+        header: "Volume Diterima",
+        key: "qty",
+        renderCell: (row) => (
+          <Text type="code">
+            {formatNumber(row.qty, 2)} {row.unit ?? ""}
+          </Text>
+        ),
+        width: pixel(180),
+      },
+      {
+        align: "end",
+        header: "Aksi",
+        key: "actions",
+        renderCell: (row) => (
+          <IconButton
+            size="sm"
+            variant="secondary"
+            label="Edit"
+            icon={<Pencil size={16} />}
+            onClick={() => navigate({ to: `/delivery/${row.delivery_id}/edit` })}
+          />
+        ),
+        width: pixel(60),
+      },
+    ];
 
   return (
     <Table
@@ -65,7 +69,9 @@ export function PODeliveryLogTable() {
       columns={deliveryColumns}
       data={deliveryItems}
       idKey="delivery_item_id"
-      emptyState={<TableEmptyState message="Belum ada realisasi pengiriman material untuk PO ini." />}
+      emptyState={
+        <TableEmptyState message="Belum ada realisasi pengiriman material untuk PO ini." />
+      }
     />
   );
 }

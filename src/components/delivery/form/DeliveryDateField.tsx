@@ -14,24 +14,19 @@ interface DeliveryDateFieldProps {
  */
 export function DeliveryDateField({ form }: DeliveryDateFieldProps) {
   return (
-    <VStack width={320}>
-      <form.Field name="delivery_date">
-        {(field) => (
-          <DateInput
-            format="system_date"
-            label="Tanggal Terima"
-            value={field.state.value as ISODate}
-            onChange={(v) => field.handleChange(v ?? "")}
-            onBlur={field.handleBlur}
-            statusVariant="attached"
-            status={getFieldError(
-              field.state.meta.errors,
-              !!field.state.meta.isTouched
-            )}
-            isRequired
-          />
-        )}
-      </form.Field>
-    </VStack>
+    <form.Field name="delivery_date">
+      {(field) => (
+        <DateInput
+          format="system_date"
+          label="Tanggal Terima"
+          value={field.state.value as ISODate}
+          onChange={(v) => field.handleChange(v ?? "")}
+          onBlur={field.handleBlur}
+          statusVariant="attached"
+          status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
+          isRequired
+        />
+      )}
+    </form.Field>
   );
 }

@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from "@tanstack/react-router";
 import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
@@ -8,7 +8,7 @@ import { BOMApprovalActions } from "@/components/bom/BOMApprovalActions";
 function BOMPage() {
   return (
     <Section padding={6}>
-      <VStack style={{ minHeight: 'calc(100vh - 48px)' }}>
+      <VStack style={{ minHeight: "calc(100vh - 48px)" }}>
         <VStack gap={4} style={{ flex: 1 }}>
           <PageHeader
             title="Rencana Kebutuhan (BOM)"
@@ -24,6 +24,6 @@ function BOMPage() {
   );
 }
 
-export const Route = createFileRoute('/bom/')({
+export const Route = createFileRoute("/bom/")({
   component: BOMPage,
 });

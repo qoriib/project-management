@@ -1,15 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from "@tanstack/react-router";
 import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { POForm } from "@/components/po/POForm";
-import { usePOStore } from '@/store/usePOStore';
-import { useEffect } from 'react';
-import { useAppStore } from '@/store/useAppStore';
+import { usePOStore } from "@/store/usePOStore";
+import { useEffect } from "react";
+import { useAppStore } from "@/store/useAppStore";
 
 function NewPOPage() {
-  const { currentBOMData, loadBOMReportForProject } = usePOStore();
-  const selectedProjectId = useAppStore(s => s.selectedProjectId);
+  const { currentBOMData, loadBOMReportForProject } = usePOStore(),
+    selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -20,10 +20,7 @@ function NewPOPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader
-          title="Pemesanan Baru"
-          subtitle="Buat pesanan pembelian item ke vendor"
-        />
+        <PageHeader title="Pemesanan Baru" subtitle="Buat pesanan pembelian item ke vendor" />
         <ProjectRequired>
           <POForm bomData={currentBOMData} />
         </ProjectRequired>
@@ -32,6 +29,6 @@ function NewPOPage() {
   );
 }
 
-export const Route = createFileRoute('/po/new')({
+export const Route = createFileRoute("/po/new")({
   component: NewPOPage,
 });

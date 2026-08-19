@@ -12,9 +12,9 @@ export interface POItem {
 export type CreatePOItem = Omit<POItem, "po_item_id">;
 
 export const POItemModel: ModelDefinition = {
-  tableName: "po_items",
-  primaryKey: "po_item_id",
   createColumns: ["po_id", "item_id", "vendor_id", "item_price_id", "qty"],
-  updateColumns: ["item_id", "vendor_id", "item_price_id", "qty"],
+  primaryKey: "po_item_id",
   softDelete: false,
+  tableName: "po_items",
+  updateColumns: ["item_id", "vendor_id", "item_price_id", "qty"],
 };

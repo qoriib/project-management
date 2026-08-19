@@ -1,30 +1,45 @@
-import { createRootRoute, Outlet, useNavigate, useLocation, redirect } from '@tanstack/react-router';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { AppShell, SideNav, SideNavSection, SideNavItem, SideNavHeading, Text, VStack, Heading } from "@astryxdesign/core";
+import {
+  Outlet,
+  createRootRoute,
+  redirect,
+  useLocation,
+  useNavigate,
+} from "@tanstack/react-router";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import {
+  AppShell,
+  Heading,
+  SideNav,
+  SideNavHeading,
+  SideNavItem,
+  SideNavSection,
+  Text,
+  VStack,
+} from "@astryxdesign/core";
 import { useEffect } from "react";
-import { useShallow } from 'zustand/react/shallow';
+import { useShallow } from "zustand/react/shallow";
 import { getDB } from "@/db";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
-import { APP, AppRole } from '@/configs/app.config';
-import { checkIsAuthenticated } from '@/services/auth';
+import { APP, AppRole } from "@/configs/app.config";
+import { checkIsAuthenticated } from "@/services/auth";
 
 export const Route = createRootRoute({
-  component: RootComponent,
   beforeLoad: ({ location }) => {
-    if (!checkIsAuthenticated() && location.pathname !== '/login') {
+    if (!checkIsAuthenticated() && location.pathname !== "/login") {
       throw redirect({
-        to: '/login',
-      })
+        to: "/login",
+      });
     }
   },
+  component: RootComponent,
 });
 
 function RootComponent() {
   const location = useLocation();
 
-  if (location.pathname === '/login') {
+  if (location.pathname === "/login") {
     return (
       <>
         <Outlet />
@@ -37,33 +52,24 @@ function RootComponent() {
 }
 
 function AppLayout() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const envRole = import.meta.env.VITE_APP_ROLE?.toUpperCase() || 'MANAGER';
-  const roleKey = envRole as keyof typeof AppRole;
-  const userRole = AppRole[roleKey] || AppRole.MANAGER;
-
-  const {
-    activeNav,
-    setActiveNav,
-    dbReady,
-    setDbReady,
-    setGlobalError,
-    selectedProjectId,
-  } = useAppStore(
-    useShallow((s) => ({
-      activeNav: s.activeNav,
-      setActiveNav: s.setActiveNav,
-      dbReady: s.dbReady,
-      setDbReady: s.setDbReady,
-      setGlobalError: s.setGlobalError,
-      selectedProjectId: s.selectedProjectId,
-    }))
-  );
-
-  const projects = useMasterStore((state) => state.projects);
-  const activeProject = projects.find(p => p.project_id === selectedProjectId);
+  const navigate = useNavigate(),
+    location = useLocation(),
+    envRole = import.meta.env.VITE_APP_ROLE?.toUpperCase() || "MANAGER",
+    roleKey = envRole as keyof typeof AppRole,
+    userRole = AppRole[roleKey] || AppRole.MANAGER,
+    { activeNav, setActiveNav, dbReady, setDbReady, setGlobalError, selectedProjectId } =
+      useAppStore(
+        useShallow((s) => ({
+          activeNav: s.activeNav,
+          dbReady: s.dbReady,
+          selectedProjectId: s.selectedProjectId,
+          setActiveNav: s.setActiveNav,
+          setDbReady: s.setDbReady,
+          setGlobalError: s.setGlobalError,
+        })),
+      ),
+    projects = useMasterStore((state) => state.projects),
+    activeProject = projects.find((p) => p.project_id === selectedProjectId);
 
   // Sync activeNav with the current route (supports direct URL hits / refresh)
   useEffect(() => {
@@ -74,7 +80,7 @@ function AppLayout() {
     const title = `${APP.title} - ${userRole}`;
     try {
       getCurrentWindow().setTitle(title);
-    } catch (e) {
+    } catch {
       // Fallback if running outside Tauri
       document.title = title;
     }
@@ -86,10 +92,10 @@ function AppLayout() {
         setDbReady(true);
         useMasterStore.getState().loadAllMasters();
       })
-      .catch((err) => {
-        console.error("DB init failed:", err);
+      .catch((error) => {
+        console.error("DB init failed:", error);
         setGlobalError("Gagal membuka database. Pastikan aplikasi berjalan melalui Tauri.");
-        setDbReady(true); // allow UI to render in dev mode
+        setDbReady(true); // Allow UI to render in dev mode
       });
   }, [setDbReady, setGlobalError]);
 
@@ -110,12 +116,18 @@ function AppLayout() {
           header={
             <SideNavHeading
               heading={activeProject ? activeProject.project_name : APP.title}
-              subheading={activeProject ? `${activeProject.company_name} - ${activeProject.fiscal_year}` : "Pilih Proyek di Master Data"}
+              subheading={
+                activeProject
+                  ? `${activeProject.company_name} - ${activeProject.fiscal_year}`
+                  : "Pilih Proyek di Master Data"
+              }
             />
           }
           footer={
             <VStack paddingInline={2}>
-              <Text weight="normal" color="secondary">{userRole}</Text>
+              <Text weight="normal" color="secondary">
+                {userRole}
+              </Text>
               <Heading level={3}>{APP.companyName}</Heading>
             </VStack>
           }
@@ -150,7 +162,10 @@ function AppLayout() {
                   key={sidenavItem.href}
                   label={sidenavItem.label}
                   icon={sidenavItem.icon}
-                  isSelected={activeNav === sidenavItem.href || (sidenavItem.href !== '/' && activeNav.startsWith(`${sidenavItem.href}/`))}
+                  isSelected={
+                    activeNav === sidenavItem.href ||
+                    (sidenavItem.href !== "/" && activeNav.startsWith(`${sidenavItem.href}/`))
+                  }
                   onClick={() => {
                     setActiveNav(sidenavItem.href!);
                     navigate({ to: sidenavItem.href! });

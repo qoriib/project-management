@@ -12,9 +12,9 @@ export type CreateItemCategory = Pick<ItemCategory, "prefix" | "category_code" |
 export type UpdateItemCategory = Partial<CreateItemCategory>;
 
 export const ItemCategoryModel: ModelDefinition = {
-  tableName: "item_categories",
-  primaryKey: "category_id",
   createColumns: ["prefix", "category_code", "category_name"],
-  updateColumns: ["prefix", "category_code", "category_name"],
+  primaryKey: "category_id",
   softDelete: true,
+  tableName: "item_categories",
+  updateColumns: ["prefix", "category_code", "category_name"],
 };

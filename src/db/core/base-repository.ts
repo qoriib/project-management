@@ -12,7 +12,7 @@
 import { getDB } from "@/db/index";
 import { QueryBuilder } from "./query-builder";
 import { DbError, NotFoundError, wrapDbError } from "./errors";
-import type { ModelDefinition, FindOptions, OrderByClause } from "./types";
+import type { FindOptions, ModelDefinition, OrderByClause } from "./types";
 import { v7 as uuidv7 } from "uuid";
 import { dbLog } from "./db-logger";
 
@@ -40,9 +40,7 @@ export abstract class BaseRepository<
   async findAll(options?: FindOptions): Promise<TEntity[]> {
     dbLog.debug(`[${this.model.tableName}] findAll options=${JSON.stringify(options ?? {})}`);
     try {
-      const qb = new QueryBuilder()
-        .select("*")
-        .from(this.model.tableName);
+      const qb = new QueryBuilder().select("*").from(this.model.tableName);
 
       // Apply soft delete filter
       if (this.model.softDelete && !options?.includeDeleted) {
@@ -71,16 +69,22 @@ export abstract class BaseRepository<
       }
 
       // Apply pagination
-      if (options?.limit !== undefined) qb.limit(options.limit);
-      if (options?.offset !== undefined) qb.offset(options.offset);
+      if (options?.limit !== undefined) {
+        qb.limit(options.limit);
+      }
+      if (options?.offset !== undefined) {
+        qb.offset(options.offset);
+      }
 
-      const { sql, params } = qb.build();
-      const db = await this.db();
-      const rows = await db.select<TEntity[]>(sql, params);
+      const { sql, params } = qb.build(),
+        db = await this.db(),
+        rows = await db.select<TEntity[]>(sql, params);
       dbLog.debug(`[${this.model.tableName}] findAll → ${rows.length} row(s)`);
       return rows;
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] findAll ERROR: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] findAll ERROR: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -101,14 +105,18 @@ export abstract class BaseRepository<
         qb.withSoftDelete();
       }
 
-      const { sql, params } = qb.build();
-      const db = await this.db();
-      const rows = await db.select<TEntity[]>(sql, params);
-      const result = rows[0] ?? null;
-      dbLog.debug(`[${this.model.tableName}] findById id=${id} → ${result ? "found" : "not found"}`);
+      const { sql, params } = qb.build(),
+        db = await this.db(),
+        rows = await db.select<TEntity[]>(sql, params),
+        result = rows[0] ?? null;
+      dbLog.debug(
+        `[${this.model.tableName}] findById id=${id} → ${result ? "found" : "not found"}`,
+      );
       return result;
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] findById ERROR: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] findById ERROR: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -130,9 +138,9 @@ export abstract class BaseRepository<
    */
   async findOne(where: Record<string, unknown>, includeDeleted = false): Promise<TEntity | null> {
     const results = await this.findAll({
-      where,
-      limit: 1,
       includeDeleted,
+      limit: 1,
+      where,
     });
     return results[0] ?? null;
   }
@@ -143,9 +151,7 @@ export abstract class BaseRepository<
   async count(where?: Record<string, unknown>, includeDeleted = false): Promise<number> {
     dbLog.debug(`[${this.model.tableName}] count where=${JSON.stringify(where ?? {})}`);
     try {
-      const qb = new QueryBuilder()
-        .selectRaw("COUNT(*) as count")
-        .from(this.model.tableName);
+      const qb = new QueryBuilder().selectRaw("COUNT(*) as count").from(this.model.tableName);
 
       if (this.model.softDelete && !includeDeleted) {
         qb.withSoftDelete();
@@ -161,14 +167,16 @@ export abstract class BaseRepository<
         }
       }
 
-      const { sql, params } = qb.build();
-      const db = await this.db();
-      const rows = await db.select<{ count: number }[]>(sql, params);
-      const total = rows[0]?.count ?? 0;
+      const { sql, params } = qb.build(),
+        db = await this.db(),
+        rows = await db.select<{ count: number }[]>(sql, params),
+        total = rows[0]?.count ?? 0;
       dbLog.debug(`[${this.model.tableName}] count → ${total}`);
       return total;
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] count ERROR: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] count ERROR: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -190,10 +198,10 @@ export abstract class BaseRepository<
   async create(data: TCreate): Promise<string> {
     dbLog.debug(`[${this.model.tableName}] create data=${JSON.stringify(data)}`);
     try {
-      const id = this.generateId();
-      const columns: string[] = [this.model.primaryKey];
-      const placeholders: string[] = ["$1"];
-      const params: unknown[] = [id];
+      const id = this.generateId(),
+        columns: string[] = [this.model.primaryKey],
+        placeholders: string[] = ["$1"],
+        params: unknown[] = [id];
       let paramIdx = 2;
 
       for (const col of this.model.createColumns) {
@@ -205,13 +213,15 @@ export abstract class BaseRepository<
         }
       }
 
-      const sql = `INSERT INTO ${this.model.tableName} (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
-      const db = await this.db();
+      const sql = `INSERT INTO ${this.model.tableName} (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`,
+        db = await this.db();
       await db.execute(sql, params);
       dbLog.info(`[${this.model.tableName}] create OK → id=${id}`);
       return id;
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] create ERROR: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] create ERROR: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -223,8 +233,8 @@ export abstract class BaseRepository<
   async update(id: string, data: TUpdate): Promise<void> {
     dbLog.debug(`[${this.model.tableName}] update id=${id} data=${JSON.stringify(data)}`);
     try {
-      const setClauses: string[] = [];
-      const params: unknown[] = [];
+      const setClauses: string[] = [],
+        params: unknown[] = [];
       let paramIdx = 1;
 
       for (const col of this.model.updateColumns) {
@@ -239,16 +249,18 @@ export abstract class BaseRepository<
         dbLog.debug(`[${this.model.tableName}] update id=${id} → no columns to update, skipped`);
         return;
       }
-      
+
       setClauses.push(`updated_at = datetime('now', 'localtime')`);
 
       params.push(id);
-      const sql = `UPDATE ${this.model.tableName} SET ${setClauses.join(", ")} WHERE ${this.model.primaryKey} = $${paramIdx}`;
-      const db = await this.db();
+      const sql = `UPDATE ${this.model.tableName} SET ${setClauses.join(", ")} WHERE ${this.model.primaryKey} = $${paramIdx}`,
+        db = await this.db();
       await db.execute(sql, params);
       dbLog.info(`[${this.model.tableName}] update OK id=${id}`);
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] update ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] update ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -266,14 +278,16 @@ export abstract class BaseRepository<
       if (this.model.softDelete) {
         await db.execute(
           `UPDATE ${this.model.tableName} SET deleted_at = datetime('now', 'localtime'), updated_at = datetime('now', 'localtime') WHERE ${this.model.primaryKey} = $1`,
-          [id]
+          [id],
         );
         dbLog.info(`[${this.model.tableName}] delete (soft) OK id=${id}`);
       } else {
         await this.hardDelete(id);
       }
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] delete ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] delete ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -286,13 +300,14 @@ export abstract class BaseRepository<
     dbLog.warn(`[${this.model.tableName}] hardDelete id=${id}`);
     try {
       const db = await this.db();
-      await db.execute(
-        `DELETE FROM ${this.model.tableName} WHERE ${this.model.primaryKey} = $1`,
-        [id]
-      );
+      await db.execute(`DELETE FROM ${this.model.tableName} WHERE ${this.model.primaryKey} = $1`, [
+        id,
+      ]);
       dbLog.info(`[${this.model.tableName}] hardDelete OK id=${id}`);
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] hardDelete ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] hardDelete ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -311,11 +326,13 @@ export abstract class BaseRepository<
       const db = await this.db();
       await db.execute(
         `UPDATE ${this.model.tableName} SET deleted_at = NULL, updated_at = datetime('now', 'localtime') WHERE ${this.model.primaryKey} = $1`,
-        [id]
+        [id],
       );
       dbLog.info(`[${this.model.tableName}] restore OK id=${id}`);
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] restore ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] restore ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -339,14 +356,16 @@ export abstract class BaseRepository<
    * Used by subclasses for complex joins and aggregations.
    */
   protected async rawSelect<T>(sql: string, params?: unknown[]): Promise<T[]> {
-    dbLog.debug(`[${this.model.tableName}] rawSelect sql=${sql.replace(/\s+/g, " ").trim()}`);
+    dbLog.debug(`[${this.model.tableName}] rawSelect sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
     try {
-      const db = await this.db();
-      const rows = await db.select<T[]>(sql, params);
+      const db = await this.db(),
+        rows = await db.select<T[]>(sql, params);
       dbLog.debug(`[${this.model.tableName}] rawSelect → ${rows.length} row(s)`);
       return rows;
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] rawSelect ERROR: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] rawSelect ERROR: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -355,24 +374,31 @@ export abstract class BaseRepository<
    * Execute a raw SQL statement (INSERT/UPDATE/DELETE).
    * Used by subclasses for batch operations.
    */
-  protected async rawExecute(sql: string, params?: unknown[]): Promise<{ lastInsertId: string | number; rowsAffected: number }> {
-    dbLog.debug(`[${this.model.tableName}] rawExecute sql=${sql.replace(/\s+/g, " ").trim()}`);
+  protected async rawExecute(
+    sql: string,
+    params?: unknown[],
+  ): Promise<{ lastInsertId: string | number; rowsAffected: number }> {
+    dbLog.debug(`[${this.model.tableName}] rawExecute sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
     try {
-      const db = await this.db();
-      const result = await db.execute(sql, params);
-      dbLog.info(`[${this.model.tableName}] rawExecute OK rowsAffected=${result.rowsAffected} lastInsertId=${result.lastInsertId}`);
+      const db = await this.db(),
+        result = await db.execute(sql, params);
+      dbLog.info(
+        `[${this.model.tableName}] rawExecute OK rowsAffected=${result.rowsAffected} lastInsertId=${result.lastInsertId}`,
+      );
       return {
         lastInsertId: result.lastInsertId,
         rowsAffected: result.rowsAffected,
       };
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] rawExecute ERROR: ${(error as Error)?.message ?? String(error)}`);
+      dbLog.error(
+        `[${this.model.tableName}] rawExecute ERROR: ${(error as Error)?.message ?? String(error)}`,
+      );
       throw wrapDbError(error, this.model.tableName);
     }
   }
   /**
    * Execute operations within a database transaction.
-   * Note: Explicit BEGIN/COMMIT via IPC in Tauri causes "no transaction is active" errors 
+   * Note: Explicit BEGIN/COMMIT via IPC in Tauri causes "no transaction is active" errors
    * because the plugin-sql uses a connection pool (sqlx) under the hood.
    * For a local SQLite desktop app, we can bypass this wrapper safely.
    */
@@ -395,17 +421,17 @@ export abstract class BaseRepository<
       dbLog.debug(`[${this.model.tableName}] bulkInsert skipped — empty data`);
       return;
     }
-    
+
     // SQLite has a limit on bind parameters. Process in chunks.
-    const chunkSize = 200; 
-    const db = await this.db();
+    const chunkSize = 200,
+      db = await this.db();
     let totalAffected = 0;
-    
+
     for (let i = 0; i < data.length; i += chunkSize) {
-      const chunk = data.slice(i, i + chunkSize);
-      const placeholders: string[] = [];
-      const params: unknown[] = [];
-      
+      const chunk = data.slice(i, i + chunkSize),
+        placeholders: string[] = [],
+        params: unknown[] = [];
+
       let paramIdx = 1;
       for (const row of chunk) {
         const rowPlaceholders = [];
@@ -415,11 +441,13 @@ export abstract class BaseRepository<
         }
         placeholders.push(`(${rowPlaceholders.join(", ")})`);
       }
-      
-      const sql = `INSERT INTO ${table} (${columns.join(", ")}) VALUES ${placeholders.join(", ")}`;
-      const result = await db.execute(sql, params);
+
+      const sql = `INSERT INTO ${table} (${columns.join(", ")}) VALUES ${placeholders.join(", ")}`,
+        result = await db.execute(sql, params);
       totalAffected += result.rowsAffected ?? chunk.length;
-      dbLog.debug(`[${this.model.tableName}] bulkInsert chunk ${Math.floor(i / chunkSize) + 1} — ${chunk.length} row(s)`);
+      dbLog.debug(
+        `[${this.model.tableName}] bulkInsert chunk ${Math.floor(i / chunkSize) + 1} — ${chunk.length} row(s)`,
+      );
     }
     dbLog.info(`[${this.model.tableName}] bulkInsert OK total=${totalAffected} row(s)`);
   }

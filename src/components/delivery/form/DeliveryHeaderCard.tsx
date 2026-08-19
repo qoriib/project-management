@@ -1,4 +1,4 @@
-import { Card, HStack, VStack } from "@astryxdesign/core";
+import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { getFieldError } from "@/utils/form";
 import { DeliveryPOSelector } from "./DeliveryPOSelector";
@@ -15,41 +15,24 @@ interface DeliveryHeaderCardProps {
 /**
  * Header form Delivery: berisi selector PO dengan detailnya dan tanggal kirim/terima.
  */
-export function DeliveryHeaderCard({
-  form,
-  pos,
-  isEdit,
-  handlePOChange,
-}: DeliveryHeaderCardProps) {
+export function DeliveryHeaderCard({ form, pos, isEdit, handlePOChange }: DeliveryHeaderCardProps) {
   return (
-    <Card padding={4}>
-      <HStack gap={3} align="start">
-        <DeliveryPOSelector
-          form={form}
-          pos={pos}
-          isEdit={isEdit}
-          handlePOChange={handlePOChange}
-        />
-        <VStack gap={4} width={320}>
-          <form.Field name="delivery_code">
-            {(field) => (
-              <TextInput
-                label="Kode Pengiriman"
-                value={field.state.value}
-                onChange={(v) => field.handleChange(v)}
-                onBlur={field.handleBlur}
-                statusVariant="attached"
-                status={getFieldError(
-                  field.state.meta.errors,
-                  !!field.state.meta.isTouched
-                )}
-                isRequired
-              />
-            )}
-          </form.Field>
-          <DeliveryDateField form={form} />
-        </VStack>
-      </HStack>
-    </Card>
+    <FormLayout direction="horizontal">
+      <DeliveryPOSelector form={form} pos={pos} isEdit={isEdit} handlePOChange={handlePOChange} />
+      <form.Field name="delivery_code">
+        {(field) => (
+          <TextInput
+            label="Kode Pengiriman"
+            value={field.state.value}
+            onChange={(v) => field.handleChange(v)}
+            onBlur={field.handleBlur}
+            statusVariant="attached"
+            status={getFieldError(field.state.meta.errors, Boolean(field.state.meta.isTouched))}
+            isRequired
+          />
+        )}
+      </form.Field>
+      <DeliveryDateField form={form} />
+    </FormLayout>
   );
 }

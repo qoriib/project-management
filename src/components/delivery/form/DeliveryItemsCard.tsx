@@ -1,5 +1,6 @@
-import { Card, VStack, Text } from "@astryxdesign/core";
-import { Table, proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
+import { Card, Text, VStack } from "@astryxdesign/core";
+import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { useState } from "react";
 import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
 import { DeliveryQtyCell } from "./DeliveryQtyCell";
@@ -15,53 +16,73 @@ function DeliveryItemsCardInner({
   form,
   items,
 }: DeliveryItemsCardProps & { items: DeliveryItemRow[] }) {
-  const columns: TableColumn<DeliveryItemRow>[] = useMemo(() => [
-    {
-      key: "item",
-      header: "Item",
-      width: proportional(1),
-      renderCell: (row) => (
-        <VStack gap={0.5}>
-          <Text weight="medium">{row.item_name}</Text>
-          {row.item_id ? (
-            <EntityCode prefix="BRG" id={row.item_id} />
-          ) : (
-            <Text size="sm" color="secondary">
-              Non-Master
-            </Text>
-          )}
-        </VStack>
-      ),
-    },
-    {
-      key: "remaining",
-      header: "Dipesan / Diterima",
-      width: pixel(180),
-      align: "end",
-      renderCell: (row) => <DeliveryRemainingCell row={row} />,
-    },
-    {
-      key: "qty",
-      header: "Volume Diterima",
-      width: pixel(180),
-      align: "end",
-      renderCell: (row) => {
-        const idx = items.indexOf(row);
-        return <DeliveryQtyCell form={form} row={row} idx={idx} />;
+  const columns: TableColumn<DeliveryItemRow>[] = useMemo(
+    () => [
+      {
+        header: "Item",
+        key: "item",
+        renderCell: (row) => (
+          <VStack gap={0.5}>
+            <Text weight="medium">{row.item_name}</Text>
+            {row.item_id ? (
+              <EntityCode prefix="BRG" id={row.item_id} />
+            ) : (
+              <Text size="sm" color="secondary">
+                Non-Master
+              </Text>
+            )}
+          </VStack>
+        ),
+        width: proportional(1),
       },
-    },
-    {
-      key: "unit",
-      header: "Satuan",
-      width: pixel(100),
-      renderCell: (row) => row.unit,
-    },
-  ], [form, items]);
+      {
+        align: "end",
+        header: "Dipesan / Diterima",
+        key: "remaining",
+        renderCell: (row) => <DeliveryRemainingCell row={row} />,
+        width: pixel(180),
+      },
+      {
+        align: "end",
+        header: "Volume Diterima",
+        key: "qty",
+        renderCell: (row) => {
+          const idx = items.indexOf(row);
+          return <DeliveryQtyCell form={form} row={row} idx={idx} />;
+        },
+        width: pixel(180),
+      },
+      {
+        header: "Satuan",
+        key: "unit",
+        renderCell: (row) => row.unit,
+        width: pixel(100),
+      },
+    ],
+    [form, items],
+  );
 
   return (
     <Card padding={4}>
       <VStack gap={4}>
-        <Table columns={columns} data={items} />
+        <Toolbar
+          label="Aksi Tabel"
+          endContent={
+            <MultiSelector
+              label="Kolom"
+              isLabelHidden
+              options={selectorOptions}
+              value={[...state.activeColumnKeys]}
+              onChange={state.setActiveColumnKeys}
+            />
+          }
+        />
+        <Table
+          textOverflow="truncate"
+          columns={columns}
+          data={items}
+          plugins={{ columnSettings: plugin }}
+        />
       </VStack>
     </Card>
   );
@@ -73,11 +94,11 @@ function DeliveryItemsCardInner({
  */
 export function DeliveryItemsCard({ form }: DeliveryItemsCardProps) {
   return (
-    <form.Subscribe
-      selector={(state) => [state.values.po_id, state.values.items] as const}
-    >
+    <form.Subscribe selector={(state) => [state.values.po_id, state.values.items] as const}>
       {([poId, items]) => {
-        if (!poId || items.length === 0) return null;
+        if (!poId || items.length === 0) {
+          return null;
+        }
         return <DeliveryItemsCardInner form={form} items={items} />;
       }}
     </form.Subscribe>

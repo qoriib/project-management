@@ -1,11 +1,21 @@
 import { useEffect, useState } from "react";
-import { Dialog, Table, Text, VStack, Heading, Timestamp, HStack, IconButton, Code } from "@astryxdesign/core";
-import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
-import { getItemLog, type ItemLogEntry } from "@/db/services";
+import {
+  Code,
+  Dialog,
+  HStack,
+  Heading,
+  IconButton,
+  Table,
+  Text,
+  Timestamp,
+  VStack,
+} from "@astryxdesign/core";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type ItemLogEntry, getItemLog } from "@/db/services";
 import { formatNumber } from "@/utils/formatters";
 import { X } from "lucide-react";
 
-type LogRow = ItemLogEntry & Record<string, unknown>;
+interface LogRow extends ItemLogEntry, Record<string, unknown> {}
 
 interface DashboardItemLogDialogProps {
   isOpen: boolean;
@@ -22,10 +32,10 @@ export function DashboardItemLogDialog({
   projectId,
   itemId,
   itemPriceId,
-  itemName
+  itemName,
 }: DashboardItemLogDialogProps) {
-  const [logs, setLogs] = useState<ItemLogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [logs, setLogs] = useState<ItemLogEntry[]>([]),
+    [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
@@ -38,42 +48,36 @@ export function DashboardItemLogDialog({
 
   const columns: TableColumn<LogRow>[] = [
     {
-      key: "date",
       header: "Tanggal",
+      key: "date",
+      renderCell: (r: LogRow) => <Timestamp value={r.date} format="system_date" size="base" />,
       width: pixel(120),
-      renderCell: (r: LogRow) => <Timestamp value={r.date} format="system_date" size="base" />
     },
     {
-      key: "reference",
       header: "Referensi",
+      key: "reference",
+      renderCell: (r: LogRow) => (
+        <Code style={{ background: "transparent", padding: 0 }}>{r.reference}</Code>
+      ),
       width: pixel(120),
-      renderCell: (r: LogRow) => <Code style={{ background: "transparent", padding: 0 }}>{r.reference}</Code>,
     },
     {
-      key: "qty",
-      header: "Volume",
-      width: pixel(100),
       align: "end",
-      renderCell: (r: LogRow) => (
-        <Text type="code">{formatNumber(r.qty, 2)}</Text>
-      )
+      header: "Volume",
+      key: "qty",
+      renderCell: (r: LogRow) => <Text type="code">{formatNumber(r.qty, 2)}</Text>,
+      width: pixel(100),
     },
     {
-      key: "vendor",
       header: "Vendor",
+      key: "vendor",
+      renderCell: (r: LogRow) => <Text>{r.vendor_name || "-"}</Text>,
       width: proportional(1),
-      renderCell: (r: LogRow) => (
-        <Text>{r.vendor_name || '-'}</Text>
-      )
-    }
+    },
   ];
 
   return (
-    <Dialog
-      isOpen={isOpen}
-      onOpenChange={(open) => !open && onClose()}
-      width={700}
-    >
+    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={700}>
       <VStack gap={4}>
         <HStack align="center" justify="between">
           <Heading level={3}>Log: {itemName}</Heading>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
-import { VStack, Card, HStack, Button } from "@astryxdesign/core";
+import { Button, Card, HStack, VStack } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { DateInput } from "@astryxdesign/core/DateInput";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -8,7 +8,7 @@ import { POItemFormTable } from "./POItemFormTable";
 import { todayISO } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import * as v from "valibot";
-import type { POWithSummary, POItemDetail, POItemInput } from "@/db/repositories";
+import type { POItemDetail, POItemInput, POWithSummary } from "@/db/repositories";
 import type { BOMReportItem } from "@/db/services";
 import { usePOStore } from "@/store/usePOStore";
 import { useAppStore } from "@/store/useAppStore";
@@ -26,48 +26,56 @@ export interface POFormProps {
 }
 
 export function POForm({ po, initialItems = [], bomData }: POFormProps) {
-  const navigate = useNavigate();
-  const showToast = useToast();
-  const { createPO, updatePO } = usePOStore();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-
-  const [items, setItems] = useState<POItemDetail[]>(initialItems);
-
-  const form = useForm({
-    defaultValues: {
-      po_code: po?.po_code || "",
-      po_date: po?.po_date || todayISO(),
-    },
-    validators: { onChange: headerSchema },
-    onSubmit: async ({ value }) => {
-      if (!selectedProjectId) {
-        showToast({ body: "Proyek belum dipilih.", type: "error" });
-        return;
-      }
-
-      const itemInputs: POItemInput[] = items.map(i => ({
-        po_item_id: i.po_item_id.startsWith("draft-") ? undefined : i.po_item_id,
-        item_id: i.item_id,
-        vendor_id: i.vendor_id,
-        item_price_id: i.item_price_id,
-        qty: i.qty,
-      }));
-
-      try {
-        if (po) {
-          await updatePO(po.po_id, { po_date: value.po_date, project_id: selectedProjectId, po_code: value.po_code }, itemInputs);
-          showToast({ body: "PO berhasil diperbarui.", type: "info" });
-          navigate({ to: `/po/${po.po_id}` });
-        } else {
-          const newPoId = await createPO({ po_date: value.po_date, project_id: selectedProjectId, po_code: value.po_code }, itemInputs);
-          showToast({ body: "PO berhasil dibuat.", type: "info" });
-          navigate({ to: `/po/${newPoId}` });
+  const navigate = useNavigate(),
+    showToast = useToast(),
+    { createPO, updatePO } = usePOStore(),
+    selectedProjectId = useAppStore((s) => s.selectedProjectId),
+    [items, setItems] = useState<POItemDetail[]>(initialItems),
+    form = useForm({
+      defaultValues: {
+        po_code: po?.po_code || "",
+        po_date: po?.po_date || todayISO(),
+      },
+      onSubmit: async ({ value }) => {
+        if (!selectedProjectId) {
+          showToast({ body: "Proyek belum dipilih.", type: "error" });
+          return;
         }
-      } catch (error: any) {
-        showToast({ body: error.message || "Terjadi kesalahan saat menyimpan PO", type: "error" });
-      }
-    }
-  });
+
+        const itemInputs: POItemInput[] = items.map((i) => ({
+          po_item_id: i.po_item_id.startsWith("draft-") ? undefined : i.po_item_id,
+          item_id: i.item_id,
+          vendor_id: i.vendor_id,
+          item_price_id: i.item_price_id,
+          qty: i.qty,
+        }));
+
+        try {
+          if (po) {
+            await updatePO(
+              po.po_id,
+              { po_date: value.po_date, project_id: selectedProjectId, po_code: value.po_code },
+              itemInputs,
+            );
+            showToast({ body: "PO berhasil diperbarui.", type: "info" });
+            navigate({ to: `/po/${po.po_id}` });
+          } else {
+            const newPoId = await createPO(
+              { po_date: value.po_date, project_id: selectedProjectId, po_code: value.po_code },
+              itemInputs,
+            );
+            showToast({ body: "PO berhasil dibuat.", type: "info" });
+            navigate({ to: `/po/${newPoId}` });
+          }
+        } catch (error: any) {
+          showToast({
+            body: error.message || "Terjadi kesalahan saat menyimpan PO",
+            type: "error",
+          });
+        }
+      },
+      validators: { onChange: headerSchema },
+    });
 
   return (
     <form
@@ -92,7 +100,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
                   statusVariant="attached"
                   status={getFieldError(
                     field.state.meta.errors,
-                    !!field.state.meta.isTouched
+                    Boolean(field.state.meta.isTouched),
                   )}
                 />
               )}
@@ -110,7 +118,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
                   statusVariant="attached"
                   status={getFieldError(
                     field.state.meta.errors,
-                    !!field.state.meta.isTouched
+                    Boolean(field.state.meta.isTouched),
                   )}
                 />
               )}
@@ -126,11 +134,14 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
             type="button"
             label="Batal"
             onClick={() => {
-              if (po) navigate({ to: `/po/${po.po_id}` });
-              else navigate({ to: "/po" });
+              if (po) {
+                navigate({ to: `/po/${po.po_id}` });
+              } else {
+                navigate({ to: "/po" });
+              }
             }}
           />
-          <form.Subscribe selector={s => s.canSubmit}>
+          <form.Subscribe selector={(s) => s.canSubmit}>
             {(canSubmit) => (
               <Button
                 variant="primary"

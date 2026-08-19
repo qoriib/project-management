@@ -4,7 +4,7 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useBOMStore } from "@/store/useBOMStore";
-import { bomSchema, buildDefaultValues, type BOMFormProps } from "./bom.schema";
+import { type BOMFormProps, bomSchema, buildDefaultValues } from "./bom.schema";
 
 /**
  * Custom hook yang mengorkestrasikan seluruh logic form BOM:
@@ -17,51 +17,49 @@ export function useBOMForm({
   defaultGroupId,
   onSuccess,
 }: Pick<BOMFormProps, "initialData" | "defaultGroupId" | "onSuccess">) {
-  const showToast = useToast();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const showToast = useToast(),
+    selectedProjectId = useAppStore((s) => s.selectedProjectId),
+    { items } = useMasterStore(),
+    { createBOM, updateBOM } = useBOMStore(),
+    form = useForm({
+      defaultValues: buildDefaultValues(initialData, defaultGroupId),
+      onSubmit: async ({ value }) => {
+        try {
+          const isReady = selectedProjectId;
 
-  const { items } = useMasterStore();
-  const { createBOM, updateBOM } = useBOMStore();
+          if (!isReady) return;
 
-  const form = useForm({
-    defaultValues: buildDefaultValues(initialData, defaultGroupId),
-    validators: { onChange: bomSchema },
-    onSubmit: async ({ value }) => {
-      try {
-        const isReady = selectedProjectId;
+          const payload = {
+            project_id: selectedProjectId,
+            bom_group_id: value.bom_group_id,
+            item_id: value.item_id,
+            qty: value.qty,
+            item_price_id: value.item_price_id,
+          };
 
-        if (!isReady) return;
+          const isEditMode = initialData !== undefined;
 
-        const payload = {
-          project_id: selectedProjectId,
-          bom_group_id: value.bom_group_id,
-          item_id: value.item_id,
-          qty: value.qty,
-          item_price_id: value.item_price_id,
-        };
+          if (isEditMode) {
+            await updateBOM(initialData.bom_id, {
+              bom_group_id: payload.bom_group_id,
+              item_id: payload.item_id,
+              qty: payload.qty,
+              item_price_id: payload.item_price_id,
+            });
+          } else {
+            await createBOM(payload);
+            form.reset();
+          }
 
-        const isEditMode = initialData !== undefined;
-
-        if (isEditMode) {
-          await updateBOM(initialData.bom_id, {
-            bom_group_id: payload.bom_group_id,
-            item_id: payload.item_id,
-            qty: payload.qty,
-            item_price_id: payload.item_price_id,
-          });
-        } else {
-          await createBOM(payload);
-          form.reset();
+          onSuccess();
+        } catch (error: unknown) {
+          const isError = error instanceof Error;
+          const msg = isError ? error.message : "Terjadi kesalahan";
+          showToast({ body: msg, type: "error" });
         }
-
-        onSuccess();
-      } catch (error: unknown) {
-        const isError = error instanceof Error;
-        const msg = isError ? error.message : "Terjadi kesalahan";
-        showToast({ body: msg, type: "error" });
-      }
-    },
-  });
+      },
+      validators: { onChange: bomSchema },
+    });
 
   /** Muat & set price options untuk item_id yang diberikan */
   async function handleItemChange(itemId: string) {
@@ -99,7 +97,7 @@ export function useBOMForm({
 
   return {
     form,
-    items,
     handleItemChange,
+    items,
   };
 }

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Dialog, TextInput, Selector, VStack, HStack, Button, Heading } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, Selector, TextInput, VStack } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -9,10 +9,10 @@ import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
 const itemSchema = v.object({
+  category_id: v.pipe(v.string(), v.nonEmpty("Pilih kategori terlebih dahulu.")),
   item_code: v.optional(v.string(), ""),
   item_name: v.pipe(v.string(), v.nonEmpty("Nama item harus diisi.")),
-  category_id: v.pipe(v.string(), v.nonEmpty("Pilih kategori terlebih dahulu.")),
-  unit_id: v.pipe(v.string(), v.nonEmpty("Pilih satuan terlebih dahulu."))
+  unit_id: v.pipe(v.string(), v.nonEmpty("Pilih satuan terlebih dahulu.")),
 });
 
 interface MasterItemFormProps {
@@ -22,73 +22,73 @@ interface MasterItemFormProps {
 }
 
 export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormProps) {
-  const showToast = useToast();
+  const showToast = useToast(),
+    { categories, units, createItem, updateItem } = useMasterStore(),
+    form = useForm({
+      defaultValues: {
+        category_id: "",
+        item_code: "",
+        item_name: "",
+        unit_id: "",
+      },
+      onSubmit: async ({ value }) => {
+        try {
+          const data = {
+            item_code: value.item_code,
+            item_name: value.item_name,
+            category_id: value.category_id,
+            unit_id: value.unit_id,
+          };
 
-  const { categories, units, createItem, updateItem } = useMasterStore();
-
-  const form = useForm({
-    defaultValues: {
-      item_code: "",
-      item_name: "",
-      category_id: "",
-      unit_id: "",
-    },
-    validators: {
-      onChange: itemSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        const data = {
-          item_code: value.item_code,
-          item_name: value.item_name,
-          category_id: value.category_id,
-          unit_id: value.unit_id
-        };
-
-        if (initialData) {
-          await updateItem(initialData.item_id, data);
-          showToast({ body: "Item berhasil diubah", type: "info" });
-        } else {
-          await createItem(data);
-          showToast({ body: "Item berhasil ditambahkan. Gunakan 'Harga' di tabel untuk menambahkan harga.", type: "info" });
+          if (initialData) {
+            await updateItem(initialData.item_id, data);
+            showToast({ body: "Item berhasil diubah", type: "info" });
+          } else {
+            await createItem(data);
+            showToast({
+              body: "Item berhasil ditambahkan. Gunakan 'Harga' di tabel untuk menambahkan harga.",
+              type: "info",
+            });
+          }
+        } catch (error: any) {
+          showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
+        } finally {
+          onClose();
         }
-      } catch (error: any) {
-        showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-      } finally {
-        onClose();
-      }
-    }
-  });
+      },
+      validators: {
+        onChange: itemSchema,
+      },
+    });
 
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
         form.reset({
+          category_id: String(initialData.category_id),
           item_code: initialData.item_code || "",
           item_name: initialData.item_name,
-          category_id: String(initialData.category_id),
-          unit_id: String(initialData.unit_id)
+          unit_id: String(initialData.unit_id),
         });
       } else {
         form.reset({
+          category_id: categories.length > 0 ? String(categories[0].category_id) : "",
           item_code: "",
           item_name: "",
-          category_id: categories.length > 0 ? String(categories[0].category_id) : "",
-          unit_id: units.length > 0 ? String(units[0].unit_id) : ""
+          unit_id: units.length > 0 ? String(units[0].unit_id) : "",
         });
       }
     }
   }, [isOpen, initialData, categories, units]);
 
   const categoryOptions = categories.map((category) => ({
-    value: String(category.category_id),
-    label: category.category_name,
-  }));
-
-  const unitOptions = units.map((unit) => ({
-    value: String(unit.unit_id),
-    label: unit.unit_name,
-  }));
+      label: category.category_name,
+      value: String(category.category_id),
+    })),
+    unitOptions = units.map((unit) => ({
+      label: unit.unit_name,
+      value: String(unit.unit_id),
+    }));
 
   return (
     <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
@@ -112,7 +112,10 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
@@ -126,7 +129,10 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
@@ -141,7 +147,10 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
@@ -156,17 +165,26 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
           </FormLayout>
-          <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
+          <HStack gap={2} justify="end" style={{ marginTop: "1rem" }}>
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
-                <Button variant="primary" label="Simpan" type="submit" isLoading={isSubmitting} isDisabled={!canSubmit} />
+                <Button
+                  variant="primary"
+                  label="Simpan"
+                  type="submit"
+                  isLoading={isSubmitting}
+                  isDisabled={!canSubmit}
+                />
               )}
             />
           </HStack>

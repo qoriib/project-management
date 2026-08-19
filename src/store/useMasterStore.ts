@@ -1,30 +1,30 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
-  itemRepo,
+  type CreateItem,
+  type CreateItemCategory,
+  type CreateItemPrice,
+  type CreateProject,
+  type CreateUnit,
+  type CreateVendor,
+  type ItemCategory,
+  type ItemPrice,
+  type ItemWithDetails,
+  type ProjectWithRelations,
+  type Unit,
+  type UpdateItem,
+  type UpdateItemCategory,
+  type UpdateItemPrice,
+  type UpdateProject,
+  type UpdateUnit,
+  type UpdateVendor,
+  type Vendor,
   itemCategoryRepo,
   itemPriceRepo,
+  itemRepo,
   projectRepo,
   unitRepo,
   vendorRepo,
-  type ItemWithDetails,
-  type ItemPrice,
-  type ItemCategory,
-  type ProjectWithRelations,
-  type Unit,
-  type Vendor,
-  type CreateItem,
-  type UpdateItem,
-  type CreateItemPrice,
-  type UpdateItemPrice,
-  type CreateItemCategory,
-  type UpdateItemCategory,
-  type CreateProject,
-  type UpdateProject,
-  type CreateUnit,
-  type UpdateUnit,
-  type CreateVendor,
-  type UpdateVendor
-} from '@/db/repositories';
+} from "@/db/repositories";
 
 interface MasterStore {
   // ── States ─────────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ interface MasterStore {
   projects: ProjectWithRelations[];
   units: Unit[];
   vendors: Vendor[];
-  /** item_price_id → ItemPrice[], keyed by item_id for fast lookup */
+  /** Item_price_id → ItemPrice[], keyed by item_id for fast lookup */
   itemPricesMap: Map<string, ItemPrice[]>;
 
   // ── Load Actions ───────────────────────────────────────────────────────────
@@ -92,18 +92,20 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
   itemPricesMap: new Map(),
 
   loadAllMasters: async () => {
-    if (get().isLoaded) return;
+    if (get().isLoaded) {
+      return;
+    }
     try {
       const [items, categories, projects, units, vendors] = await Promise.all([
         itemRepo.findAll(),
         itemCategoryRepo.findAllSorted(),
         projectRepo.findAllWithRelations(),
         unitRepo.findAllSorted(),
-        vendorRepo.findAllSorted()
+        vendorRepo.findAllSorted(),
       ]);
-      set({ items, categories, projects, units, vendors, isLoaded: true });
-    } catch (err) {
-      console.error("Failed to load master data", err);
+      set({ categories, isLoaded: true, items, projects, units, vendors });
+    } catch (error) {
+      console.error("Failed to load master data", error);
     }
   },
 
@@ -130,7 +132,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
 
   loadItemPrices: async (itemId) => {
     const prices = await itemPriceRepo.findByItem(itemId);
-    set(state => {
+    set((state) => {
       const newMap = new Map(state.itemPricesMap);
       newMap.set(itemId, prices);
       return { itemPricesMap: newMap };
@@ -162,7 +164,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     // Reload prices for all items currently in map that might match
     const { itemPricesMap } = get();
     for (const [itemId, prices] of itemPricesMap) {
-      if (prices.some(p => p.item_price_id === id)) {
+      if (prices.some((p) => p.item_price_id === id)) {
         await get().loadItemPrices(itemId);
         break;
       }

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Section, VStack, Button } from "@astryxdesign/core";
+import { Button, Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterItemTable } from "@/components/master/MasterItemTable";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
@@ -11,13 +11,13 @@ export const Route = createFileRoute("/master/item")({
 });
 
 function MasterItemPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<ItemWithDetails | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false),
+    [editTarget, setEditTarget] = useState<ItemWithDetails | null>(null);
 
   useEffect(() => {
     const handleOpen = () => openCreate();
-    window.addEventListener('openMasterCreate', handleOpen);
-    return () => window.removeEventListener('openMasterCreate', handleOpen);
+    window.addEventListener("openMasterCreate", handleOpen);
+    return () => window.removeEventListener("openMasterCreate", handleOpen);
   }, []);
 
   function openCreate() {
@@ -36,13 +36,7 @@ function MasterItemPage() {
         <PageHeader
           title="Master Data Item"
           subtitle="Kelola data item kebutuhan"
-          actions={
-            <Button
-              variant="primary"
-              label="Tambah Item"
-              onClick={openCreate}
-            />
-          }
+          actions={<Button variant="primary" label="Tambah Item" onClick={openCreate} />}
         />
         <MasterItemTable onEdit={openEdit} />
         <MasterItemForm

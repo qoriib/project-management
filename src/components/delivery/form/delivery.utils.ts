@@ -1,4 +1,4 @@
-import { purchaseOrderRepo, deliveryRepo } from "@/db/repositories";
+import { deliveryRepo, purchaseOrderRepo } from "@/db/repositories";
 import type { DeliveryItemRow } from "./delivery.schema";
 
 // ── PO Items Loader ────────────────────────────────────────────────────────────
@@ -7,27 +7,25 @@ import type { DeliveryItemRow } from "./delivery.schema";
  * Ambil item-item dari sebuah PO dan konversi ke shape DeliveryItemRow
  * dengan qty = 0 (mode tambah baru).
  */
-export async function loadPOItemsAsDeliveryRows(
-  poId: string
-): Promise<DeliveryItemRow[]> {
+export async function loadPOItemsAsDeliveryRows(poId: string): Promise<DeliveryItemRow[]> {
   const poItems = await purchaseOrderRepo.findItems(poId);
 
   return poItems.map((i) => {
-    const item_name = i.item_name ?? "";
-    const unit = i.unit ?? "";
-    const remaining = i.remaining ?? 0;
-    const ordered = i.qty ?? 0;
-    const delivered = i.total_delivered ?? 0;
+    const item_name = i.item_name ?? "",
+      unit = i.unit ?? "",
+      remaining = i.remaining ?? 0,
+      ordered = i.qty ?? 0,
+      delivered = i.total_delivered ?? 0;
 
     return {
-      po_item_id: i.po_item_id,
+      delivered,
       item_id: i.item_id,
       item_name,
-      unit,
-      remaining,
-      qty: 0,
       ordered,
-      delivered,
+      po_item_id: i.po_item_id,
+      qty: 0,
+      remaining,
+      unit,
     };
   });
 }
@@ -52,40 +50,35 @@ export async function loadDeliveryEditData(deliveryId: string): Promise<{
   }
 
   const [poItems, delivItems] = await Promise.all([
-    purchaseOrderRepo.findItems(delivery.po_id),
-    deliveryRepo.findItems(deliveryId),
-  ]);
+      purchaseOrderRepo.findItems(delivery.po_id),
+      deliveryRepo.findItems(deliveryId),
+    ]),
+    items: DeliveryItemRow[] = poItems.map((i) => {
+      const existingDelivItem = delivItems.find((di) => di.po_item_id === i.po_item_id),
+        oldQty = existingDelivItem?.qty ?? 0,
+        originalSisa = i.remaining ?? 0,
+        restoredSisa = originalSisa + oldQty, // kembalikan sisa yang sudah dipakai
+        originalDelivered = (i.total_delivered ?? 0) - oldQty,
+        item_name = i.item_name ?? "",
+        unit = i.unit ?? "";
 
-  const items: DeliveryItemRow[] = poItems.map((i) => {
-    const existingDelivItem = delivItems.find(
-      (di) => di.po_item_id === i.po_item_id
-    );
-
-    const oldQty = existingDelivItem?.qty ?? 0;
-    const originalSisa = i.remaining ?? 0;
-    const restoredSisa = originalSisa + oldQty; // kembalikan sisa yang sudah dipakai
-    const originalDelivered = (i.total_delivered ?? 0) - oldQty;
-
-    const item_name = i.item_name ?? "";
-    const unit = i.unit ?? "";
-
-    return {
-      po_item_id: i.po_item_id,
-      item_id: i.item_id,
-      item_name,
-      unit,
-      remaining: restoredSisa,
-      qty: oldQty,
-      ordered: i.qty ?? 0,
-      delivered: originalDelivered,
-    };
-  });
+      return {
+        delivered: originalDelivered,
+        item_id: i.item_id,
+        item_name,
+        ordered: i.qty ?? 0,
+        po_item_id: i.po_item_id,
+        qty: oldQty,
+        remaining: restoredSisa,
+        unit,
+      };
+    });
 
   return {
-    po_id: delivery.po_id,
-    delivery_date: delivery.delivery_date,
     delivery_code: delivery.delivery_code || "",
+    delivery_date: delivery.delivery_date,
     items,
+    po_id: delivery.po_id,
   };
 }
 
@@ -93,7 +86,7 @@ export async function loadDeliveryEditData(deliveryId: string): Promise<{
 
 /** Filter hanya item dengan qty > 0 sebagai payload simpan */
 export function buildDeliveryItemPayload(
-  items: DeliveryItemRow[]
+  items: DeliveryItemRow[],
 ): { po_item_id: string; qty: number }[] {
   const receivedItems = items.filter((it) => it.qty > 0);
 

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
@@ -6,8 +6,8 @@ import { DeliveryForm } from "@/components/delivery/DeliveryForm";
 import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function EditDeliveryPage() {
-  const navigate = useNavigate();
-  const { id } = Route.useParams();
+  const navigate = useNavigate(),
+    { id } = Route.useParams();
 
   function handleSuccess(poId: string) {
     navigate({ to: `/po/${poId}` });
@@ -20,22 +20,15 @@ function EditDeliveryPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader
-          title={`Edit Penerimaan`}
-          subtitle="Ubah log penerimaan item di lapangan"
-        />
+        <PageHeader title={`Edit Penerimaan`} subtitle="Ubah log penerimaan item di lapangan" />
         <ProjectRequired>
-          <DeliveryForm
-            initialEditId={id}
-            onSuccess={handleSuccess}
-            onCancel={goBack}
-          />
+          <DeliveryForm initialEditId={id} onSuccess={handleSuccess} onCancel={goBack} />
         </ProjectRequired>
       </VStack>
     </Section>
   );
 }
 
-export const Route = createFileRoute('/delivery/$id/edit')({
+export const Route = createFileRoute("/delivery/$id/edit")({
   component: EditDeliveryPage,
 });

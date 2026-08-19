@@ -10,9 +10,9 @@ export type CreateUnit = Pick<Unit, "unit_name">;
 export type UpdateUnit = Partial<CreateUnit>;
 
 export const UnitModel: ModelDefinition = {
-  tableName: "units",
-  primaryKey: "unit_id",
   createColumns: ["unit_name"],
-  updateColumns: ["unit_name"],
+  primaryKey: "unit_id",
   softDelete: true,
+  tableName: "units",
+  updateColumns: ["unit_name"],
 };

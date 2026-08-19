@@ -1,21 +1,23 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { VStack, Section } from "@astryxdesign/core";
+import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
-import { getBOMReport, type BOMReportItem } from "@/db/services";
+import { type BOMReportItem, getBOMReport } from "@/db/services";
 import { useAppStore } from "@/store/useAppStore";
 import { DashboardItemLogDialog } from "@/components/dashboard/DashboardItemLogDialog";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { DashboardBOMTable } from "@/components/dashboard/DashboardBOMTable";
 
 function Dashboard() {
-  const [report, setReport] = useState<BOMReportItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [logItem, setLogItem] = useState<{ itemId: string, itemPriceId: string, itemName: string } | null>(null);
-
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const [report, setReport] = useState<BOMReportItem[]>([]),
+    [loading, setLoading] = useState(true),
+    [logItem, setLogItem] = useState<{
+      itemId: string;
+      itemPriceId: string;
+      itemName: string;
+    } | null>(null),
+    selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   useEffect(() => {
     async function load() {
@@ -36,8 +38,8 @@ function Dashboard() {
     load();
   }, [selectedProjectId]);
 
-  const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0);
-  const totalPO = report.reduce((sum, r) => sum + r.total_po_price, 0);
+  const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0),
+    totalPO = report.reduce((sum, r) => sum + r.total_po_price, 0);
 
   return (
     <Section padding={6}>
@@ -48,15 +50,13 @@ function Dashboard() {
         />
         <ProjectRequired>
           <>
-            <DashboardSummaryCards
-              totalBudget={totalBudget}
-              totalPO={totalPO}
-              loading={loading}
-            />
+            <DashboardSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
             <DashboardBOMTable
               report={report}
               loading={loading}
-              onLogClick={(itemId, itemPriceId, itemName) => setLogItem({ itemId, itemPriceId, itemName })}
+              onLogClick={(itemId, itemPriceId, itemName) =>
+                setLogItem({ itemId, itemName, itemPriceId })
+              }
             />
           </>
         </ProjectRequired>
@@ -76,7 +76,6 @@ function Dashboard() {
   );
 }
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: Dashboard,
 });
-

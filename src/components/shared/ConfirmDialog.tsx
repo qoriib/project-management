@@ -1,4 +1,4 @@
-import { Dialog, Button, VStack, Text, HStack, Heading } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, Text, VStack } from "@astryxdesign/core";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -26,7 +26,9 @@ export function ConfirmDialog({
       width={400}
       isOpen={isOpen}
       onOpenChange={(open) => {
-        if (!open) onClose()
+        if (!open) {
+          onClose();
+        }
       }}
     >
       <VStack gap={4}>

@@ -1,33 +1,39 @@
-import { ClipboardList, Folder, ShoppingCart, Truck, Settings, LayoutDashboard } from "lucide-react";
+import {
+  ClipboardList,
+  Folder,
+  LayoutDashboard,
+  Settings,
+  ShoppingCart,
+  Truck,
+} from "lucide-react";
 
 export enum AppRole {
-  MANAGER = 'Manager',
-  LOGISTICS_STAFF = 'Staff Logistik'
+  MANAGER = "Manager",
+  LOGISTICS_STAFF = "Staff Logistik",
 }
 
 export const APP = {
-  title: "Manajemen Proyek",
   companyName: "Nusantara Fiktif PT",
   sidenav: [
     {
       label: "Laporan",
       icon: LayoutDashboard,
-      href: "/"
+      href: "/",
     },
     {
       icon: ClipboardList,
       label: "Kebutuhan (BOM)",
-      href: "/bom"
+      href: "/bom",
     },
     {
       label: "Pemesanan (PO)",
       icon: ShoppingCart,
-      href: "/po"
+      href: "/po",
     },
     {
       label: "Penerimaan (NP)",
       icon: Truck,
-      href: "/delivery"
+      href: "/delivery",
     },
     {
       label: "Master Data",
@@ -38,12 +44,13 @@ export const APP = {
         { label: "Vendor", href: "/master/vendor" },
         { label: "Kategori", href: "/master/kategori" },
         { label: "Satuan", href: "/master/satuan" },
-      ]
+      ],
     },
     {
       label: "Pengaturan",
       icon: Settings,
-      href: "/settings"
-    }
-  ]
-}
+      href: "/settings",
+    },
+  ],
+  title: "Manajemen Proyek",
+};

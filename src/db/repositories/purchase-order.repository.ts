@@ -6,9 +6,9 @@ import { BaseRepository } from "@/db/core/base-repository";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
 import {
-  PurchaseOrderModel,
-  type PurchaseOrder,
   type CreatePurchaseOrder,
+  type PurchaseOrder,
+  PurchaseOrderModel,
   type UpdatePurchaseOrder,
 } from "@/db/models";
 
@@ -21,7 +21,7 @@ export type POWithSummary = PurchaseOrder & {
   vendor_names?: string;
 };
 
-export type POItemDetail = {
+export interface POItemDetail {
   po_item_id: string;
   po_id: string | null;
   item_id: string | null;
@@ -38,7 +38,7 @@ export type POItemDetail = {
   vendor_name?: string;
   total_delivered?: number;
   remaining?: number;
-};
+}
 
 export interface POFilters {
   project_id?: string;
@@ -56,7 +56,11 @@ export interface POItemInput {
 
 // ── Repository ───────────────────────────────────────────────────────────────
 
-class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurchaseOrder, UpdatePurchaseOrder> {
+class PurchaseOrderRepository extends BaseRepository<
+  PurchaseOrder,
+  CreatePurchaseOrder,
+  UpdatePurchaseOrder
+> {
   constructor() {
     super(PurchaseOrderModel);
   }
@@ -68,8 +72,12 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
     try {
       const qb = new QueryBuilder()
         .select(
-          "po.po_id", "po.po_code", "po.project_id", "po.po_date", "po.created_at",
-          "p.project_name"
+          "po.po_id",
+          "po.po_code",
+          "po.project_id",
+          "po.po_date",
+          "po.created_at",
+          "p.project_name",
         )
         .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
         .selectRaw("COALESCE(SUM(poi.qty * ip.price), 0) as total_price")
@@ -106,23 +114,26 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
    */
   async findByIdWithSummary(id: string): Promise<POWithSummary | null> {
     const { sql, params } = new QueryBuilder()
-      .select(
-        "po.po_id", "po.po_code", "po.project_id", "po.po_date", "po.created_at",
-        "p.project_name"
-      )
-      .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
-      .selectRaw("COALESCE(SUM(poi.qty * ip.price), 0) as total_price")
-      .from("purchase_orders", "po")
-      .leftJoin("projects", "p", "p.project_id = po.project_id")
-      .leftJoin("po_items", "poi", "poi.po_id = po.po_id")
-      .leftJoin("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
-      .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
-      .where("po.po_id", "=", id)
-      .withSoftDelete("po")
-      .groupBy("po.po_id")
-      .build();
-
-    const rows = await this.rawSelect<POWithSummary>(sql, params);
+        .select(
+          "po.po_id",
+          "po.po_code",
+          "po.project_id",
+          "po.po_date",
+          "po.created_at",
+          "p.project_name",
+        )
+        .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
+        .selectRaw("COALESCE(SUM(poi.qty * ip.price), 0) as total_price")
+        .from("purchase_orders", "po")
+        .leftJoin("projects", "p", "p.project_id = po.project_id")
+        .leftJoin("po_items", "poi", "poi.po_id = po.po_id")
+        .leftJoin("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
+        .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
+        .where("po.po_id", "=", id)
+        .withSoftDelete("po")
+        .groupBy("po.po_id")
+        .build(),
+      rows = await this.rawSelect<POWithSummary>(sql, params);
     return rows[0] ?? null;
   }
 
@@ -132,10 +143,19 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
   async findItems(poId: string): Promise<POItemDetail[]> {
     const { sql, params } = new QueryBuilder()
       .select(
-        "poi.po_item_id", "poi.po_id", "poi.item_id", "poi.vendor_id",
-        "poi.item_price_id", "poi.qty",
+        "poi.po_item_id",
+        "poi.po_id",
+        "poi.item_id",
+        "poi.vendor_id",
+        "poi.item_price_id",
+        "poi.qty",
         "ip.price",
-        "i.item_name", "i.item_code", "c.prefix as category_prefix", "c.category_code", "u.unit_name as unit", "v.vendor_name"
+        "i.item_name",
+        "i.item_code",
+        "c.prefix as category_prefix",
+        "c.category_code",
+        "u.unit_name as unit",
+        "v.vendor_name",
       )
       .selectRaw("COALESCE(SUM(d.qty), 0) as total_delivered")
       .selectRaw("poi.qty - COALESCE(SUM(d.qty), 0) as remaining")
@@ -158,20 +178,23 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
    */
   async createWithItems(
     po: CreatePurchaseOrder,
-    items: Omit<POItemInput, "po_item_id">[]
+    items: Omit<POItemInput, "po_item_id">[],
   ): Promise<string> {
     return this.transaction(async () => {
-      const poId = await this.create(po);
-
-      const rows = items.map(it => [
-        this.generateId(),
-        poId,
-        it.item_id ?? null,
-        it.vendor_id ?? null,
-        it.item_price_id,
-        it.qty,
-      ]);
-      await this.bulkInsert("po_items", ["po_item_id", "po_id", "item_id", "vendor_id", "item_price_id", "qty"], rows);
+      const poId = await this.create(po),
+        rows = items.map((it) => [
+          this.generateId(),
+          poId,
+          it.item_id ?? null,
+          it.vendor_id ?? null,
+          it.item_price_id,
+          it.qty,
+        ]);
+      await this.bulkInsert(
+        "po_items",
+        ["po_item_id", "po_id", "item_id", "vendor_id", "item_price_id", "qty"],
+        rows,
+      );
 
       return poId;
     });
@@ -183,7 +206,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
   async updateWithItems(
     poId: string,
     po: UpdatePurchaseOrder,
-    items: POItemInput[]
+    items: POItemInput[],
   ): Promise<void> {
     return this.transaction(async () => {
       // Update PO header
@@ -191,22 +214,25 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
 
       // Sync items
       const existing = await this.rawSelect<{ po_item_id: string }>(
-        "SELECT po_item_id FROM po_items WHERE po_id = $1",
-        [poId]
-      );
-      const newIds = new Set(items.map((i) => i.po_item_id).filter(Boolean));
-      const idsToDelete = existing.map((ex) => ex.po_item_id).filter((id) => !newIds.has(id));
+          "SELECT po_item_id FROM po_items WHERE po_id = $1",
+          [poId],
+        ),
+        newIds = new Set(items.map((i) => i.po_item_id).filter(Boolean)),
+        idsToDelete = existing.map((ex) => ex.po_item_id).filter((id) => !newIds.has(id));
 
       if (idsToDelete.length > 0) {
         const placeholders = idsToDelete.map((_, i) => `$${i + 1}`).join(",");
-        await this.rawExecute(`DELETE FROM po_items WHERE po_item_id IN (${placeholders})`, idsToDelete);
+        await this.rawExecute(
+          `DELETE FROM po_items WHERE po_item_id IN (${placeholders})`,
+          idsToDelete,
+        );
       }
 
-      const newItems = items.filter(it => !it.po_item_id);
-      const existingItems = items.filter(it => it.po_item_id);
+      const newItems = items.filter((it) => !it.po_item_id),
+        existingItems = items.filter((it) => it.po_item_id);
 
       if (newItems.length > 0) {
-        const rows = newItems.map(it => [
+        const rows = newItems.map((it) => [
           this.generateId(),
           poId,
           it.item_id ?? null,
@@ -214,13 +240,23 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
           it.item_price_id,
           it.qty,
         ]);
-        await this.bulkInsert("po_items", ["po_item_id", "po_id", "item_id", "vendor_id", "item_price_id", "qty"], rows);
+        await this.bulkInsert(
+          "po_items",
+          ["po_item_id", "po_id", "item_id", "vendor_id", "item_price_id", "qty"],
+          rows,
+        );
       }
 
       for (const item of existingItems) {
         await this.rawExecute(
           "UPDATE po_items SET item_id = $1, vendor_id = $2, item_price_id = $3, qty = $4 WHERE po_item_id = $5",
-          [item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty, item.po_item_id]
+          [
+            item.item_id ?? null,
+            item.vendor_id ?? null,
+            item.item_price_id,
+            item.qty,
+            item.po_item_id,
+          ],
         );
       }
     });
@@ -234,7 +270,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
     await this.rawExecute(
       `INSERT INTO po_items (po_item_id, po_id, item_id, vendor_id, item_price_id, qty)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [poItemId, poId, item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty]
+      [poItemId, poId, item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty],
     );
     return poItemId;
   }
@@ -247,7 +283,7 @@ class PurchaseOrderRepository extends BaseRepository<PurchaseOrder, CreatePurcha
       `UPDATE po_items 
        SET item_id = $1, vendor_id = $2, item_price_id = $3, qty = $4 
        WHERE po_item_id = $5`,
-      [item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty, poItemId]
+      [item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty, poItemId],
     );
   }
 

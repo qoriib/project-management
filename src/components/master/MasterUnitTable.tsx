@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, HStack, IconButton, Text } from "@astryxdesign/core";
-import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
+import { HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -13,17 +13,20 @@ interface MasterUnitTableProps {
   onEdit: (unit: Unit) => void;
 }
 
-type UnitRow = Unit & { count: number } & Record<string, unknown>;
+interface UnitRow extends Unit, Record<string, unknown> {
+  count: number;
+}
 
 export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
-  const showToast = useToast();
-
-  const { units, items, deleteUnit } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const showToast = useToast(),
+    { units, items, deleteUnit } = useMasterStore(),
+    [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null),
+    [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
 
     setDeleting(true);
 
@@ -31,57 +34,55 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
       await deleteUnit(deleteTarget.id);
       showToast({ body: "Satuan berhasil dihapus", type: "info" });
       setDeleteTarget(null);
-    } catch (err: any) {
-      showToast({ body: err.message || "Gagal menghapus satuan", type: "error" });
+    } catch (error: any) {
+      showToast({ body: error.message || "Gagal menghapus satuan", type: "error" });
     } finally {
       setDeleting(false);
     }
   }
 
   const unitRows = units.map((unit) => ({
-    ...unit,
-    count: items.filter((item) => item.unit_id === unit.unit_id).length,
-  }));
-
-  const columns: TableColumn<UnitRow>[] = [
-
-    {
-      key: "unit_name",
-      header: "Nama Satuan",
-      width: proportional(1)
-    },
-    {
-      key: "count",
-      header: "Jumlah Item",
-      width: pixel(150),
-      align: "end",
-      renderCell: (row: UnitRow) => <Text type="code">{String(row.count)}</Text>
-    },
-    {
-      key: "actions",
-      header: "",
-      width: pixel(120),
-      renderCell: (row: UnitRow) => (
-        <HStack gap={2} justify="end">
-          <IconButton
-            size="sm"
-            variant="secondary"
-            label="Edit"
-            icon={<Pencil size={16} />}
-            onClick={() => onEdit(row)}
-          />
-          <IconButton
-            size="sm"
-            variant="destructive"
-            label="Hapus"
-            icon={<Trash2 size={16} />}
-            isDisabled={row.count > 0}
-            onClick={() => setDeleteTarget({ id: row.unit_id, label: row.unit_name })}
-          />
-        </HStack>
-      ),
-    },
-  ];
+      ...unit,
+      count: items.filter((item) => item.unit_id === unit.unit_id).length,
+    })),
+    columns: TableColumn<UnitRow>[] = [
+      {
+        header: "Nama Satuan",
+        key: "unit_name",
+        width: proportional(1),
+      },
+      {
+        align: "end",
+        header: "Jumlah Item",
+        key: "count",
+        renderCell: (row: UnitRow) => <Text type="code">{String(row.count)}</Text>,
+        width: pixel(150),
+      },
+      {
+        header: "",
+        key: "actions",
+        renderCell: (row: UnitRow) => (
+          <HStack gap={2} justify="end">
+            <IconButton
+              size="sm"
+              variant="secondary"
+              label="Edit"
+              icon={<Pencil size={16} />}
+              onClick={() => onEdit(row)}
+            />
+            <IconButton
+              size="sm"
+              variant="destructive"
+              label="Hapus"
+              icon={<Trash2 size={16} />}
+              isDisabled={row.count > 0}
+              onClick={() => setDeleteTarget({ id: row.unit_id, label: row.unit_name })}
+            />
+          </HStack>
+        ),
+        width: pixel(120),
+      },
+    ];
 
   return (
     <>
@@ -94,7 +95,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
         emptyState={<TableEmptyState message="Belum ada satuan." />}
       />
       <ConfirmDialog
-        isOpen={!!deleteTarget}
+        isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Master Data"

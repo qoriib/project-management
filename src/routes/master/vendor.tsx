@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Section, VStack, Button } from "@astryxdesign/core";
+import { Button, Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterVendorTable } from "@/components/master/MasterVendorTable";
 import { MasterVendorForm } from "@/components/master/MasterVendorForm";
@@ -11,13 +11,13 @@ export const Route = createFileRoute("/master/vendor")({
 });
 
 function MasterVendorPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<Vendor | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false),
+    [editTarget, setEditTarget] = useState<Vendor | null>(null);
 
   useEffect(() => {
     const handleOpen = () => openCreate();
-    window.addEventListener('openMasterCreate', handleOpen);
-    return () => window.removeEventListener('openMasterCreate', handleOpen);
+    window.addEventListener("openMasterCreate", handleOpen);
+    return () => window.removeEventListener("openMasterCreate", handleOpen);
   }, []);
 
   function openCreate() {
@@ -36,13 +36,7 @@ function MasterVendorPage() {
         <PageHeader
           title="Master Data Vendor"
           subtitle="Kelola data vendor pemasok kebutuhan"
-          actions={
-            <Button
-              variant="primary"
-              label="Tambah Vendor"
-              onClick={openCreate}
-            />
-          }
+          actions={<Button variant="primary" label="Tambah Vendor" onClick={openCreate} />}
         />
         <MasterVendorTable onEdit={openEdit} />
         <MasterVendorForm

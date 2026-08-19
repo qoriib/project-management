@@ -1,10 +1,10 @@
 {
   "name": "project-management",
-  "description": "Aplikasi Manajemen Proyek",
-  "author": "Laman",
-  "license": "MIT",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
+  "description": "Aplikasi Manajemen Proyek",
+  "license": "MIT",
+  "author": "Laman",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,7 +16,9 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "db:seed": "vite-node src/db/seeds/run-cli.ts",
-    "db:reset": "vite-node src/db/seeds/run-reset-cli.ts"
+    "db:reset": "vite-node src/db/seeds/run-reset-cli.ts",
+    "lint": "oxlint -c oxlint.config.ts",
+    "lint:fix": "oxlint -c oxlint.config.ts --fix"
   },
   "dependencies": {
     "@astryxdesign/core": "^0.3.0",
@@ -48,6 +50,7 @@
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^6.0.5",
     "cross-env": "^10.1.0",
+    "oxlint": "^1.79.0",
     "typescript": "~7.0.2",
     "vite": "^8.2.1",
     "vite-node": "^6.0.0"

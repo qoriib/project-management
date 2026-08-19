@@ -13,9 +13,9 @@ export type CreateVendor = Pick<Vendor, "vendor_name"> & Partial<Pick<Vendor, "p
 export type UpdateVendor = Partial<Pick<Vendor, "vendor_name" | "phone" | "address">>;
 
 export const VendorModel: ModelDefinition = {
-  tableName: "vendors",
-  primaryKey: "vendor_id",
   createColumns: ["vendor_name", "phone", "address"],
-  updateColumns: ["vendor_name", "phone", "address"],
+  primaryKey: "vendor_id",
   softDelete: true,
+  tableName: "vendors",
+  updateColumns: ["vendor_name", "phone", "address"],
 };

@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, HStack, IconButton, Text } from "@astryxdesign/core";
-import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
+import { HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
@@ -14,17 +14,20 @@ interface MasterCategoryTableProps {
   onEdit: (category: ItemCategory) => void;
 }
 
-type CategoryRow = ItemCategory & { count: number } & Record<string, unknown>;
+interface CategoryRow extends ItemCategory, Record<string, unknown> {
+  count: number;
+}
 
 export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
-  const showToast = useToast();
-
-  const { categories, items, deleteCategory } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const showToast = useToast(),
+    { categories, items, deleteCategory } = useMasterStore(),
+    [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null),
+    [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
 
     setDeleting(true);
 
@@ -32,69 +35,68 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       await deleteCategory(deleteTarget.id);
       showToast({ body: "Kategori berhasil dihapus", type: "info" });
       setDeleteTarget(null);
-    } catch (err: any) {
-      showToast({ body: err.message || "Gagal menghapus kategori", type: "error" });
+    } catch (error: any) {
+      showToast({ body: error.message || "Gagal menghapus kategori", type: "error" });
     } finally {
       setDeleting(false);
     }
   }
 
   const categoryRows = categories.map((category) => ({
-    ...category,
-    count: items.filter((item) => item.category_id === category.category_id).length,
-  }));
+      ...category,
+      count: items.filter((item) => item.category_id === category.category_id).length,
+    })),
+    columns: TableColumn<CategoryRow>[] = [
+      {
+        header: "Prefix",
+        key: "prefix",
+        renderCell: (row: CategoryRow) => <EntityCode prefix="" id={row.prefix} />,
+        width: pixel(80),
+      },
 
-  const columns: TableColumn<CategoryRow>[] = [
-    {
-      key: "prefix",
-      header: "Prefix",
-      width: pixel(80),
-      renderCell: (row: CategoryRow) => <EntityCode prefix="" id={row.prefix} />
-    },
-
-    {
-      key: "category_code",
-      header: "Kode Kategori",
-      width: pixel(150),
-      renderCell: (row: CategoryRow) => <EntityCode prefix="" id={row.category_code} />
-    },
-    {
-      key: "category_name",
-      header: "Nama Kategori",
-      width: proportional(1)
-    },
-    {
-      key: "count",
-      header: "Jumlah Item",
-      width: pixel(150),
-      align: "end",
-      renderCell: (row: CategoryRow) => <Text type="code">{String(row.count)}</Text>
-    },
-    {
-      key: "actions",
-      header: "",
-      width: pixel(120),
-      renderCell: (row: CategoryRow) => (
-        <HStack gap={2} justify="end">
-          <IconButton
-            size="sm"
-            variant="secondary"
-            label="Edit"
-            icon={<Pencil size={16} />}
-            onClick={() => onEdit(row)}
-          />
-          <IconButton
-            size="sm"
-            variant="destructive"
-            label="Hapus"
-            icon={<Trash2 size={16} />}
-            isDisabled={row.count > 0}
-            onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })}
-          />
-        </HStack>
-      ),
-    },
-  ];
+      {
+        header: "Kode Kategori",
+        key: "category_code",
+        renderCell: (row: CategoryRow) => <EntityCode prefix="" id={row.category_code} />,
+        width: pixel(150),
+      },
+      {
+        header: "Nama Kategori",
+        key: "category_name",
+        width: proportional(1),
+      },
+      {
+        align: "end",
+        header: "Jumlah Item",
+        key: "count",
+        renderCell: (row: CategoryRow) => <Text type="code">{String(row.count)}</Text>,
+        width: pixel(150),
+      },
+      {
+        header: "",
+        key: "actions",
+        renderCell: (row: CategoryRow) => (
+          <HStack gap={2} justify="end">
+            <IconButton
+              size="sm"
+              variant="secondary"
+              label="Edit"
+              icon={<Pencil size={16} />}
+              onClick={() => onEdit(row)}
+            />
+            <IconButton
+              size="sm"
+              variant="destructive"
+              label="Hapus"
+              icon={<Trash2 size={16} />}
+              isDisabled={row.count > 0}
+              onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })}
+            />
+          </HStack>
+        ),
+        width: pixel(120),
+      },
+    ];
 
   return (
     <>
@@ -107,7 +109,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
         emptyState={<TableEmptyState message="Belum ada kategori." />}
       />
       <ConfirmDialog
-        isOpen={!!deleteTarget}
+        isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Master Data"

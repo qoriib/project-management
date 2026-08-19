@@ -48,7 +48,10 @@ export class ForeignKeyError extends DbError {
   public readonly table: string;
 
   constructor(table: string, detail?: string) {
-    super(`Tidak dapat menghapus ${table}: masih digunakan oleh data lain${detail ? ` (${detail})` : ""}`, "FOREIGN_KEY");
+    super(
+      `Tidak dapat menghapus ${table}: masih digunakan oleh data lain${detail ? ` (${detail})` : ""}`,
+      "FOREIGN_KEY",
+    );
     this.name = "ForeignKeyError";
     this.table = table;
   }
@@ -76,14 +79,16 @@ export class ValidationError extends DbError {
  * @returns A typed DbError (or the original error if not recognizable)
  */
 export function wrapDbError(error: unknown, table: string): DbError {
-  if (error instanceof DbError) return error;
+  if (error instanceof DbError) {
+    return error;
+  }
 
   const message = error instanceof Error ? error.message : String(error);
 
   // SQLite UNIQUE constraint violation
   if (message.includes("UNIQUE constraint failed")) {
-    const match = message.match(/UNIQUE constraint failed:\s*(\S+)/);
-    const column = match?.[1]?.split(".").pop() ?? "unknown";
+    const match = message.match(/UNIQUE constraint failed:\s*(\S+)/),
+      column = match?.[1]?.split(".").pop() ?? "unknown";
     return new DuplicateError(table, column);
   }
 
@@ -94,8 +99,8 @@ export function wrapDbError(error: unknown, table: string): DbError {
 
   // NOT NULL constraint
   if (message.includes("NOT NULL constraint failed")) {
-    const match = message.match(/NOT NULL constraint failed:\s*(\S+)/);
-    const column = match?.[1]?.split(".").pop() ?? "unknown";
+    const match = message.match(/NOT NULL constraint failed:\s*(\S+)/),
+      column = match?.[1]?.split(".").pop() ?? "unknown";
     return new ValidationError(column, "nilai tidak boleh kosong");
   }
 

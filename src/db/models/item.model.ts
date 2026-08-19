@@ -13,9 +13,9 @@ export type CreateItem = Pick<Item, "item_code" | "item_name" | "category_id" | 
 export type UpdateItem = Partial<CreateItem>;
 
 export const ItemModel: ModelDefinition = {
-  tableName: "items",
-  primaryKey: "item_id",
   createColumns: ["item_code", "item_name", "category_id", "unit_id"],
-  updateColumns: ["item_code", "item_name", "category_id", "unit_id"],
+  primaryKey: "item_id",
   softDelete: true,
+  tableName: "items",
+  updateColumns: ["item_code", "item_name", "category_id", "unit_id"],
 };

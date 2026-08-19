@@ -11,13 +11,18 @@ export interface BillOfMaterial {
   deleted_at: string | null;
 }
 
-export type CreateBOM = Pick<BillOfMaterial, "project_id" | "bom_group_id" | "item_id" | "item_price_id" | "qty">;
-export type UpdateBOM = Partial<Pick<BillOfMaterial, "bom_group_id" | "item_id" | "item_price_id" | "qty">>;
+export type CreateBOM = Pick<
+  BillOfMaterial,
+  "project_id" | "bom_group_id" | "item_id" | "item_price_id" | "qty"
+>;
+export type UpdateBOM = Partial<
+  Pick<BillOfMaterial, "bom_group_id" | "item_id" | "item_price_id" | "qty">
+>;
 
 export const BOMModel: ModelDefinition = {
-  tableName: "bill_of_materials",
-  primaryKey: "bom_id",
   createColumns: ["project_id", "bom_group_id", "item_id", "item_price_id", "qty"],
-  updateColumns: ["bom_group_id", "item_id", "item_price_id", "qty"],
+  primaryKey: "bom_id",
   softDelete: true,
+  tableName: "bill_of_materials",
+  updateColumns: ["bom_group_id", "item_id", "item_price_id", "qty"],
 };

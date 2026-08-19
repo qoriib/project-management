@@ -22,7 +22,7 @@ export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
         {(field) => {
           const rowErr = getFieldError(
             field.state.meta.errors,
-            !!field.state.meta.isTouched
+            Boolean(field.state.meta.isTouched),
           );
           return (
             <form.Field
@@ -32,14 +32,14 @@ export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
                   if (value > (row.remaining || 0)) {
                     return `Melebihi sisa PO (${formatNumber(row.remaining, 2)}).`;
                   }
-                  return undefined;
+                  return;
                 },
               }}
             >
               {(qtyField) => {
                 const qtyErr = getFieldError(
                   qtyField.state.meta.errors,
-                  qtyField.state.meta.isTouched
+                  qtyField.state.meta.isTouched,
                 );
 
                 return (

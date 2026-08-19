@@ -17,13 +17,7 @@
  * ```
  */
 
-import type {
-  WhereOperator,
-  WhereCondition,
-  OrderDirection,
-  JoinType,
-  JoinClause,
-} from "./types";
+import type { JoinClause, JoinType, OrderDirection, WhereCondition, WhereOperator } from "./types";
 
 interface BuiltQuery {
   sql: string;
@@ -71,9 +65,9 @@ export class QueryBuilder {
 
   private addJoin(type: JoinType, table: string, aliasOrOn: string, on?: string): this {
     if (on) {
-      this._joins.push({ type, table, alias: aliasOrOn, on });
+      this._joins.push({ alias: aliasOrOn, on, table, type });
     } else {
-      this._joins.push({ type, table, on: aliasOrOn });
+      this._joins.push({ on: aliasOrOn, table, type });
     }
     return this;
   }
@@ -96,7 +90,7 @@ export class QueryBuilder {
 
   /** Add a WHERE condition (AND). */
   where(column: string, operator: WhereOperator, value?: unknown): this {
-    this._wheres.push({ column, operator, value, connector: "AND" });
+    this._wheres.push({ column, connector: "AND", operator, value });
     return this;
   }
 
@@ -107,7 +101,7 @@ export class QueryBuilder {
 
   /** Add an OR WHERE condition. */
   orWhere(column: string, operator: WhereOperator, value?: unknown): this {
-    this._wheres.push({ column, operator, value, connector: "OR" });
+    this._wheres.push({ column, connector: "OR", operator, value });
     return this;
   }
 
@@ -119,9 +113,9 @@ export class QueryBuilder {
     // Store as a special condition
     this._wheres.push({
       column: `__RAW__${expression}`,
+      connector: "AND",
       operator: "=",
       value: params,
-      connector: "AND",
     });
     return this;
   }
@@ -175,8 +169,8 @@ export class QueryBuilder {
 
   /** Compile the query builder state into a parameterized SQL string + params. */
   build(): BuiltQuery {
-    const parts: string[] = [];
-    const params: unknown[] = [];
+    const parts: string[] = [],
+      params: unknown[] = [];
     let paramIdx = 1;
 
     // SELECT
@@ -184,7 +178,9 @@ export class QueryBuilder {
     parts.push(`SELECT ${columns}`);
 
     // FROM
-    if (!this._from) throw new Error("QueryBuilder: FROM clause is required");
+    if (!this._from) {
+      throw new Error("QueryBuilder: FROM clause is required");
+    }
     parts.push(`FROM ${this._from}${this._fromAlias ? ` ${this._fromAlias}` : ""}`);
 
     // JOINS
@@ -201,8 +197,8 @@ export class QueryBuilder {
       const prefix = this._softDeleteAlias ? `${this._softDeleteAlias}.` : "";
       allWheres.unshift({
         column: `${prefix}deleted_at`,
-        operator: "IS NULL",
         connector: "AND",
+        operator: "IS NULL",
       });
     }
 
@@ -217,8 +213,8 @@ export class QueryBuilder {
 
         // Handle raw WHERE expressions
         if (cond.column.startsWith("__RAW__")) {
-          const rawExpr = cond.column.slice(7);
-          const rawParams = (cond.value as unknown[] | undefined) ?? [];
+          const rawExpr = cond.column.slice(7),
+            rawParams = (cond.value as unknown[] | undefined) ?? [];
           // Replace $N placeholders with correct param indices
           let adjustedExpr = rawExpr;
           for (const rp of rawParams) {
@@ -278,6 +274,6 @@ export class QueryBuilder {
       paramIdx++;
     }
 
-    return { sql: parts.join("\n"), params };
+    return { params, sql: parts.join("\n") };
   }
 }

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Dialog, TextInput, VStack, HStack, Button, Heading } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, TextInput, VStack } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -10,9 +10,9 @@ import { getFieldError } from "@/utils/form";
 import * as v from "valibot";
 
 const projectSchema = v.object({
-  project_name: v.pipe(v.string(), v.nonEmpty("Nama proyek harus diisi.")),
   company_name: v.pipe(v.string(), v.nonEmpty("Nama perusahaan harus diisi.")),
   fiscal_year: v.pipe(v.number(), v.minValue(1900, "Tahun fiskal tidak valid.")),
+  project_name: v.pipe(v.string(), v.nonEmpty("Nama proyek harus diisi.")),
 });
 
 interface MasterProjectFormProps {
@@ -22,49 +22,47 @@ interface MasterProjectFormProps {
 }
 
 export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjectFormProps) {
-  const showToast = useToast();
-
-  const { createProject, updateProject } = useMasterStore();
-
-  const form = useForm({
-    defaultValues: {
-      project_name: "",
-      company_name: "",
-      fiscal_year: new Date().getFullYear(),
-    },
-    validators: {
-      onChange: projectSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        if (initialData) {
-          await updateProject(initialData.project_id, value);
-          showToast({ body: "Project berhasil diubah", type: "info" });
-        } else {
-          await createProject(value);
-          showToast({ body: "Project berhasil ditambahkan.", type: "info" });
+  const showToast = useToast(),
+    { createProject, updateProject } = useMasterStore(),
+    form = useForm({
+      defaultValues: {
+        company_name: "",
+        fiscal_year: new Date().getFullYear(),
+        project_name: "",
+      },
+      onSubmit: async ({ value }) => {
+        try {
+          if (initialData) {
+            await updateProject(initialData.project_id, value);
+            showToast({ body: "Project berhasil diubah", type: "info" });
+          } else {
+            await createProject(value);
+            showToast({ body: "Project berhasil ditambahkan.", type: "info" });
+          }
+        } catch (error: any) {
+          showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
+        } finally {
+          onClose();
         }
-      } catch (error: any) {
-        showToast({ body: error.message || "Terjadi kesalahan", type: "error" });
-      } finally {
-        onClose();
-      }
-    }
-  });
+      },
+      validators: {
+        onChange: projectSchema,
+      },
+    });
 
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
         form.reset({
-          project_name: initialData.project_name,
           company_name: initialData.company_name,
           fiscal_year: initialData.fiscal_year,
+          project_name: initialData.project_name,
         });
       } else {
         form.reset({
-          project_name: "",
           company_name: "",
           fiscal_year: new Date().getFullYear(),
+          project_name: "",
         });
       }
     }
@@ -92,7 +90,10 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
@@ -106,7 +107,10 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
@@ -121,17 +125,26 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
                   isRequired
                   isIntegerOnly
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    Boolean(field.state.meta.isTouched),
+                  )}
                 />
               )}
             />
           </FormLayout>
-          <HStack gap={2} justify="end" style={{ marginTop: '1rem' }}>
+          <HStack gap={2} justify="end" style={{ marginTop: "1rem" }}>
             <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
-                <Button variant="primary" label="Simpan" type="submit" isLoading={isSubmitting} isDisabled={!canSubmit} />
+                <Button
+                  variant="primary"
+                  label="Simpan"
+                  type="submit"
+                  isLoading={isSubmitting}
+                  isDisabled={!canSubmit}
+                />
               )}
             />
           </HStack>

@@ -1,5 +1,5 @@
-import { Dialog, VStack, HStack, Button, Text, Heading, TextInput } from "@astryxdesign/core";
-import { useState, useEffect } from "react";
+import { Button, Dialog, HStack, Heading, Text, TextInput, VStack } from "@astryxdesign/core";
+import { useEffect, useState } from "react";
 
 interface SettingsResetDialogProps {
   isOpen: boolean;
@@ -34,34 +34,38 @@ export function SettingsResetDialog({
       width={500}
       isOpen={isOpen}
       onOpenChange={(open) => {
-        if (!open && !isLoading) onClose();
+        if (!open && !isLoading) {
+          onClose();
+        }
       }}
       purpose="required"
     >
       <VStack gap={4}>
         <VStack gap={1}>
           <Heading level={3}>Reset Database</Heading>
-          <Text style={{ color: 'var(--color-danger)' }}>Peringatan: Tindakan ini tidak dapat dibatalkan!</Text>
+          <Text style={{ color: "var(--color-danger)" }}>
+            Peringatan: Tindakan ini tidak dapat dibatalkan!
+          </Text>
         </VStack>
-        
+
         <Text>
-          Anda akan menghapus bersih <Text as="span" weight="bold">SELURUH</Text> isi database aplikasi ini termasuk semua Master Data (vendor, daftar harga item, dll) secara permanen. Tindakan ini tidak bisa dibatalkan!
+          Anda akan menghapus bersih{" "}
+          <Text as="span" weight="bold">
+            SELURUH
+          </Text>{" "}
+          isi database aplikasi ini termasuk semua Master Data (vendor, daftar harga item, dll)
+          secara permanen. Tindakan ini tidak bisa dibatalkan!
         </Text>
-        
-        <TextInput 
-          label="Ketik 'RESET' untuk melanjutkan:" 
+
+        <TextInput
+          label="Ketik 'RESET' untuk melanjutkan:"
           placeholder="RESET"
-          value={resetConfirmText} 
-          onChange={(val) => setResetConfirmText(val || "")} 
+          value={resetConfirmText}
+          onChange={(val) => setResetConfirmText(val || "")}
         />
-        
-        <HStack gap={2} justify="end" style={{ marginTop: 'var(--spacing-2)' }}>
-          <Button 
-            label="Batal" 
-            variant="secondary" 
-            onClick={onClose} 
-            isDisabled={isLoading} 
-          />
+
+        <HStack gap={2} justify="end" style={{ marginTop: "var(--spacing-2)" }}>
+          <Button label="Batal" variant="secondary" onClick={onClose} isDisabled={isLoading} />
           <Button
             label="Hapus & Reset"
             variant="secondary"

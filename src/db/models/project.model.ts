@@ -14,9 +14,9 @@ export type CreateProject = Pick<Project, "project_name" | "company_name" | "fis
 export type UpdateProject = Partial<CreateProject & Pick<Project, "bom_is_approved">>;
 
 export const ProjectModel: ModelDefinition = {
-  tableName: "projects",
-  primaryKey: "project_id",
   createColumns: ["project_name", "company_name", "fiscal_year"],
-  updateColumns: ["project_name", "company_name", "fiscal_year", "bom_is_approved"],
+  primaryKey: "project_id",
   softDelete: true,
+  tableName: "projects",
+  updateColumns: ["project_name", "company_name", "fiscal_year", "bom_is_approved"],
 };

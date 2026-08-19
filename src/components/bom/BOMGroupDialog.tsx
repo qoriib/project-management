@@ -1,13 +1,13 @@
 import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Table, IconButton, Card, Badge } from "@astryxdesign/core";
+import { Badge, Button, Card, Dialog, HStack, IconButton, Table, VStack } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { bomGroupRepo } from "@/db/repositories";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
@@ -15,7 +15,7 @@ import type { BOMGroup, ProjectWithRelations } from "@/db/repositories";
 import * as v from "valibot";
 import { useBOMStore } from "@/store/useBOMStore";
 
-type GroupRow = BOMGroup & Record<string, unknown>;
+interface GroupRow extends BOMGroup, Record<string, unknown> {}
 
 const bomGroupSchema = v.object({
   group_name: v.pipe(v.string(), v.nonEmpty("Nama grup pekerjaan harus diisi.")),
@@ -28,44 +28,46 @@ interface BOMGroupDialogProps {
 }
 
 export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps) {
-  const showToast = useToast();
+  const showToast = useToast(),
+    [editTarget, setEditTarget] = useState<BOMGroup | null>(null),
+    [deleteTarget, setDeleteTarget] = useState<BOMGroup | null>(null),
+    [deleting, setDeleting] = useState(false),
+    { boms, bomGroups, loadBOMs } = useBOMStore(),
+    form = useForm({
+      defaultValues: {
+        group_name: "",
+      },
+      onSubmit: async ({ value }) => {
+        if (!project) return;
 
-  const [editTarget, setEditTarget] = useState<BOMGroup | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<BOMGroup | null>(null);
-  const [deleting, setDeleting] = useState(false);
+        try {
+          if (editTarget) {
+            await bomGroupRepo.update(editTarget.bom_group_id, { group_name: value.group_name });
+            showToast({ body: "Grup pekerjaan berhasil diubah.", type: "info" });
+          } else {
+            await bomGroupRepo.create({
+              project_id: project.project_id,
+              group_name: value.group_name,
+            });
+            showToast({ body: "Grup pekerjaan berhasil ditambahkan.", type: "info" });
+          }
 
-  const { boms, bomGroups, loadBOMs } = useBOMStore();
-
-  const form = useForm({
-    defaultValues: {
-      group_name: "",
-    },
-    validators: {
-      onChange: bomGroupSchema,
-    },
-    onSubmit: async ({ value }) => {
-      if (!project) return;
-
-      try {
-        if (editTarget) {
-          await bomGroupRepo.update(editTarget.bom_group_id, { group_name: value.group_name });
-          showToast({ body: "Grup pekerjaan berhasil diubah.", type: "info" });
-        } else {
-          await bomGroupRepo.create({ project_id: project.project_id, group_name: value.group_name });
-          showToast({ body: "Grup pekerjaan berhasil ditambahkan.", type: "info" });
+          form.reset();
+          setEditTarget(null);
+          await loadGroups();
+        } catch (err: any) {
+          showToast({ body: err.message || "Gagal menyimpan grup pekerjaan.", type: "error" });
         }
-
-        form.reset();
-        setEditTarget(null);
-        await loadGroups();
-      } catch (err: any) {
-        showToast({ body: err.message || "Gagal menyimpan grup pekerjaan.", type: "error" });
-      }
-    }
-  });
+      },
+      validators: {
+        onChange: bomGroupSchema,
+      },
+    });
 
   async function loadGroups() {
-    if (!project) return;
+    if (!project) {
+      return;
+    }
     await loadBOMs(project.project_id);
   }
 
@@ -88,16 +90,18 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
   }
 
   async function handleDelete() {
-    if (!deleteTarget || !project) return;
+    if (!deleteTarget || !project) {
+      return;
+    }
     setDeleting(true);
     try {
       await bomGroupRepo.delete(deleteTarget.bom_group_id);
       showToast({ body: "Grup pekerjaan berhasil dihapus.", type: "info" });
       setDeleteTarget(null);
       await loadGroups();
-    } catch (err: any) {
+    } catch (error: any) {
       // Typically we handle foreign key errors here if the group is already used in BOMs
-      showToast({ body: err.message || "Gagal menghapus grup pekerjaan.", type: "error" });
+      showToast({ body: error.message || "Gagal menghapus grup pekerjaan.", type: "error" });
     } finally {
       setDeleting(false);
     }
@@ -105,11 +109,10 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
 
   const columns: TableColumn<GroupRow>[] = [
     {
-      key: "group_name",
       header: "Nama Grup Pekerjaan",
-      width: proportional(1),
+      key: "group_name",
       renderCell: (row: BOMGroup) => {
-        const isUsed = boms.some(b => b.bom_group_id === row.bom_group_id);
+        const isUsed = boms.some((b) => b.bom_group_id === row.bom_group_id);
         return (
           <HStack gap={2} align="center">
             <span>{row.group_name}</span>
@@ -117,25 +120,34 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
           </HStack>
         );
       },
+      width: proportional(1),
     },
     {
-      key: "actions",
       header: "",
-      width: pixel(100),
+      key: "actions",
       renderCell: (row: BOMGroup) => {
-        const isUsed = boms.some(b => b.bom_group_id === row.bom_group_id);
+        const isUsed = boms.some((b) => b.bom_group_id === row.bom_group_id);
         return (
           <HStack justify="end" gap={1}>
-            <IconButton size="sm" variant="secondary" icon={<Pencil size={16} />} label="Edit" onClick={() => startEdit(row)} />
-            <IconButton size="sm"
+            <IconButton
+              size="sm"
+              variant="secondary"
+              icon={<Pencil size={16} />}
+              label="Edit"
+              onClick={() => startEdit(row)}
+            />
+            <IconButton
+              size="sm"
               variant="destructive"
-              icon={<Trash2 size={16} />} label="Hapus"
+              icon={<Trash2 size={16} />}
+              label="Hapus"
               onClick={() => setDeleteTarget(row)}
               isDisabled={isUsed}
             />
           </HStack>
         );
       },
+      width: pixel(100),
     },
   ];
 
@@ -145,7 +157,14 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
         <VStack gap={4}>
           <PageHeader
             title={`Grup Pekerjaan: ${project?.project_name}`}
-            actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
+            actions={
+              <IconButton
+                variant="secondary"
+                icon={<X size={20} />}
+                label="Tutup"
+                onClick={onClose}
+              />
+            }
           />
           <Table
             columns={columns}
@@ -175,7 +194,10 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
                         onBlur={field.handleBlur}
                         isRequired
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                        status={getFieldError(
+                          field.state.meta.errors,
+                          Boolean(field.state.meta.isTouched),
+                        )}
                       />
                     )}
                   />
@@ -203,7 +225,7 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
         </VStack>
       </Dialog>
       <ConfirmDialog
-        isOpen={!!deleteTarget}
+        isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Grup Pekerjaan"

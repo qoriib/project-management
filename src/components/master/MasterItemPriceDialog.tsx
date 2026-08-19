@@ -1,22 +1,32 @@
 import { Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, VStack, HStack, Button, Table, Badge, IconButton, Card, Text } from "@astryxdesign/core";
+import {
+  Badge,
+  Button,
+  Card,
+  Dialog,
+  HStack,
+  IconButton,
+  Table,
+  Text,
+  VStack,
+} from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { pixel, proportional, type TableColumn } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
-import { itemPriceRepo, type ItemPriceWithRelation } from "@/db/repositories";
+import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
-type PriceRow = ItemPriceWithRelation & Record<string, unknown>;
+interface PriceRow extends ItemPriceWithRelation, Record<string, unknown> {}
 
 const priceSchema = v.object({
   price: v.pipe(v.number("Harga harus berupa angka"), v.minValue(0, "Harga tidak valid.")),
@@ -29,38 +39,37 @@ interface MasterItemPriceDialogProps {
 }
 
 export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPriceDialogProps) {
-  const showToast = useToast();
-  const { createItemPrice, deleteItemPrice } = useMasterStore();
+  const showToast = useToast(),
+    { createItemPrice, deleteItemPrice } = useMasterStore(),
+    [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null),
+    [deleting, setDeleting] = useState(false),
+    [prices, setPrices] = useState<ItemPriceWithRelation[]>([]),
+    form = useForm({
+      defaultValues: {
+        price: null as unknown as number,
+      },
+      onSubmit: async ({ value }) => {
+        if (!item) return;
 
-  const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null);
-  const [deleting, setDeleting] = useState(false);
+        try {
+          await createItemPrice({ item_id: item.item_id, price: value.price });
+          showToast({ body: "Harga berhasil ditambahkan.", type: "info" });
 
-  const [prices, setPrices] = useState<ItemPriceWithRelation[]>([]);
-
-  const form = useForm({
-    defaultValues: {
-      price: null as unknown as number,
-    },
-    validators: {
-      onChange: priceSchema,
-    },
-    onSubmit: async ({ value }) => {
-      if (!item) return;
-
-      try {
-        await createItemPrice({ item_id: item.item_id, price: value.price });
-        showToast({ body: "Harga berhasil ditambahkan.", type: "info" });
-
-        form.reset();
-        await loadPrices();
-      } catch (err: any) {
-        showToast({ body: err.message || "Gagal menyimpan harga.", type: "error" });
-      }
-    }
-  });
+          form.reset();
+          await loadPrices();
+        } catch (err: any) {
+          showToast({ body: err.message || "Gagal menyimpan harga.", type: "error" });
+        }
+      },
+      validators: {
+        onChange: priceSchema,
+      },
+    });
 
   async function loadPrices() {
-    if (!item) return;
+    if (!item) {
+      return;
+    }
 
     try {
       const data = await itemPriceRepo.findByItemWithRelation(item.item_id);
@@ -78,15 +87,17 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
   }, [isOpen, item]);
 
   async function handleDelete() {
-    if (!deleteTarget || !item) return;
+    if (!deleteTarget || !item) {
+      return;
+    }
     setDeleting(true);
     try {
       await deleteItemPrice(deleteTarget.item_price_id, item.item_id);
       showToast({ body: "Harga berhasil dihapus.", type: "info" });
       setDeleteTarget(null);
       await loadPrices();
-    } catch (err: any) {
-      showToast({ body: err.message || "Gagal menghapus harga.", type: "error" });
+    } catch (error: any) {
+      showToast({ body: error.message || "Gagal menghapus harga.", type: "error" });
     } finally {
       setDeleting(false);
     }
@@ -94,34 +105,36 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   const columns: TableColumn<PriceRow>[] = [
     {
-      key: "price",
-      header: "Harga (Rp)",
-      width: proportional(1),
       align: "end",
+      header: "Harga (Rp)",
+      key: "price",
       renderCell: (row: ItemPriceWithRelation) => (
         <HStack gap={2} align="center" justify="end">
           <Text type="code">{formatNumber(row.price)}</Text>
           {row.has_relation && <Badge variant="info" label="Digunakan" />}
         </HStack>
       ),
+      width: proportional(1),
     },
     {
-      key: "actions",
       header: "",
-      width: pixel(100),
+      key: "actions",
       renderCell: (row: ItemPriceWithRelation) => {
         const locked = row.has_relation;
         return (
           <HStack justify="end" gap={1}>
-            <IconButton size="sm"
+            <IconButton
+              size="sm"
               variant="destructive"
-              icon={<Trash2 size={16} />} label="Hapus"
+              icon={<Trash2 size={16} />}
+              label="Hapus"
               onClick={() => setDeleteTarget(row)}
               isDisabled={locked}
             />
           </HStack>
         );
       },
+      width: pixel(100),
     },
   ];
 
@@ -131,7 +144,14 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         <VStack gap={4}>
           <PageHeader
             title={`Harga: ${item?.item_name}`}
-            actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
+            actions={
+              <IconButton
+                variant="secondary"
+                icon={<X size={20} />}
+                label="Tutup"
+                onClick={onClose}
+              />
+            }
           />
           <Table
             columns={columns}
@@ -163,7 +183,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                         min={0}
                         step={0.01}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors, !!field.state.meta.isTouched)}
+                        status={getFieldError(
+                          field.state.meta.errors,
+                          Boolean(field.state.meta.isTouched),
+                        )}
                       />
                     )}
                   />
@@ -188,7 +211,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         </VStack>
       </Dialog>
       <ConfirmDialog
-        isOpen={!!deleteTarget}
+        isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Harga"

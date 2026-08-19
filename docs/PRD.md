@@ -1,15 +1,15 @@
 ﻿# Aplikasi Manajemen Proyek (Desktop) – Product Requirement Document (PRD)
 
-| Metadata | Detail |
-| --- | --- |
-| **Author / PM** | Laman |
-| **Status** | `Draft` |
-| **Target Rilis** | Q3 2026 / v1.0.0 |
-| **Tech Lead** | Laman |
-| **UI/UX Designer** | Laman |
-| **Target Version** | v1.0.0 |
-| **Platform** | Desktop (Windows) — Tauri v2 |
-| **Repo** | `project-management` |
+| Metadata           | Detail                       |
+| ------------------ | ---------------------------- |
+| **Author / PM**    | Laman                        |
+| **Status**         | `Draft`                      |
+| **Target Rilis**   | Q3 2026 / v1.0.0             |
+| **Tech Lead**      | Laman                        |
+| **UI/UX Designer** | Laman                        |
+| **Target Version** | v1.0.0                       |
+| **Platform**       | Desktop (Windows) — Tauri v2 |
+| **Repo**           | `project-management`         |
 
 ---
 
@@ -26,16 +26,18 @@ Perusahaan konstruksi, manufaktur, atau pengadaan barang sering mengelola proyek
 
 ### 1.2 Problem Statement
 
-> **Formula:** *Project Manager / Tim Pengadaan* mengalami kesulitan saat *memantau realisasi kebutuhan material terhadap anggaran dan penerimaan barang secara lintas dokumen* karena *tidak adanya alat terpusat yang menghubungkan BOM, PO, dan Delivery dalam satu database*, yang mengakibatkan *keputusan pengadaan yang lambat, risiko over-order/under-order, dan sulitnya pertanggungjawaban keuangan proyek*.
+> **Formula:** _Project Manager / Tim Pengadaan_ mengalami kesulitan saat _memantau realisasi kebutuhan material terhadap anggaran dan penerimaan barang secara lintas dokumen_ karena _tidak adanya alat terpusat yang menghubungkan BOM, PO, dan Delivery dalam satu database_, yang mengakibatkan _keputusan pengadaan yang lambat, risiko over-order/under-order, dan sulitnya pertanggungjawaban keuangan proyek_.
 
 ### 1.3 Tujuan & Manfaat (Goals & Value Proposition)
 
 **Bagi Pengguna (Project Manager / Tim Pengadaan):**
-- Menyediakan satu sumber kebenaran (*single source of truth*) untuk seluruh siklus pengadaan material: dari perencanaan (BOM/RAB) ke pemesanan (PO) ke penerimaan (Delivery).
+
+- Menyediakan satu sumber kebenaran (_single source of truth_) untuk seluruh siklus pengadaan material: dari perencanaan (BOM/RAB) ke pemesanan (PO) ke penerimaan (Delivery).
 - Menampilkan laporan deviasi anggaran secara real-time tanpa perlu rekap manual.
 - Memungkinkan drill-down per item untuk melihat riwayat PO dan Delivery secara kronologis.
 
 **Bagi Bisnis / Perusahaan:**
+
 - Mengurangi risiko fraud dan kesalahan entri data melalui sistem terpusat dengan relasi data yang ketat.
 - Mempercepat proses closing laporan proyek dari hitungan hari menjadi hitungan menit.
 - Mendukung akuntabilitas antar tim (pengadaan, keuangan, lapangan) dengan data yang dapat diaudit.
@@ -44,24 +46,24 @@ Perusahaan konstruksi, manufaktur, atau pengadaan barang sering mengelola proyek
 
 ## 2. Target Audience & Persona
 
-| Persona | Deskripsi & Karakteristik | Pain Point Utama | Kebutuhan Solusi |
-| --- | --- | --- | --- |
-| **Primary User — Project Manager / Koordinator Pengadaan** | Bertanggung jawab atas keseluruhan pengadaan material proyek. Bekerja di desktop Windows. Mengelola 1–5 proyek aktif secara bersamaan. | Tidak bisa melihat secara cepat item mana yang sudah dipesan tapi belum diterima, atau yang pemesanannya melebihi anggaran. | Dashboard laporan BOM vs. PO vs. Delivery real-time dengan indikator deviasi. |
-| **Secondary User — Admin / Data Entry** | Bertugas memasukkan data PO dan Delivery harian berdasarkan dokumen fisik. Tidak perlu akses laporan. | Proses input data berulang, lambat, dan rentan typo. | Form input yang terstruktur dengan validasi, autofill dari master data, dan bulk entry. |
-| **Tertiary User — Pimpinan / Finance** | Memerlukan ringkasan anggaran per proyek untuk persetujuan atau audit. Akses tidak rutin. | Membutuhkan angka total anggaran dan realisasi tanpa harus memahami detail teknis. | Summary card: total budget, total PO, total delivered — tanpa noise. |
+| Persona                                                    | Deskripsi & Karakteristik                                                                                                              | Pain Point Utama                                                                                                            | Kebutuhan Solusi                                                                        |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Primary User — Project Manager / Koordinator Pengadaan** | Bertanggung jawab atas keseluruhan pengadaan material proyek. Bekerja di desktop Windows. Mengelola 1–5 proyek aktif secara bersamaan. | Tidak bisa melihat secara cepat item mana yang sudah dipesan tapi belum diterima, atau yang pemesanannya melebihi anggaran. | Dashboard laporan BOM vs. PO vs. Delivery real-time dengan indikator deviasi.           |
+| **Secondary User — Admin / Data Entry**                    | Bertugas memasukkan data PO dan Delivery harian berdasarkan dokumen fisik. Tidak perlu akses laporan.                                  | Proses input data berulang, lambat, dan rentan typo.                                                                        | Form input yang terstruktur dengan validasi, autofill dari master data, dan bulk entry. |
+| **Tertiary User — Pimpinan / Finance**                     | Memerlukan ringkasan anggaran per proyek untuk persetujuan atau audit. Akses tidak rutin.                                              | Membutuhkan angka total anggaran dan realisasi tanpa harus memahami detail teknis.                                          | Summary card: total budget, total PO, total delivered — tanpa noise.                    |
 
 ---
 
 ## 3. Success Metrics (KPIs / OKRs)
 
-| Kategori Metrik | Indikator Kunci | Target | Cara Pengukuran |
-| --- | --- | --- | --- |
-| **Adopsi** | Jumlah proyek aktif yang dikelola di aplikasi | >= 3 proyek dalam 1 bulan pertama | Count query pada tabel `projects` |
-| **Efisiensi Input** | Rata-rata waktu input 1 PO beserta item-itemnya | < 3 menit per PO | Observasi langsung / user testing |
-| **Akurasi Data** | % discrepancy antara data di aplikasi vs. dokumen fisik | < 1% error rate | Audit sampling per bulan |
-| **Keandalan Laporan** | Laporan BOM Report tersedia dalam < 2 detik | p95 < 2 detik | Profiling query SQLite |
-| **Retensi Penggunaan** | Jumlah hari aktif aplikasi digunakan dalam sebulan | >= 20 hari kerja | Log aktivitas lokal |
-| **Kepuasan Pengguna** | Skor usability (SUS Score) | >= 75 / 100 | Kuesioner pasca onboarding |
+| Kategori Metrik        | Indikator Kunci                                         | Target                            | Cara Pengukuran                   |
+| ---------------------- | ------------------------------------------------------- | --------------------------------- | --------------------------------- |
+| **Adopsi**             | Jumlah proyek aktif yang dikelola di aplikasi           | >= 3 proyek dalam 1 bulan pertama | Count query pada tabel `projects` |
+| **Efisiensi Input**    | Rata-rata waktu input 1 PO beserta item-itemnya         | < 3 menit per PO                  | Observasi langsung / user testing |
+| **Akurasi Data**       | % discrepancy antara data di aplikasi vs. dokumen fisik | < 1% error rate                   | Audit sampling per bulan          |
+| **Keandalan Laporan**  | Laporan BOM Report tersedia dalam < 2 detik             | p95 < 2 detik                     | Profiling query SQLite            |
+| **Retensi Penggunaan** | Jumlah hari aktif aplikasi digunakan dalam sebulan      | >= 20 hari kerja                  | Log aktivitas lokal               |
+| **Kepuasan Pengguna**  | Skor usability (SUS Score)                              | >= 75 / 100                       | Kuesioner pasca onboarding        |
 
 ---
 
@@ -99,7 +101,7 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### FR-01: Master Data — Proyek
 
-- **User Story:** *Sebagai Project Manager, saya ingin membuat dan mengelola data proyek (nama proyek, nama perusahaan, tahun fiskal) agar saya bisa memisahkan data antar proyek yang berbeda.*
+- **User Story:** _Sebagai Project Manager, saya ingin membuat dan mengelola data proyek (nama proyek, nama perusahaan, tahun fiskal) agar saya bisa memisahkan data antar proyek yang berbeda._
 - **Acceptance Criteria:**
   - **Given** pengguna berada di halaman `/master/project`,
   - **When** pengguna mengisi form `project_name`, `company_name`, dan `fiscal_year` lalu klik Simpan,
@@ -111,7 +113,7 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### FR-02: Master Data — Item, Kategori, Satuan, Vendor
 
-- **User Story:** *Sebagai Admin, saya ingin mengelola data master item, kategori, satuan, dan vendor agar entri BOM dan PO dapat dilakukan dengan cepat melalui referensi data yang sudah ada.*
+- **User Story:** _Sebagai Admin, saya ingin mengelola data master item, kategori, satuan, dan vendor agar entri BOM dan PO dapat dilakukan dengan cepat melalui referensi data yang sudah ada._
 - **Acceptance Criteria:**
   - **Item**: CRUD dengan relasi ke `item_categories` dan `units`; mendukung pengelolaan variasi harga (`item_prices`) per item dalam dialog terpisah.
   - **Vendor**: CRUD dengan field `vendor_name`, `phone`, `address`.
@@ -122,7 +124,7 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### FR-03: BOM (Bill of Materials / RAB)
 
-- **User Story:** *Sebagai Project Manager, saya ingin memasukkan daftar kebutuhan material (BOM) per grup pekerjaan dalam suatu proyek agar anggaran yang direncanakan dapat dijadikan acuan pengadaan.*
+- **User Story:** _Sebagai Project Manager, saya ingin memasukkan daftar kebutuhan material (BOM) per grup pekerjaan dalam suatu proyek agar anggaran yang direncanakan dapat dijadikan acuan pengadaan._
 - **Acceptance Criteria:**
   - **Given** proyek aktif sudah dipilih dan halaman `/bom` terbuka,
   - **When** pengguna menambahkan baris BOM dengan memilih grup, item, harga, dan kuantitas,
@@ -135,7 +137,7 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### FR-04: Purchase Order (PO)
 
-- **User Story:** *Sebagai Tim Pengadaan, saya ingin membuat PO dengan multiple item dan vendor agar semua pesanan tercatat dalam sistem.*
+- **User Story:** _Sebagai Tim Pengadaan, saya ingin membuat PO dengan multiple item dan vendor agar semua pesanan tercatat dalam sistem._
 - **Acceptance Criteria:**
   - **Given** proyek aktif dipilih dan halaman `/po` terbuka,
   - **When** pengguna membuat PO baru dengan mengisi tanggal PO dan menambahkan item (item, vendor, harga, qty),
@@ -150,7 +152,7 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### FR-05: Delivery / Penerimaan Barang
 
-- **User Story:** *Sebagai Tim Pengadaan, saya ingin mencatat penerimaan barang berdasarkan PO agar realisasi pengiriman terlacak dan tidak melebihi kuantitas yang dipesan.*
+- **User Story:** _Sebagai Tim Pengadaan, saya ingin mencatat penerimaan barang berdasarkan PO agar realisasi pengiriman terlacak dan tidak melebihi kuantitas yang dipesan._
 - **Acceptance Criteria:**
   - **Given** PO sudah ada dan halaman `/delivery` terbuka,
   - **When** pengguna membuat delivery baru dengan memilih PO dan mengisi qty per item yang diterima,
@@ -163,7 +165,7 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### FR-06: Dashboard & Laporan BOM
 
-- **User Story:** *Sebagai Project Manager, saya ingin melihat laporan konsolidasi antara rencana kebutuhan (BOM), total pemesanan (PO), dan total penerimaan (Delivery) dalam satu tampilan agar saya dapat mengambil keputusan pengadaan dengan cepat.*
+- **User Story:** _Sebagai Project Manager, saya ingin melihat laporan konsolidasi antara rencana kebutuhan (BOM), total pemesanan (PO), dan total penerimaan (Delivery) dalam satu tampilan agar saya dapat mengambil keputusan pengadaan dengan cepat._
 - **Acceptance Criteria:**
   - Dashboard menampilkan **summary card**: `Total Budget (RAB)` dan `Total Nilai PO`.
   - Tabel laporan menampilkan per baris item: Nama Item, Grup, Kategori, Satuan, Harga Satuan, Volume Direncanakan (BOM), Anggaran (planned_budget), Total Dipesan (total_ordered), Total Diterima (total_delivered), Total Nilai PO (total_po_price).
@@ -175,7 +177,7 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### FR-07: Navigasi & UX Global
 
-- **User Story:** *Sebagai pengguna, saya ingin dapat berpindah antar modul dengan cepat dan selalu tahu proyek mana yang sedang aktif.*
+- **User Story:** _Sebagai pengguna, saya ingin dapat berpindah antar modul dengan cepat dan selalu tahu proyek mana yang sedang aktif._
 - **Acceptance Criteria:**
   - Sidebar navigasi selalu terlihat dengan item: Laporan, Kebutuhan (BOM), Pemesanan (PO), Penerimaan (DLV), Master Data (collapsible).
   - Heading sidebar menampilkan nama proyek aktif dan memiliki dropdown untuk mengganti proyek.
@@ -188,12 +190,12 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### 6.1 Performa
 
-| Aspek | Target |
-| --- | --- |
-| Startup aplikasi (cold launch) | < 3 detik hingga UI siap interaksi |
-| Load halaman dashboard (BOM Report) | < 2 detik untuk <= 500 baris BOM |
-| Operasi CRUD tunggal (create/update/delete) | < 500ms response time |
-| Operasi bulk insert (seed data 100+ rows) | < 5 detik |
+| Aspek                                       | Target                             |
+| ------------------------------------------- | ---------------------------------- |
+| Startup aplikasi (cold launch)              | < 3 detik hingga UI siap interaksi |
+| Load halaman dashboard (BOM Report)         | < 2 detik untuk <= 500 baris BOM   |
+| Operasi CRUD tunggal (create/update/delete) | < 500ms response time              |
+| Operasi bulk insert (seed data 100+ rows)   | < 5 detik                          |
 
 ### 6.2 Keamanan & Integritas Data
 
@@ -227,18 +229,18 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### 7.1 Tech Stack
 
-| Layer | Teknologi |
-| --- | --- |
-| **Desktop Shell** | Tauri v2 (Rust) |
-| **Frontend Framework** | React 19 + Vite 8 |
-| **Routing** | TanStack Router v1 (file-based) |
-| **State Management** | Zustand v5 (`useAppStore`, `useMasterStore`) |
-| **Form & Validation** | TanStack Form + Valibot |
-| **UI Component Library** | Astryx Design System v0.3.0 |
-| **Icons** | Lucide React |
-| **Database** | SQLite (via `@tauri-apps/plugin-sql`) |
-| **Primary Key Generation** | UUIDv7 (application layer) |
-| **Language** | TypeScript ~7.0 |
+| Layer                      | Teknologi                                    |
+| -------------------------- | -------------------------------------------- |
+| **Desktop Shell**          | Tauri v2 (Rust)                              |
+| **Frontend Framework**     | React 19 + Vite 8                            |
+| **Routing**                | TanStack Router v1 (file-based)              |
+| **State Management**       | Zustand v5 (`useAppStore`, `useMasterStore`) |
+| **Form & Validation**      | TanStack Form + Valibot                      |
+| **UI Component Library**   | Astryx Design System v0.3.0                  |
+| **Icons**                  | Lucide React                                 |
+| **Database**               | SQLite (via `@tauri-apps/plugin-sql`)        |
+| **Primary Key Generation** | UUIDv7 (application layer)                   |
+| **Language**               | TypeScript ~7.0                              |
 
 ### 7.2 Struktur Database (Entity Relationship Summary)
 
@@ -317,14 +319,14 @@ SQLite Database (via Tauri plugin-sql)
 --> [v1.0.0 Internal Release]
 ```
 
-| Fase | Deliverable | Status |
-| --- | --- | --- |
-| **Sprint 1** | DB schema (`001_init.sql`), model types, base repository | Selesai |
-| **Sprint 2** | Master Data (Proyek, Item, Vendor, Kategori, Satuan, Harga) + BOM CRUD | Selesai |
-| **Sprint 3** | PO Module (PO header + items, tracking delivery per item) + Delivery Module | Selesai |
-| **Sprint 4** | Dashboard BOM Report, Summary Cards, Item Log Dialog | Selesai |
-| **Sprint 5** | UI polish, edge case handling, error boundaries, performance tuning | In Progress |
-| **v1.0.0** | Rilis internal ke pengguna pertama | Target: Q3 2026 |
+| Fase         | Deliverable                                                                 | Status          |
+| ------------ | --------------------------------------------------------------------------- | --------------- |
+| **Sprint 1** | DB schema (`001_init.sql`), model types, base repository                    | Selesai         |
+| **Sprint 2** | Master Data (Proyek, Item, Vendor, Kategori, Satuan, Harga) + BOM CRUD      | Selesai         |
+| **Sprint 3** | PO Module (PO header + items, tracking delivery per item) + Delivery Module | Selesai         |
+| **Sprint 4** | Dashboard BOM Report, Summary Cards, Item Log Dialog                        | Selesai         |
+| **Sprint 5** | UI polish, edge case handling, error boundaries, performance tuning         | In Progress     |
+| **v1.0.0**   | Rilis internal ke pengguna pertama                                          | Target: Q3 2026 |
 
 ---
 
@@ -332,32 +334,32 @@ SQLite Database (via Tauri plugin-sql)
 
 ### 9.1 Risiko & Mitigasi
 
-| Risiko / Kendala | Dampak | Kemungkinan | Mitigasi |
-| --- | --- | --- | --- |
-| Database korup akibat force-quit saat transaksi berlangsung | Tinggi | Rendah | Gunakan WAL mode SQLite; implementasi backup manual |
-| Performa lambat pada dataset besar (> 5.000 baris BOM) | Sedang | Sedang | Tambahkan indeks komposit pada kolom filter yang sering dipakai (`project_id`, `deleted_at`) |
-| Kesalahan entri data qty oleh user (misal: 0 atau negatif) | Sedang | Tinggi | Validasi form sisi frontend dengan Valibot + constraint DB (qty > 0) |
-| Kompatibilitas Tauri v2 di berbagai versi Windows | Sedang | Rendah | Testing di Windows 10 dan Windows 11; distribusi via installer |
-| Kehilangan data jika file SQLite terhapus atau drive rusak | Tinggi | Rendah | Dokumentasikan lokasi file DB; roadmap backup otomatis di Phase 2 |
+| Risiko / Kendala                                            | Dampak | Kemungkinan | Mitigasi                                                                                     |
+| ----------------------------------------------------------- | ------ | ----------- | -------------------------------------------------------------------------------------------- |
+| Database korup akibat force-quit saat transaksi berlangsung | Tinggi | Rendah      | Gunakan WAL mode SQLite; implementasi backup manual                                          |
+| Performa lambat pada dataset besar (> 5.000 baris BOM)      | Sedang | Sedang      | Tambahkan indeks komposit pada kolom filter yang sering dipakai (`project_id`, `deleted_at`) |
+| Kesalahan entri data qty oleh user (misal: 0 atau negatif)  | Sedang | Tinggi      | Validasi form sisi frontend dengan Valibot + constraint DB (qty > 0)                         |
+| Kompatibilitas Tauri v2 di berbagai versi Windows           | Sedang | Rendah      | Testing di Windows 10 dan Windows 11; distribusi via installer                               |
+| Kehilangan data jika file SQLite terhapus atau drive rusak  | Tinggi | Rendah      | Dokumentasikan lokasi file DB; roadmap backup otomatis di Phase 2                            |
 
 ### 9.2 Dependensi
 
-| Dependensi | Jenis | Keterangan |
-| --- | --- | --- |
-| `@astryxdesign/core` v0.3.0 | UI Library | Semua komponen UI bergantung pada library ini; breaking change saat upgrade perlu diuji menyeluruh |
-| `@tauri-apps/plugin-sql` v2 | Database | Abstraksi SQLite untuk Tauri; harus dikonfigurasi dengan benar di Cargo.toml dan capabilities |
-| `@tanstack/react-router` v1 | Routing | File-based routing dengan code generation (`routeTree.gen.ts`); perlu dijalankan kembali saat menambah route baru |
-| Rust toolchain | Build | Required untuk compile Tauri backend; versi harus sesuai dengan `Cargo.lock` |
+| Dependensi                  | Jenis      | Keterangan                                                                                                        |
+| --------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------- |
+| `@astryxdesign/core` v0.3.0 | UI Library | Semua komponen UI bergantung pada library ini; breaking change saat upgrade perlu diuji menyeluruh                |
+| `@tauri-apps/plugin-sql` v2 | Database   | Abstraksi SQLite untuk Tauri; harus dikonfigurasi dengan benar di Cargo.toml dan capabilities                     |
+| `@tanstack/react-router` v1 | Routing    | File-based routing dengan code generation (`routeTree.gen.ts`); perlu dijalankan kembali saat menambah route baru |
+| Rust toolchain              | Build      | Required untuk compile Tauri backend; versi harus sesuai dengan `Cargo.lock`                                      |
 
 ### 9.3 Open Questions
 
-| # | Pertanyaan | Owner | Priority |
-| --- | --- | --- | --- |
-| OQ-1 | Apakah diperlukan fitur **export laporan ke Excel/PDF** untuk v1.0.0, atau cukup untuk v1.1.0? | PM | High |
-| OQ-2 | Bagaimana penanganan jika satu item memiliki **beberapa harga berbeda** dalam satu proyek (multi `item_price_id` per item)? Apakah laporan perlu menggabungkan atau memisahkan per harga? | Tech Lead | Medium |
-| OQ-3 | Apakah diperlukan fitur **print / cetak PO** langsung dari aplikasi sebagai dokumen pengadaan resmi? | PM | Medium |
-| OQ-4 | Di mana file SQLite disimpan secara default di sistem pengguna? Apakah perlu ditampilkan lokasinya di dalam aplikasi (settings page)? | Tech Lead | Low |
-| OQ-5 | Apakah perlu fitur **pencarian global** (misal: cari item atau vendor dari mana saja)? | PM | Low |
+| #    | Pertanyaan                                                                                                                                                                                | Owner     | Priority |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- |
+| OQ-1 | Apakah diperlukan fitur **export laporan ke Excel/PDF** untuk v1.0.0, atau cukup untuk v1.1.0?                                                                                            | PM        | High     |
+| OQ-2 | Bagaimana penanganan jika satu item memiliki **beberapa harga berbeda** dalam satu proyek (multi `item_price_id` per item)? Apakah laporan perlu menggabungkan atau memisahkan per harga? | Tech Lead | Medium   |
+| OQ-3 | Apakah diperlukan fitur **print / cetak PO** langsung dari aplikasi sebagai dokumen pengadaan resmi?                                                                                      | PM        | Medium   |
+| OQ-4 | Di mana file SQLite disimpan secara default di sistem pengguna? Apakah perlu ditampilkan lokasinya di dalam aplikasi (settings page)?                                                     | Tech Lead | Low      |
+| OQ-5 | Apakah perlu fitur **pencarian global** (misal: cari item atau vendor dari mana saja)?                                                                                                    | PM        | Low      |
 
 ---
 
@@ -365,30 +367,30 @@ SQLite Database (via Tauri plugin-sql)
 
 ### 10.1 Glosarium
 
-| Istilah | Definisi |
-| --- | --- |
-| **BOM** | *Bill of Materials* — Daftar kebutuhan material yang direncanakan untuk suatu proyek (setara RAB material). |
-| **PO** | *Purchase Order* — Dokumen pemesanan material kepada vendor. |
-| **Delivery / DLV** | Pencatatan penerimaan barang berdasarkan PO yang sudah dibuat. |
-| **BOM Group** | Grup pekerjaan dalam proyek (misal: Pekerjaan Pondasi, Pekerjaan Atap) sebagai pengelompokan item BOM. |
-| **Soft Delete** | Penghapusan logis dengan mengisi kolom `deleted_at`; data tetap ada di database untuk keperluan audit. |
-| **Planned Budget** | Total anggaran yang direncanakan = SUM(bom.qty x item_price.price). |
-| **Total PO Price** | Total nilai pemesanan realisasi = SUM(po_item.qty x item_price.price). |
-| **Total Delivered** | Total kuantitas material yang sudah diterima = SUM(delivery_item.qty). |
-| **Remaining** | Sisa kuantitas yang belum diterima per PO item = po_item.qty - SUM(delivery_item.qty). |
+| Istilah             | Definisi                                                                                                    |
+| ------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **BOM**             | _Bill of Materials_ — Daftar kebutuhan material yang direncanakan untuk suatu proyek (setara RAB material). |
+| **PO**              | _Purchase Order_ — Dokumen pemesanan material kepada vendor.                                                |
+| **Delivery / DLV**  | Pencatatan penerimaan barang berdasarkan PO yang sudah dibuat.                                              |
+| **BOM Group**       | Grup pekerjaan dalam proyek (misal: Pekerjaan Pondasi, Pekerjaan Atap) sebagai pengelompokan item BOM.      |
+| **Soft Delete**     | Penghapusan logis dengan mengisi kolom `deleted_at`; data tetap ada di database untuk keperluan audit.      |
+| **Planned Budget**  | Total anggaran yang direncanakan = SUM(bom.qty x item_price.price).                                         |
+| **Total PO Price**  | Total nilai pemesanan realisasi = SUM(po_item.qty x item_price.price).                                      |
+| **Total Delivered** | Total kuantitas material yang sudah diterima = SUM(delivery_item.qty).                                      |
+| **Remaining**       | Sisa kuantitas yang belum diterima per PO item = po_item.qty - SUM(delivery_item.qty).                      |
 
 ### 10.2 Referensi File Kunci
 
-| File | Deskripsi |
-| --- | --- |
-| `src-tauri/migrations/001_init.sql` | Skema database lengkap (semua tabel dan relasi) |
-| `src/configs/app.config.ts` | Konfigurasi navigasi sidebar aplikasi |
-| `src/db/services/report.service.ts` | Business logic laporan BOM & Item Log |
+| File                                               | Deskripsi                                                               |
+| -------------------------------------------------- | ----------------------------------------------------------------------- |
+| `src-tauri/migrations/001_init.sql`                | Skema database lengkap (semua tabel dan relasi)                         |
+| `src/configs/app.config.ts`                        | Konfigurasi navigasi sidebar aplikasi                                   |
+| `src/db/services/report.service.ts`                | Business logic laporan BOM & Item Log                                   |
 | `src/db/repositories/purchase-order.repository.ts` | Repository PO dengan operasi complex (createWithItems, updateWithItems) |
-| `src/db/repositories/delivery.repository.ts` | Repository Delivery dengan tracking per item |
-| `src/routes/index.tsx` | Halaman Dashboard / Laporan utama |
-| `src/routes/__root.tsx` | Root layout: AppShell, SideNav, inisialisasi DB |
+| `src/db/repositories/delivery.repository.ts`       | Repository Delivery dengan tracking per item                            |
+| `src/routes/index.tsx`                             | Halaman Dashboard / Laporan utama                                       |
+| `src/routes/__root.tsx`                            | Root layout: AppShell, SideNav, inisialisasi DB                         |
 
 ---
 
-*Dokumen ini dibuat pada 2026-08-18 dan akan diperbarui seiring perkembangan proyek.*
+_Dokumen ini dibuat pada 2026-08-18 dan akan diperbarui seiring perkembangan proyek._

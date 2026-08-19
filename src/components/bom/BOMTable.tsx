@@ -1,10 +1,7 @@
-import { Pencil, Trash2, Check, X } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
-import { HStack, Table, Text, IconButton, Button, VStack, Divider } from "@astryxdesign/core";
-import { proportional, pixel, type TableColumn, useTableGroupedRows, type TablePlugin } from "@astryxdesign/core/Table";
+import { useEffect, useState } from "react";
+import { Button, Divider, HStack, Table, Text, VStack } from "@astryxdesign/core";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
-import { EntityCode } from "@/components/shared/EntityCode";
 import { BOMGroupDialog } from "@/components/bom/BOMGroupDialog";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
@@ -12,40 +9,30 @@ import { formatNumber } from "@/utils/formatters";
 import { useAppStore } from "@/store/useAppStore";
 import { useBOMStore } from "@/store/useBOMStore";
 import { useMasterStore } from "@/store/useMasterStore";
-import { Plus } from "lucide-react";
 import { useBOMForm } from "./form/useBOMForm";
-import { ItemSelectorCell, QtyInputCell, PriceSelectorCell, TotalEstimasiCell, UnitDisplayCell, ItemCodeDisplayCell } from "./BOMItemCells";
+import { useBOMColumns } from "./table/useBOMColumns";
+import { useBOMTableState } from "./table/useBOMTableState";
 import type { BOMDetail } from "@/db/repositories";
-
-type BomRow = {
-  [K in keyof BOMDetail]: BOMDetail[K];
-} & {
-  isFooter?: boolean;
-  isDraft?: boolean;
-  [key: string]: unknown;
-};
 
 interface BOMTableProps {
   refreshTrigger?: number;
 }
 
 export function BOMTable({ refreshTrigger }: BOMTableProps) {
-  const { boms, bomGroups = [], deleteBOM, loadBOMs } = useBOMStore();
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
-  const [isItemFormOpen, setIsItemFormOpen] = useState(false);
-  const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
-
-  // State untuk form inline
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingData, setEditingData] = useState<BOMDetail | undefined>(undefined);
-  const [editingGroupId, setEditingGroupId] = useState<string | undefined>(undefined);
-
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const projects = useMasterStore((s) => s.projects);
-  const currentProject = projects.find(p => p.project_id === selectedProjectId);
-  const isApproved = currentProject?.bom_is_approved === 1;
+  const { boms, bomGroups = [], deleteBOM, loadBOMs } = useBOMStore(),
+    [deleteTarget, setDeleteTarget] = useState<string | null>(null),
+    [deleting, setDeleting] = useState(false),
+    [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false),
+    [isItemFormOpen, setIsItemFormOpen] = useState(false),
+    [isPriceFormOpen, setIsPriceFormOpen] = useState(false),
+    // State untuk form inline
+    [editingId, setEditingId] = useState<string | null>(null),
+    [editingData, setEditingData] = useState<BOMDetail | undefined>(),
+    [editingGroupId, setEditingGroupId] = useState<string | undefined>(),
+    selectedProjectId = useAppStore((s) => s.selectedProjectId),
+    projects = useMasterStore((s) => s.projects),
+    currentProject = projects.find((p) => p.project_id === selectedProjectId),
+    isApproved = currentProject?.bom_is_approved === 1;
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -54,7 +41,9 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   }, [refreshTrigger, selectedProjectId]);
 
   async function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
     setDeleting(true);
     try {
       await deleteBOM(deleteTarget);
@@ -65,305 +54,36 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
   }
 
   const { form, items, handleItemChange } = useBOMForm({
-    initialData: editingData,
-    defaultGroupId: editingGroupId || "",
-    onSuccess: () => {
-      setEditingId(null);
-      setEditingData(undefined);
-      setEditingGroupId(undefined);
-    },
-  });
-
-  const baseColumns: TableColumn<BomRow>[] = [
-    {
-      key: "item_code_full",
-      header: "Kode Item",
-      width: pixel(160),
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) return null;
-        if (row.bom_id === editingId) {
-          // You could display the code of the selected item here using a new cell, or just skip it
-          return <ItemCodeDisplayCell form={form} items={items} />;
-        }
-        const code = `${row.category_prefix || ""} ${row.category_code || ""} ${row.item_code || ""}`.trim();
-        return code ? <EntityCode prefix="" id={code} /> : "-";
-      }
-    },
-    {
-      key: "item_name",
-      header: "Nama Item",
-      width: proportional(1),
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) return null;
-        if (row.bom_id === editingId) {
-          return <ItemSelectorCell form={form} items={items} handleItemChange={handleItemChange} onAddNewItem={() => setIsItemFormOpen(true)} />;
-        }
-        return row.item_name;
-      }
-    },
-    {
-      key: "unit",
-      header: "Satuan",
-      width: pixel(80),
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) return null;
-        if (row.bom_id === editingId) {
-          return <UnitDisplayCell form={form} items={items} />;
-        }
-        return row.unit || "-";
-      }
-    },
-    {
-      key: "subtotal",
-      header: "Subtotal (Rp)",
-      width: pixel(220),
-      align: "end",
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) {
-          return <Text type="code" weight="bold">{formatNumber(row.price)}</Text>;
-        }
-        const subtotal = (row.qty || 0) * (row.price || 0);
-        return <Text type="code" weight="medium">{formatNumber(subtotal)}</Text>;
-      }
-    },
-    {
-      key: "qty",
-      header: "Volume Rencana",
-      width: pixel(140),
-      align: "end",
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) return null;
-        if (row.bom_id === editingId) {
-          return <QtyInputCell form={form} />;
-        }
-        return <Text type="code">{formatNumber(row.qty, 6)}</Text>;
-      }
-    },
-    {
-      key: "price",
-      header: "Harga Rencana (Rp)",
-      width: pixel(220),
-      align: "end",
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) return null;
-        if (row.bom_id === editingId) {
-          return <PriceSelectorCell form={form} editingId={editingId} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
-        }
-        return <Text type="code">{formatNumber(row.price)}</Text>;
-      }
-    },
-    {
-      key: "estimation",
-      header: "Total Estimasi (Rp)",
-      width: pixel(260),
-      align: "end",
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) return null;
-        if (row.bom_id === editingId) {
-          return <TotalEstimasiCell form={form} />;
-        }
-        return <Text type="code">{formatNumber(row.estimated_total || 0)}</Text>;
-      }
-    },
-    {
-      key: "actions",
-      header: "Aksi",
-      align: "end",
-      width: pixel(100),
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) return null;
-
-        if (row.bom_id === editingId) {
-          return (
-            <HStack gap={2} justify="end">
-              <form.Subscribe selector={(s) => s.canSubmit}>
-                {(canSubmit) => (
-                  <IconButton
-                    size="sm"
-                    variant="primary"
-                    label="Simpan"
-                    icon={<Check size={16} />}
-                    isDisabled={!canSubmit}
-                    onClick={() => {
-                      form.handleSubmit();
-                    }}
-                  />
-                )}
-              </form.Subscribe>
-              <IconButton
-                size="sm"
-                variant="secondary"
-                label="Batal"
-                icon={<X size={16} />}
-                onClick={() => {
-                  setEditingId(null);
-                  setEditingData(undefined);
-                  setEditingGroupId(undefined);
-                  form.reset();
-                }}
-              />
-            </HStack>
-          );
-        }
-
-        return (
-          <HStack gap={2} justify="end">
-            {!isApproved && (
-              <>
-                <IconButton
-                  size="sm"
-                  variant="secondary"
-                  label="Edit"
-                  icon={<Pencil size={16} />}
-                  isDisabled={!!editingId}
-                  onClick={() => {
-                    setEditingId(row.bom_id);
-                    setEditingData(row as BOMDetail);
-                    setEditingGroupId(row.bom_group_id);
-                  }}
-                />
-                <IconButton
-                  size="sm"
-                  variant="destructive"
-                  label="Hapus"
-                  icon={<Trash2 size={16} />}
-                  isDisabled={!!editingId}
-                  onClick={() => setDeleteTarget(row.bom_id)}
-                />
-              </>
-            )}
-          </HStack>
-        );
+      defaultGroupId: editingGroupId || "",
+      initialData: editingData,
+      onSuccess: () => {
+        setEditingId(null);
+        setEditingData(undefined);
+        setEditingGroupId(undefined);
       },
-    },
-  ];
-
-  const columns = isApproved ? baseColumns.slice(0, -1) : baseColumns;
-
-  const { grandTotal, categorySubtotals } = useMemo(() => {
-    let grand = 0;
-    const subtotals: Record<string, number> = {};
-    for (const b of boms) {
-      const cat = b.bom_group_id || "LAINNYA";
-      const total = b.estimated_total || 0;
-      grand += total;
-      subtotals[cat] = (subtotals[cat] || 0) + total;
-    }
-    return { grandTotal: grand, categorySubtotals: subtotals };
-  }, [boms]);
-
-  // Create a map to get group names from group ids
-  const groupNameMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const bg of bomGroups) {
-      map[bg.bom_group_id] = bg.group_name;
-    }
-    for (const b of boms) {
-      if (b.bom_group_id && !map[b.bom_group_id]) {
-        map[b.bom_group_id] = b.bom_group_name || "Grup Tidak Diketahui";
-      }
-    }
-    return map;
-  }, [boms, bomGroups]);
-
-  const dataWithFooters = useMemo(() => {
-    const list = [...boms] as BomRow[];
-    const groupIds = new Set(boms.map(b => b.bom_group_id));
-
-    // Add all empty groups from bomGroups
-    for (const bg of bomGroups) {
-      groupIds.add(bg.bom_group_id);
-    }
-
-    for (const gid of groupIds) {
-      if (!gid) continue;
-      
-      if (editingId === `new-${gid}`) {
-        list.push({ bom_id: `new-${gid}`, bom_group_id: gid, isDraft: true } as unknown as BomRow);
-      }
-      if (!isApproved) {
-        list.push({ isFooter: true, bom_group_id: gid, bom_id: `footer-${gid}` } as unknown as BomRow);
-      }
-    }
-    return list;
-  }, [boms, editingId, isApproved]);
-
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
-
-  const { data: groupedData, plugin: groupedPlugin, idKey: groupedIdKey } = useTableGroupedRows<BomRow>({
-    data: dataWithFooters,
-    groupBy: (item) => item.bom_group_id,
-    collapsedGroups,
-    onToggleGroup: (key) => {
-      if (!editingId) {
-        setCollapsedGroups((prev) => {
-          const next = new Set(prev);
-          if (next.has(key)) next.delete(key);
-          else next.add(key);
-          return next;
-        });
-      }
-    },
-    getRowKey: (item) => String(item.bom_id),
-    renderGroupHeader: (key) => {
-      const groupName = groupNameMap[key] || "Grup Tidak Diketahui";
-      return (
-        <HStack justify="between" align="center" paddingInline={1} width="100%">
-          <Text weight="bold">{groupName}</Text>
-          <HStack paddingInline={2}>
-            <Text type="code" weight="bold">{formatNumber(categorySubtotals[key] || 0)}</Text>
-          </HStack>
-        </HStack>
-      );
-    },
-  });
-
-  const footerPlugin = useMemo((): TablePlugin<BomRow> => ({
-    transformBodyRow(props, item) {
-      if ((item as any).isFooter) {
-        const groupId = item.bom_group_id;
-
-        // Hide Tambah Kebutuhan if we are already adding/editing something
-        const hideButton = !!editingId;
-
-        return {
-          ...props,
-          children: (
-            <td colSpan={999} style={{ padding: "8px 16px", background: "var(--color-bg-base)", borderBottom: "1px solid var(--color-border)" }}>
-              {!hideButton && !isApproved && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  icon={<Plus size={16} />}
-                  label="Tambah Kebutuhan"
-                  onClick={() => {
-                    setEditingData(undefined);
-                    setEditingGroupId(groupId);
-                    setEditingId(`new-${groupId}`);
-                    setCollapsedGroups(prev => {
-                      const next = new Set(prev);
-                      next.delete(groupId);
-                      return next;
-                    });
-                  }}
-                />
-              )}
-            </td>
-          )
-        };
-      }
-
-      // Give a slight highlighted background to the active editing row
-      if (item.bom_id === editingId) {
-        return {
-          ...props,
-          xstyle: [...props.xstyle, { background: "var(--color-bg-muted)" }]
-        };
-      }
-
-      return props;
-    }
-  }), [editingId]);
+    }),
+    columns = useBOMColumns({
+      editingId,
+      form,
+      handleItemChange,
+      isApproved,
+      items,
+      setDeleteTarget,
+      setEditingData,
+      setEditingGroupId,
+      setEditingId,
+      setIsItemFormOpen,
+      setIsPriceFormOpen,
+    }),
+    { grandTotal, groupedData, groupedPlugin, groupedIdKey, footerPlugin } = useBOMTableState({
+      bomGroups,
+      boms,
+      editingId,
+      isApproved,
+      setEditingData,
+      setEditingGroupId,
+      setEditingId,
+    });
 
   return (
     <>
@@ -373,22 +93,28 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         columns={columns}
         data={groupedData}
         idKey={groupedIdKey}
-        plugins={{ grouping: groupedPlugin, footer: footerPlugin }}
-        emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan melalui tombol di bawah." />}
+        plugins={{ footer: footerPlugin, grouping: groupedPlugin }}
+        emptyState={
+          <TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan melalui tombol di bawah." />
+        }
       />
       <VStack>
         <Divider />
         <HStack justify="between" paddingBlock={3} gap={2}>
-          {!isApproved ? (
+          {isApproved ? (
+            <div />
+          ) : (
             <Button
               variant="secondary"
               label="Kelola Grup Pekerjaan"
               onClick={() => setIsGroupDialogOpen(true)}
             />
-          ) : <div />}
+          )}
           {boms.length > 0 && (
             <HStack justify="end" gap={2} style={{ flex: 1 }}>
-              <Text weight="bold" size="lg">Total (Rp):</Text>
+              <Text weight="bold" size="lg">
+                Total (Rp):
+              </Text>
               <Text type="code" weight="bold" size="lg" color="primary">
                 {formatNumber(grandTotal)}
               </Text>
@@ -397,7 +123,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
         </HStack>
       </VStack>
       <ConfirmDialog
-        isOpen={!!deleteTarget}
+        isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Kebutuhan"
@@ -420,7 +146,7 @@ export function BOMTable({ refreshTrigger }: BOMTableProps) {
           setIsPriceFormOpen(false);
           handleItemChange(form.getFieldValue("item_id"));
         }}
-        item={items.find((i: any) => i.item_id === form.getFieldValue("item_id")) as any || null}
+        item={(items.find((i: any) => i.item_id === form.getFieldValue("item_id")) as any) || null}
       />
     </>
   );

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Section, VStack, Button } from "@astryxdesign/core";
+import { Button, Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterUnitTable } from "@/components/master/MasterUnitTable";
 import { MasterUnitForm } from "@/components/master/MasterUnitForm";
@@ -11,13 +11,13 @@ export const Route = createFileRoute("/master/satuan")({
 });
 
 function MasterSatuanPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<Unit | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false),
+    [editTarget, setEditTarget] = useState<Unit | null>(null);
 
   useEffect(() => {
     const handleOpen = () => openCreate();
-    window.addEventListener('openMasterCreate', handleOpen);
-    return () => window.removeEventListener('openMasterCreate', handleOpen);
+    window.addEventListener("openMasterCreate", handleOpen);
+    return () => window.removeEventListener("openMasterCreate", handleOpen);
   }, []);
 
   function openCreate() {
@@ -36,13 +36,7 @@ function MasterSatuanPage() {
         <PageHeader
           title="Master Data Satuan"
           subtitle="Kelola data satuan item"
-          actions={
-            <Button
-              variant="primary"
-              label="Tambah Satuan"
-              onClick={openCreate}
-            />
-          }
+          actions={<Button variant="primary" label="Tambah Satuan" onClick={openCreate} />}
         />
         <MasterUnitTable onEdit={openEdit} />
         <MasterUnitForm

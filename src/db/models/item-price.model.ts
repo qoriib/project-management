@@ -11,9 +11,9 @@ export type CreateItemPrice = Pick<ItemPrice, "item_id" | "price">;
 export type UpdateItemPrice = Partial<Pick<ItemPrice, "price">>;
 
 export const ItemPriceModel: ModelDefinition = {
-  tableName: "item_prices",
-  primaryKey: "item_price_id",
   createColumns: ["item_id", "price"],
-  updateColumns: ["price"],
+  primaryKey: "item_price_id",
   softDelete: true,
+  tableName: "item_prices",
+  updateColumns: ["price"],
 };

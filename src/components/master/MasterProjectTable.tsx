@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Table, HStack, IconButton, Button, Text } from "@astryxdesign/core";
-import { proportional, pixel, type TableColumn } from "@astryxdesign/core/Table";
+import { Button, HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -13,18 +13,19 @@ interface MasterProjectTableProps {
   onEdit: (project: Project) => void;
 }
 
-type ProjectRow = ProjectWithRelations & Record<string, unknown>;
+interface ProjectRow extends ProjectWithRelations, Record<string, unknown> {}
 
 export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
-  const showToast = useToast();
-
-  const { projects, deleteProject } = useMasterStore();
-  const { selectedProjectId, setSelectedProjectId } = useAppStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const showToast = useToast(),
+    { projects, deleteProject } = useMasterStore(),
+    { selectedProjectId, setSelectedProjectId } = useAppStore(),
+    [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null),
+    [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
 
     setDeleting(true);
 
@@ -32,36 +33,34 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       await deleteProject(deleteTarget.id);
       showToast({ body: "Project berhasil dihapus", type: "info" });
       setDeleteTarget(null);
-    } catch (err: any) {
-      showToast({ body: err.message || "Gagal menghapus project", type: "error" });
+    } catch (error: any) {
+      showToast({ body: error.message || "Gagal menghapus project", type: "error" });
     } finally {
       setDeleting(false);
     }
   }
 
   const columns: TableColumn<ProjectRow>[] = [
-
     {
-      key: "project_name",
       header: "Nama Proyek",
-      width: proportional(2)
+      key: "project_name",
+      width: proportional(2),
     },
     {
-      key: "company_name",
       header: "Nama Perusahaan",
-      width: proportional(1.5)
+      key: "company_name",
+      width: proportional(1.5),
     },
     {
-      key: "fiscal_year",
-      header: "Tahun",
-      width: pixel(100),
       align: "end",
-      renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year}</Text>
+      header: "Tahun",
+      key: "fiscal_year",
+      renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year}</Text>,
+      width: pixel(100),
     },
     {
-      key: "actions",
       header: "",
-      width: pixel(300),
+      key: "actions",
       renderCell: (row: ProjectRow) => {
         const isActive = row.project_id === selectedProjectId;
         return (
@@ -72,13 +71,13 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
               label={isActive ? "Aktif" : "Aktifkan"}
               onClick={() => setSelectedProjectId(isActive ? null : row.project_id)}
             />
-          <IconButton
-            size="sm"
-            variant="secondary"
-            label="Edit"
-            icon={<Pencil size={16} />}
-            onClick={() => onEdit(row)}
-          />
+            <IconButton
+              size="sm"
+              variant="secondary"
+              label="Edit"
+              icon={<Pencil size={16} />}
+              onClick={() => onEdit(row)}
+            />
             <IconButton
               size="sm"
               variant="destructive"
@@ -90,6 +89,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
           </HStack>
         );
       },
+      width: pixel(300),
     },
   ];
 
@@ -104,7 +104,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
         emptyState={<TableEmptyState message="Belum ada project." />}
       />
       <ConfirmDialog
-        isOpen={!!deleteTarget}
+        isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Master Data"
