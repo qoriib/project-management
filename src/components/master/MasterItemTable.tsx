@@ -1,22 +1,21 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Badge, Button, HStack, IconButton, Table } from "@astryxdesign/core";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
-
-import type { ItemWithDetails } from "@/db/repositories";
 import { handleFormError } from "@/utils/form";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import type { ItemWithDetails } from "@/db/repositories";
 
 interface MasterItemTableProps {
   onEdit: (item: ItemWithDetails) => void;
 }
 
-interface ItemRow extends ItemWithDetails, Record<string, unknown> {}
+interface ItemRow extends ItemWithDetails, Record<string, unknown> { }
 
 export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   const showToast = useToast();

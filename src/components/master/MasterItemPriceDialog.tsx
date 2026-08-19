@@ -17,16 +17,16 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
-import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError, handleFormError } from "@/utils/form";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
-interface PriceRow extends ItemPriceWithRelation, Record<string, unknown> {}
+interface PriceRow extends ItemPriceWithRelation, Record<string, unknown> { }
 
 const priceSchema = v.object({
   price: v.pipe(v.number("Harga harus berupa angka"), v.minValue(0, "Harga tidak valid.")),
@@ -39,31 +39,32 @@ interface MasterItemPriceDialogProps {
 }
 
 export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPriceDialogProps) {
-  const showToast = useToast(),
-    { createItemPrice, deleteItemPrice } = useMasterStore(),
-    [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null),
-    [deleting, setDeleting] = useState(false),
-    [prices, setPrices] = useState<ItemPriceWithRelation[]>([]),
-    form = useForm({
-      defaultValues: {
-        price: null as unknown as number,
-      },
-      onSubmit: async ({ value }) => {
-        if (!item) return;
+  const showToast = useToast()
+  const { createItemPrice, deleteItemPrice } = useMasterStore()
+  const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [prices, setPrices] = useState<ItemPriceWithRelation[]>([])
 
-        try {
-          await createItemPrice({ item_id: item.item_id, price: value.price });
+  const form = useForm({
+    defaultValues: {
+      price: null as unknown as number,
+    },
+    onSubmit: async ({ value }) => {
+      if (!item) return;
 
-          form.reset();
-          await loadPrices();
-        } catch (err: any) {
-          handleFormError(err, showToast);
-        }
-      },
-      validators: {
-        onChange: priceSchema,
-      },
-    });
+      try {
+        await createItemPrice({ item_id: item.item_id, price: value.price });
+
+        form.reset();
+        await loadPrices();
+      } catch (err: any) {
+        handleFormError(err, showToast);
+      }
+    },
+    validators: {
+      onChange: priceSchema,
+    },
+  });
 
   async function loadPrices() {
     if (!item) {
@@ -89,7 +90,9 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     if (!deleteTarget || !item) {
       return;
     }
+
     setDeleting(true);
+
     try {
       await deleteItemPrice(deleteTarget.item_price_id, item.item_id);
       setDeleteTarget(null);
@@ -106,17 +109,18 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       align: "end",
       header: "Harga (Rp)",
       key: "price",
+      width: proportional(1),
       renderCell: (row: ItemPriceWithRelation) => (
         <HStack gap={2} align="center" justify="end">
           <Text type="code">{formatNumber(row.price)}</Text>
           {row.has_relation && <Badge variant="info" label="Digunakan" />}
         </HStack>
       ),
-      width: proportional(1),
     },
     {
-      header: "",
+      header: "Aksi",
       key: "actions",
+      width: pixel(100),
       renderCell: (row: ItemPriceWithRelation) => {
         const locked = row.has_relation;
         return (
@@ -131,8 +135,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
             />
           </HStack>
         );
-      },
-      width: pixel(100),
+      }
     },
   ];
 
@@ -152,10 +155,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
             }
           />
           <Table
-            columns={columns}
-            data={prices as PriceRow[]}
             idKey="item_price_id"
             textOverflow="truncate"
+            columns={columns}
+            data={prices as PriceRow[]}
             emptyState={<TableEmptyState message="Belum ada harga. Tambahkan di bawah." />}
           />
           <form
@@ -206,11 +209,11 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         </VStack>
       </Dialog>
       <ConfirmDialog
+        title="Hapus Harga"
+        message={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}?`}
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Hapus Harga"
-        message={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}? Harga yang masih digunakan di BOM/PO tidak bisa dihapus.`}
         isLoading={deleting}
       />
     </>

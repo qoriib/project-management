@@ -1,20 +1,20 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button, HStack, IconButton, Table, Text } from "@astryxdesign/core";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
-import type { Project, ProjectWithRelations } from "@/db/repositories";
 import { handleFormError } from "@/utils/form";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import type { Project, ProjectWithRelations } from "@/db/repositories";
 
 interface MasterProjectTableProps {
   onEdit: (project: Project) => void;
 }
 
-interface ProjectRow extends ProjectWithRelations, Record<string, unknown> {}
+interface ProjectRow extends ProjectWithRelations, Record<string, unknown> { }
 
 export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   const showToast = useToast();

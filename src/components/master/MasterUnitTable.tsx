@@ -1,14 +1,13 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { HStack, IconButton, Table, Text } from "@astryxdesign/core";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
-
-import type { Unit } from "@/db/repositories";
 import { handleFormError } from "@/utils/form";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import type { Unit } from "@/db/repositories";
 
 interface MasterUnitTableProps {
   onEdit: (unit: Unit) => void;
