@@ -26,10 +26,7 @@ export async function seedProjects(): Promise<void> {
   ];
 
   for (const proj of projects) {
-    const exists = await projectRepo.exists(
-      { project_name: proj.projectName },
-      true,
-    );
+    const exists = await projectRepo.exists({ project_name: proj.projectName }, true);
     if (!exists) {
       await projectRepo.create({
         company_name: proj.companyName,

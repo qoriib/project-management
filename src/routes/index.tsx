@@ -11,14 +11,14 @@ import { type BOMReportItem, getBOMReport } from "@/db/services";
 
 function DashboardPage() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  
-  const [report, setReport] = useState<BOMReportItem[]>([])
-  const [loading, setLoading] = useState(true)
+
+  const [report, setReport] = useState<BOMReportItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [logItem, setLogItem] = useState<{
-      itemId: string;
-      itemPriceId: string;
-      itemName: string;
-    } | null>(null)
+    itemId: string;
+    itemPriceId: string;
+    itemName: string;
+  } | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -39,7 +39,7 @@ function DashboardPage() {
     load();
   }, [selectedProjectId]);
 
-  const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0)
+  const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0);
   const totalPO = report.reduce((sum, r) => sum + r.total_po_price, 0);
 
   return (
@@ -50,17 +50,11 @@ function DashboardPage() {
           subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
         />
         <ProjectRequired>
-          <ReportSummaryCards
-            totalBudget={totalBudget}
-            totalPO={totalPO}
-            loading={loading}
-          />
+          <ReportSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
           <ReportBOMTable
             report={report}
             loading={loading}
-            onLogClick={(id, priceId, name) =>
-              setLogItem({ itemId: id, itemName: name, itemPriceId: priceId })
-            }
+            onLogClick={(id, priceId, name) => setLogItem({ itemId: id, itemName: name, itemPriceId: priceId })}
           />
         </ProjectRequired>
       </VStack>

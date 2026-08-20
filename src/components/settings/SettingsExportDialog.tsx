@@ -1,11 +1,4 @@
-import {
-  Button,
-  Dialog,
-  VStack,
-  Text,
-  HStack,
-  Heading,
-} from "@astryxdesign/core";
+import { Button, Dialog, VStack, Text, HStack, Heading } from "@astryxdesign/core";
 import { Selector } from "@astryxdesign/core/Selector";
 import { useState, useEffect } from "react";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -17,15 +10,8 @@ interface SettingsExportDialogProps {
   isLoading: boolean;
 }
 
-export function SettingsExportDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  isLoading,
-}: SettingsExportDialogProps) {
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null,
-  );
+export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: SettingsExportDialogProps) {
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const projects = useMasterStore((state) => state.projects);
 
@@ -53,8 +39,7 @@ export function SettingsExportDialog({
       <VStack gap={4}>
         <Heading level={3}>Ekspor Data</Heading>
         <Text color="secondary">
-          Pilih proyek mana yang ingin Anda ekspor. File backup ini dapat
-          digunakan untuk memindahkan data proyek.
+          Pilih proyek mana yang ingin Anda ekspor. File backup ini dapat digunakan untuk memindahkan data proyek.
         </Text>
 
         <Selector
@@ -67,12 +52,7 @@ export function SettingsExportDialog({
         />
 
         <HStack gap={2} justify="end" style={{ marginTop: "var(--spacing-2)" }}>
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            isDisabled={isLoading}
-            label="Batal"
-          />
+          <Button variant="secondary" onClick={onClose} isDisabled={isLoading} label="Batal" />
           <Button
             variant="primary"
             onClick={() => {

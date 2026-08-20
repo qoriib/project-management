@@ -22,21 +22,15 @@ export async function seedDeliveries(): Promise<void> {
     poRows = await db.select<{ po_id: string; po_date: string }[]>(
       "SELECT po_id, po_date FROM purchase_orders WHERE deleted_at IS NULL",
     ),
-    poItemRows = await db.select<
-      { po_item_id: string; po_id: string; item_name: string }[]
-    >(`
+    poItemRows = await db.select<{ po_item_id: string; po_id: string; item_name: string }[]>(`
     SELECT poi.po_item_id, poi.po_id, i.item_name
     FROM po_items poi
     JOIN items i ON i.item_id = poi.item_id
   `),
     // Maps: po_date → po_id
-    poDateMap = new Map<string, string>(
-      poRows.map((r) => [r.po_date, r.po_id]),
-    ),
+    poDateMap = new Map<string, string>(poRows.map((r) => [r.po_date, r.po_id])),
     // Map: "po_id|item_name" → po_item_id
-    poItemMap = new Map<string, string>(
-      poItemRows.map((r) => [`${r.po_id}|${r.item_name}`, r.po_item_id]),
-    ),
+    poItemMap = new Map<string, string>(poItemRows.map((r) => [`${r.po_id}|${r.item_name}`, r.po_item_id])),
     deliveries: SeedDelivery[] = [
       // PO 1: poDate=2026-03-01
       {
@@ -75,9 +69,7 @@ export async function seedDeliveries(): Promise<void> {
       },
       {
         deliveryDate: "2026-03-20",
-        items: [
-          { poDate: "2026-03-05", itemName: "Semen Portland 50 Kg", qty: 50 },
-        ],
+        items: [{ poDate: "2026-03-05", itemName: "Semen Portland 50 Kg", qty: 50 }],
         poDate: "2026-03-05",
       },
       // PO 3: poDate=2026-03-10
@@ -262,9 +254,7 @@ export async function seedDeliveries(): Promise<void> {
   for (const d of deliveries) {
     const poId = poDateMap.get(d.poDate);
     if (!poId) {
-      console.warn(
-        `Could not find PO with date '${d.poDate}'. Skipping delivery.`,
-      );
+      console.warn(`Could not find PO with date '${d.poDate}'. Skipping delivery.`);
       continue;
     }
 
@@ -282,26 +272,19 @@ export async function seedDeliveries(): Promise<void> {
       for (const it of d.items) {
         const itemPoId = poDateMap.get(it.poDate);
         if (!itemPoId) {
-          console.warn(
-            `Could not find PO '${it.poDate}' for item '${it.itemName}'. Skipping item.`,
-          );
+          console.warn(`Could not find PO '${it.poDate}' for item '${it.itemName}'. Skipping item.`);
           continue;
         }
         const poItemId = poItemMap.get(`${itemPoId}|${it.itemName}`);
         if (!poItemId) {
-          console.warn(
-            `Could not find po_item for PO '${it.poDate}' + item '${it.itemName}'. Skipping item.`,
-          );
+          console.warn(`Could not find po_item for PO '${it.poDate}' + item '${it.itemName}'. Skipping item.`);
           continue;
         }
         resolvedItems.push({ po_item_id: poItemId, qty: it.qty });
       }
 
       if (resolvedItems.length > 0) {
-        const timestamp = new Date(d.deliveryDate)
-            .getTime()
-            .toString()
-            .slice(-4),
+        const timestamp = new Date(d.deliveryDate).getTime().toString().slice(-4),
           generatedCode = `NP/${timestamp}`;
 
         await deliveryRepo.createWithItems(

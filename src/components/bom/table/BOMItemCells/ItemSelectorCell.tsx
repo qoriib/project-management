@@ -10,12 +10,7 @@ export interface ItemSelectorCellProps extends BaseCellProps {
   onAddNewItem: () => void;
 }
 
-export function ItemSelectorCell({
-  form,
-  items,
-  handleItemChange,
-  onAddNewItem,
-}: ItemSelectorCellProps) {
+export function ItemSelectorCell({ form, items, handleItemChange, onAddNewItem }: ItemSelectorCellProps) {
   return (
     <HStack gap={1} align="start" width="100%">
       <VStack width="100%">
@@ -34,20 +29,12 @@ export function ItemSelectorCell({
                 value: it.item_id,
               }))}
               statusVariant="tooltip"
-              status={getFieldError(
-                field.state.meta.errors,
-                field.state.meta.isTouched,
-              )}
+              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
             />
           )}
         </form.Field>
       </VStack>
-      <IconButton
-        variant="secondary"
-        label="Tambah Item Baru"
-        icon={<Plus size={16} />}
-        onClick={onAddNewItem}
-      />
+      <IconButton variant="secondary" label="Tambah Item Baru" icon={<Plus size={16} />} onClick={onAddNewItem} />
     </HStack>
   );
 }

@@ -5,17 +5,7 @@
 
 // ── SQL Operators ────────────────────────────────────────────────────────────
 
-export type WhereOperator =
-  | "="
-  | "!="
-  | ">"
-  | "<"
-  | ">="
-  | "<="
-  | "LIKE"
-  | "IN"
-  | "IS NULL"
-  | "IS NOT NULL";
+export type WhereOperator = "=" | "!=" | ">" | "<" | ">=" | "<=" | "LIKE" | "IN" | "IS NULL" | "IS NOT NULL";
 
 export type OrderDirection = "ASC" | "DESC";
 export type JoinType = "INNER" | "LEFT" | "RIGHT";

@@ -8,13 +8,7 @@ import { usePOStore } from "@/store/usePOStore";
 
 function POEditPage() {
   const { id } = useParams({ strict: false });
-  const {
-    currentPO: po,
-    currentItems,
-    currentBOMData,
-    loadPODetail,
-    clearPODetail,
-  } = usePOStore();
+  const { currentPO: po, currentItems, currentBOMData, loadPODetail, clearPODetail } = usePOStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,10 +40,7 @@ function POEditPage() {
   return (
     <Section padding={6}>
       <VStack gap={6}>
-        <PageHeader
-          title="Edit Pemesanan"
-          subtitle="Perbarui informasi dan daftar item pesanan pembelian"
-        />
+        <PageHeader title="Edit Pemesanan" subtitle="Perbarui informasi dan daftar item pesanan pembelian" />
         <POForm po={po} initialItems={currentItems} bomData={currentBOMData} />
       </VStack>
     </Section>

@@ -13,11 +13,7 @@ import {
   ItemCodeDisplayCell,
   UnitDisplayCell,
 } from "@/components/po/table/POItemCells";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { POItemDetail } from "@/db/repositories";
 import type { BOMReportItem } from "@/db/services";
 import type { usePOItemForm } from "@/components/po/form/usePOItemForm";
@@ -63,9 +59,7 @@ export function usePOItemFormColumns({
         if (row.isFooter) return <div />;
 
         if (row.po_item_id === editingId) {
-          const selectedItemIds = new Set(
-            items.map((i) => i.item_id).filter(Boolean) as string[],
-          );
+          const selectedItemIds = new Set(items.map((i) => i.item_id).filter(Boolean) as string[]);
 
           return (
             <VStack gap={1} align="start" width="100%">
@@ -73,9 +67,7 @@ export function usePOItemFormColumns({
                 form={form}
                 bomOptions={bomData}
                 selectedItemIds={selectedItemIds}
-                onChangeItem={
-                  handleItemChange as (itemId: string) => Promise<void>
-                }
+                onChangeItem={handleItemChange as (itemId: string) => Promise<void>}
                 editingId={editingId}
               />
               <ItemCodeDisplayCell form={form} />
@@ -108,18 +100,10 @@ export function usePOItemFormColumns({
         if (row.isFooter) return <div />;
 
         if (row.po_item_id === editingId) {
-          return (
-            <PriceSelectorCell
-              form={form}
-              onAddNewPrice={() => setIsPriceFormOpen(true)}
-            />
-          );
+          return <PriceSelectorCell form={form} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
         }
 
-        const bomItem = bomData.find(
-          (b) =>
-            b.item_id === row.item_id && b.item_price_id === row.item_price_id,
-        );
+        const bomItem = bomData.find((b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id);
         const bomPrice = bomItem?.price ?? 0;
 
         return (
@@ -148,13 +132,7 @@ export function usePOItemFormColumns({
         if (row.isFooter) return <div />;
 
         if (row.po_item_id === editingId) {
-          return (
-            <VendorSelectorCell
-              form={form}
-              vendors={vendors}
-              onAddNewVendor={() => setIsVendorFormOpen(true)}
-            />
-          );
+          return <VendorSelectorCell form={form} vendors={vendors} onAddNewVendor={() => setIsVendorFormOpen(true)} />;
         }
 
         return row.vendor_name ?? "—";
@@ -204,11 +182,7 @@ export function usePOItemFormColumns({
           return <SubtotalCell form={form} />;
         }
 
-        return (
-          <Text type="code">
-            {formatNumber((row.qty ?? 0) * (row.price ?? 0))}
-          </Text>
-        );
+        return <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0))}</Text>;
       },
       width: pixel(180),
     },

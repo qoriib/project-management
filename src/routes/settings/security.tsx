@@ -1,12 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Button,
-  Heading,
-  Text,
-  TextInput,
-  VStack,
-  HStack,
-} from "@astryxdesign/core";
+import { Button, Heading, Text, TextInput, VStack, HStack } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { changePin } from "@/db/services/auth.service";
@@ -49,8 +42,8 @@ function SettingsSecurity() {
       <VStack width="100%" gap={1}>
         <Heading level={3}>Keamanan & PIN Akses</Heading>
         <Text type="supporting" color="secondary">
-          Kelola PIN yang digunakan untuk masuk ke dalam aplikasi. Jika Anda
-          lupa PIN, Anda tidak akan bisa membuka aplikasi.
+          Kelola PIN yang digunakan untuk masuk ke dalam aplikasi. Jika Anda lupa PIN, Anda tidak akan bisa membuka
+          aplikasi.
         </Text>
       </VStack>
       <VStack gap={3} width={480}>
@@ -70,19 +63,14 @@ function SettingsSecurity() {
                   type="text"
                   placeholder="6 digit PIN baru"
                   value={field.state.value}
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   onBlur={field.handleBlur}
                   onChange={(val) => field.handleChange(sanitizePin(val))}
                 />
               )}
             />
             <form.Subscribe
-              selector={(state) =>
-                [state.canSubmit, state.isSubmitting] as const
-              }
+              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
                 <Button
                   type="submit"

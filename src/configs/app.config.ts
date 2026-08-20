@@ -1,11 +1,4 @@
-import {
-  ClipboardList,
-  Folder,
-  LayoutDashboard,
-  Settings,
-  ShoppingCart,
-  Truck,
-} from "lucide-react";
+import { ClipboardList, Folder, LayoutDashboard, Settings, ShoppingCart, Truck } from "lucide-react";
 
 export enum AppRole {
   MANAGER = "Manager",

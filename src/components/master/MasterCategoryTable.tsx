@@ -7,11 +7,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
 import type { ItemCategory } from "@/db/repositories";
 
 interface MasterCategoryTableProps {
@@ -51,8 +47,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
 
   const categoryRows = categories.map((category) => ({
     ...category,
-    count: items.filter((item) => item.category_id === category.category_id)
-      .length,
+    count: items.filter((item) => item.category_id === category.category_id).length,
   }));
 
   const columns: TableColumn<CategoryRow>[] = [
@@ -79,9 +74,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       header: "Jumlah Item",
       key: "count",
       width: pixel(150),
-      renderCell: (row: CategoryRow) => (
-        <Text type="code">{String(row.count)}</Text>
-      ),
+      renderCell: (row: CategoryRow) => <Text type="code">{String(row.count)}</Text>,
     },
     {
       align: "end",
@@ -103,20 +96,25 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
             label="Hapus"
             icon={<Trash2 size={16} />}
             isDisabled={row.count > 0}
-            onClick={() =>
-              setDeleteTarget({ id: row.category_id, label: row.category_name })
-            }
+            onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })}
           />
         </HStack>
       ),
     },
   ];
 
+  const rowIndexPlugin = useTableRowIndex({
+    data: categoryRows as CategoryRow[],
+    getRowKey: (item) => item.category_id,
+    label: "No.",
+  });
+
   return (
     <>
       <Table
         hasHover
         idKey="category_id"
+        plugins={{ rowIndex: rowIndexPlugin }}
         textOverflow="truncate"
         columns={columns}
         data={categoryRows as CategoryRow[]}

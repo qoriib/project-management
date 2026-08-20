@@ -13,12 +13,7 @@ interface DeliveryPOSelectorProps {
  * Field selector untuk memilih nomor PO pada form Delivery.
  * Dinonaktifkan saat mode edit.
  */
-export function DeliveryPOSelector({
-  form,
-  pos,
-  isEdit,
-  handlePOChange,
-}: DeliveryPOSelectorProps) {
+export function DeliveryPOSelector({ form, pos, isEdit, handlePOChange }: DeliveryPOSelectorProps) {
   const poOptions = pos.map((p) => ({
     label: p.po_code,
     value: String(p.po_id),
@@ -34,10 +29,7 @@ export function DeliveryPOSelector({
           onChange={(v) => handlePOChange(v as string)}
           onBlur={field.handleBlur}
           statusVariant="attached"
-          status={getFieldError(
-            field.state.meta.errors,
-            field.state.meta.isTouched,
-          )}
+          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
           isRequired
           isDisabled={isEdit}
           options={poOptions}

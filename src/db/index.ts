@@ -8,10 +8,7 @@ import { DB_SQLITE_URL } from "@/configs/database.config";
 
 export interface DatabaseLike {
   select<T>(sql: string, params?: any[]): Promise<T>;
-  execute(
-    sql: string,
-    params?: any[],
-  ): Promise<{ lastInsertId: number; rowsAffected: number } | any>;
+  execute(sql: string, params?: any[]): Promise<{ lastInsertId: number; rowsAffected: number } | any>;
 }
 
 let dbInstance: Database | null = null;
@@ -22,18 +19,14 @@ async function getTauriDb(): Promise<DatabaseLike> {
   }
 
   return {
-    execute: async (
-      sql: string,
-      params?: any[],
-    ): Promise<{ lastInsertId: number; rowsAffected: number }> => {
+    execute: async (sql: string, params?: any[]): Promise<{ lastInsertId: number; rowsAffected: number }> => {
       const res = await dbInstance!.execute(sql, params);
       return {
         lastInsertId: res.lastInsertId ?? 0,
         rowsAffected: res.rowsAffected,
       };
     },
-    select: <T>(sql: string, params?: any[]): Promise<T> =>
-      dbInstance!.select<T>(sql, params),
+    select: <T>(sql: string, params?: any[]): Promise<T> => dbInstance!.select<T>(sql, params),
   };
 }
 

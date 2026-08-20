@@ -1,10 +1,5 @@
 import { Card, HStack, Text, VStack } from "@astryxdesign/core";
-import {
-  Table,
-  type TableColumn,
-  pixel,
-  proportional,
-} from "@astryxdesign/core/Table";
+import { Table, type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
 import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
 import { DeliveryQtyCell } from "./DeliveryQtyCell";
@@ -18,10 +13,7 @@ export interface DeliveryItemsCardInnerProps {
   items: DeliveryItemRow[];
 }
 
-export function DeliveryItemsCardInner({
-  form,
-  items,
-}: DeliveryItemsCardInnerProps) {
+export function DeliveryItemsCardInner({ form, items }: DeliveryItemsCardInnerProps) {
   const bomData = usePOStore((s) => s.currentBOMData);
 
   const columns: TableColumn<DeliveryItemRow>[] = useMemo(
@@ -46,11 +38,7 @@ export function DeliveryItemsCardInner({
         key: "price_info",
         width: pixel(240),
         renderCell: (row) => {
-          const bomItem = bomData.find(
-            (b) =>
-              b.item_id === row.item_id &&
-              b.item_price_id === row.item_price_id,
-          );
+          const bomItem = bomData.find((b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id);
           const bomPrice = bomItem?.price ?? 0;
 
           return (
@@ -92,10 +80,22 @@ export function DeliveryItemsCardInner({
     [form, items, bomData],
   );
 
+  const rowIndexPlugin = useTableRowIndex({
+    data: items,
+    getRowKey: (item) => item.po_item_id,
+    label: "No.",
+  });
+
   return (
     <Card padding={4}>
       <VStack gap={4}>
-        <Table textOverflow="truncate" columns={columns} data={items} />
+        <Table
+          textOverflow="truncate"
+          columns={columns}
+          data={items}
+          idKey="po_item_id"
+          plugins={{ rowIndex: rowIndexPlugin }}
+        />
       </VStack>
     </Card>
   );

@@ -8,9 +8,7 @@ export interface EntityCodeProps {
  * Format an entity ID to string.
  * Use this for places that only accept strings (like titles or selector labels).
  */
-export function formatEntityCode(
-  id: string | number | null | undefined,
-): string {
+export function formatEntityCode(id: string | number | null | undefined): string {
   if (id === null || id === undefined || id === "") {
     return "-";
   }
@@ -24,7 +22,5 @@ export function EntityCode({ id }: EntityCodeProps) {
   if (id === null || id === undefined || id === "") {
     return <Code style={{ background: "transparent", padding: 0 }}>-</Code>;
   }
-  return (
-    <Code style={{ background: "transparent", padding: 0 }}>{String(id)}</Code>
-  );
+  return <Code style={{ background: "transparent", padding: 0 }}>{String(id)}</Code>;
 }

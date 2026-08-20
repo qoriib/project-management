@@ -1,10 +1,5 @@
 import { create } from "zustand";
-import {
-  type BOMDetail,
-  type BOMGroup,
-  bomGroupRepo,
-  bomRepo,
-} from "@/db/repositories";
+import { type BOMDetail, type BOMGroup, bomGroupRepo, bomRepo } from "@/db/repositories";
 
 interface BOMStore {
   boms: BOMDetail[];

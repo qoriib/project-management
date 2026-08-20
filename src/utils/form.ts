@@ -29,9 +29,6 @@ export function getFieldError(
  * @param error     - The error object caught during form submission
  * @param showToast - The toast function returned from useToast()
  */
-export function handleFormError(
-  error: any,
-  showToast: (options: { type: "error"; body: string }) => void,
-) {
+export function handleFormError(error: any, showToast: (options: { type: "error"; body: string }) => void) {
   showToast({ body: error?.message || "Terjadi kesalahan", type: "error" });
 }

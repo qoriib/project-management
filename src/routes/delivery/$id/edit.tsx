@@ -19,16 +19,9 @@ function EditDeliveryPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader
-          title={`Edit Penerimaan`}
-          subtitle="Ubah log penerimaan item di lapangan"
-        />
+        <PageHeader title={`Edit Penerimaan`} subtitle="Ubah log penerimaan item di lapangan" />
         <ProjectRequired>
-          <DeliveryForm
-            initialEditId={id}
-            onSuccess={handleSuccess}
-            onCancel={goBack}
-          />
+          <DeliveryForm initialEditId={id} onSuccess={handleSuccess} onCancel={goBack} />
         </ProjectRequired>
       </VStack>
     </Section>

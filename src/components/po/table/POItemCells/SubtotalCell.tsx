@@ -19,9 +19,7 @@ export function SubtotalCell({ form }: CellFormProps) {
 
         if (itemId && priceId) {
           const prices = itemPricesMap.get(itemId) ?? [];
-          const priceObj = prices.find(
-            (p) => String(p.item_price_id) === String(priceId),
-          );
+          const priceObj = prices.find((p) => String(p.item_price_id) === String(priceId));
           if (priceObj) {
             priceNum = priceObj.price;
           }

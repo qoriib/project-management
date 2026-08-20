@@ -1,13 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  Button,
-  Divider,
-  HStack,
-  Text,
-  VStack,
-  Heading,
-} from "@astryxdesign/core";
+import { Button, Divider, HStack, Text, VStack, Heading } from "@astryxdesign/core";
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { SettingsResetDialog } from "@/components/settings/SettingsResetDialog";
@@ -114,8 +107,8 @@ function SettingsDatabase() {
           <VStack width="100%" gap={1}>
             <Heading level={3}>Ekspor / Impor</Heading>
             <Text type="supporting" color="secondary">
-              Ekspor data proyek Anda dan dapat dibagikan antar perangkat atau
-              anggota tim untuk digabungkan secara otomatis.
+              Ekspor data proyek Anda dan dapat dibagikan antar perangkat atau anggota tim untuk digabungkan secara
+              otomatis.
             </Text>
           </VStack>
           <HStack gap={2}>
@@ -140,8 +133,8 @@ function SettingsDatabase() {
           <VStack width="100%" gap={1}>
             <Heading level={3}>Reset Database</Heading>
             <Text type="supporting" color="secondary">
-              Hapus keseluruhan isi aplikasi dan kembali ke keadaan awal
-              aplikasi diinstal. Tindakan ini tidak dapat dibatalkan.
+              Hapus keseluruhan isi aplikasi dan kembali ke keadaan awal aplikasi diinstal. Tindakan ini tidak dapat
+              dibatalkan.
             </Text>
           </VStack>
           <Button

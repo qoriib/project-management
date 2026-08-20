@@ -1,13 +1,5 @@
 import { useEffect } from "react";
-import {
-  Button,
-  Dialog,
-  HStack,
-  Heading,
-  Selector,
-  TextInput,
-  VStack,
-} from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, Selector, TextInput, VStack } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -17,10 +9,7 @@ import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
 const itemSchema = v.object({
-  category_id: v.pipe(
-    v.string(),
-    v.nonEmpty("Pilih kategori terlebih dahulu."),
-  ),
+  category_id: v.pipe(v.string(), v.nonEmpty("Pilih kategori terlebih dahulu.")),
   item_code: v.string(),
   item_name: v.pipe(v.string(), v.nonEmpty("Nama item harus diisi.")),
   unit_id: v.pipe(v.string(), v.nonEmpty("Pilih satuan terlebih dahulu.")),
@@ -32,11 +21,7 @@ interface MasterItemFormProps {
   initialData: ItemWithDetails | null;
 }
 
-export function MasterItemForm({
-  isOpen,
-  onClose,
-  initialData,
-}: MasterItemFormProps) {
+export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormProps) {
   const showToast = useToast();
   const { categories, units, createItem, updateItem } = useMasterStore();
 
@@ -83,8 +68,7 @@ export function MasterItemForm({
         });
       } else {
         form.reset({
-          category_id:
-            categories.length > 0 ? String(categories[0].category_id) : "",
+          category_id: categories.length > 0 ? String(categories[0].category_id) : "",
           item_code: "",
           item_name: "",
           unit_id: units.length > 0 ? String(units[0].unit_id) : "",
@@ -103,11 +87,7 @@ export function MasterItemForm({
     }));
 
   return (
-    <Dialog
-      isOpen={isOpen}
-      onOpenChange={(open) => !open && onClose()}
-      width={520}
-    >
+    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -116,9 +96,7 @@ export function MasterItemForm({
         }}
       >
         <VStack gap={3}>
-          <Heading level={3}>
-            {initialData ? "Edit Item" : "Tambah Item"}
-          </Heading>
+          <Heading level={3}>{initialData ? "Edit Item" : "Tambah Item"}</Heading>
           <FormLayout>
             <form.Field
               name="item_code"
@@ -130,10 +108,7 @@ export function MasterItemForm({
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -147,10 +122,7 @@ export function MasterItemForm({
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -165,10 +137,7 @@ export function MasterItemForm({
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -183,25 +152,15 @@ export function MasterItemForm({
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
           </FormLayout>
           <HStack gap={2} justify="end">
-            <Button
-              variant="secondary"
-              label="Batal"
-              onClick={onClose}
-              type="button"
-            />
+            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
-              selector={(state) =>
-                [state.canSubmit, state.isSubmitting] as const
-              }
+              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
                 <Button
                   variant="primary"

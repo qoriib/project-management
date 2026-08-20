@@ -9,10 +9,7 @@ interface PriceSelectorCellProps extends CellFormProps {
   onAddNewPrice: () => void;
 }
 
-export function PriceSelectorCell({
-  form,
-  onAddNewPrice,
-}: PriceSelectorCellProps) {
+export function PriceSelectorCell({ form, onAddNewPrice }: PriceSelectorCellProps) {
   const { itemPricesMap } = useMasterStore();
 
   return (
@@ -48,10 +45,7 @@ export function PriceSelectorCell({
                     onChange={(v) => field.handleChange(v)}
                     onBlur={field.handleBlur}
                     statusVariant="tooltip"
-                    status={getFieldError(
-                      field.state.meta.errors,
-                      field.state.meta.isTouched,
-                    )}
+                    status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                     isDisabled={!itemId}
                   />
                 )}

@@ -25,10 +25,7 @@ interface POStore {
   clearPODetail: () => void;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
-  createPO: (
-    data: { po_date: string; project_id: string; po_code: string },
-    items: POItemInput[],
-  ) => Promise<string>;
+  createPO: (data: { po_date: string; project_id: string; po_code: string }, items: POItemInput[]) => Promise<string>;
   updatePO: (
     id: string,
     data: { po_date: string; project_id: string; po_code: string },

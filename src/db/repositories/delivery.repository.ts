@@ -47,15 +47,9 @@ export interface DeliveryItemInput {
 // ── Repository ───────────────────────────────────────────────────────────────
 
 // Use Record<string, unknown> as TUpdate since deliveries are not typically updated
-type UpdateDelivery = Partial<
-  Pick<Delivery, "po_id" | "delivery_date" | "delivery_code">
->;
+type UpdateDelivery = Partial<Pick<Delivery, "po_id" | "delivery_date" | "delivery_code">>;
 
-class DeliveryRepository extends BaseRepository<
-  Delivery,
-  CreateDelivery,
-  UpdateDelivery
-> {
+class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, UpdateDelivery> {
   constructor() {
     super(DeliveryModel);
   }
@@ -63,19 +57,10 @@ class DeliveryRepository extends BaseRepository<
   /**
    * Get all deliveries with summary info.
    */
-  async findAllWithSummary(
-    filters?: DeliveryFilters,
-  ): Promise<DeliverySummary[]> {
+  async findAllWithSummary(filters?: DeliveryFilters): Promise<DeliverySummary[]> {
     try {
       const qb = new QueryBuilder()
-        .select(
-          "d.delivery_id",
-          "d.delivery_code",
-          "d.po_id",
-          "po.po_code",
-          "d.delivery_date",
-          "p.project_name",
-        )
+        .select("d.delivery_id", "d.delivery_code", "d.po_id", "po.po_code", "d.delivery_date", "p.project_name")
         .selectRaw("COUNT(di.delivery_item_id) as item_count")
         .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
         .from("deliveries", "d")
@@ -106,9 +91,7 @@ class DeliveryRepository extends BaseRepository<
       const rows = await this.rawSelect<any>(sql, params);
       return rows.map((r) => ({
         ...r,
-        vendor_names: r.vendor_names
-          ? r.vendor_names.split(",").map((v: string) => v.trim())
-          : [],
+        vendor_names: r.vendor_names ? r.vendor_names.split(",").map((v: string) => v.trim()) : [],
       }));
     } catch (error) {
       throw wrapDbError(error, this.model.tableName);
@@ -137,14 +120,7 @@ class DeliveryRepository extends BaseRepository<
    */
   async findItemsByPO(poId: string): Promise<DeliveryItemByPO[]> {
     const { sql, params } = new QueryBuilder()
-      .select(
-        "di.*",
-        "d.delivery_date",
-        "d.delivery_code",
-        "i.item_name",
-        "u.unit_name as unit",
-        "v.vendor_name",
-      )
+      .select("di.*", "d.delivery_date", "d.delivery_code", "i.item_name", "u.unit_name as unit", "v.vendor_name")
       .from("delivery_items", "di")
       .join("deliveries", "d", "d.delivery_id = di.delivery_id")
       .join("po_items", "poi", "poi.po_item_id = di.po_item_id")
@@ -174,17 +150,8 @@ class DeliveryRepository extends BaseRepository<
         }),
         itemsToInsert = items.filter((it) => it.qty > 0);
       if (itemsToInsert.length > 0) {
-        const rows = itemsToInsert.map((it) => [
-          this.generateId(),
-          deliveryId,
-          it.po_item_id,
-          it.qty,
-        ]);
-        await this.bulkInsert(
-          "delivery_items",
-          ["delivery_item_id", "delivery_id", "po_item_id", "qty"],
-          rows,
-        );
+        const rows = itemsToInsert.map((it) => [this.generateId(), deliveryId, it.po_item_id, it.qty]);
+        await this.bulkInsert("delivery_items", ["delivery_item_id", "delivery_id", "po_item_id", "qty"], rows);
       }
     });
   }
@@ -192,34 +159,18 @@ class DeliveryRepository extends BaseRepository<
   /**
    * Update a delivery and replace its items.
    */
-  async updateWithItems(
-    deliveryId: string,
-    header: UpdateDelivery,
-    items: DeliveryItemInput[],
-  ): Promise<void> {
+  async updateWithItems(deliveryId: string, header: UpdateDelivery, items: DeliveryItemInput[]): Promise<void> {
     return this.transaction(async () => {
       if (Object.keys(header).length > 0) {
         await this.update(deliveryId, header);
       }
 
-      await this.rawExecute(
-        "DELETE FROM delivery_items WHERE delivery_id = $1",
-        [deliveryId],
-      );
+      await this.rawExecute("DELETE FROM delivery_items WHERE delivery_id = $1", [deliveryId]);
 
       const itemsToInsert = items.filter((it) => it.qty > 0);
       if (itemsToInsert.length > 0) {
-        const rows = itemsToInsert.map((it) => [
-          this.generateId(),
-          deliveryId,
-          it.po_item_id,
-          it.qty,
-        ]);
-        await this.bulkInsert(
-          "delivery_items",
-          ["delivery_item_id", "delivery_id", "po_item_id", "qty"],
-          rows,
-        );
+        const rows = itemsToInsert.map((it) => [this.generateId(), deliveryId, it.po_item_id, it.qty]);
+        await this.bulkInsert("delivery_items", ["delivery_item_id", "delivery_id", "po_item_id", "qty"], rows);
       }
     });
   }

@@ -1,13 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  Avatar,
-  Button,
-  Card,
-  Center,
-  Text,
-  TextInput,
-  VStack,
-} from "@astryxdesign/core";
+import { Avatar, Button, Card, Center, Text, TextInput, VStack } from "@astryxdesign/core";
 import { login } from "@/db/services/auth.service";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
@@ -72,9 +64,7 @@ function LoginPage() {
               <Text size="lg" weight="bold">
                 {APP.title}
               </Text>
-              <Text color="secondary">
-                Masukkan PIN untuk mengakses aplikasi
-              </Text>
+              <Text color="secondary">Masukkan PIN untuk mengakses aplikasi</Text>
             </VStack>
             <VStack gap={4} width="100%">
               <form.Field
@@ -90,10 +80,7 @@ function LoginPage() {
                       statusVariant="attached"
                       placeholder="• • • • • •"
                       value={field.state.value}
-                      status={getFieldError(
-                        field.state.meta.errors,
-                        field.state.meta.isTouched,
-                      )}
+                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       onBlur={field.handleBlur}
                       onChange={(val) => field.handleChange(sanitizePin(val))}
                     />
@@ -101,9 +88,7 @@ function LoginPage() {
                 }}
               />
               <form.Subscribe
-                selector={(state) =>
-                  [state.canSubmit, state.isSubmitting] as const
-                }
+                selector={(state) => [state.canSubmit, state.isSubmitting] as const}
                 children={([canSubmit, isSubmitting]) => (
                   <Button
                     width="100%"

@@ -6,11 +6,7 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
 import type { Vendor } from "@/db/repositories";
 
 interface MasterVendorTableProps {
@@ -83,15 +79,19 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            onClick={() =>
-              setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })
-            }
+            onClick={() => setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })}
             isDisabled={row.has_relation}
           />
         </HStack>
       ),
     },
   ];
+
+  const rowIndexPlugin = useTableRowIndex({
+    data: vendors as VendorRow[],
+    getRowKey: (item) => item.vendor_id,
+    label: "No.",
+  });
 
   return (
     <>
@@ -101,6 +101,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
         columns={columns}
         data={vendors as VendorRow[]}
         idKey="vendor_id"
+        plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada vendor." />}
       />
       <ConfirmDialog

@@ -1,16 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-  Code,
-  Dialog,
-  HStack,
-  Heading,
-  IconButton,
-  Table,
-  Text,
-  Timestamp,
-  VStack,
-} from "@astryxdesign/core";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { Code, Dialog, HStack, Heading, IconButton, Table, Text, Timestamp, VStack } from "@astryxdesign/core";
+import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
 import { type ItemLogEntry, getItemLog } from "@/db/services";
 import { X } from "lucide-react";
@@ -57,9 +47,7 @@ export function ReportItemLogDialog({
       header: "Referensi",
       key: "reference",
       width: pixel(120),
-      renderCell: (r: LogRow) => (
-        <Code style={{ background: "transparent", padding: 0 }}>{r.reference}</Code>
-      ),
+      renderCell: (r: LogRow) => <Code style={{ background: "transparent", padding: 0 }}>{r.reference}</Code>,
     },
     {
       align: "end",
@@ -75,6 +63,12 @@ export function ReportItemLogDialog({
       renderCell: (r: LogRow) => <Text>{r.vendor_name ?? "-"}</Text>,
     },
   ];
+
+  const rowIndexPlugin = useTableRowIndex({
+    data: logs as LogRow[],
+    getRowKey: (item) => item.reference,
+    label: "No.",
+  });
 
   return (
     <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={700}>
@@ -94,6 +88,7 @@ export function ReportItemLogDialog({
           columns={columns}
           data={logs as LogRow[]}
           idKey="reference"
+          plugins={{ rowIndex: rowIndexPlugin }}
         />
         {logs.length === 0 && !loading && (
           <VStack align="center" style={{ marginTop: 16 }}>

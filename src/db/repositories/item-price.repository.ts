@@ -5,23 +5,14 @@
 import { BaseRepository } from "@/db/core/base-repository";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
-import {
-  type CreateItemPrice,
-  type ItemPrice,
-  ItemPriceModel,
-  type UpdateItemPrice,
-} from "@/db/models";
+import { type CreateItemPrice, type ItemPrice, ItemPriceModel, type UpdateItemPrice } from "@/db/models";
 
 export type ItemPriceWithRelation = ItemPrice & {
   /** True if this price is referenced by any BOM or PO line */
   has_relation: boolean;
 };
 
-class ItemPriceRepository extends BaseRepository<
-  ItemPrice,
-  CreateItemPrice,
-  UpdateItemPrice
-> {
+class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, UpdateItemPrice> {
   constructor() {
     super(ItemPriceModel);
   }
@@ -49,9 +40,7 @@ class ItemPriceRepository extends BaseRepository<
    * Get all active price variants for an item, enriched with a has_relation flag
    * indicating whether the price is used in any BOM or PO line.
    */
-  async findByItemWithRelation(
-    itemId: string,
-  ): Promise<ItemPriceWithRelation[]> {
+  async findByItemWithRelation(itemId: string): Promise<ItemPriceWithRelation[]> {
     try {
       const sql = `
         SELECT ip.*,

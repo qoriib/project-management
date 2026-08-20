@@ -9,10 +9,7 @@ export interface PurchaseOrder {
   deleted_at: string | null;
 }
 
-export type CreatePurchaseOrder = Pick<
-  PurchaseOrder,
-  "po_date" | "project_id" | "po_code"
->;
+export type CreatePurchaseOrder = Pick<PurchaseOrder, "po_date" | "project_id" | "po_code">;
 export type UpdatePurchaseOrder = Partial<CreatePurchaseOrder>;
 
 export const PurchaseOrderModel: ModelDefinition = {

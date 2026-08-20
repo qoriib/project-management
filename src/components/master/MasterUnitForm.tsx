@@ -1,12 +1,5 @@
 import { useEffect } from "react";
-import {
-  Button,
-  Dialog,
-  HStack,
-  Heading,
-  TextInput,
-  VStack,
-} from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, TextInput, VStack } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -25,11 +18,7 @@ interface MasterUnitFormProps {
   initialData: Unit | null;
 }
 
-export function MasterUnitForm({
-  isOpen,
-  onClose,
-  initialData,
-}: MasterUnitFormProps) {
+export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormProps) {
   const showToast = useToast();
   const { createUnit, updateUnit } = useMasterStore();
 
@@ -68,11 +57,7 @@ export function MasterUnitForm({
   }, [isOpen, initialData]);
 
   return (
-    <Dialog
-      isOpen={isOpen}
-      onOpenChange={(open) => !open && onClose()}
-      width={520}
-    >
+    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -81,9 +66,7 @@ export function MasterUnitForm({
         }}
       >
         <VStack gap={3}>
-          <Heading level={3}>
-            {initialData ? "Edit Satuan" : "Tambah Satuan"}
-          </Heading>
+          <Heading level={3}>{initialData ? "Edit Satuan" : "Tambah Satuan"}</Heading>
           <FormLayout>
             <form.Field
               name="unit_name"
@@ -95,25 +78,15 @@ export function MasterUnitForm({
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
           </FormLayout>
           <HStack gap={2} justify="end">
-            <Button
-              variant="secondary"
-              label="Batal"
-              onClick={onClose}
-              type="button"
-            />
+            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
-              selector={(state) =>
-                [state.canSubmit, state.isSubmitting] as const
-              }
+              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
                 <Button
                   type="submit"

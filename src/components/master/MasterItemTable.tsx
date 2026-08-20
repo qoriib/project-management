@@ -9,11 +9,7 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
 import { formatItemCode } from "@/utils/formatters";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
 import type { ItemWithDetails } from "@/db/repositories";
 
 interface MasterItemTableProps {
@@ -76,9 +72,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       header: "Kategori",
       key: "category",
       width: pixel(150),
-      renderCell: (row: ItemRow) => (
-        <Badge variant="neutral" label={row.category_name || "—"} />
-      ),
+      renderCell: (row: ItemRow) => <Badge variant="neutral" label={row.category_name || "—"} />,
     },
     {
       align: "end",
@@ -87,12 +81,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       width: pixel(180),
       renderCell: (row: ItemRow) => (
         <HStack gap={2} justify="end">
-          <Button
-            size="sm"
-            variant="secondary"
-            label="Harga"
-            onClick={() => setPriceItem(row)}
-          />
+          <Button size="sm" variant="secondary" label="Harga" onClick={() => setPriceItem(row)} />
           <IconButton
             size="sm"
             variant="secondary"
@@ -105,15 +94,19 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            onClick={() =>
-              setDeleteTarget({ id: row.item_id, label: row.item_name })
-            }
+            onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })}
             isDisabled={row.has_relation}
           />
         </HStack>
       ),
     },
   ];
+
+  const rowIndexPlugin = useTableRowIndex({
+    data: items as ItemRow[],
+    getRowKey: (item) => item.item_id,
+    label: "No.",
+  });
 
   return (
     <>
@@ -123,6 +116,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
         columns={columns}
         data={items as ItemRow[]}
         idKey="item_id"
+        plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada item." />}
       />
       <ConfirmDialog
@@ -133,11 +127,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
         message={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
         isLoading={deleting}
       />
-      <MasterItemPriceDialog
-        isOpen={Boolean(priceItem)}
-        onClose={() => setPriceItem(null)}
-        item={priceItem}
-      />
+      <MasterItemPriceDialog isOpen={Boolean(priceItem)} onClose={() => setPriceItem(null)} item={priceItem} />
     </>
   );
 }

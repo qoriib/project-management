@@ -1,9 +1,8 @@
 import { useMemo } from "react";
 import { Button } from "@astryxdesign/core";
 import { Plus } from "lucide-react";
-import { type TablePlugin } from "@astryxdesign/core/Table";
+import { type TablePlugin, TableCell } from "@astryxdesign/core/Table";
 import type { POItemRow } from "./usePOItemFormColumns";
-
 import type { POItemDetail } from "@/db/repositories";
 
 interface UsePOItemTableStateProps {
@@ -13,12 +12,7 @@ interface UsePOItemTableStateProps {
   setEditingData: (data: POItemDetail | undefined) => void;
 }
 
-export function usePOItemTableState({
-  items,
-  editingId,
-  setEditingId,
-  setEditingData,
-}: UsePOItemTableStateProps) {
+export function usePOItemTableState({ items, editingId, setEditingId, setEditingData }: UsePOItemTableStateProps) {
   const dataWithFooters = useMemo(() => {
     const list = [...items] as POItemRow[];
 
@@ -42,7 +36,7 @@ export function usePOItemTableState({
           return {
             ...props,
             children: (
-              <td colSpan={999} style={{ padding: "var(--spacing-3)" }}>
+              <TableCell colSpan={999} style={{ padding: "var(--spacing-3)" }}>
                 {!hideButton && (
                   <Button
                     variant="secondary"
@@ -55,7 +49,7 @@ export function usePOItemTableState({
                     }}
                   />
                 )}
-              </td>
+              </TableCell>
             ),
           };
         }

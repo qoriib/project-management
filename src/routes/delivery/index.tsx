@@ -20,11 +20,7 @@ function DeliveryPage() {
           subtitle="Log kronologis penerimaan item di lapangan"
           actions={
             selectedProjectId && isValidProject ? (
-              <Button
-                variant="primary"
-                label="Buat Baru"
-                onClick={() => navigate({ to: "/delivery/new" })}
-              />
+              <Button variant="primary" label="Buat Baru" onClick={() => navigate({ to: "/delivery/new" })} />
             ) : null
           }
         />

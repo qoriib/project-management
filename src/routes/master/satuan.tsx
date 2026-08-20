@@ -36,20 +36,10 @@ function MasterSatuanPage() {
         <PageHeader
           title="Master Data Satuan"
           subtitle="Kelola data satuan item"
-          actions={
-            <Button
-              variant="primary"
-              label="Tambah Satuan"
-              onClick={openCreate}
-            />
-          }
+          actions={<Button variant="primary" label="Tambah Satuan" onClick={openCreate} />}
         />
         <MasterUnitTable onEdit={openEdit} />
-        <MasterUnitForm
-          isOpen={isFormOpen}
-          onClose={() => setIsFormOpen(false)}
-          initialData={editTarget}
-        />
+        <MasterUnitForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
       </VStack>
     </Section>
   );

@@ -12,12 +12,7 @@ export type { DeliveryFormProps };
  * Hanya bertanggung jawab mengkomposisikan sub-komponen;
  * seluruh logic ada di `useDeliveryForm`.
  */
-export function DeliveryForm({
-  initialPoId,
-  initialEditId,
-  onSuccess,
-  onCancel,
-}: DeliveryFormProps) {
+export function DeliveryForm({ initialPoId, initialEditId, onSuccess, onCancel }: DeliveryFormProps) {
   const { form, pos, isEdit, handlePOChange } = useDeliveryForm({
     initialEditId,
     initialPoId,
@@ -34,12 +29,7 @@ export function DeliveryForm({
     >
       <VStack gap={4}>
         <HStack width={720}>
-          <DeliveryHeaderCard
-            form={form}
-            pos={pos}
-            isEdit={isEdit}
-            handlePOChange={handlePOChange}
-          />
+          <DeliveryHeaderCard form={form} pos={pos} isEdit={isEdit} handlePOChange={handlePOChange} />
         </HStack>
         <DeliveryItemsCard form={form} />
         <DeliveryFormActions form={form as any} onCancel={onCancel} />

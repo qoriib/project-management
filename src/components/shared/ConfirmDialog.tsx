@@ -1,11 +1,4 @@
-import {
-  Button,
-  Dialog,
-  HStack,
-  Heading,
-  Text,
-  VStack,
-} from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, Text, VStack } from "@astryxdesign/core";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -42,12 +35,7 @@ export function ConfirmDialog({
         <Heading level={3}>{title}</Heading>
         <Text color="secondary">{message}</Text>
         <HStack gap={2} justify="end">
-          <Button
-            label="Batal"
-            variant="secondary"
-            onClick={onClose}
-            isDisabled={isLoading}
-          />
+          <Button label="Batal" variant="secondary" onClick={onClose} isDisabled={isLoading} />
           <Button
             label={confirmLabel}
             variant={isDestructive ? "destructive" : "primary"}

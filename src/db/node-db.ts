@@ -19,10 +19,7 @@ class NodeDatabaseWrapper {
     return statement.all(...params) as T;
   }
 
-  async execute(
-    sql: string,
-    params: any[] = [],
-  ): Promise<{ lastInsertId: number; rowsAffected: number }> {
+  async execute(sql: string, params: any[] = []): Promise<{ lastInsertId: number; rowsAffected: number }> {
     const normalizedSql = sql.replaceAll(/\$\d+/g, "?"),
       statement = this.db.prepare(normalizedSql),
       result = statement.run(...params);
@@ -44,8 +41,7 @@ export function getLocalNodeDb(): NodeDatabaseWrapper {
   let baseDir = "";
 
   if (process.platform === "win32") {
-    baseDir =
-      process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
+    baseDir = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
   } else if (process.platform === "darwin") {
     baseDir = path.join(os.homedir(), "Library", "Application Support");
   } else {

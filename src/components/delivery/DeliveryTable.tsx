@@ -3,11 +3,8 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
-import { Table } from "@astryxdesign/core";
-import {
-  type DeliveryRow,
-  useDeliveryColumns,
-} from "./table/useDeliveryColumns";
+import { Table, useTableRowIndex } from "@astryxdesign/core/Table";
+import { type DeliveryRow, useDeliveryColumns } from "./table/useDeliveryColumns";
 
 export function DeliveryTable() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
@@ -34,17 +31,22 @@ export function DeliveryTable() {
 
   const columns = useDeliveryColumns({ setDeleteTarget });
 
+  const rowIndexPlugin = useTableRowIndex({
+    data: deliveries as DeliveryRow[],
+    getRowKey: (item) => item.delivery_id,
+    label: "No.",
+  });
+
   return (
     <>
       <Table
         hasHover
         idKey="delivery_id"
+        plugins={{ rowIndex: rowIndexPlugin }}
         textOverflow="truncate"
         columns={columns}
         data={deliveries as DeliveryRow[]}
-        emptyState={
-          <TableEmptyState message="Tidak ada data Penerimaan yang cocok." />
-        }
+        emptyState={<TableEmptyState message="Tidak ada data Penerimaan yang cocok." />}
       />
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}

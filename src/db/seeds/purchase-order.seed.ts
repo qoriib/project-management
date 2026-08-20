@@ -1,10 +1,4 @@
-import {
-  itemPriceRepo,
-  itemRepo,
-  projectRepo,
-  purchaseOrderRepo,
-  vendorRepo,
-} from "@/db/repositories";
+import { itemPriceRepo, itemRepo, projectRepo, purchaseOrderRepo, vendorRepo } from "@/db/repositories";
 
 interface SeedPOItemRaw {
   itemName: string;
@@ -135,9 +129,7 @@ export async function seedPurchaseOrders(): Promise<void> {
         vendorName: "Sewa Alat Berat Nusantara",
       },
       {
-        items: [
-          { itemName: "Besi Beton Ulir 16mm x 12m", price: 165000, qty: 400 },
-        ],
+        items: [{ itemName: "Besi Beton Ulir 16mm x 12m", price: 165000, qty: 400 }],
         poDate: "2026-05-15",
         projectName: p3,
         vendorName: "PT. Baja Jaya Nusantara",
@@ -146,20 +138,11 @@ export async function seedPurchaseOrders(): Promise<void> {
     projects = await projectRepo.findAll(),
     vendors = await vendorRepo.findAll(),
     items = await itemRepo.findAll(),
-    projMap = new Map<string, string>(
-      projects.map((p) => [p.project_name, p.project_id]),
-    ),
-    vendMap = new Map<string, string>(
-      vendors.map((v) => [v.vendor_name, v.vendor_id]),
-    ),
-    itemMap = new Map<string, string>(
-      items.map((i) => [i.item_name, i.item_id]),
-    ),
+    projMap = new Map<string, string>(projects.map((p) => [p.project_name, p.project_id])),
+    vendMap = new Map<string, string>(vendors.map((v) => [v.vendor_name, v.vendor_id])),
+    itemMap = new Map<string, string>(items.map((i) => [i.item_name, i.item_id])),
     // Cache item prices
-    itemPriceCache = new Map<
-      string,
-      { item_price_id: string; price: number }[]
-    >();
+    itemPriceCache = new Map<string, { item_price_id: string; price: number }[]>();
 
   for (const po of pos) {
     const projectId = projMap.get(po.projectName),

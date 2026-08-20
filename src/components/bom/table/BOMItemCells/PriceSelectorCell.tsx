@@ -11,11 +11,7 @@ interface PriceSelectorCellProps extends BaseCellProps {
   editingId: string;
 }
 
-export function PriceSelectorCell({
-  form,
-  onAddNewPrice,
-  editingId,
-}: PriceSelectorCellProps) {
+export function PriceSelectorCell({ form, onAddNewPrice, editingId }: PriceSelectorCellProps) {
   const { itemPricesMap } = useMasterStore(),
     { boms } = useBOMStore();
 
@@ -35,10 +31,7 @@ export function PriceSelectorCell({
           const usedIds = new Set(
             boms
               .filter(
-                (b) =>
-                  b.item_id === itemId &&
-                  b.bom_id !== editingId &&
-                  (b.bom_group_id || "") === (groupId || ""),
+                (b) => b.item_id === itemId && b.bom_id !== editingId && (b.bom_group_id || "") === (groupId || ""),
               )
               .map((b) => b.item_price_id),
           );
@@ -66,10 +59,7 @@ export function PriceSelectorCell({
                     options={priceOptions}
                     isDisabled={priceOptions.length === 0}
                     statusVariant="tooltip"
-                    status={getFieldError(
-                      field.state.meta.errors,
-                      field.state.meta.isTouched,
-                    )}
+                    status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   />
                 )}
               </form.Field>

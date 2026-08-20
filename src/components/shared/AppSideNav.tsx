@@ -1,13 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import {
-  Heading,
-  SideNav,
-  SideNavHeading,
-  SideNavItem,
-  SideNavSection,
-  Text,
-  VStack,
-} from "@astryxdesign/core";
+import { Heading, SideNav, SideNavHeading, SideNavItem, SideNavSection, Text, VStack } from "@astryxdesign/core";
 import { useShallow } from "zustand/react/shallow";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -26,9 +18,7 @@ export function AppSideNav() {
   );
 
   const projects = useMasterStore((state) => state.projects);
-  const activeProject = projects.find(
-    (p) => p.project_id === selectedProjectId,
-  );
+  const activeProject = projects.find((p) => p.project_id === selectedProjectId);
 
   return (
     <SideNav

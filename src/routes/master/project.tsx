@@ -36,20 +36,10 @@ function MasterProjectPage() {
         <PageHeader
           title="Master Data Proyek"
           subtitle="Kelola data proyek dan tahapannya"
-          actions={
-            <Button
-              variant="primary"
-              label="Tambah Proyek"
-              onClick={openCreate}
-            />
-          }
+          actions={<Button variant="primary" label="Tambah Proyek" onClick={openCreate} />}
         />
         <MasterProjectTable onEdit={openEdit} />
-        <MasterProjectForm
-          isOpen={isFormOpen}
-          onClose={() => setIsFormOpen(false)}
-          initialData={editTarget}
-        />
+        <MasterProjectForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
       </VStack>
     </Section>
   );

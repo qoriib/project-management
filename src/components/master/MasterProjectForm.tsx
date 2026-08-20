@@ -1,12 +1,5 @@
 import { useEffect } from "react";
-import {
-  Button,
-  Dialog,
-  HStack,
-  Heading,
-  TextInput,
-  VStack,
-} from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, TextInput, VStack } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -18,10 +11,7 @@ import * as v from "valibot";
 
 const projectSchema = v.object({
   company_name: v.pipe(v.string(), v.nonEmpty("Nama perusahaan harus diisi.")),
-  fiscal_year: v.pipe(
-    v.number(),
-    v.minValue(1900, "Tahun fiskal tidak valid."),
-  ),
+  fiscal_year: v.pipe(v.number(), v.minValue(1900, "Tahun fiskal tidak valid.")),
   project_name: v.pipe(v.string(), v.nonEmpty("Nama proyek harus diisi.")),
 });
 
@@ -31,11 +21,7 @@ interface MasterProjectFormProps {
   initialData: Project | null;
 }
 
-export function MasterProjectForm({
-  isOpen,
-  onClose,
-  initialData,
-}: MasterProjectFormProps) {
+export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjectFormProps) {
   const showToast = useToast();
   const { createProject, updateProject } = useMasterStore();
 
@@ -82,11 +68,7 @@ export function MasterProjectForm({
   }, [isOpen, initialData]);
 
   return (
-    <Dialog
-      isOpen={isOpen}
-      onOpenChange={(open) => !open && onClose()}
-      width={520}
-    >
+    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -95,9 +77,7 @@ export function MasterProjectForm({
         }}
       >
         <VStack gap={3}>
-          <Heading level={3}>
-            {initialData ? "Edit Project" : "Tambah Project"}
-          </Heading>
+          <Heading level={3}>{initialData ? "Edit Project" : "Tambah Project"}</Heading>
           <FormLayout>
             <form.Field
               name="project_name"
@@ -109,10 +89,7 @@ export function MasterProjectForm({
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -126,10 +103,7 @@ export function MasterProjectForm({
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
@@ -144,25 +118,15 @@ export function MasterProjectForm({
                   isRequired
                   isIntegerOnly
                   statusVariant="attached"
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             />
           </FormLayout>
           <HStack gap={2} justify="end">
-            <Button
-              variant="secondary"
-              label="Batal"
-              onClick={onClose}
-              type="button"
-            />
+            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
             <form.Subscribe
-              selector={(state) =>
-                [state.canSubmit, state.isSubmitting] as const
-              }
+              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
               children={([canSubmit, isSubmitting]) => (
                 <Button
                   variant="primary"

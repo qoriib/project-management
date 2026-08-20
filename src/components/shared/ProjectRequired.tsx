@@ -16,9 +16,7 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
     return (
       <Card padding={8}>
         <VStack align="center">
-          <Text color="secondary">
-            Pilih Proyek Aktif di menu samping terlebih dahulu.
-          </Text>
+          <Text color="secondary">Pilih Proyek Aktif di menu samping terlebih dahulu.</Text>
         </VStack>
       </Card>
     );

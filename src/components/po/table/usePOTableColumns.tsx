@@ -3,11 +3,7 @@ import { HStack, IconButton, Text, Timestamp, Token } from "@astryxdesign/core";
 import { formatNumber } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";
 import { EntityCode } from "@/components/shared/EntityCode";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { type POWithSummary } from "@/db/repositories";
 
 export interface PORow extends POWithSummary, Record<string, unknown> {
@@ -19,10 +15,7 @@ interface UsePOTableColumnsProps {
   setDeleteTarget: (target: { id: string; label: string } | null) => void;
 }
 
-export function usePOTableColumns({
-  onEdit,
-  setDeleteTarget,
-}: UsePOTableColumnsProps) {
+export function usePOTableColumns({ onEdit, setDeleteTarget }: UsePOTableColumnsProps) {
   const navigate = useNavigate();
 
   const columns: TableColumn<PORow>[] = [
@@ -36,9 +29,7 @@ export function usePOTableColumns({
       header: "Tanggal",
       key: "po_date",
       width: pixel(120),
-      renderCell: (row: PORow) => (
-        <Timestamp value={row.po_date} format="system_date" size="base" />
-      ),
+      renderCell: (row: PORow) => <Timestamp value={row.po_date} format="system_date" size="base" />,
     },
     {
       header: "Vendor Pemasok",
@@ -64,9 +55,7 @@ export function usePOTableColumns({
       header: "Total Biaya (Rp)",
       key: "total_price",
       width: pixel(240),
-      renderCell: (row: PORow) => (
-        <Text type="code">{formatNumber(row.total_price)}</Text>
-      ),
+      renderCell: (row: PORow) => <Text type="code">{formatNumber(row.total_price)}</Text>,
     },
     {
       align: "end",
@@ -94,9 +83,7 @@ export function usePOTableColumns({
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            onClick={() =>
-              setDeleteTarget({ id: row.po_id, label: row.po_code })
-            }
+            onClick={() => setDeleteTarget({ id: row.po_id, label: row.po_code })}
           />
         </HStack>
       ),

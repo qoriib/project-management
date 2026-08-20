@@ -1,12 +1,4 @@
-import {
-  Button,
-  Dialog,
-  HStack,
-  Heading,
-  Text,
-  TextInput,
-  VStack,
-} from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, Text, TextInput, VStack } from "@astryxdesign/core";
 import { useEffect, useState } from "react";
 
 interface SettingsResetDialogProps {
@@ -16,12 +8,7 @@ interface SettingsResetDialogProps {
   isLoading?: boolean;
 }
 
-export function SettingsResetDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  isLoading = false,
-}: SettingsResetDialogProps) {
+export function SettingsResetDialog({ isOpen, onClose, onConfirm, isLoading = false }: SettingsResetDialogProps) {
   const [resetConfirmText, setResetConfirmText] = useState("");
 
   // Clear input when dialog opens
@@ -51,8 +38,8 @@ export function SettingsResetDialog({
       <VStack gap={4}>
         <Heading level={3}>Reset Database</Heading>
         <Text color="secondary">
-          Tindakan ini akan menghapus bersih <strong>seluruh</strong> isi basis
-          data termasuk semua Master Data secara permanen.
+          Tindakan ini akan menghapus bersih <strong>seluruh</strong> isi basis data termasuk semua Master Data secara
+          permanen.
         </Text>
         <TextInput
           label="Ketik 'RESET' untuk melanjutkan:"
@@ -61,12 +48,7 @@ export function SettingsResetDialog({
           onChange={(val) => setResetConfirmText(val || "")}
         />
         <HStack gap={2} justify="end">
-          <Button
-            label="Batal"
-            variant="secondary"
-            onClick={onClose}
-            isDisabled={isLoading}
-          />
+          <Button label="Batal" variant="secondary" onClick={onClose} isDisabled={isLoading} />
           <Button
             label="Hapus & Reset"
             variant="destructive"

@@ -9,10 +9,7 @@ export interface Item {
   deleted_at: string | null;
 }
 
-export type CreateItem = Pick<
-  Item,
-  "item_code" | "item_name" | "category_id" | "unit_id"
->;
+export type CreateItem = Pick<Item, "item_code" | "item_name" | "category_id" | "unit_id">;
 export type UpdateItem = Partial<CreateItem>;
 
 export const ItemModel: ModelDefinition = {

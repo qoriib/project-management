@@ -20,10 +20,7 @@ function NewPOPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader
-          title="Pemesanan Baru"
-          subtitle="Buat pesanan pembelian item ke vendor"
-        />
+        <PageHeader title="Pemesanan Baru" subtitle="Buat pesanan pembelian item ke vendor" />
         <ProjectRequired>
           <POForm bomData={currentBOMData} />
         </ProjectRequired>

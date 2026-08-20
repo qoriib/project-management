@@ -56,10 +56,7 @@ function isTauriContext(): boolean {
 /**
  * Internal dispatcher — routes to Tauri or console.
  */
-async function dispatch(
-  level: "debug" | "info" | "warn" | "error",
-  message: string,
-): Promise<void> {
+async function dispatch(level: "debug" | "info" | "warn" | "error", message: string): Promise<void> {
   if (isTauriContext()) {
     try {
       const logger = await getTauriLog();

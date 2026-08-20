@@ -6,11 +6,7 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
 import type { Unit } from "@/db/repositories";
 
 interface MasterUnitTableProps {
@@ -64,9 +60,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
       header: "Jumlah Item",
       key: "count",
       width: pixel(150),
-      renderCell: (row: UnitRow) => (
-        <Text type="code">{String(row.count)}</Text>
-      ),
+      renderCell: (row: UnitRow) => <Text type="code">{String(row.count)}</Text>,
     },
     {
       align: "end",
@@ -88,14 +82,18 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
             label="Hapus"
             icon={<Trash2 size={16} />}
             isDisabled={row.count > 0}
-            onClick={() =>
-              setDeleteTarget({ id: row.unit_id, label: row.unit_name })
-            }
+            onClick={() => setDeleteTarget({ id: row.unit_id, label: row.unit_name })}
           />
         </HStack>
       ),
     },
   ];
+
+  const rowIndexPlugin = useTableRowIndex({
+    data: unitRows as UnitRow[],
+    getRowKey: (item) => item.unit_id,
+    label: "No.",
+  });
 
   return (
     <>
@@ -105,6 +103,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
         columns={columns}
         data={unitRows as UnitRow[]}
         idKey="unit_id"
+        plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada satuan." />}
       />
       <ConfirmDialog

@@ -1,10 +1,4 @@
-import {
-  bomGroupRepo,
-  bomRepo,
-  itemPriceRepo,
-  itemRepo,
-  projectRepo,
-} from "@/db/repositories";
+import { bomGroupRepo, bomRepo, itemPriceRepo, itemRepo, projectRepo } from "@/db/repositories";
 
 interface SeedBOMRaw {
   projectName: string;
@@ -198,26 +192,17 @@ export async function seedBOMs(): Promise<void> {
     projects = await projectRepo.findAll(),
     items = await itemRepo.findAll(),
     bomGroups = await bomGroupRepo.findAll(),
-    projMap = new Map<string, string>(
-      projects.map((p) => [p.project_name, p.project_id]),
-    ),
-    itemMap = new Map<string, string>(
-      items.map((i) => [i.item_name, i.item_id]),
-    ),
+    projMap = new Map<string, string>(projects.map((p) => [p.project_name, p.project_id])),
+    itemMap = new Map<string, string>(items.map((i) => [i.item_name, i.item_id])),
     // Cache item prices to avoid repeated DB calls
-    itemPriceCache = new Map<
-      string,
-      { item_price_id: string; price: number }[]
-    >();
+    itemPriceCache = new Map<string, { item_price_id: string; price: number }[]>();
 
   for (const b of rawBoms) {
     const projectId = projMap.get(b.projectName),
       itemId = itemMap.get(b.itemName);
 
     if (!projectId || !itemId) {
-      console.warn(
-        `Could not find project '${b.projectName}' or item '${b.itemName}'. Skipping BOM.`,
-      );
+      console.warn(`Could not find project '${b.projectName}' or item '${b.itemName}'. Skipping BOM.`);
       continue;
     }
 
@@ -234,9 +219,7 @@ export async function seedBOMs(): Promise<void> {
     // Find best matching price (closest to seed price), fallback to first
     const matchedPrice = prices.find((p) => p.price === b.price) ?? prices[0];
     if (!matchedPrice) {
-      console.warn(
-        `No item_prices found for item '${b.itemName}'. Skipping BOM.`,
-      );
+      console.warn(`No item_prices found for item '${b.itemName}'. Skipping BOM.`);
       continue;
     }
 
@@ -252,8 +235,7 @@ export async function seedBOMs(): Promise<void> {
 
     if (!exists && projectBomGroups.length > 0) {
       // Pick a random bom_group for this specific project
-      const randomGroup =
-        projectBomGroups[Math.floor(Math.random() * projectBomGroups.length)];
+      const randomGroup = projectBomGroups[Math.floor(Math.random() * projectBomGroups.length)];
 
       await bomRepo.create({
         bom_group_id: randomGroup.bom_group_id,

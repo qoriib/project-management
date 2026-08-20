@@ -1,9 +1,6 @@
 import type { ItemSelectorCellProps } from "./ItemSelectorCell";
 
-export function UnitDisplayCell({
-  form,
-  items,
-}: Omit<ItemSelectorCellProps, "handleItemChange" | "onAddNewItem">) {
+export function UnitDisplayCell({ form, items }: Omit<ItemSelectorCellProps, "handleItemChange" | "onAddNewItem">) {
   return (
     <form.Subscribe selector={(s) => s.values.item_id}>
       {(itemId) => {

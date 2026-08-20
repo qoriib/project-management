@@ -1,10 +1,4 @@
-import {
-  Outlet,
-  createFileRoute,
-  redirect,
-  useLocation,
-  useNavigate,
-} from "@tanstack/react-router";
+import { Outlet, createFileRoute, redirect, useLocation, useNavigate } from "@tanstack/react-router";
 import { Layout, LayoutContent, VStack } from "@astryxdesign/core/Layout";
 import { TabList, Tab } from "@astryxdesign/core/TabList";
 import { APP } from "@/configs/app.config";
@@ -14,9 +8,7 @@ function SettingsLayout() {
   const location = useLocation();
   const navigate = useNavigate({ from: "/settings" });
 
-  const activeNav =
-    APP.settingsNav.find((item) => item.href === location.pathname)?.id ||
-    APP.settingsNav[0]?.id;
+  const activeNav = APP.settingsNav.find((item) => item.href === location.pathname)?.id || APP.settingsNav[0]?.id;
 
   return (
     <Layout
@@ -26,10 +18,7 @@ function SettingsLayout() {
         <LayoutContent padding={6}>
           <VStack gap={6}>
             <VStack gap={4}>
-              <PageHeader
-                title="Pengaturan"
-                subtitle="Kelola pengaturan dan preferensi aplikasi"
-              />
+              <PageHeader title="Pengaturan" subtitle="Kelola pengaturan dan preferensi aplikasi" />
               <TabList
                 value={activeNav}
                 onChange={(val) => {
@@ -56,10 +45,7 @@ function SettingsLayout() {
 export const Route = createFileRoute("/settings")({
   component: SettingsLayout,
   beforeLoad: ({ location }) => {
-    if (
-      location.pathname === "/settings" ||
-      location.pathname === "/settings/"
-    ) {
+    if (location.pathname === "/settings" || location.pathname === "/settings/") {
       throw redirect({ to: "/settings/database" });
     }
   },

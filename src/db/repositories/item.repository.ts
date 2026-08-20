@@ -3,12 +3,7 @@
  */
 
 import { BaseRepository } from "@/db/core/base-repository";
-import {
-  type CreateItem,
-  type Item,
-  ItemModel,
-  type UpdateItem,
-} from "@/db/models";
+import { type CreateItem, type Item, ItemModel, type UpdateItem } from "@/db/models";
 
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
@@ -29,13 +24,7 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
   async findAll(): Promise<ItemWithDetails[]> {
     try {
       const qb = new QueryBuilder()
-          .select(
-            "i.*",
-            "c.category_name",
-            "c.prefix as category_prefix",
-            "c.category_code",
-            "u.unit_name",
-          )
+          .select("i.*", "c.category_name", "c.prefix as category_prefix", "c.category_code", "u.unit_name")
           .selectRaw(
             "(EXISTS(SELECT 1 FROM item_prices WHERE item_id = i.item_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM bill_of_materials WHERE item_id = i.item_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM po_items WHERE item_id = i.item_id)) as has_relation",
           )
@@ -60,9 +49,7 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
 
     if (!dataToInsert.item_code || dataToInsert.item_code.trim() === "") {
       const db = await this.db(),
-        rows = await db.select<{ max_code: string }[]>(
-          `SELECT MAX(CAST(item_code AS INTEGER)) as max_code FROM items`,
-        ),
+        rows = await db.select<{ max_code: string }[]>(`SELECT MAX(CAST(item_code AS INTEGER)) as max_code FROM items`),
         maxCode = parseInt(rows[0]?.max_code || "0", 10),
         newCode = (maxCode + 1).toString().padStart(5, "0");
       dataToInsert.item_code = newCode;

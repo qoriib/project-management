@@ -1,12 +1,7 @@
 import { useMemo, useState } from "react";
 import { Badge, HStack, IconButton, Table, Text, VStack } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-  useTableGroupedRows,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableGroupedRows, useTableRowIndex } from "@astryxdesign/core/Table";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { Eye } from "lucide-react";
 import { EntityCode } from "@/components/shared/EntityCode";
@@ -58,19 +53,13 @@ export function ReportBOMTable({ report, loading, onLogClick }: ReportBOMTablePr
     ),
   });
 
+  const rowIndexPlugin = useTableRowIndex({
+    data: enrichedReport,
+    getRowKey: (item) => item.unique_id,
+    label: "No.",
+  });
+
   const columns: TableColumn<EnrichedReportItem>[] = [
-    {
-      header: "No.",
-      key: "no",
-      width: pixel(60),
-      renderCell: (r) => {
-        const groupItems = enrichedReport.filter(
-          (b) => (b.bom_group_name ?? "LAINNYA") === (r.bom_group_name ?? "LAINNYA"),
-        );
-        const index = groupItems.findIndex((b) => b.unique_id === r.unique_id);
-        return index >= 0 ? index + 1 : "-";
-      },
-    },
     {
       header: "Item",
       key: "item",
@@ -106,11 +95,7 @@ export function ReportBOMTable({ report, loading, onLogClick }: ReportBOMTablePr
         const plannedPrice = r.price ?? 0;
         const isOver = poPrice > plannedPrice;
         const isUnder = poPrice > 0 && poPrice < plannedPrice;
-        const color = isOver
-          ? "var(--color-error, #d32f2f)"
-          : isUnder
-            ? "var(--color-success, #2e7d32)"
-            : undefined;
+        const color = isOver ? "var(--color-error, #d32f2f)" : isUnder ? "var(--color-success, #2e7d32)" : undefined;
 
         return (
           <VStack gap={0.5} align="end">
@@ -164,11 +149,7 @@ export function ReportBOMTable({ report, loading, onLogClick }: ReportBOMTablePr
         const plannedTotal = r.planned_budget ?? 0;
         const isOver = poTotal > plannedTotal;
         const isUnder = poTotal > 0 && poTotal < plannedTotal;
-        const color = isOver
-          ? "var(--color-error, #d32f2f)"
-          : isUnder
-            ? "var(--color-success, #2e7d32)"
-            : undefined;
+        const color = isOver ? "var(--color-error, #d32f2f)" : isUnder ? "var(--color-success, #2e7d32)" : undefined;
 
         return (
           <VStack gap={0.5} align="end">
@@ -207,17 +188,9 @@ export function ReportBOMTable({ report, loading, onLogClick }: ReportBOMTablePr
               <Text type="code" color="secondary" weight="medium">
                 {`${formatNumber(r.total_ordered, 2)} / ${formatNumber(r.planned_volume, 2)}`}
               </Text>
-              <Badge
-                variant={isOver ? "red" : isComplete ? "green" : undefined}
-                label={`${percent.toFixed(0)}%`}
-              />
+              <Badge variant={isOver ? "red" : isComplete ? "green" : undefined} label={`${percent.toFixed(0)}%`} />
             </HStack>
-            <ProgressBar
-              value={r.total_ordered}
-              max={r.planned_volume ?? 1}
-              variant={variant}
-              label=""
-            />
+            <ProgressBar value={r.total_ordered} max={r.planned_volume ?? 1} variant={variant} label="" />
           </VStack>
         );
       },
@@ -238,17 +211,9 @@ export function ReportBOMTable({ report, loading, onLogClick }: ReportBOMTablePr
               <Text type="code" color="secondary" weight="medium">
                 {`${formatNumber(r.total_delivered, 2)} / ${formatNumber(r.total_ordered, 2)}`}
               </Text>
-              <Badge
-                variant={isOver ? "red" : isComplete ? "green" : undefined}
-                label={`${percent.toFixed(0)}%`}
-              />
+              <Badge variant={isOver ? "red" : isComplete ? "green" : undefined} label={`${percent.toFixed(0)}%`} />
             </HStack>
-            <ProgressBar
-              value={r.total_delivered}
-              max={r.total_ordered ?? 1}
-              variant={variant}
-              label=""
-            />
+            <ProgressBar value={r.total_delivered} max={r.total_ordered ?? 1} variant={variant} label="" />
           </VStack>
         );
       },
@@ -283,7 +248,7 @@ export function ReportBOMTable({ report, loading, onLogClick }: ReportBOMTablePr
       columns={columns}
       data={groupedData}
       idKey={groupedIdKey}
-      plugins={{ grouping: groupedPlugin }}
+      plugins={{ grouping: groupedPlugin, rowIndex: rowIndexPlugin }}
     />
   );
 }

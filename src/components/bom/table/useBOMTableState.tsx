@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Button, HStack, Text } from "@astryxdesign/core";
 import { formatNumber } from "@/utils/formatters";
 import { Plus } from "lucide-react";
-import { type TablePlugin, useTableGroupedRows } from "@astryxdesign/core/Table";
+import { type TablePlugin, useTableGroupedRows, TableCell, useTableRowIndex } from "@astryxdesign/core/Table";
 import type { BomRow } from "./useBOMColumns";
 import type { BOMDetail, BOMGroup } from "@/db/repositories";
 
@@ -131,7 +131,7 @@ export function useBOMTableState({ boms, bomGroups, editingId, isApproved, setEd
           return {
             ...props,
             children: (
-              <td colSpan={999} style={{ padding: "var(--spacing-3)" }}>
+              <TableCell colSpan={999} style={{ padding: "var(--spacing-3)" }}>
                 {!hideButton && !isApproved && (
                   <Button
                     variant="secondary"
@@ -148,7 +148,7 @@ export function useBOMTableState({ boms, bomGroups, editingId, isApproved, setEd
                     }}
                   />
                 )}
-              </td>
+              </TableCell>
             ),
           };
         }
@@ -159,11 +159,18 @@ export function useBOMTableState({ boms, bomGroups, editingId, isApproved, setEd
     [editingId, isApproved, setEditingId],
   );
 
+  const rowIndexPlugin = useTableRowIndex<BomRow>({
+    data: boms as BomRow[],
+    getRowKey: (item) => String(item.bom_id),
+    label: "No.",
+  });
+
   return {
     footerPlugin,
     grandTotal,
     groupedData,
     groupedIdKey,
     groupedPlugin,
+    rowIndexPlugin,
   };
 }

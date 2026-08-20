@@ -14,17 +14,11 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { usePOItemForm } from "./form/usePOItemForm";
 import { MasterVendorForm } from "@/components/master/MasterVendorForm";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
-import {
-  POItemRow,
-  usePOItemFormColumns,
-} from "@/components/po/table/usePOItemFormColumns";
+import { POItemRow, usePOItemFormColumns } from "@/components/po/table/usePOItemFormColumns";
 import { usePOItemTableState } from "@/components/po/table/usePOItemTableState";
+import { useTableRowIndex } from "@astryxdesign/core/Table";
 import { poSchema, buildDefaultValues } from "@/components/po/form/po.schema";
-import type {
-  POItemDetail,
-  POItemInput,
-  POWithSummary,
-} from "@/db/repositories";
+import type { POItemDetail, POItemInput, POWithSummary } from "@/db/repositories";
 import type { BOMReportItem } from "@/db/services";
 
 export interface POFormProps {
@@ -55,9 +49,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
       if (!selectedProjectId) return;
 
       const itemInputs: POItemInput[] = items.map((i) => ({
-        po_item_id: i.po_item_id.startsWith("draft-")
-          ? undefined
-          : i.po_item_id,
+        po_item_id: i.po_item_id.startsWith("draft-") ? undefined : i.po_item_id,
         item_id: i.item_id,
         vendor_id: i.vendor_id,
         item_price_id: i.item_price_id,
@@ -97,16 +89,10 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
   const { form: tableForm, handleItemChange } = usePOItemForm({
     initialData: editingData,
     onSubmitItem: (payload) => {
-      const {
-        items: globalItems,
-        itemPricesMap,
-        vendors,
-      } = useMasterStore.getState();
+      const { items: globalItems, itemPricesMap, vendors } = useMasterStore.getState();
       const itemDef = globalItems.find((i) => i.item_id === payload.item_id);
       const prices = itemPricesMap.get(payload.item_id) ?? [];
-      const priceDef = prices.find(
-        (p) => p.item_price_id === payload.item_price_id,
-      );
+      const priceDef = prices.find((p) => p.item_price_id === payload.item_price_id);
       const vendorDef = vendors.find((v) => v.vendor_id === payload.vendor_id);
 
       const newDetail: POItemDetail = {
@@ -117,9 +103,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
         item_name: itemDef?.item_name ?? "",
         item_price_id: payload.item_price_id,
         po_id: "",
-        po_item_id: editingData
-          ? editingData.po_item_id
-          : `draft-${Date.now()}`,
+        po_item_id: editingData ? editingData.po_item_id : `draft-${Date.now()}`,
         price: priceDef?.price ?? 0,
         qty: payload.qty,
         remaining: payload.qty,
@@ -130,11 +114,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
       };
 
       if (editingData) {
-        setItems(
-          items.map((i) =>
-            i.po_item_id === editingData.po_item_id ? newDetail : i,
-          ),
-        );
+        setItems(items.map((i) => (i.po_item_id === editingData.po_item_id ? newDetail : i)));
       } else {
         setItems([...items, newDetail]);
       }
@@ -165,6 +145,12 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
     setEditingData,
   });
 
+  const rowIndexPlugin = useTableRowIndex<POItemRow>({
+    data: items as POItemRow[],
+    getRowKey: (item) => item.po_item_id,
+    label: "No.",
+  });
+
   async function handleDelete() {
     if (!deleteTarget) return;
     const newItems = items.filter((i) => i.po_item_id !== deleteTarget);
@@ -186,10 +172,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
                   value={field.state.value}
                   onChange={(v) => field.handleChange(v ?? "")}
                   onBlur={field.handleBlur}
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             </form.Field>
@@ -204,10 +187,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
                   value={field.state.value as DateInputProps["value"]}
                   onChange={(v) => field.handleChange(v ?? "")}
                   onBlur={field.handleBlur}
-                  status={getFieldError(
-                    field.state.meta.errors,
-                    field.state.meta.isTouched,
-                  )}
+                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
             </form.Field>
@@ -220,10 +200,8 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
             columns={columns}
             data={dataWithFooters}
             idKey="po_item_id"
-            plugins={{ footer: footerPlugin }}
-            emptyState={
-              <TableEmptyState message="Belum ada item. Klik 'Tambah Kebutuhan'." />
-            }
+            plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin }}
+            emptyState={<TableEmptyState message="Belum ada item. Klik 'Tambah Kebutuhan'." />}
           />
         </Card>
         <HStack justify="end" gap={2}>
@@ -255,19 +233,11 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
         title="Hapus Item PO"
         message="Apakah Anda yakin ingin menghapus item ini dari Purchase Order?"
       />
-      <MasterVendorForm
-        isOpen={isVendorFormOpen}
-        onClose={() => setIsVendorFormOpen(false)}
-        initialData={null}
-      />
+      <MasterVendorForm isOpen={isVendorFormOpen} onClose={() => setIsVendorFormOpen(false)} initialData={null} />
       <MasterItemPriceDialog
         isOpen={isPriceFormOpen}
         onClose={() => setIsPriceFormOpen(false)}
-        item={
-          masterItems.find(
-            (i) => i.item_id === tableForm.getFieldValue("item_id"),
-          ) ?? null
-        }
+        item={masterItems.find((i) => i.item_id === tableForm.getFieldValue("item_id")) ?? null}
       />
     </>
   );

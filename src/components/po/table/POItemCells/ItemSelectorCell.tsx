@@ -22,12 +22,7 @@ export function ItemSelectorCell({
       {(field) => {
         const currentVal = field.state.value,
           options = bomOptions
-            .filter(
-              (b) =>
-                b.item_id === currentVal ||
-                !selectedItemIds.has(b.item_id) ||
-                editingId !== "new-item",
-            )
+            .filter((b) => b.item_id === currentVal || !selectedItemIds.has(b.item_id) || editingId !== "new-item")
             .map((b) => ({
               label: `${b.item_name} (${b.unit ?? ""})`,
               value: b.item_id,
@@ -44,10 +39,7 @@ export function ItemSelectorCell({
             options={options}
             onChange={(v) => onChangeItem(v)}
             onBlur={field.handleBlur}
-            status={getFieldError(
-              field.state.meta.errors,
-              field.state.meta.isTouched,
-            )}
+            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
           />
         );
       }}

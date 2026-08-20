@@ -11,9 +11,7 @@ export interface DeliveryItemsCardProps {
  */
 export function DeliveryItemsCard({ form }: DeliveryItemsCardProps) {
   return (
-    <form.Subscribe
-      selector={(state) => [state.values.po_id, state.values.items] as const}
-    >
+    <form.Subscribe selector={(state) => [state.values.po_id, state.values.items] as const}>
       {([poId, items]) => {
         if (!poId || items.length === 0) {
           return null;

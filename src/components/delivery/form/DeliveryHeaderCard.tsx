@@ -15,20 +15,10 @@ interface DeliveryHeaderCardProps {
 /**
  * Header form Delivery: berisi selector PO dengan detailnya dan tanggal kirim/terima.
  */
-export function DeliveryHeaderCard({
-  form,
-  pos,
-  isEdit,
-  handlePOChange,
-}: DeliveryHeaderCardProps) {
+export function DeliveryHeaderCard({ form, pos, isEdit, handlePOChange }: DeliveryHeaderCardProps) {
   return (
     <FormLayout direction="horizontal">
-      <DeliveryPOSelector
-        form={form}
-        pos={pos}
-        isEdit={isEdit}
-        handlePOChange={handlePOChange}
-      />
+      <DeliveryPOSelector form={form} pos={pos} isEdit={isEdit} handlePOChange={handlePOChange} />
       <form.Field name="delivery_code">
         {(field) => (
           <TextInput
@@ -37,10 +27,7 @@ export function DeliveryHeaderCard({
             onChange={(v) => field.handleChange(v)}
             onBlur={field.handleBlur}
             statusVariant="attached"
-            status={getFieldError(
-              field.state.meta.errors,
-              field.state.meta.isTouched,
-            )}
+            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
             isRequired
           />
         )}

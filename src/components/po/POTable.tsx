@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Table } from "@astryxdesign/core";
+import { useTableRowIndex } from "@astryxdesign/core/Table";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
@@ -43,17 +44,22 @@ export function POTable({ onEdit }: POTableProps) {
     setDeleteTarget,
   });
 
+  const rowIndexPlugin = useTableRowIndex({
+    data: pos as PORow[],
+    getRowKey: (item) => item.po_id,
+    label: "No.",
+  });
+
   return (
     <>
       <Table
         hasHover
         idKey="po_id"
+        plugins={{ rowIndex: rowIndexPlugin }}
         textOverflow="truncate"
         columns={columns}
         data={pos as PORow[]}
-        emptyState={
-          <TableEmptyState message="Belum ada PO. Klik 'Buat Baru' untuk memulai." />
-        }
+        emptyState={<TableEmptyState message="Belum ada PO. Klik 'Buat Baru' untuk memulai." />}
       />
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}

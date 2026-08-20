@@ -18,7 +18,5 @@ export async function seedBOMGroups() {
     }
   }
 
-  console.log(
-    `Seeded ${totalSeeded} BOM Groups across ${projects.length} projects`,
-  );
+  console.log(`Seeded ${totalSeeded} BOM Groups across ${projects.length} projects`);
 }

@@ -1,21 +1,12 @@
 import { BaseRepository } from "@/db/core/base-repository";
-import {
-  type BOMGroup,
-  BOMGroupModel,
-  type CreateBOMGroup,
-  type UpdateBOMGroup,
-} from "@/db/models";
+import { type BOMGroup, BOMGroupModel, type CreateBOMGroup, type UpdateBOMGroup } from "@/db/models";
 import { QueryBuilder } from "@/db/core/query-builder";
 
 export interface BOMGroupWithProject extends BOMGroup {
   project_name?: string;
 }
 
-class BOMGroupRepository extends BaseRepository<
-  BOMGroup,
-  CreateBOMGroup,
-  UpdateBOMGroup
-> {
+class BOMGroupRepository extends BaseRepository<BOMGroup, CreateBOMGroup, UpdateBOMGroup> {
   constructor() {
     super(BOMGroupModel);
   }

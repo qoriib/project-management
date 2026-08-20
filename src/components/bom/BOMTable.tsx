@@ -41,9 +41,7 @@ export function BOMTable() {
 
   const projects = useMasterStore((s) => s.projects);
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const currentProject = projects.find(
-    (p) => p.project_id === selectedProjectId,
-  );
+  const currentProject = projects.find((p) => p.project_id === selectedProjectId);
   const isApproved = currentProject?.bom_is_approved === 1;
 
   useEffect(() => {
@@ -74,7 +72,6 @@ export function BOMTable() {
   });
 
   const columns = useBOMColumns({
-    boms,
     editingId,
     form,
     handleItemChange,
@@ -86,14 +83,13 @@ export function BOMTable() {
     setIsPriceFormOpen,
   });
 
-  const { grandTotal, groupedData, groupedPlugin, groupedIdKey, footerPlugin } =
-    useBOMTableState({
-      bomGroups,
-      boms,
-      editingId,
-      isApproved,
-      setEditingId,
-    });
+  const { grandTotal, groupedData, groupedPlugin, groupedIdKey, footerPlugin, rowIndexPlugin } = useBOMTableState({
+    bomGroups,
+    boms,
+    editingId,
+    isApproved,
+    setEditingId,
+  });
 
   return (
     <>
@@ -103,7 +99,7 @@ export function BOMTable() {
         columns={columns}
         data={groupedData}
         idKey={groupedIdKey}
-        plugins={{ footer: footerPlugin, grouping: groupedPlugin }}
+        plugins={{ footer: footerPlugin, grouping: groupedPlugin, rowIndex: rowIndexPlugin }}
         emptyState={
           <TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan melalui tombol di bawah." />
         }
@@ -111,11 +107,7 @@ export function BOMTable() {
 
       <HStack align="start" justify="between" paddingBlock={3} gap={2}>
         {isApproved ? null : (
-          <Button
-            variant="secondary"
-            label="Kelola Grup Pekerjaan"
-            onClick={() => setIsGroupDialogOpen(true)}
-          />
+          <Button variant="secondary" label="Kelola Grup Pekerjaan" onClick={() => setIsGroupDialogOpen(true)} />
         )}
         {boms.length > 0 && (
           <HStack justify="end" gap={2} width="100%">
@@ -138,16 +130,10 @@ export function BOMTable() {
         onClose={() => setIsGroupDialogOpen(false)}
         project={currentProject || null}
       />
-      <MasterItemForm
-        isOpen={isItemFormOpen}
-        onClose={() => setIsItemFormOpen(false)}
-        initialData={null}
-      />
+      <MasterItemForm isOpen={isItemFormOpen} onClose={() => setIsItemFormOpen(false)} initialData={null} />
       <MasterItemPriceDialog
         isOpen={isPriceFormOpen}
-        item={
-          items.find((i) => i.item_id === form.getFieldValue("item_id")) || null
-        }
+        item={items.find((i) => i.item_id === form.getFieldValue("item_id")) || null}
         onClose={() => {
           setIsPriceFormOpen(false);
           handleItemChange(form.getFieldValue("item_id"));

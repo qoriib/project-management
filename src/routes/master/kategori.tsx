@@ -36,20 +36,10 @@ function MasterKategoriPage() {
         <PageHeader
           title="Master Data Kategori"
           subtitle="Kelola data kategori item"
-          actions={
-            <Button
-              variant="primary"
-              label="Tambah Kategori"
-              onClick={openCreate}
-            />
-          }
+          actions={<Button variant="primary" label="Tambah Kategori" onClick={openCreate} />}
         />
         <MasterCategoryTable onEdit={openEdit} />
-        <MasterCategoryForm
-          isOpen={isFormOpen}
-          onClose={() => setIsFormOpen(false)}
-          initialData={editTarget}
-        />
+        <MasterCategoryForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
       </VStack>
     </Section>
   );

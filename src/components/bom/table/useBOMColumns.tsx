@@ -11,11 +11,7 @@ import {
   SubtotalCell,
   UnitDisplayCell,
 } from "@/components/bom/table/BOMItemCells";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { BOMDetail, ItemWithDetails } from "@/db/repositories";
 
 export interface BomRow extends BOMDetail, Record<string, unknown> {
@@ -24,7 +20,6 @@ export interface BomRow extends BOMDetail, Record<string, unknown> {
 }
 
 interface UseBOMColumnsProps {
-  boms: BOMDetail[];
   editingId: string | null;
   form: ReturnType<typeof useBOMForm>["form"];
   items: ItemWithDetails[];
@@ -37,7 +32,6 @@ interface UseBOMColumnsProps {
 }
 
 export function useBOMColumns({
-  boms,
   editingId,
   form,
   items,
@@ -49,23 +43,6 @@ export function useBOMColumns({
   isApproved,
 }: UseBOMColumnsProps) {
   const baseColumns: TableColumn<BomRow>[] = [
-    {
-      header: "No.",
-      key: "no",
-      width: pixel(60),
-      renderCell: (row: BomRow) => {
-        if (row.isFooter || row.isDraft || row.bom_id?.startsWith("new-")) {
-          return <div />;
-        }
-
-        const groupItems = boms.filter(
-          (b) => b.bom_group_id === row.bom_group_id,
-        );
-        const index = groupItems.findIndex((b) => b.bom_id === row.bom_id);
-
-        return index >= 0 ? index + 1 : "-";
-      },
-    },
     {
       header: "Kode Item",
       key: "item_code_full",
@@ -141,13 +118,7 @@ export function useBOMColumns({
         if (row.isFooter) return <div />;
 
         if (row.bom_id === editingId) {
-          return (
-            <PriceSelectorCell
-              form={form}
-              editingId={editingId}
-              onAddNewPrice={() => setIsPriceFormOpen(true)}
-            />
-          );
+          return <PriceSelectorCell form={form} editingId={editingId} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
         }
 
         return <Text type="code">{formatNumber(row.price)}</Text>;
@@ -166,9 +137,7 @@ export function useBOMColumns({
           return <SubtotalCell form={form} />;
         }
 
-        return (
-          <Text type="code">{formatNumber(row.estimated_total ?? 0)}</Text>
-        );
+        return <Text type="code">{formatNumber(row.estimated_total ?? 0)}</Text>;
       },
     },
     {

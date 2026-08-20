@@ -5,12 +5,7 @@
 import { BaseRepository } from "@/db/core/base-repository";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
-import {
-  type CreateProject,
-  type Project,
-  ProjectModel,
-  type UpdateProject,
-} from "@/db/models";
+import { type CreateProject, type Project, ProjectModel, type UpdateProject } from "@/db/models";
 
 // ── Extended Types ───────────────────────────────────────────────────────────
 
@@ -18,11 +13,7 @@ export type ProjectWithRelations = Project & { has_relation?: boolean };
 
 // ── Repository ───────────────────────────────────────────────────────────────
 
-class ProjectRepository extends BaseRepository<
-  Project,
-  CreateProject,
-  UpdateProject
-> {
+class ProjectRepository extends BaseRepository<Project, CreateProject, UpdateProject> {
   constructor() {
     super(ProjectModel);
   }
