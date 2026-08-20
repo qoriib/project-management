@@ -102,8 +102,8 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               name="item_code"
               children={(field) => (
                 <TextInput
-                  label="Kode Item (Opsional)"
-                  placeholder="Kosongkan untuk auto-generate"
+                  label="Kode Item"
+                  description="Kosongkan untuk membuat kode item otomatis"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}

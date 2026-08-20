@@ -76,13 +76,11 @@ export function useBOMTableState({
         } as BomRow);
       }
 
-      if (!isApproved) {
-        list.push({
-          bom_group_id: gid,
-          bom_id: `footer-${gid}`,
-          isFooter: true,
-        } as BomRow);
-      }
+      list.push({
+        bom_group_id: gid,
+        bom_id: `footer-${gid}`,
+        isFooter: true,
+      } as BomRow);
     }
 
     return list;

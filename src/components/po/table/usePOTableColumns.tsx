@@ -1,5 +1,5 @@
 import { Eye, Pencil, Trash2 } from "lucide-react";
-import { Badge, HStack, IconButton, Text, Timestamp } from "@astryxdesign/core";
+import { HStack, IconButton, Text, Timestamp, Token } from "@astryxdesign/core";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
 import { useNavigate } from "@tanstack/react-router";
@@ -39,7 +39,7 @@ export function usePOTableColumns({ onEdit, setDeleteTarget }: UsePOTableColumns
           row.vendor_names ? (
             <HStack gap={1} style={{ flexWrap: "wrap" }}>
               {row.vendor_names.split(",").map((v, idx) => (
-                <Badge key={idx} variant="neutral" label={v.trim()} />
+                <Token key={idx} label={v.trim()} />
               ))}
             </HStack>
           ) : (

@@ -8,7 +8,7 @@ import {
   ItemSelectorCell,
   PriceSelectorCell,
   QtyInputCell,
-  TotalEstimationCell,
+  SubtotalCell,
   UnitDisplayCell,
 } from "@/components/bom/table/BOMItemCells";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
@@ -20,6 +20,7 @@ export interface BomRow extends BOMDetail, Record<string, unknown> {
 }
 
 interface UseBOMColumnsProps {
+  boms: BOMDetail[];
   editingId: string | null;
   form: ReturnType<typeof useBOMForm>["form"];
   items: ItemWithDetails[];
@@ -32,6 +33,7 @@ interface UseBOMColumnsProps {
 }
 
 export function useBOMColumns({
+  boms,
   editingId,
   form,
   items,
@@ -44,13 +46,26 @@ export function useBOMColumns({
 }: UseBOMColumnsProps) {
   const baseColumns: TableColumn<BomRow>[] = [
     {
+      header: "No.",
+      key: "no",
+      width: pixel(60),
+      renderCell: (row: BomRow) => {
+        if (row.isFooter || row.isDraft || row.bom_id?.startsWith("new-")) {
+          return <div />;
+        }
+
+        const groupItems = boms.filter((b) => b.bom_group_id === row.bom_group_id);
+        const index = groupItems.findIndex((b) => b.bom_id === row.bom_id);
+
+        return index >= 0 ? index + 1 : "-";
+      },
+    },
+    {
       header: "Kode Item",
       key: "item_code_full",
       width: pixel(160),
       renderCell: (row: BomRow) => {
-        if (row.isFooter) {
-          return <div />;
-        }
+        if (row.isFooter) return <div />;
 
         if (row.bom_id === editingId) {
           return <ItemCodeDisplayCell form={form} items={items} />;
@@ -65,11 +80,9 @@ export function useBOMColumns({
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(1),
+      width: proportional(3),
       renderCell: (row: BomRow) => {
-        if (row.isFooter) {
-          return <div />;
-        }
+        if (row.isFooter) return <div />;
 
         if (row.bom_id === editingId) {
           return (
@@ -90,9 +103,7 @@ export function useBOMColumns({
       key: "unit",
       width: pixel(80),
       renderCell: (row: BomRow) => {
-        if (row.isFooter) {
-          return <div />;
-        }
+        if (row.isFooter) return <div />;
 
         if (row.bom_id === editingId) {
           return <UnitDisplayCell form={form} items={items} />;
@@ -103,36 +114,11 @@ export function useBOMColumns({
     },
     {
       align: "end",
-      header: "Subtotal (Rp)",
-      key: "subtotal",
-      width: pixel(220),
-      renderCell: (row: BomRow) => {
-        if (row.isFooter) {
-          return (
-            <Text type="code" weight="bold">
-              {formatNumber(row.price)}
-            </Text>
-          );
-        }
-
-        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-
-        return (
-          <Text type="code" weight="medium">
-            {formatNumber(subtotal)}
-          </Text>
-        );
-      },
-    },
-    {
-      align: "end",
       header: "Volume Rencana",
       key: "qty",
       width: pixel(140),
       renderCell: (row: BomRow) => {
-        if (row.isFooter) {
-          return <div />;
-        }
+        if (row.isFooter) return <div />;
 
         if (row.bom_id === editingId) {
           return <QtyInputCell form={form} />;
@@ -147,9 +133,7 @@ export function useBOMColumns({
       key: "price",
       width: pixel(220),
       renderCell: (row: BomRow) => {
-        if (row.isFooter) {
-          return <div />;
-        }
+        if (row.isFooter) return <div />;
 
         if (row.bom_id === editingId) {
           return (
@@ -164,18 +148,17 @@ export function useBOMColumns({
         return <Text type="code">{formatNumber(row.price)}</Text>;
       },
     },
+
     {
       align: "end",
-      header: "Total Estimasi (Rp)",
-      key: "estimation",
+      header: "Subtotal (Rp)",
+      key: "subtotal",
       width: pixel(260),
       renderCell: (row: BomRow) => {
-        if (row.isFooter) {
-          return <div />;
-        }
+        if (row.isFooter) return <div />;
 
         if (row.bom_id === editingId) {
-          return <TotalEstimationCell form={form} />;
+          return <SubtotalCell form={form} />;
         }
 
         return <Text type="code">{formatNumber(row.estimated_total ?? 0)}</Text>;
@@ -185,11 +168,9 @@ export function useBOMColumns({
       align: "end",
       header: "Aksi",
       key: "actions",
-      width: pixel(100),
+      width: proportional(1),
       renderCell: (row: BomRow) => {
-        if (row.isFooter) {
-          return <div />;
-        }
+        if (row.isFooter) return <div />;
 
         if (row.bom_id === editingId) {
           return (
@@ -197,6 +178,8 @@ export function useBOMColumns({
               <form.Subscribe selector={(s) => s.canSubmit}>
                 {(canSubmit) => (
                   <IconButton
+                    type="submit"
+                    form="bom-form"
                     size="sm"
                     variant="primary"
                     label="Simpan"

@@ -12,6 +12,7 @@ import {
   VStack,
 } from "@astryxdesign/core";
 import { NumberInput } from "@astryxdesign/core/NumberInput";
+import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -106,6 +107,15 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   const columns: TableColumn<PriceRow>[] = [
     {
+      header: "No.",
+      key: "no",
+      width: pixel(60),
+      renderCell: (row: ItemPriceWithRelation) => {
+        const index = prices.findIndex((p) => p.item_price_id === row.item_price_id);
+        return index >= 0 ? index + 1 : "-";
+      },
+    },
+    {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
@@ -113,7 +123,6 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       renderCell: (row: ItemPriceWithRelation) => (
         <HStack gap={2} align="center" justify="end">
           <Text type="code">{formatNumber(row.price)}</Text>
-          {row.has_relation && <Badge variant="info" label="Digunakan" />}
         </HStack>
       ),
     },
@@ -126,14 +135,27 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         const locked = row.has_relation;
         return (
           <HStack justify="end" gap={1}>
-            <IconButton
-              size="sm"
-              variant="destructive"
-              icon={<Trash2 size={16} />}
-              label="Hapus"
-              onClick={() => setDeleteTarget(row)}
-              isDisabled={locked}
-            />
+            {locked ? (
+              <Tooltip content="Harga ini sedang digunakan dan tidak bisa dihapus.">
+                <IconButton
+                  size="sm"
+                  variant="destructive"
+                  icon={<Trash2 size={16} />}
+                  label="Hapus"
+                  onClick={() => setDeleteTarget(row)}
+                  isDisabled={true}
+                />
+              </Tooltip>
+            ) : (
+              <IconButton
+                size="sm"
+                variant="destructive"
+                icon={<Trash2 size={16} />}
+                label="Hapus"
+                onClick={() => setDeleteTarget(row)}
+                isDisabled={false}
+              />
+            )}
           </HStack>
         );
       },

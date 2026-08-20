@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Divider, HStack, Table, Text, VStack } from "@astryxdesign/core";
+import { Button, HStack, Table, Text } from "@astryxdesign/core";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { BOMGroupDialog } from "@/components/bom/BOMGroupDialog";
@@ -72,6 +72,7 @@ export function BOMTable() {
   });
 
   const columns = useBOMColumns({
+    boms,
     editingId,
     form,
     handleItemChange,
@@ -93,47 +94,34 @@ export function BOMTable() {
 
   return (
     <>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-      >
-        <Table
-          hasHover
-          textOverflow="truncate"
-          columns={columns}
-          data={groupedData}
-          idKey={groupedIdKey}
-          plugins={{ footer: footerPlugin, grouping: groupedPlugin }}
-          emptyState={
-            <TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan melalui tombol di bawah." />
-          }
-        />
-      </form>
-      <VStack>
-        <Divider />
-        <HStack justify="between" paddingBlock={3} gap={2}>
-          {isApproved ? null : (
-            <Button
-              variant="secondary"
-              label="Kelola Grup Pekerjaan"
-              onClick={() => setIsGroupDialogOpen(true)}
-            />
-          )}
-          {boms.length > 0 && (
-            <HStack justify="end" gap={2} style={{ flex: 1 }}>
-              <Text weight="bold" size="lg">
-                Total (Rp):
-              </Text>
-              <Text type="code" weight="bold" size="lg" color="primary">
-                {formatNumber(grandTotal)}
-              </Text>
-            </HStack>
-          )}
-        </HStack>
-      </VStack>
+      <Table
+        hasHover
+        textOverflow="truncate"
+        columns={columns}
+        data={groupedData}
+        idKey={groupedIdKey}
+        plugins={{ footer: footerPlugin, grouping: groupedPlugin }}
+        emptyState={
+          <TableEmptyState message="Belum ada rencana material di proyek ini. Harap siapkan Grup Pekerjaan melalui tombol di bawah." />
+        }
+      />
+
+      <HStack align="start" justify="between" paddingBlock={3} gap={2}>
+        {isApproved ? null : (
+          <Button
+            variant="secondary"
+            label="Kelola Grup Pekerjaan"
+            onClick={() => setIsGroupDialogOpen(true)}
+          />
+        )}
+        {boms.length > 0 && (
+          <HStack justify="end" gap={2} style={{ flex: 1 }}>
+            <Text type="code" weight="bold" size="lg" color="primary">
+              {formatNumber(grandTotal)}
+            </Text>
+          </HStack>
+        )}
+      </HStack>
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
@@ -158,6 +146,14 @@ export function BOMTable() {
         onClose={() => {
           setIsPriceFormOpen(false);
           handleItemChange(form.getFieldValue("item_id"));
+        }}
+      />
+      <form
+        id="bom-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
         }}
       />
     </>

@@ -1,7 +1,8 @@
 import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Badge, Button, Card, Dialog, HStack, IconButton, Table, VStack } from "@astryxdesign/core";
+import { Button, Card, Dialog, HStack, IconButton, Table, VStack } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core/TextInput";
+import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -105,15 +106,22 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
 
   const columns: TableColumn<GroupRow>[] = [
     {
+      header: "No.",
+      key: "no",
+      width: pixel(60),
+      renderCell: (row: BOMGroup) => {
+        const index = bomGroups.findIndex((g) => g.bom_group_id === row.bom_group_id);
+        return index >= 0 ? index + 1 : "-";
+      },
+    },
+    {
       header: "Nama Grup Pekerjaan",
       key: "group_name",
       width: proportional(1),
       renderCell: (row: BOMGroup) => {
-        const isUsed = boms.some((b) => b.bom_group_id === row.bom_group_id);
         return (
           <HStack gap={2} align="center">
             <span>{row.group_name}</span>
-            {isUsed && <Badge variant="info" label="Digunakan" />}
           </HStack>
         );
       },
@@ -134,14 +142,27 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
               icon={<Pencil size={16} />}
               onClick={() => startEdit(row)}
             />
-            <IconButton
-              size="sm"
-              variant="destructive"
-              label="Hapus"
-              icon={<Trash2 size={16} />}
-              onClick={() => setDeleteTarget(row)}
-              isDisabled={isUsed}
-            />
+            {isUsed ? (
+              <Tooltip content="Grup ini sedang digunakan dan tidak bisa dihapus.">
+                <IconButton
+                  size="sm"
+                  variant="destructive"
+                  label="Hapus"
+                  icon={<Trash2 size={16} />}
+                  onClick={() => setDeleteTarget(row)}
+                  isDisabled={true}
+                />
+              </Tooltip>
+            ) : (
+              <IconButton
+                size="sm"
+                variant="destructive"
+                label="Hapus"
+                icon={<Trash2 size={16} />}
+                onClick={() => setDeleteTarget(row)}
+                isDisabled={false}
+              />
+            )}
           </HStack>
         );
       },
@@ -153,7 +174,7 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
       <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
         <VStack gap={4}>
           <PageHeader
-            title={`Grup Pekerjaan: ${project?.project_name}`}
+            title="Grup Pekerjaan"
             actions={
               <IconButton
                 variant="secondary"

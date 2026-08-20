@@ -56,7 +56,7 @@ export function BOMApprovalActions() {
     <>
       {isApproved ? (
         <Button
-          variant="secondary"
+          variant="destructive"
           label="Batalkan Persetujuan"
           onClick={() => setConfirmType("cancel")}
         />

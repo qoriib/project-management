@@ -188,7 +188,7 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId }: PriceSelec
 }
 
 // We don't need editingId here since it doesn't affect the calculation
-export function TotalEstimationCell({ form }: BaseCellProps) {
+export function SubtotalCell({ form }: BaseCellProps) {
   const { itemPricesMap } = useMasterStore();
 
   return (
@@ -201,13 +201,15 @@ export function TotalEstimationCell({ form }: BaseCellProps) {
     >
       {({ qty, priceId, itemId }) => {
         let priceNum = 0;
+
         if (itemId && priceId) {
-          const prices = itemPricesMap.get(itemId) || [],
-            priceObj = prices.find((p) => p.item_price_id === priceId);
+          const prices = itemPricesMap.get(itemId) ?? [];
+          const priceObj = prices.find((p) => p.item_price_id === priceId);
           if (priceObj) {
             priceNum = priceObj.price;
           }
         }
+
         return formatNumber(qty * priceNum);
       }}
     </form.Subscribe>

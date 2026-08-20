@@ -86,7 +86,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
       }}
     >
       <VStack gap={6}>
-        <HStack gap={4}>
+        <HStack gap={4} width="50%">
           <VStack gap={1} style={{ flex: 1 }}>
             <form.Field name="po_code">
               {(field) => (
