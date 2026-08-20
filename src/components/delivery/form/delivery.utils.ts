@@ -11,11 +11,11 @@ export async function loadPOItemsAsDeliveryRows(poId: string): Promise<DeliveryI
   const poItems = await purchaseOrderRepo.findItems(poId);
 
   return poItems.map((i) => {
-    const item_name = i.item_name ?? "",
-      unit = i.unit ?? "",
-      remaining = i.remaining ?? 0,
-      ordered = i.qty ?? 0,
-      delivered = i.total_delivered ?? 0;
+    const item_name = i.item_name ?? "";
+    const unit = i.unit ?? "";
+    const remaining = i.remaining ?? 0;
+    const ordered = i.qty ?? 0;
+    const delivered = i.total_delivered ?? 0;
 
     return {
       delivered,
@@ -50,39 +50,38 @@ export async function loadDeliveryEditData(deliveryId: string): Promise<{
 } | null> {
   const delivery = await deliveryRepo.findById(deliveryId);
 
-  if (!delivery) {
-    return null;
-  }
+  if (!delivery) return null;
 
   const [poItems, delivItems] = await Promise.all([
-      purchaseOrderRepo.findItems(delivery.po_id),
-      deliveryRepo.findItems(deliveryId),
-    ]),
-    items: DeliveryItemRow[] = poItems.map((i) => {
-      const existingDelivItem = delivItems.find((di) => di.po_item_id === i.po_item_id),
-        oldQty = existingDelivItem?.qty ?? 0,
-        originalSisa = i.remaining ?? 0,
-        restoredSisa = originalSisa + oldQty, // kembalikan sisa yang sudah dipakai
-        originalDelivered = (i.total_delivered ?? 0) - oldQty,
-        item_name = i.item_name ?? "",
-        unit = i.unit ?? "";
+    purchaseOrderRepo.findItems(delivery.po_id),
+    deliveryRepo.findItems(deliveryId),
+  ]);
 
-      return {
-        delivered: originalDelivered,
-        item_id: i.item_id,
-        item_name,
-        category_prefix: i.category_prefix,
-        category_code: i.category_code,
-        item_code: i.item_code,
-        price: i.price,
-        item_price_id: i.item_price_id,
-        ordered: i.qty ?? 0,
-        po_item_id: i.po_item_id,
-        qty: oldQty,
-        remaining: restoredSisa,
-        unit,
-      };
-    });
+  const items: DeliveryItemRow[] = poItems.map((i) => {
+    const existingDelivItem = delivItems.find((di) => di.po_item_id === i.po_item_id);
+    const oldQty = existingDelivItem?.qty ?? 0;
+    const originalSisa = i.remaining ?? 0;
+    const restoredSisa = originalSisa + oldQty; // kembalikan sisa yang sudah dipakai
+    const originalDelivered = (i.total_delivered ?? 0) - oldQty;
+    const item_name = i.item_name ?? "";
+    const unit = i.unit ?? "";
+
+    return {
+      delivered: originalDelivered,
+      item_id: i.item_id,
+      item_name,
+      category_prefix: i.category_prefix,
+      category_code: i.category_code,
+      item_code: i.item_code,
+      price: i.price,
+      item_price_id: i.item_price_id,
+      ordered: i.qty ?? 0,
+      po_item_id: i.po_item_id,
+      qty: oldQty,
+      remaining: restoredSisa,
+      unit,
+    };
+  });
 
   return {
     delivery_code: delivery.delivery_code || "",

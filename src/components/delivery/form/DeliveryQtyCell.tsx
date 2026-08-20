@@ -44,10 +44,10 @@ export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
                   <NumberInput
                     label="Volume"
                     isLabelHidden
+                    statusVariant="tooltip"
                     value={qtyField.state.value as number}
                     onChange={(v) => qtyField.handleChange(v || 0)}
                     onBlur={qtyField.handleBlur}
-                    statusVariant="tooltip"
                     status={rowErr || qtyErr}
                   />
                 );

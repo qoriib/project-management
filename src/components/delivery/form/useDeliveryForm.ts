@@ -24,35 +24,36 @@ export function useDeliveryForm({
 }: Pick<DeliveryFormProps, "initialPoId" | "initialEditId" | "onSuccess">) {
   const isEdit = Boolean(initialEditId);
 
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId),
-    { pos, loadAllPOs } = usePOStore(),
-    { createDelivery, updateDelivery } = useDeliveryStore(),
-    form = useForm({
-      defaultValues: {
-        delivery_code: "",
-        delivery_date: todayISO(),
-        items: [] as DeliveryItemRow[],
-        po_id: initialPoId ?? "",
-      },
-      onSubmit: async ({ value }) => {
-        const payload = buildDeliveryItemPayload(value.items);
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const { pos, loadAllPOs } = usePOStore();
+  const { createDelivery, updateDelivery } = useDeliveryStore();
 
-        const header = {
-          po_id: value.po_id,
-          delivery_code: value.delivery_code,
-          delivery_date: value.delivery_date,
-        };
+  const form = useForm({
+    defaultValues: {
+      delivery_code: "",
+      delivery_date: todayISO(),
+      items: [] as DeliveryItemRow[],
+      po_id: initialPoId ?? "",
+    },
+    validators: { onChange: deliverySchema },
+    onSubmit: async ({ value }) => {
+      const payload = buildDeliveryItemPayload(value.items);
 
-        if (isEdit) {
-          await updateDelivery(initialEditId!, header, payload);
-        } else {
-          await createDelivery(header, payload);
-        }
+      const header = {
+        po_id: value.po_id,
+        delivery_code: value.delivery_code,
+        delivery_date: value.delivery_date,
+      };
 
-        onSuccess(value.po_id);
-      },
-      validators: { onChange: deliverySchema },
-    });
+      if (isEdit) {
+        await updateDelivery(initialEditId!, header, payload);
+      } else {
+        await createDelivery(header, payload);
+      }
+
+      onSuccess(value.po_id);
+    },
+  });
 
   /** Load items ke form saat user memilih PO baru (mode create) */
   async function handlePOChange(poId: string) {
@@ -84,10 +85,12 @@ export function useDeliveryForm({
           hasData = editData !== null;
 
         if (hasData) {
-          form.setFieldValue("po_id", editData!.po_id);
-          form.setFieldValue("delivery_code", editData!.delivery_code);
-          form.setFieldValue("delivery_date", editData!.delivery_date);
-          form.setFieldValue("items", editData!.items);
+          form.reset({
+            po_id: editData!.po_id,
+            delivery_code: editData!.delivery_code,
+            delivery_date: editData!.delivery_date,
+            items: editData!.items,
+          });
         }
       } else if (initialPoId) {
         const rows = await loadPOItemsAsDeliveryRows(initialPoId);
