@@ -8,10 +8,10 @@ import { type ReceiptSummary } from "@/db/repositories";
 export interface ReceiptRow extends ReceiptSummary, Record<string, unknown> {}
 
 interface UseReceiptColumnsProps {
-  setDeleteTarget: (id: string | null) => void;
+  setDeletingId: (id: string | null) => void;
 }
 
-export function useReceiptColumns({ setDeleteTarget }: UseReceiptColumnsProps) {
+export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
   const navigate = useNavigate();
 
   const columns: TableColumn<ReceiptRow>[] = [
@@ -76,7 +76,7 @@ export function useReceiptColumns({ setDeleteTarget }: UseReceiptColumnsProps) {
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            onClick={() => setDeleteTarget(row.receipt_id)}
+            onClick={() => setDeletingId(row.receipt_id)}
           />
         </HStack>
       ),

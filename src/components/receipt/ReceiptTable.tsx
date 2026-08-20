@@ -9,8 +9,8 @@ import { type ReceiptRow, useReceiptColumns } from "./table/useReceiptColumns";
 export function ReceiptTable() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { receipts, loadAllReceipts, deleteReceipt } = useReceiptStore();
 
   useEffect(() => {
@@ -18,18 +18,18 @@ export function ReceiptTable() {
   }, [selectedProjectId, loadAllReceipts]);
 
   async function handleDelete() {
-    if (!deleteTarget) return;
-    setDeleting(true);
+    if (!deletingId) return;
+    setIsDeleting(true);
 
     try {
-      await deleteReceipt(deleteTarget);
-      setDeleteTarget(null);
+      await deleteReceipt(deletingId);
+      setDeletingId(null);
     } finally {
-      setDeleting(false);
+      setIsDeleting(false);
     }
   }
 
-  const columns = useReceiptColumns({ setDeleteTarget });
+  const columns = useReceiptColumns({ setDeletingId });
 
   const rowIndexPlugin = useTableRowIndex({
     data: receipts as ReceiptRow[],
@@ -42,19 +42,19 @@ export function ReceiptTable() {
       <Table
         hasHover
         idKey="receipt_id"
-        plugins={{ rowIndex: rowIndexPlugin }}
         textOverflow="truncate"
         columns={columns}
         data={receipts as ReceiptRow[]}
+        plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Tidak ada data Penerimaan yang cocok." />}
       />
       <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
         title="Hapus Log Penerimaan"
         message="Apakah Anda yakin ingin menghapus data Penerimaan ini?"
-        isLoading={deleting}
+        isOpen={Boolean(deletingId)}
+        onClose={() => setDeletingId(null)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
       />
     </>
   );
