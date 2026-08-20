@@ -9,12 +9,19 @@ export async function resetDatabase(): Promise<void> {
     await db.execute("PRAGMA foreign_keys = OFF;");
 
     const tables = [
+      "receipt_items",
+      "receipts",
+      "order_items",
+      "orders",
+      "requirements",
+      // legacy names in case schema hasn't migrated yet
       "delivery_items",
       "deliveries",
       "po_items",
       "purchase_orders",
       "bill_of_materials",
       "bom_groups",
+      // shared tables
       "projects",
       "item_prices",
       "items",
@@ -24,7 +31,11 @@ export async function resetDatabase(): Promise<void> {
     ];
 
     for (const table of tables) {
-      await db.execute(`DELETE FROM ${table};`);
+      try {
+        await db.execute(`DELETE FROM ${table};`);
+      } catch {
+        // table may not exist yet if schema hasn't migrated — skip silently
+      }
     }
 
     // Re-enable foreign key checks

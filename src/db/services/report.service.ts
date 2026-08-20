@@ -1,5 +1,5 @@
 /**
- * Dashboard Service — BOM report with PO/Delivery distribution.
+ * Dashboard Service — Requirement report with Order/Receipt distribution.
  *
  * This is business logic, not simple CRUD, so it lives in services/
  * rather than in a repository.
@@ -11,13 +11,12 @@ import { DbError, wrapDbError } from "@/db/core/errors";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export interface BOMReportItem {
+export interface RequirementReportItem {
   item_id: string;
   item_code: string;
   category_prefix?: string;
   category_code?: string;
   item_name: string;
-  bom_group_name: string;
   category: string;
   unit: string;
   /** Price resolved from the linked item_price variant */
@@ -27,120 +26,116 @@ export interface BOMReportItem {
   planned_budget: number;
   total_ordered: number;
   total_delivered: number;
-  total_po_price: number;
+  total_order_price: number;
 }
 
 // ── Service ──────────────────────────────────────────────────────────────────
 
 /**
- * Generate the full BOM fulfillment report for a project.
+ * Generate the full Requirement fulfillment report for a project.
  */
-export async function getBOMReport(
+export async function getRequirementReport(
   projectId: string,
   startDate?: string,
   endDate?: string,
-): Promise<BOMReportItem[]> {
+): Promise<RequirementReportItem[]> {
   try {
     const db = await getDB(),
-      // 1. Fetch BOMs with joined details (price resolved from item_prices)
-      bomQb = new QueryBuilder()
+      // 1. Fetch Requirements with joined details (price resolved from item_prices)
+      reqQb = new QueryBuilder()
         .select(
-          "b.item_id",
-          "b.item_price_id",
+          "r.item_id",
+          "r.item_price_id",
           "i.item_code",
           "c.prefix as category_prefix",
           "c.category_code",
           "i.item_name",
-          "g.group_name as bom_group_name",
           "c.category_name as category",
           "u.unit_name as unit",
           "ip.price",
         )
-        .selectRaw("SUM(b.qty) as planned_volume")
-        .selectRaw("SUM(b.qty * ip.price) as planned_budget")
-        .from("bill_of_materials", "b")
-        .join("items", "i", "i.item_id = b.item_id")
-        .join("item_prices", "ip", "ip.item_price_id = b.item_price_id")
-        .leftJoin("bom_groups", "g", "g.bom_group_id = b.bom_group_id")
+        .selectRaw("SUM(r.qty) as planned_volume")
+        .selectRaw("SUM(r.qty * ip.price) as planned_budget")
+        .from("requirements", "r")
+        .join("items", "i", "i.item_id = r.item_id")
+        .join("item_prices", "ip", "ip.item_price_id = r.item_price_id")
         .leftJoin("item_categories", "c", "i.category_id = c.category_id")
         .leftJoin("units", "u", "i.unit_id = u.unit_id")
-        .where("b.project_id", "=", projectId)
-        .withSoftDelete("b")
+        .where("r.project_id", "=", projectId)
+        .withSoftDelete("r")
         .groupBy(
-          "b.item_id",
-          "b.item_price_id",
+          "r.item_id",
+          "r.item_price_id",
           "i.item_code",
           "c.prefix",
           "c.category_code",
           "i.item_name",
-          "g.group_name",
           "c.category_name",
           "u.unit_name",
           "ip.price",
         )
-        .orderBy("g.group_name", "ASC")
         .orderBy("i.item_name", "ASC"),
-      { sql: bomSql, params: bomParams } = bomQb.build(),
-      boms = await db.select<BOMReportItem[]>(bomSql, bomParams),
-      // 2. Fetch PO Aggregates (join item_prices for price)
-      poQb = new QueryBuilder()
-        .select("poi.item_id", "poi.item_price_id")
-        .selectRaw("SUM(poi.qty) as total_ordered")
-        .selectRaw("COALESCE(SUM(poi.qty * ip.price) / NULLIF(SUM(poi.qty), 0), 0) as avg_po_price")
-        .from("po_items", "poi")
-        .join("purchase_orders", "po", "po.po_id = poi.po_id")
-        .join("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
-        .where("po.project_id", "=", projectId)
-        .where("po.deleted_at", "IS NULL");
+      { sql: reqSql, params: reqParams } = reqQb.build(),
+      reqs = await db.select<RequirementReportItem[]>(reqSql, reqParams),
+      // 2. Fetch Order Aggregates (join item_prices for price)
+      orderQb = new QueryBuilder()
+        .select("oi.item_id", "oi.item_price_id")
+        .selectRaw("SUM(oi.qty) as total_ordered")
+        .selectRaw("COALESCE(SUM(oi.qty * ip.price) / NULLIF(SUM(oi.qty), 0), 0) as avg_order_price")
+        .from("order_items", "oi")
+        .join("orders", "o", "o.order_id = oi.order_id")
+        .join("item_prices", "ip", "ip.item_price_id = oi.item_price_id")
+        .where("o.project_id", "=", projectId)
+        .where("o.deleted_at", "IS NULL");
 
-      if (startDate) poQb.where("po.po_date", ">=", startDate);
-      if (endDate) poQb.where("po.po_date", "<=", endDate);
+      if (startDate) orderQb.where("o.order_date", ">=", startDate);
+      if (endDate) orderQb.where("o.order_date", "<=", endDate);
 
-      poQb.groupBy("poi.item_id", "poi.item_price_id");
+      orderQb.groupBy("oi.item_id", "oi.item_price_id");
 
-      const { sql: poSql, params: poParams } = poQb.build();
-      const poAggs = await db.select<
+      const { sql: orderSql, params: orderParams } = orderQb.build();
+      const orderAggs = await db.select<
         {
           item_id: string;
           item_price_id: string;
           total_ordered: number;
-          avg_po_price: number;
+          avg_order_price: number;
         }[]
-      >(poSql, poParams);
+      >(orderSql, orderParams);
 
-      // 3. Fetch Delivery Aggregates
-      const delQb = new QueryBuilder()
-        .select("poi.item_id", "poi.item_price_id")
-        .selectRaw("SUM(di.qty) as total_delivered")
-        .from("delivery_items", "di")
-        .join("deliveries", "d", "d.delivery_id = di.delivery_id")
-        .join("po_items", "poi", "poi.po_item_id = di.po_item_id")
-        .join("purchase_orders", "po", "po.po_id = poi.po_id")
-        .where("po.project_id", "=", projectId)
-        .where("d.deleted_at", "IS NULL");
+      // 3. Fetch Receipt Aggregates
+      const recQb = new QueryBuilder()
+        .select("oi.item_id", "oi.item_price_id")
+        .selectRaw("SUM(ri.qty) as total_delivered")
+        .from("receipt_items", "ri")
+        .join("receipts", "r", "r.receipt_id = ri.receipt_id")
+        .join("order_items", "oi", "oi.order_item_id = ri.order_item_id")
+        .join("orders", "o", "o.order_id = oi.order_id")
+        .where("o.project_id", "=", projectId)
+        .where("r.deleted_at", "IS NULL");
 
-      if (startDate) delQb.where("d.delivery_date", ">=", startDate);
-      if (endDate) delQb.where("d.delivery_date", "<=", endDate);
+      if (startDate) recQb.where("r.receipt_date", ">=", startDate);
+      if (endDate) recQb.where("r.receipt_date", "<=", endDate);
 
-      delQb.groupBy("poi.item_id", "poi.item_price_id");
-      const { sql: delSql, params: delParams } = delQb.build();
-      const delAggs = await db.select<{
+      recQb.groupBy("oi.item_id", "oi.item_price_id");
+      const { sql: recSql, params: recParams } = recQb.build();
+      const recAggs = await db.select<{
         item_id: string;
         item_price_id: string;
         total_delivered: number;
-      }[]>(delSql, delParams);
+      }[]>(recSql, recParams);
 
       // 4. Build remaining map
       const itemAgg = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
-      for (const agg of poAggs) {
+      for (const agg of orderAggs) {
         itemAgg.set(`${agg.item_id}-${agg.item_price_id}`, {
-          avgPrice: agg.avg_po_price || 0,
+          avgPrice: agg.avg_order_price || 0,
           delivered: 0,
           ordered: agg.total_ordered || 0,
         });
       }
 
-      for (const agg of delAggs) {
+      for (const agg of recAggs) {
         const key = `${agg.item_id}-${agg.item_price_id}`;
         if (itemAgg.has(key)) {
           itemAgg.get(key)!.delivered = agg.total_delivered || 0;
@@ -153,23 +148,23 @@ export async function getBOMReport(
         }
       }
 
-    // 4. Attach to BOMs
-    for (const row of boms) {
+    // 4. Attach to Requirements
+    for (const row of reqs) {
       const key = `${row.item_id}-${row.item_price_id}`,
         agg = itemAgg.get(key);
       if (!agg) {
         row.total_ordered = 0;
         row.total_delivered = 0;
-        row.total_po_price = 0;
+        row.total_order_price = 0;
         continue;
       }
 
       row.total_ordered = agg.ordered;
       row.total_delivered = agg.delivered;
-      row.total_po_price = agg.ordered * agg.avgPrice;
+      row.total_order_price = agg.ordered * agg.avgPrice;
     }
 
-    return boms;
+    return reqs;
   } catch (error) {
     if (error instanceof DbError) {
       throw error;
@@ -180,52 +175,52 @@ export async function getBOMReport(
 
 export interface ItemLogEntry {
   date: string;
-  type: "PO" | "Delivery";
+  type: "Order" | "Receipt";
   reference: string;
   qty: number;
   vendor_name: string | null;
 }
 
 /**
- * Get chronological log of POs and Deliveries for a specific item in a project.
+ * Get chronological log of Orders and Receipts for a specific item in a project.
  */
 export async function getItemLog(projectId: string, itemId: string, itemPriceId: string): Promise<ItemLogEntry[]> {
   try {
     const db = await getDB(),
-      // 1. Get POs
-      poQb = new QueryBuilder()
-        .select("po.po_date as date")
-        .selectRaw("'PO' as type")
-        .selectRaw("po.po_code as reference")
-        .select("poi.qty", "v.vendor_name")
-        .from("po_items", "poi")
-        .join("purchase_orders", "po", "po.po_id = poi.po_id")
-        .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
-        .where("po.project_id", "=", projectId)
-        .where("poi.item_id", "=", itemId)
-        .where("poi.item_price_id", "=", itemPriceId)
-        .withSoftDelete("po"),
-      { sql: poSql, params: poParams } = poQb.build(),
-      pos = await db.select<ItemLogEntry[]>(poSql, poParams),
-      // 2. Get Deliveries
-      delQb = new QueryBuilder()
-        .select("d.delivery_date as date")
-        .selectRaw("'Delivery' as type")
-        .selectRaw("d.delivery_code as reference")
-        .selectRaw("di.qty")
+      // 1. Get Orders
+      orderQb = new QueryBuilder()
+        .select("o.order_date as date")
+        .selectRaw("'Order' as type")
+        .selectRaw("o.order_code as reference")
+        .select("oi.qty", "v.vendor_name")
+        .from("order_items", "oi")
+        .join("orders", "o", "o.order_id = oi.order_id")
+        .leftJoin("vendors", "v", "v.vendor_id = oi.vendor_id")
+        .where("o.project_id", "=", projectId)
+        .where("oi.item_id", "=", itemId)
+        .where("oi.item_price_id", "=", itemPriceId)
+        .withSoftDelete("o"),
+      { sql: orderSql, params: orderParams } = orderQb.build(),
+      orders = await db.select<ItemLogEntry[]>(orderSql, orderParams),
+      // 2. Get Receipts
+      recQb = new QueryBuilder()
+        .select("r.receipt_date as date")
+        .selectRaw("'Receipt' as type")
+        .selectRaw("r.receipt_code as reference")
+        .selectRaw("ri.qty")
         .selectRaw("v.vendor_name")
-        .from("delivery_items", "di")
-        .join("deliveries", "d", "d.delivery_id = di.delivery_id")
-        .join("po_items", "poi", "poi.po_item_id = di.po_item_id")
-        .join("purchase_orders", "po", "po.po_id = poi.po_id")
-        .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
-        .where("po.project_id", "=", projectId)
-        .where("poi.item_id", "=", itemId)
-        .where("poi.item_price_id", "=", itemPriceId)
-        .withSoftDelete("d"),
-      { sql: delSql, params: delParams } = delQb.build(),
-      dels = await db.select<ItemLogEntry[]>(delSql, delParams),
-      combined = [...pos, ...dels];
+        .from("receipt_items", "ri")
+        .join("receipts", "r", "r.receipt_id = ri.receipt_id")
+        .join("order_items", "oi", "oi.order_item_id = ri.order_item_id")
+        .join("orders", "o", "o.order_id = oi.order_id")
+        .leftJoin("vendors", "v", "v.vendor_id = oi.vendor_id")
+        .where("o.project_id", "=", projectId)
+        .where("oi.item_id", "=", itemId)
+        .where("oi.item_price_id", "=", itemPriceId)
+        .withSoftDelete("r"),
+      { sql: recSql, params: recParams } = recQb.build(),
+      recs = await db.select<ItemLogEntry[]>(recSql, recParams),
+      combined = [...orders, ...recs];
     combined.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     return combined;
   } catch (error) {
@@ -236,9 +231,9 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId:
   }
 }
 
-export interface POReportItem {
-  po_code: string;
-  po_date: string;
+export interface OrderReportItem {
+  order_code: string;
+  order_date: string;
   vendor_name: string | null;
   item_code: string;
   item_name: string;
@@ -249,52 +244,52 @@ export interface POReportItem {
   total_price: number;
 }
 
-export async function getProjectPOReport(
+export async function getProjectOrderReport(
   projectId: string,
   startDate?: string,
   endDate?: string,
-): Promise<POReportItem[]> {
+): Promise<OrderReportItem[]> {
   try {
     const db = await getDB();
     const qb = new QueryBuilder()
       .select(
-        "po.po_code",
-        "po.po_date",
+        "o.order_code",
+        "o.order_date",
         "v.vendor_name",
         "i.item_code",
         "i.item_name",
         "c.category_name",
         "u.unit_name",
-        "poi.qty",
+        "oi.qty",
         "ip.price"
       )
-      .selectRaw("poi.qty * ip.price as total_price")
-      .from("po_items", "poi")
-      .join("purchase_orders", "po", "po.po_id = poi.po_id")
-      .join("items", "i", "i.item_id = poi.item_id")
-      .join("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
+      .selectRaw("oi.qty * ip.price as total_price")
+      .from("order_items", "oi")
+      .join("orders", "o", "o.order_id = oi.order_id")
+      .join("items", "i", "i.item_id = oi.item_id")
+      .join("item_prices", "ip", "ip.item_price_id = oi.item_price_id")
       .leftJoin("item_categories", "c", "c.category_id = i.category_id")
       .leftJoin("units", "u", "u.unit_id = i.unit_id")
-      .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
-      .where("po.project_id", "=", projectId)
-      .withSoftDelete("po");
+      .leftJoin("vendors", "v", "v.vendor_id = oi.vendor_id")
+      .where("o.project_id", "=", projectId)
+      .withSoftDelete("o");
 
-    if (startDate) qb.where("po.po_date", ">=", startDate);
-    if (endDate) qb.where("po.po_date", "<=", endDate);
+    if (startDate) qb.where("o.order_date", ">=", startDate);
+    if (endDate) qb.where("o.order_date", "<=", endDate);
 
-    qb.orderBy("po.po_date", "ASC").orderBy("po.po_code", "ASC");
+    qb.orderBy("o.order_date", "ASC").orderBy("o.order_code", "ASC");
 
     const { sql, params } = qb.build();
-    return await db.select<POReportItem[]>(sql, params);
+    return await db.select<OrderReportItem[]>(sql, params);
   } catch (error) {
-    throw wrapDbError(error, "po_report");
+    throw wrapDbError(error, "order_report");
   }
 }
 
-export interface DeliveryReportItem {
-  delivery_code: string;
-  delivery_date: string;
-  po_code: string;
+export interface ReceiptReportItem {
+  receipt_code: string;
+  receipt_date: string;
+  order_code: string;
   vendor_name: string | null;
   item_code: string;
   item_name: string;
@@ -303,44 +298,45 @@ export interface DeliveryReportItem {
   qty: number;
 }
 
-export async function getProjectDeliveryReport(
+export async function getProjectReceiptReport(
   projectId: string,
   startDate?: string,
   endDate?: string,
-): Promise<DeliveryReportItem[]> {
+): Promise<ReceiptReportItem[]> {
   try {
     const db = await getDB();
     const qb = new QueryBuilder()
       .select(
-        "d.delivery_code",
-        "d.delivery_date",
-        "po.po_code",
+        "r.receipt_code",
+        "r.receipt_date",
+        "o.order_code",
         "v.vendor_name",
         "i.item_code",
         "i.item_name",
         "c.category_name",
         "u.unit_name",
-        "di.qty"
+        "ri.qty"
       )
-      .from("delivery_items", "di")
-      .join("deliveries", "d", "d.delivery_id = di.delivery_id")
-      .join("po_items", "poi", "poi.po_item_id = di.po_item_id")
-      .join("purchase_orders", "po", "po.po_id = poi.po_id")
-      .join("items", "i", "i.item_id = poi.item_id")
+      .from("receipt_items", "ri")
+      .join("receipts", "r", "r.receipt_id = ri.receipt_id")
+      .join("order_items", "oi", "oi.order_item_id = ri.order_item_id")
+      .join("orders", "o", "o.order_id = oi.order_id")
+      .join("items", "i", "i.item_id = oi.item_id")
       .leftJoin("item_categories", "c", "c.category_id = i.category_id")
       .leftJoin("units", "u", "u.unit_id = i.unit_id")
-      .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
-      .where("po.project_id", "=", projectId)
-      .withSoftDelete("d");
+      .leftJoin("vendors", "v", "v.vendor_id = oi.vendor_id")
+      .where("o.project_id", "=", projectId)
+      .withSoftDelete("r");
 
-    if (startDate) qb.where("d.delivery_date", ">=", startDate);
-    if (endDate) qb.where("d.delivery_date", "<=", endDate);
+    if (startDate) qb.where("r.receipt_date", ">=", startDate);
+    if (endDate) qb.where("r.receipt_date", "<=", endDate);
 
-    qb.orderBy("d.delivery_date", "ASC").orderBy("d.delivery_code", "ASC");
+    qb.orderBy("r.receipt_date", "ASC").orderBy("r.receipt_code", "ASC");
 
     const { sql, params } = qb.build();
-    return await db.select<DeliveryReportItem[]>(sql, params);
+    return await db.select<ReceiptReportItem[]>(sql, params);
   } catch (error) {
-    throw wrapDbError(error, "delivery_report");
+    throw wrapDbError(error, "receipt_report");
   }
 }
+

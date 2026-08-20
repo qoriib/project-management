@@ -13,22 +13,22 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MasterRouteImport } from './routes/master'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as BomIndexRouteImport } from './routes/bom/index'
-import { Route as DeliveryIndexRouteImport } from './routes/delivery/index'
-import { Route as DeliveryNewRouteImport } from './routes/delivery/new'
 import { Route as MasterItemRouteImport } from './routes/master/item'
 import { Route as MasterKategoriRouteImport } from './routes/master/kategori'
 import { Route as MasterProjectRouteImport } from './routes/master/project'
 import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
 import { Route as MasterVendorRouteImport } from './routes/master/vendor'
-import { Route as PoIndexRouteImport } from './routes/po/index'
-import { Route as PoNewRouteImport } from './routes/po/new'
+import { Route as OrderIndexRouteImport } from './routes/order/index'
+import { Route as OrderNewRouteImport } from './routes/order/new'
+import { Route as ReceiptIndexRouteImport } from './routes/receipt/index'
+import { Route as ReceiptNewRouteImport } from './routes/receipt/new'
+import { Route as RequirementIndexRouteImport } from './routes/requirement/index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
 import { Route as SettingsDatabaseRouteImport } from './routes/settings/database'
 import { Route as SettingsSecurityRouteImport } from './routes/settings/security'
-import { Route as DeliveryIdEditRouteImport } from './routes/delivery/$id/edit'
-import { Route as PoIdIndexRouteImport } from './routes/po/$id/index'
-import { Route as PoIdEditRouteImport } from './routes/po/$id/edit'
+import { Route as OrderIdIndexRouteImport } from './routes/order/$id/index'
+import { Route as OrderIdEditRouteImport } from './routes/order/$id/edit'
+import { Route as ReceiptIdEditRouteImport } from './routes/receipt/$id/edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -48,21 +48,6 @@ const MasterRoute = MasterRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BomIndexRoute = BomIndexRouteImport.update({
-  id: '/bom/',
-  path: '/bom/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DeliveryIndexRoute = DeliveryIndexRouteImport.update({
-  id: '/delivery/',
-  path: '/delivery/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DeliveryNewRoute = DeliveryNewRouteImport.update({
-  id: '/delivery/new',
-  path: '/delivery/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MasterItemRoute = MasterItemRouteImport.update({
@@ -90,14 +75,29 @@ const MasterVendorRoute = MasterVendorRouteImport.update({
   path: '/vendor',
   getParentRoute: () => MasterRoute,
 } as any)
-const PoIndexRoute = PoIndexRouteImport.update({
-  id: '/po/',
-  path: '/po/',
+const OrderIndexRoute = OrderIndexRouteImport.update({
+  id: '/order/',
+  path: '/order/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PoNewRoute = PoNewRouteImport.update({
-  id: '/po/new',
-  path: '/po/new',
+const OrderNewRoute = OrderNewRouteImport.update({
+  id: '/order/new',
+  path: '/order/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReceiptIndexRoute = ReceiptIndexRouteImport.update({
+  id: '/receipt/',
+  path: '/receipt/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReceiptNewRoute = ReceiptNewRouteImport.update({
+  id: '/receipt/new',
+  path: '/receipt/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequirementIndexRoute = RequirementIndexRouteImport.update({
+  id: '/requirement/',
+  path: '/requirement/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
@@ -115,19 +115,19 @@ const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => SettingsRoute,
 } as any)
-const DeliveryIdEditRoute = DeliveryIdEditRouteImport.update({
-  id: '/delivery/$id/edit',
-  path: '/delivery/$id/edit',
+const OrderIdIndexRoute = OrderIdIndexRouteImport.update({
+  id: '/order/$id/',
+  path: '/order/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PoIdIndexRoute = PoIdIndexRouteImport.update({
-  id: '/po/$id/',
-  path: '/po/$id/',
+const OrderIdEditRoute = OrderIdEditRouteImport.update({
+  id: '/order/$id/edit',
+  path: '/order/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PoIdEditRoute = PoIdEditRouteImport.update({
-  id: '/po/$id/edit',
-  path: '/po/$id/edit',
+const ReceiptIdEditRoute = ReceiptIdEditRouteImport.update({
+  id: '/receipt/$id/edit',
+  path: '/receipt/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -136,44 +136,44 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/master': typeof MasterRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
-  '/delivery/new': typeof DeliveryNewRoute
   '/master/item': typeof MasterItemRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
   '/master/vendor': typeof MasterVendorRoute
-  '/po/new': typeof PoNewRoute
+  '/order/new': typeof OrderNewRoute
+  '/receipt/new': typeof ReceiptNewRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/database': typeof SettingsDatabaseRoute
   '/settings/security': typeof SettingsSecurityRoute
-  '/bom/': typeof BomIndexRoute
-  '/delivery/': typeof DeliveryIndexRoute
-  '/po/': typeof PoIndexRoute
-  '/delivery/$id/edit': typeof DeliveryIdEditRoute
-  '/po/$id/edit': typeof PoIdEditRoute
-  '/po/$id/': typeof PoIdIndexRoute
+  '/order/': typeof OrderIndexRoute
+  '/receipt/': typeof ReceiptIndexRoute
+  '/requirement/': typeof RequirementIndexRoute
+  '/order/$id/edit': typeof OrderIdEditRoute
+  '/receipt/$id/edit': typeof ReceiptIdEditRoute
+  '/order/$id/': typeof OrderIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/master': typeof MasterRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
-  '/delivery/new': typeof DeliveryNewRoute
   '/master/item': typeof MasterItemRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
   '/master/vendor': typeof MasterVendorRoute
-  '/po/new': typeof PoNewRoute
+  '/order/new': typeof OrderNewRoute
+  '/receipt/new': typeof ReceiptNewRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/database': typeof SettingsDatabaseRoute
   '/settings/security': typeof SettingsSecurityRoute
-  '/bom': typeof BomIndexRoute
-  '/delivery': typeof DeliveryIndexRoute
-  '/po': typeof PoIndexRoute
-  '/delivery/$id/edit': typeof DeliveryIdEditRoute
-  '/po/$id/edit': typeof PoIdEditRoute
-  '/po/$id': typeof PoIdIndexRoute
+  '/order': typeof OrderIndexRoute
+  '/receipt': typeof ReceiptIndexRoute
+  '/requirement': typeof RequirementIndexRoute
+  '/order/$id/edit': typeof OrderIdEditRoute
+  '/receipt/$id/edit': typeof ReceiptIdEditRoute
+  '/order/$id': typeof OrderIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -181,22 +181,22 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/master': typeof MasterRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
-  '/delivery/new': typeof DeliveryNewRoute
   '/master/item': typeof MasterItemRoute
   '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
   '/master/satuan': typeof MasterSatuanRoute
   '/master/vendor': typeof MasterVendorRoute
-  '/po/new': typeof PoNewRoute
+  '/order/new': typeof OrderNewRoute
+  '/receipt/new': typeof ReceiptNewRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/database': typeof SettingsDatabaseRoute
   '/settings/security': typeof SettingsSecurityRoute
-  '/bom/': typeof BomIndexRoute
-  '/delivery/': typeof DeliveryIndexRoute
-  '/po/': typeof PoIndexRoute
-  '/delivery/$id/edit': typeof DeliveryIdEditRoute
-  '/po/$id/edit': typeof PoIdEditRoute
-  '/po/$id/': typeof PoIdIndexRoute
+  '/order/': typeof OrderIndexRoute
+  '/receipt/': typeof ReceiptIndexRoute
+  '/requirement/': typeof RequirementIndexRoute
+  '/order/$id/edit': typeof OrderIdEditRoute
+  '/receipt/$id/edit': typeof ReceiptIdEditRoute
+  '/order/$id/': typeof OrderIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -205,66 +205,66 @@ export interface FileRouteTypes {
     | '/login'
     | '/master'
     | '/settings'
-    | '/delivery/new'
     | '/master/item'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
     | '/master/vendor'
-    | '/po/new'
+    | '/order/new'
+    | '/receipt/new'
     | '/settings/appearance'
     | '/settings/database'
     | '/settings/security'
-    | '/bom/'
-    | '/delivery/'
-    | '/po/'
-    | '/delivery/$id/edit'
-    | '/po/$id/edit'
-    | '/po/$id/'
+    | '/order/'
+    | '/receipt/'
+    | '/requirement/'
+    | '/order/$id/edit'
+    | '/receipt/$id/edit'
+    | '/order/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/master'
     | '/settings'
-    | '/delivery/new'
     | '/master/item'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
     | '/master/vendor'
-    | '/po/new'
+    | '/order/new'
+    | '/receipt/new'
     | '/settings/appearance'
     | '/settings/database'
     | '/settings/security'
-    | '/bom'
-    | '/delivery'
-    | '/po'
-    | '/delivery/$id/edit'
-    | '/po/$id/edit'
-    | '/po/$id'
+    | '/order'
+    | '/receipt'
+    | '/requirement'
+    | '/order/$id/edit'
+    | '/receipt/$id/edit'
+    | '/order/$id'
   id:
     | '__root__'
     | '/'
     | '/login'
     | '/master'
     | '/settings'
-    | '/delivery/new'
     | '/master/item'
     | '/master/kategori'
     | '/master/project'
     | '/master/satuan'
     | '/master/vendor'
-    | '/po/new'
+    | '/order/new'
+    | '/receipt/new'
     | '/settings/appearance'
     | '/settings/database'
     | '/settings/security'
-    | '/bom/'
-    | '/delivery/'
-    | '/po/'
-    | '/delivery/$id/edit'
-    | '/po/$id/edit'
-    | '/po/$id/'
+    | '/order/'
+    | '/receipt/'
+    | '/requirement/'
+    | '/order/$id/edit'
+    | '/receipt/$id/edit'
+    | '/order/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -272,14 +272,14 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MasterRoute: typeof MasterRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
-  DeliveryNewRoute: typeof DeliveryNewRoute
-  PoNewRoute: typeof PoNewRoute
-  BomIndexRoute: typeof BomIndexRoute
-  DeliveryIndexRoute: typeof DeliveryIndexRoute
-  PoIndexRoute: typeof PoIndexRoute
-  DeliveryIdEditRoute: typeof DeliveryIdEditRoute
-  PoIdEditRoute: typeof PoIdEditRoute
-  PoIdIndexRoute: typeof PoIdIndexRoute
+  OrderNewRoute: typeof OrderNewRoute
+  ReceiptNewRoute: typeof ReceiptNewRoute
+  OrderIndexRoute: typeof OrderIndexRoute
+  ReceiptIndexRoute: typeof ReceiptIndexRoute
+  RequirementIndexRoute: typeof RequirementIndexRoute
+  OrderIdEditRoute: typeof OrderIdEditRoute
+  ReceiptIdEditRoute: typeof ReceiptIdEditRoute
+  OrderIdIndexRoute: typeof OrderIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -310,27 +310,6 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bom/': {
-      id: '/bom/'
-      path: '/bom'
-      fullPath: '/bom/'
-      preLoaderRoute: typeof BomIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/delivery/': {
-      id: '/delivery/'
-      path: '/delivery'
-      fullPath: '/delivery/'
-      preLoaderRoute: typeof DeliveryIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/delivery/new': {
-      id: '/delivery/new'
-      path: '/delivery/new'
-      fullPath: '/delivery/new'
-      preLoaderRoute: typeof DeliveryNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/master/item': {
@@ -368,18 +347,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasterVendorRouteImport
       parentRoute: typeof MasterRoute
     }
-    '/po/': {
-      id: '/po/'
-      path: '/po'
-      fullPath: '/po/'
-      preLoaderRoute: typeof PoIndexRouteImport
+    '/order/': {
+      id: '/order/'
+      path: '/order'
+      fullPath: '/order/'
+      preLoaderRoute: typeof OrderIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/po/new': {
-      id: '/po/new'
-      path: '/po/new'
-      fullPath: '/po/new'
-      preLoaderRoute: typeof PoNewRouteImport
+    '/order/new': {
+      id: '/order/new'
+      path: '/order/new'
+      fullPath: '/order/new'
+      preLoaderRoute: typeof OrderNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/receipt/': {
+      id: '/receipt/'
+      path: '/receipt'
+      fullPath: '/receipt/'
+      preLoaderRoute: typeof ReceiptIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/receipt/new': {
+      id: '/receipt/new'
+      path: '/receipt/new'
+      fullPath: '/receipt/new'
+      preLoaderRoute: typeof ReceiptNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/requirement/': {
+      id: '/requirement/'
+      path: '/requirement'
+      fullPath: '/requirement/'
+      preLoaderRoute: typeof RequirementIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/appearance': {
@@ -403,25 +403,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsSecurityRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/delivery/$id/edit': {
-      id: '/delivery/$id/edit'
-      path: '/delivery/$id/edit'
-      fullPath: '/delivery/$id/edit'
-      preLoaderRoute: typeof DeliveryIdEditRouteImport
+    '/order/$id/': {
+      id: '/order/$id/'
+      path: '/order/$id'
+      fullPath: '/order/$id/'
+      preLoaderRoute: typeof OrderIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/po/$id/': {
-      id: '/po/$id/'
-      path: '/po/$id'
-      fullPath: '/po/$id/'
-      preLoaderRoute: typeof PoIdIndexRouteImport
+    '/order/$id/edit': {
+      id: '/order/$id/edit'
+      path: '/order/$id/edit'
+      fullPath: '/order/$id/edit'
+      preLoaderRoute: typeof OrderIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/po/$id/edit': {
-      id: '/po/$id/edit'
-      path: '/po/$id/edit'
-      fullPath: '/po/$id/edit'
-      preLoaderRoute: typeof PoIdEditRouteImport
+    '/receipt/$id/edit': {
+      id: '/receipt/$id/edit'
+      path: '/receipt/$id/edit'
+      fullPath: '/receipt/$id/edit'
+      preLoaderRoute: typeof ReceiptIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -467,14 +467,14 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MasterRoute: MasterRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
-  DeliveryNewRoute: DeliveryNewRoute,
-  PoNewRoute: PoNewRoute,
-  BomIndexRoute: BomIndexRoute,
-  DeliveryIndexRoute: DeliveryIndexRoute,
-  PoIndexRoute: PoIndexRoute,
-  DeliveryIdEditRoute: DeliveryIdEditRoute,
-  PoIdEditRoute: PoIdEditRoute,
-  PoIdIndexRoute: PoIdIndexRoute,
+  OrderNewRoute: OrderNewRoute,
+  ReceiptNewRoute: ReceiptNewRoute,
+  OrderIndexRoute: OrderIndexRoute,
+  ReceiptIndexRoute: ReceiptIndexRoute,
+  RequirementIndexRoute: RequirementIndexRoute,
+  OrderIdEditRoute: OrderIdEditRoute,
+  ReceiptIdEditRoute: ReceiptIdEditRoute,
+  OrderIdIndexRoute: OrderIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

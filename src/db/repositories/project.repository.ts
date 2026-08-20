@@ -26,7 +26,7 @@ class ProjectRepository extends BaseRepository<Project, CreateProject, UpdatePro
       const pQb = new QueryBuilder()
           .select("p.*")
           .selectRaw(
-            "(EXISTS(SELECT 1 FROM bill_of_materials WHERE project_id = p.project_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM purchase_orders WHERE project_id = p.project_id AND deleted_at IS NULL)) as has_relation",
+            "(EXISTS(SELECT 1 FROM requirements WHERE project_id = p.project_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM orders WHERE project_id = p.project_id AND deleted_at IS NULL)) as has_relation",
           )
           .from("projects p")
           .where("p.deleted_at", "IS NULL")

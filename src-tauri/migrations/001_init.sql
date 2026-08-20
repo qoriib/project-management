@@ -7,7 +7,7 @@ CREATE TABLE `projects` (
 	`project_name` text NOT NULL,
 	`company_name` text NOT NULL,
 	`fiscal_year` integer NOT NULL,
-	`bom_is_approved` integer DEFAULT 0,
+	`requirements_is_approved` integer DEFAULT 0,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL
@@ -61,21 +61,10 @@ CREATE TABLE `item_prices` (
 	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE cascade
 );
 
--- Grup Pekerjaan / BOM Groups
-CREATE TABLE `bom_groups` (
-	`bom_group_id` text NOT NULL PRIMARY KEY,
+-- TAHAP PERSIAPAN: REQUIREMENTS
+CREATE TABLE `requirements` (
+	`requirement_id` text NOT NULL PRIMARY KEY,
 	`project_id` text NOT NULL,
-	`group_name` text NOT NULL,
-	`updated_at` text DEFAULT (datetime('now', 'localtime')),
-	`deleted_at` text DEFAULT NULL,
-	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade
-);
-
--- TAHAP PERSIAPAN: BOM (RAB)
-CREATE TABLE `bill_of_materials` (
-	`bom_id` text NOT NULL PRIMARY KEY,
-	`project_id` text NOT NULL,
-	`bom_group_id` text NOT NULL,
 	`item_id` text NOT NULL,
 	`item_price_id` text NOT NULL,
 	`qty` real NOT NULL,
@@ -83,82 +72,81 @@ CREATE TABLE `bill_of_materials` (
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL,
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`bom_group_id`) REFERENCES `bom_groups`(`bom_group_id`) ON UPDATE no action ON DELETE restrict,
 	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict,
 	FOREIGN KEY (`item_price_id`) REFERENCES `item_prices`(`item_price_id`) ON UPDATE no action ON DELETE restrict
 );
 
--- TAHAP PELAKSANAAN: PO & PENERIMAAN
-CREATE TABLE `purchase_orders` (
-	`po_id` text NOT NULL PRIMARY KEY,
+-- TAHAP PELAKSANAAN: ORDER & RECEIPTS
+CREATE TABLE `orders` (
+	`order_id` text NOT NULL PRIMARY KEY,
 	`project_id` text NOT NULL,
-	`po_code` text,
-	`po_date` text NOT NULL,
+	`order_code` text,
+	`order_date` text NOT NULL,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL,
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade
 );
 
-CREATE TABLE `po_items` (
-	`po_item_id` text NOT NULL PRIMARY KEY,
-	`po_id` text NOT NULL,
+CREATE TABLE `order_items` (
+	`order_item_id` text NOT NULL PRIMARY KEY,
+	`order_id` text NOT NULL,
 	`item_id` text NOT NULL,
 	`vendor_id` text NOT NULL,
 	`item_price_id` text NOT NULL,
 	`qty` real NOT NULL,
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
-	FOREIGN KEY (`po_id`) REFERENCES `purchase_orders`(`po_id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`order_id`) REFERENCES `orders`(`order_id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`item_id`) REFERENCES `items`(`item_id`) ON UPDATE no action ON DELETE restrict,
 	FOREIGN KEY (`vendor_id`) REFERENCES `vendors`(`vendor_id`) ON UPDATE no action ON DELETE restrict,
 	FOREIGN KEY (`item_price_id`) REFERENCES `item_prices`(`item_price_id`) ON UPDATE no action ON DELETE restrict
 );
 
-CREATE TABLE `deliveries` (
-	`delivery_id` text NOT NULL PRIMARY KEY,
-	`po_id` text NOT NULL,
-	`delivery_code` text,
-	`delivery_date` text NOT NULL,
+CREATE TABLE `receipts` (
+	`receipt_id` text NOT NULL PRIMARY KEY,
+	`order_id` text NOT NULL,
+	`receipt_code` text,
+	`receipt_date` text NOT NULL,
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL,
-	FOREIGN KEY (`po_id`) REFERENCES `purchase_orders`(`po_id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`order_id`) REFERENCES `orders`(`order_id`) ON UPDATE no action ON DELETE cascade
 );
 
-CREATE TABLE `delivery_items` (
-	`delivery_item_id` text NOT NULL PRIMARY KEY,
-	`delivery_id` text NOT NULL,
-	`po_item_id` text NOT NULL,
+CREATE TABLE `receipt_items` (
+	`receipt_item_id` text NOT NULL PRIMARY KEY,
+	`receipt_id` text NOT NULL,
+	`order_item_id` text NOT NULL,
 	`qty` real NOT NULL,
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
-	FOREIGN KEY (`delivery_id`) REFERENCES `deliveries`(`delivery_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`po_item_id`) REFERENCES `po_items`(`po_item_id`) ON UPDATE no action ON DELETE restrict
+	FOREIGN KEY (`receipt_id`) REFERENCES `receipts`(`receipt_id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`order_item_id`) REFERENCES `order_items`(`order_item_id`) ON UPDATE no action ON DELETE restrict
 );
 
--- Tambahkan database triggers untuk mengunci tabel bill_of_materials secara mutlak jika proyek sudah di-ACC
+-- Tambahkan database triggers untuk mengunci tabel requirements secara mutlak jika proyek sudah di-ACC
 
 -- 1. Mencegah INSERT
-CREATE TRIGGER prevent_bom_insert
-BEFORE INSERT ON bill_of_materials
+CREATE TRIGGER prevent_requirement_insert
+BEFORE INSERT ON requirements
 FOR EACH ROW
-WHEN (SELECT bom_is_approved FROM projects WHERE project_id = NEW.project_id) = 1
+WHEN (SELECT requirements_is_approved FROM projects WHERE project_id = NEW.project_id) = 1
 BEGIN
-    SELECT RAISE(ABORT, 'Gagal: BOM untuk proyek ini telah dikunci.');
+    SELECT RAISE(ABORT, 'Gagal: Kebutuhan untuk proyek ini telah dikunci.');
 END;
 
 -- 2. Mencegah UPDATE
-CREATE TRIGGER prevent_bom_update
-BEFORE UPDATE ON bill_of_materials
+CREATE TRIGGER prevent_requirement_update
+BEFORE UPDATE ON requirements
 FOR EACH ROW
-WHEN (SELECT bom_is_approved FROM projects WHERE project_id = NEW.project_id) = 1
+WHEN (SELECT requirements_is_approved FROM projects WHERE project_id = NEW.project_id) = 1
 BEGIN
-    SELECT RAISE(ABORT, 'Gagal: BOM untuk proyek ini telah dikunci.');
+    SELECT RAISE(ABORT, 'Gagal: Kebutuhan untuk proyek ini telah dikunci.');
 END;
 
 -- 3. Mencegah DELETE
-CREATE TRIGGER prevent_bom_delete
-BEFORE DELETE ON bill_of_materials
+CREATE TRIGGER prevent_requirement_delete
+BEFORE DELETE ON requirements
 FOR EACH ROW
-WHEN (SELECT bom_is_approved FROM projects WHERE project_id = OLD.project_id) = 1
+WHEN (SELECT requirements_is_approved FROM projects WHERE project_id = OLD.project_id) = 1
 BEGIN
-    SELECT RAISE(ABORT, 'Gagal: BOM untuk proyek ini telah dikunci.');
+    SELECT RAISE(ABORT, 'Gagal: Kebutuhan untuk proyek ini telah dikunci.');
 END;

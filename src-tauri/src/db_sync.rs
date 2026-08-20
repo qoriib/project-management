@@ -14,12 +14,11 @@ const TABLES: &[(&str, &str, &str)] = &[
     ("units", "unit_id", "unit_name = excluded.unit_name, deleted_at = excluded.deleted_at"),
     ("items", "item_id", "item_code = excluded.item_code, item_name = excluded.item_name, category_id = excluded.category_id, unit_id = excluded.unit_id, deleted_at = excluded.deleted_at"),
     ("item_prices", "item_price_id", "item_id = excluded.item_id, price = excluded.price, deleted_at = excluded.deleted_at"),
-    ("bom_groups", "bom_group_id", "project_id = excluded.project_id, group_name = excluded.group_name, deleted_at = excluded.deleted_at"),
-    ("bill_of_materials", "bom_id", "project_id = excluded.project_id, bom_group_id = excluded.bom_group_id, item_id = excluded.item_id, item_price_id = excluded.item_price_id, qty = excluded.qty, deleted_at = excluded.deleted_at"),
-    ("purchase_orders", "po_id", "project_id = excluded.project_id, po_date = excluded.po_date, deleted_at = excluded.deleted_at"),
-    ("po_items", "po_item_id", "po_id = excluded.po_id, item_id = excluded.item_id, vendor_id = excluded.vendor_id, item_price_id = excluded.item_price_id, qty = excluded.qty"),
-    ("deliveries", "delivery_id", "po_id = excluded.po_id, delivery_date = excluded.delivery_date, deleted_at = excluded.deleted_at"),
-    ("delivery_items", "delivery_item_id", "delivery_id = excluded.delivery_id, po_item_id = excluded.po_item_id, qty = excluded.qty"),
+    ("requirements", "requirement_id", "project_id = excluded.project_id, item_id = excluded.item_id, item_price_id = excluded.item_price_id, qty = excluded.qty, deleted_at = excluded.deleted_at"),
+    ("orders", "order_id", "project_id = excluded.project_id, order_code = excluded.order_code, order_date = excluded.order_date, deleted_at = excluded.deleted_at"),
+    ("order_items", "order_item_id", "order_id = excluded.order_id, item_id = excluded.item_id, vendor_id = excluded.vendor_id, item_price_id = excluded.item_price_id, qty = excluded.qty"),
+    ("receipts", "receipt_id", "order_id = excluded.order_id, receipt_code = excluded.receipt_code, receipt_date = excluded.receipt_date, deleted_at = excluded.deleted_at"),
+    ("receipt_items", "receipt_item_id", "receipt_id = excluded.receipt_id, order_item_id = excluded.order_item_id, qty = excluded.qty"),
 ];
 
 fn get_db_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -48,14 +47,14 @@ fn get_export_query(table: &str, project_id: Option<&str>) -> String {
     };
 
     match table {
-        "projects" | "bom_groups" | "bill_of_materials" | "purchase_orders" => {
+        "projects" | "requirements" | "orders" => {
             format!("SELECT * FROM {table} WHERE project_id = '{pid}'")
         }
-        "po_items" | "deliveries" => {
-            format!("SELECT * FROM {table} WHERE po_id IN (SELECT po_id FROM purchase_orders WHERE project_id = '{pid}')")
+        "order_items" | "receipts" => {
+            format!("SELECT * FROM {table} WHERE order_id IN (SELECT order_id FROM orders WHERE project_id = '{pid}')")
         }
-        "delivery_items" => {
-            format!("SELECT * FROM delivery_items WHERE delivery_id IN (SELECT delivery_id FROM deliveries WHERE po_id IN (SELECT po_id FROM purchase_orders WHERE project_id = '{pid}'))")
+        "receipt_items" => {
+            format!("SELECT * FROM receipt_items WHERE receipt_id IN (SELECT receipt_id FROM receipts WHERE order_id IN (SELECT order_id FROM orders WHERE project_id = '{pid}'))")
         }
         _ => format!("SELECT * FROM {table}"),
     }

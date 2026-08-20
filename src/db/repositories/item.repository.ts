@@ -26,7 +26,7 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
       const qb = new QueryBuilder()
           .select("i.*", "c.category_name", "c.prefix as category_prefix", "c.category_code", "u.unit_name")
           .selectRaw(
-            "(EXISTS(SELECT 1 FROM item_prices WHERE item_id = i.item_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM bill_of_materials WHERE item_id = i.item_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM po_items WHERE item_id = i.item_id)) as has_relation",
+            "(EXISTS(SELECT 1 FROM item_prices WHERE item_id = i.item_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM requirements WHERE item_id = i.item_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM order_items WHERE item_id = i.item_id)) as has_relation",
           )
           .from("items i")
           .leftJoin("item_categories c", "i.category_id = c.category_id")

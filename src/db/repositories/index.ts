@@ -18,26 +18,23 @@ export { itemRepo } from "./item.repository";
 export { itemCategoryRepo } from "./item-category.repository";
 export { itemPriceRepo } from "./item-price.repository";
 export { unitRepo } from "./unit.repository";
-export { purchaseOrderRepo } from "./purchase-order.repository";
-export { bomGroupRepo } from "./bom-group.repository";
-export { bomRepo } from "./bom.repository";
-export { deliveryRepo } from "./delivery.repository";
+export { orderRepo } from "./order.repository";
+export { requirementRepo } from "./requirement.repository";
+export { receiptRepo } from "./receipt.repository";
 
 // ── Extended Types ───────────────────────────────────────────────────────────
 
-export type { BOMGroupWithProject } from "./bom-group.repository";
-
 export type { ProjectWithRelations } from "./project.repository";
 export type { ItemWithDetails } from "./item.repository";
-export type { POWithSummary, POItemDetail, POFilters, POItemInput } from "./purchase-order.repository";
-export type { BOMDetail, BOMFilters } from "./bom.repository";
+export type { OrderWithSummary, OrderItemDetail, OrderFilters, OrderItemInput } from "./order.repository";
+export type { RequirementDetail, RequirementFilters } from "./requirement.repository";
 export type {
-  DeliverySummary,
-  DeliveryItemDetail,
-  DeliveryItemByPO,
-  DeliveryFilters,
-  DeliveryItemInput,
-} from "./delivery.repository";
+  ReceiptSummary,
+  ReceiptItemDetail,
+  ReceiptItemByOrder,
+  ReceiptFilters,
+  ReceiptItemInput,
+} from "./receipt.repository";
 export type { ItemPriceWithRelation } from "./item-price.repository";
 
 // ── Model Types ──────────────────────────────────────────────────────────────
@@ -61,23 +58,21 @@ export type {
   Unit,
   CreateUnit,
   UpdateUnit,
-  PurchaseOrder,
-  CreatePurchaseOrder,
-  UpdatePurchaseOrder,
-  BOMGroup,
-  CreateBOMGroup,
-  UpdateBOMGroup,
-  POItem,
-  CreatePOItem,
-  BillOfMaterial,
-  CreateBOM,
-  UpdateBOM,
-  Delivery,
-  CreateDelivery,
-  DeliveryItem,
-  CreateDeliveryItem,
+  Order,
+  CreateOrder,
+  UpdateOrder,
+  OrderItem,
+  CreateOrderItem,
+  Requirement,
+  CreateRequirement,
+  UpdateRequirement,
+  Receipt,
+  CreateReceipt,
+  ReceiptItem,
+  CreateReceiptItem,
 } from "@/db/models";
 
 // ── Error Types ──────────────────────────────────────────────────────────────
 
 export { DbError, NotFoundError, DuplicateError, ForeignKeyError, ValidationError } from "@/db/core/errors";
+

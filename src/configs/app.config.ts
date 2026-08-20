@@ -27,7 +27,7 @@ export const APP = {
     {
       label: "Penerimaan (NP)",
       icon: Truck,
-      href: "/delivery",
+      href: "/receipt",
     },
     {
       label: "Master Data",

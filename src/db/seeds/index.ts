@@ -4,10 +4,9 @@ import { seedVendors } from "./vendor.seed";
 import { seedItems } from "./item.seed";
 import { seedItemPrices } from "./item-price.seed";
 import { seedProjects } from "./project.seed";
-import { seedBOMGroups } from "./bom-group.seed";
-import { seedBOMs } from "./bom.seed";
-import { seedPurchaseOrders } from "./purchase-order.seed";
-import { seedDeliveries } from "./delivery.seed";
+import { seedRequirements } from "./requirement.seed";
+import { seedOrders } from "./order.seed";
+import { seedReceipts } from "./receipt.seed";
 
 export async function runAllSeeds(): Promise<void> {
   console.log("Seeding database...");
@@ -18,10 +17,9 @@ export async function runAllSeeds(): Promise<void> {
     await seedItems();
     await seedItemPrices();
     await seedProjects();
-    await seedBOMGroups();
-    await seedBOMs();
-    await seedPurchaseOrders();
-    await seedDeliveries();
+    await seedRequirements();
+    await seedOrders();
+    await seedReceipts();
     console.log("Database seeded successfully.");
   } catch (error) {
     console.error("Database seeding failed:", error);

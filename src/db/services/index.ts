@@ -3,13 +3,13 @@
  */
 
 export { 
-  getBOMReport, 
+  getRequirementReport, 
   getItemLog, 
-  getProjectPOReport, 
-  getProjectDeliveryReport,
-  type BOMReportItem, 
+  getProjectOrderReport, 
+  getProjectReceiptReport,
+  type RequirementReportItem, 
   type ItemLogEntry,
-  type POReportItem,
-  type DeliveryReportItem
+  type OrderReportItem,
+  type ReceiptReportItem
 } from "./report.service";
-export { generateBOMReportExcel } from "./excel.service";
+export { generateRequirementReportExcel } from "./excel.service";

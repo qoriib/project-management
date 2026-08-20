@@ -123,7 +123,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Master Data"
-        message={`Hapus proyek "${deleteTarget?.label}"? Semua data RAB dan PO terkait akan ikut terhapus.`}
+        message={`Hapus proyek "${deleteTarget?.label}"? Semua data RAB dan Order terkait akan ikut terhapus.`}
         isLoading={deleting}
       />
     </>

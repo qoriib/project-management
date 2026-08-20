@@ -45,9 +45,9 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
       const sql = `
         SELECT ip.*,
           CASE WHEN (
-            EXISTS(SELECT 1 FROM bill_of_materials WHERE item_price_id = ip.item_price_id AND deleted_at IS NULL)
+            EXISTS(SELECT 1 FROM requirements WHERE item_price_id = ip.item_price_id AND deleted_at IS NULL)
             OR
-            EXISTS(SELECT 1 FROM po_items WHERE item_price_id = ip.item_price_id)
+            EXISTS(SELECT 1 FROM order_items WHERE item_price_id = ip.item_price_id)
           ) THEN 1 ELSE 0 END AS has_relation
         FROM item_prices ip
         WHERE ip.item_id = $1 AND ip.deleted_at IS NULL

@@ -11,13 +11,13 @@ import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { useAppStore } from "@/store/useAppStore";
 import { ReportItemLogDialog } from "@/components/report/ReportItemLogDialog";
 import { ReportSummaryCards } from "@/components/report/ReportSummaryCards";
-import { ReportBOMTable } from "@/components/report/ReportBOMTable";
-import { type BOMReportItem, getBOMReport, generateBOMReportExcel } from "@/db/services";
+import { ReportRequirementTable } from "@/components/report/ReportRequirementTable";
+import { type RequirementReportItem, getRequirementReport, generateRequirementReportExcel } from "@/db/services";
 
 function DashboardPage() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
-  const [report, setReport] = useState<BOMReportItem[]>([]);
+  const [report, setReport] = useState<RequirementReportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [logItem, setLogItem] = useState<{
     itemId: string;
@@ -38,7 +38,7 @@ function DashboardPage() {
       });
 
       if (filePath) {
-        const buffer = await generateBOMReportExcel(selectedProjectId, startDate, endDate);
+        const buffer = await generateRequirementReportExcel(selectedProjectId, startDate, endDate);
         await writeFile(filePath, buffer);
       }
     } catch (err) {
@@ -58,7 +58,7 @@ function DashboardPage() {
 
       setLoading(true);
       try {
-        const rep = await getBOMReport(selectedProjectId, startDate, endDate);
+        const rep = await getRequirementReport(selectedProjectId, startDate, endDate);
         setReport(rep);
       } finally {
         setLoading(false);
@@ -68,7 +68,7 @@ function DashboardPage() {
   }, [selectedProjectId, startDate, endDate]);
 
   const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0);
-  const totalPO = report.reduce((sum, r) => sum + r.total_po_price, 0);
+  const totalPO = report.reduce((sum, r) => sum + r.total_order_price, 0);
 
   return (
     <Section padding={6}>
@@ -87,19 +87,18 @@ function DashboardPage() {
                 }}
               />
               <Button
-                variant="outline"
+                variant="secondary"
+                label="Export Excel"
                 icon={<Download size={16} />}
                 onClick={handleExport}
-                disabled={exporting}
-              >
-                Export Excel
-              </Button>
+                isDisabled={exporting}
+              />
             </>
           }
         />
         <ProjectRequired>
           <ReportSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
-          <ReportBOMTable
+          <ReportRequirementTable
             report={report}
             loading={loading}
             onLogClick={(id, priceId, name) => setLogItem({ itemId: id, itemName: name, itemPriceId: priceId })}

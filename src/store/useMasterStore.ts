@@ -203,11 +203,11 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     await get().reloadProjects();
   },
   approveProjectBOM: async (id) => {
-    await projectRepo.update(id, { bom_is_approved: 1 });
+    await projectRepo.update(id, { requirements_is_approved: 1 });
     await get().reloadProjects();
   },
   cancelApproveProjectBOM: async (id) => {
-    await projectRepo.update(id, { bom_is_approved: 0 });
+    await projectRepo.update(id, { requirements_is_approved: 0 });
     await get().reloadProjects();
   },
 
