@@ -3,21 +3,22 @@ import { useEffect, useState } from "react";
 import { Section, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
-import { type BOMReportItem, getBOMReport } from "@/db/services";
 import { useAppStore } from "@/store/useAppStore";
-import { DashboardItemLogDialog } from "@/components/dashboard/DashboardItemLogDialog";
-import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
-import { DashboardBOMTable } from "@/components/dashboard/DashboardBOMTable";
+import { ReportItemLogDialog } from "@/components/report/ReportItemLogDialog";
+import { ReportSummaryCards } from "@/components/report/ReportSummaryCards";
+import { ReportBOMTable } from "@/components/report/ReportBOMTable";
+import { type BOMReportItem, getBOMReport } from "@/db/services";
 
 function DashboardPage() {
-  const [report, setReport] = useState<BOMReportItem[]>([]),
-    [loading, setLoading] = useState(true),
-    [logItem, setLogItem] = useState<{
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  
+  const [report, setReport] = useState<BOMReportItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [logItem, setLogItem] = useState<{
       itemId: string;
       itemPriceId: string;
       itemName: string;
-    } | null>(null),
-    selectedProjectId = useAppStore((s) => s.selectedProjectId);
+    } | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -38,8 +39,8 @@ function DashboardPage() {
     load();
   }, [selectedProjectId]);
 
-  const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0),
-    totalPO = report.reduce((sum, r) => sum + r.total_po_price, 0);
+  const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0)
+  const totalPO = report.reduce((sum, r) => sum + r.total_po_price, 0);
 
   return (
     <Section padding={6}>
@@ -49,25 +50,22 @@ function DashboardPage() {
           subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
         />
         <ProjectRequired>
-          <>
-            <DashboardSummaryCards
-              totalBudget={totalBudget}
-              totalPO={totalPO}
-              loading={loading}
-            />
-            <DashboardBOMTable
-              report={report}
-              loading={loading}
-              onLogClick={(itemId, itemPriceId, itemName) =>
-                setLogItem({ itemId, itemName, itemPriceId })
-              }
-            />
-          </>
+          <ReportSummaryCards
+            totalBudget={totalBudget}
+            totalPO={totalPO}
+            loading={loading}
+          />
+          <ReportBOMTable
+            report={report}
+            loading={loading}
+            onLogClick={(id, priceId, name) =>
+              setLogItem({ itemId: id, itemName: name, itemPriceId: priceId })
+            }
+          />
         </ProjectRequired>
       </VStack>
-
       {logItem && selectedProjectId && (
-        <DashboardItemLogDialog
+        <ReportItemLogDialog
           isOpen={true}
           onClose={() => setLogItem(null)}
           projectId={selectedProjectId}

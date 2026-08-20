@@ -2,10 +2,7 @@ import { useMemo, useState } from "react";
 import { Button, HStack, Text } from "@astryxdesign/core";
 import { formatNumber } from "@/utils/formatters";
 import { Plus } from "lucide-react";
-import {
-  type TablePlugin,
-  useTableGroupedRows,
-} from "@astryxdesign/core/Table";
+import { type TablePlugin, useTableGroupedRows } from "@astryxdesign/core/Table";
 import type { BomRow } from "./useBOMColumns";
 import type { BOMDetail, BOMGroup } from "@/db/repositories";
 
@@ -17,13 +14,7 @@ interface UseBOMTableStateProps {
   setEditingId: (id: string | null) => void;
 }
 
-export function useBOMTableState({
-  boms,
-  bomGroups,
-  editingId,
-  isApproved,
-  setEditingId,
-}: UseBOMTableStateProps) {
+export function useBOMTableState({ boms, bomGroups, editingId, isApproved, setEditingId }: UseBOMTableStateProps) {
   const { grandTotal, categorySubtotals } = useMemo(() => {
     let grand = 0;
     const subtotals: Record<string, number> = {};
@@ -89,9 +80,7 @@ export function useBOMTableState({
     return list;
   }, [boms, editingId, isApproved]);
 
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
-    new Set(),
-  );
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const {
     data: groupedData,
@@ -142,7 +131,7 @@ export function useBOMTableState({
           return {
             ...props,
             children: (
-              <td colSpan={999}>
+              <td colSpan={999} style={{ padding: "var(--spacing-3)" }}>
                 {!hideButton && !isApproved && (
                   <Button
                     variant="secondary"

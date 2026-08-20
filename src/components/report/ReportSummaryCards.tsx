@@ -14,7 +14,7 @@ interface DashboardSummaryCardsProps {
   loading: boolean;
 }
 
-export function DashboardSummaryCards({
+export function ReportSummaryCards({
   totalBudget,
   totalPO,
   loading,

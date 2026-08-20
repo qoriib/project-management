@@ -42,7 +42,7 @@ export function usePOItemTableState({
           return {
             ...props,
             children: (
-              <td colSpan={999}>
+              <td colSpan={999} style={{ padding: "var(--spacing-3)" }}>
                 {!hideButton && (
                   <Button
                     variant="secondary"

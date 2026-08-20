@@ -13,6 +13,9 @@ import { DbError, wrapDbError } from "@/db/core/errors";
 
 export interface BOMReportItem {
   item_id: string;
+  item_code: string;
+  category_prefix?: string;
+  category_code?: string;
   item_name: string;
   bom_group_name: string;
   category: string;
@@ -42,6 +45,9 @@ export async function getBOMReport(
         .select(
           "b.item_id",
           "b.item_price_id",
+          "i.item_code",
+          "c.prefix as category_prefix",
+          "c.category_code",
           "i.item_name",
           "g.group_name as bom_group_name",
           "c.category_name as category",
@@ -61,6 +67,9 @@ export async function getBOMReport(
         .groupBy(
           "b.item_id",
           "b.item_price_id",
+          "i.item_code",
+          "c.prefix",
+          "c.category_code",
           "i.item_name",
           "g.group_name",
           "c.category_name",
