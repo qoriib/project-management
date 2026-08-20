@@ -19,7 +19,7 @@ const itemPriceSeedData: Record<string, number[]> = {
   "Kawat Bendrat": [22000],
   "Keramik Dinding 30x60": [95000],
   "Lampu Downlight LED 12W": [55000],
-  "Mandor": [250000],
+  Mandor: [250000],
   "Papan Cor 2/20 Meranti": [25000],
   "Pasir Beton": [300000, 290000], // PO uses 290k
   "Pasir Pasang": [250000, 240000], // PO uses 240k
