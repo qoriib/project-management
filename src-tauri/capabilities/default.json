@@ -5,16 +5,17 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
+    "core:webview:allow-set-webview-zoom",
+    "core:window:allow-set-title",
     "opener:default",
     "dialog:default",
     "fs:default",
+    "fs:allow-write-file",
     "log:default",
-    "core:webview:allow-set-webview-zoom",
     "sql:default",
     "sql:allow-execute",
     "sql:allow-load",
     "sql:allow-select",
-    "sql:allow-close",
-    "core:window:allow-set-title"
+    "sql:allow-close"
   ]
 }

@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Section, VStack } from "@astryxdesign/core";
+import { Button, Section, VStack } from "@astryxdesign/core";
+import { Download } from "lucide-react";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 import { type ISODateString } from "@astryxdesign/core/Calendar";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ReportFilterForm } from "@/components/report/ReportFilterForm";
@@ -9,7 +12,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { ReportItemLogDialog } from "@/components/report/ReportItemLogDialog";
 import { ReportSummaryCards } from "@/components/report/ReportSummaryCards";
 import { ReportBOMTable } from "@/components/report/ReportBOMTable";
-import { type BOMReportItem, getBOMReport } from "@/db/services";
+import { type BOMReportItem, getBOMReport, generateBOMReportExcel } from "@/db/services";
 
 function DashboardPage() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
@@ -23,6 +26,27 @@ function DashboardPage() {
   } | null>(null);
   const [startDate, setStartDate] = useState<ISODateString | undefined>(undefined);
   const [endDate, setEndDate] = useState<ISODateString | undefined>(undefined);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (!selectedProjectId) return;
+    try {
+      setExporting(true);
+      const filePath = await save({
+        filters: [{ name: "Excel", extensions: ["xlsx"] }],
+        defaultPath: "BOM_Report.xlsx",
+      });
+
+      if (filePath) {
+        const buffer = await generateBOMReportExcel(selectedProjectId, startDate, endDate);
+        await writeFile(filePath, buffer);
+      }
+    } catch (err) {
+      console.error("Export failed", err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     async function load() {
@@ -53,14 +77,24 @@ function DashboardPage() {
           title="Laporan Kebutuhan & Realisasi"
           subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
           actions={
-            <ReportFilterForm
-              startDate={startDate}
-              endDate={endDate}
-              onFilterChange={(start, end) => {
-                setStartDate(start);
-                setEndDate(end);
-              }}
-            />
+            <>
+              <ReportFilterForm
+                startDate={startDate}
+                endDate={endDate}
+                onFilterChange={(start, end) => {
+                  setStartDate(start);
+                  setEndDate(end);
+                }}
+              />
+              <Button
+                variant="outline"
+                icon={<Download size={16} />}
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                Export Excel
+              </Button>
+            </>
           }
         />
         <ProjectRequired>

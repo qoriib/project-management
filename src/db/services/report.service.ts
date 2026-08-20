@@ -235,3 +235,112 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId:
     throw wrapDbError(error, "dashboard_log");
   }
 }
+
+export interface POReportItem {
+  po_code: string;
+  po_date: string;
+  vendor_name: string | null;
+  item_code: string;
+  item_name: string;
+  category_name: string | null;
+  unit_name: string | null;
+  qty: number;
+  price: number;
+  total_price: number;
+}
+
+export async function getProjectPOReport(
+  projectId: string,
+  startDate?: string,
+  endDate?: string,
+): Promise<POReportItem[]> {
+  try {
+    const db = await getDB();
+    const qb = new QueryBuilder()
+      .select(
+        "po.po_code",
+        "po.po_date",
+        "v.vendor_name",
+        "i.item_code",
+        "i.item_name",
+        "c.category_name",
+        "u.unit_name",
+        "poi.qty",
+        "ip.price"
+      )
+      .selectRaw("poi.qty * ip.price as total_price")
+      .from("po_items", "poi")
+      .join("purchase_orders", "po", "po.po_id = poi.po_id")
+      .join("items", "i", "i.item_id = poi.item_id")
+      .join("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
+      .leftJoin("item_categories", "c", "c.category_id = i.category_id")
+      .leftJoin("units", "u", "u.unit_id = i.unit_id")
+      .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
+      .where("po.project_id", "=", projectId)
+      .withSoftDelete("po");
+
+    if (startDate) qb.where("po.po_date", ">=", startDate);
+    if (endDate) qb.where("po.po_date", "<=", endDate);
+
+    qb.orderBy("po.po_date", "ASC").orderBy("po.po_code", "ASC");
+
+    const { sql, params } = qb.build();
+    return await db.select<POReportItem[]>(sql, params);
+  } catch (error) {
+    throw wrapDbError(error, "po_report");
+  }
+}
+
+export interface DeliveryReportItem {
+  delivery_code: string;
+  delivery_date: string;
+  po_code: string;
+  vendor_name: string | null;
+  item_code: string;
+  item_name: string;
+  category_name: string | null;
+  unit_name: string | null;
+  qty: number;
+}
+
+export async function getProjectDeliveryReport(
+  projectId: string,
+  startDate?: string,
+  endDate?: string,
+): Promise<DeliveryReportItem[]> {
+  try {
+    const db = await getDB();
+    const qb = new QueryBuilder()
+      .select(
+        "d.delivery_code",
+        "d.delivery_date",
+        "po.po_code",
+        "v.vendor_name",
+        "i.item_code",
+        "i.item_name",
+        "c.category_name",
+        "u.unit_name",
+        "di.qty"
+      )
+      .from("delivery_items", "di")
+      .join("deliveries", "d", "d.delivery_id = di.delivery_id")
+      .join("po_items", "poi", "poi.po_item_id = di.po_item_id")
+      .join("purchase_orders", "po", "po.po_id = poi.po_id")
+      .join("items", "i", "i.item_id = poi.item_id")
+      .leftJoin("item_categories", "c", "c.category_id = i.category_id")
+      .leftJoin("units", "u", "u.unit_id = i.unit_id")
+      .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
+      .where("po.project_id", "=", projectId)
+      .withSoftDelete("d");
+
+    if (startDate) qb.where("d.delivery_date", ">=", startDate);
+    if (endDate) qb.where("d.delivery_date", "<=", endDate);
+
+    qb.orderBy("d.delivery_date", "ASC").orderBy("d.delivery_code", "ASC");
+
+    const { sql, params } = qb.build();
+    return await db.select<DeliveryReportItem[]>(sql, params);
+  } catch (error) {
+    throw wrapDbError(error, "delivery_report");
+  }
+}
