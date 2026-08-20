@@ -1,7 +1,7 @@
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { HStack, IconButton, Text } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { formatNumber } from "@/utils/formatters";
+import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { useBOMForm } from "@/components/bom/form/useBOMForm";
 import {
   ItemCodeDisplayCell,
@@ -71,8 +71,7 @@ export function useBOMColumns({
           return <ItemCodeDisplayCell form={form} items={items} />;
         }
 
-        const code =
-          `${row.category_prefix ?? ""} ${row.category_code ?? ""} ${row.item_code ?? ""}`.trim();
+        const code = formatItemCode(row);
 
         return code ? <EntityCode id={code} /> : "-";
       },
@@ -178,8 +177,6 @@ export function useBOMColumns({
               <form.Subscribe selector={(s) => s.canSubmit}>
                 {(canSubmit) => (
                   <IconButton
-                    type="submit"
-                    form="bom-form"
                     size="sm"
                     variant="primary"
                     label="Simpan"

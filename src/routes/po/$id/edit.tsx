@@ -7,24 +7,22 @@ import { usePOStore } from "@/store/usePOStore";
 import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function POEditPage() {
-  const { id } = useParams({ strict: false }),
-    { currentPO: po, currentItems, currentBOMData, loadPODetail, clearPODetail } = usePOStore(),
-    [loading, setLoading] = useState(true);
+  const { id } = useParams({ strict: false })
+  const { currentPO: po, currentItems, currentBOMData, loadPODetail, clearPODetail } = usePOStore()
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) {
-      return;
-    }
+    if (!id) return;
+
     async function load() {
       setLoading(true);
       await loadPODetail(id as string);
       setLoading(false);
     }
+
     load();
 
-    return () => {
-      clearPODetail();
-    };
+    return () => clearPODetail();
   }, [id, loadPODetail, clearPODetail]);
 
   if (loading) {
@@ -46,7 +44,10 @@ function POEditPage() {
   return (
     <Section padding={6}>
       <VStack gap={6}>
-        <PageHeader title={`Edit ${po.po_code || formatEntityCode(po.po_id)}`} />
+        <PageHeader
+          title={`Edit ${po.po_code ?? formatEntityCode(po.po_id)}`}
+          subtitle="Perbarui informasi dan daftar item pesanan pembelian"
+        />
         <POForm po={po} initialItems={currentItems} bomData={currentBOMData} />
       </VStack>
     </Section>

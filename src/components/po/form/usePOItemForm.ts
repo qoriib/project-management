@@ -2,8 +2,9 @@ import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
-import { poItemSchema } from "./poItem.schema";
+import { poItemSchema, buildDefaultValues } from "./poItem.schema";
 import type { POItemDetail } from "@/db/repositories";
+import { handleFormError } from "@/utils/form";
 
 export interface POItemFormProps {
   initialData?: POItemDetail;
@@ -14,12 +15,8 @@ export interface POItemFormProps {
 export function usePOItemForm({ initialData, onSuccess, onSubmitItem }: POItemFormProps) {
   const showToast = useToast(),
     form = useForm({
-      defaultValues: {
-        item_id: initialData?.item_id || "",
-        item_price_id: initialData?.item_price_id || "",
-        qty: initialData?.qty || 0,
-        vendor_id: initialData?.vendor_id || "",
-      },
+      defaultValues: buildDefaultValues(initialData),
+      validators: { onChange: poItemSchema },
       onSubmit: async ({ value }) => {
         try {
           const payload = {
@@ -36,53 +33,35 @@ export function usePOItemForm({ initialData, onSuccess, onSubmitItem }: POItemFo
           }
 
           onSuccess();
-        } catch (error: unknown) {
-          const isError = error instanceof Error;
-          const msg = isError ? error.message : "Terjadi kesalahan";
-          showToast({ body: msg, type: "error" });
+        } catch (error: any) {
+          handleFormError(error, showToast);
         }
       },
-      validators: { onChange: poItemSchema },
     });
 
   async function handleItemChange(itemId: string) {
     form.setFieldValue("item_id", itemId, { dontValidate: true });
 
-    const hasItem = itemId.length > 0;
-    if (!hasItem) {
-      return;
-    }
+    if (!itemId) return;
 
     const { itemPricesMap, loadItemPrices } = useMasterStore.getState();
-    let prices = itemPricesMap.get(itemId);
-    if (!prices) {
-      prices = await loadItemPrices(itemId);
+
+    if (!itemPricesMap.has(itemId)) {
+      await loadItemPrices(itemId);
     }
 
     form.setFieldValue("item_price_id", "", { dontValidate: true });
   }
 
   useEffect(() => {
-    const isEditMode = initialData !== undefined;
+    form.reset(buildDefaultValues(initialData));
 
-    if (isEditMode) {
-      form.reset({
-        item_id: initialData.item_id || "",
-        item_price_id: initialData.item_price_id || "",
-        qty: initialData.qty || 0,
-        vendor_id: initialData.vendor_id || "",
-      });
+    if (initialData?.item_id) {
       const { loadItemPrices, itemPricesMap } = useMasterStore.getState();
-      if (initialData.item_id && !itemPricesMap.has(initialData.item_id)) {
+
+      if (!itemPricesMap.has(initialData.item_id)) {
         loadItemPrices(initialData.item_id);
       }
-    } else {
-      form.reset({
-        item_id: "",
-        item_price_id: "",
-        qty: 0,
-        vendor_id: "",
-      });
     }
   }, [initialData]);
 

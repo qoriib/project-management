@@ -20,6 +20,19 @@ export function todayISO(): string {
   return toISODate(new Date());
 }
 
+// ── Item Code ─────────────────────────────────────────────────────────────────
+
+export interface ItemCodeParts {
+  category_prefix?: string | null;
+  category_code?: string | null;
+  item_code?: string | null;
+}
+
+export function formatItemCode(parts?: ItemCodeParts | null): string {
+  if (!parts) return "";
+  return `${parts.category_prefix ?? ""} ${parts.category_code ?? ""} ${parts.item_code ?? ""}`.trim();
+}
+
 // ── PPN ───────────────────────────────────────────────────────────────────────
 
 export function calcPPN(subtotal: number, persen: number = 12): number {

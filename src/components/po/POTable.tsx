@@ -11,10 +11,10 @@ interface POTableProps {
 }
 
 export function POTable({ onEdit }: POTableProps) {
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId),
-    { pos, loadAllPOs, deletePO } = usePOStore(),
-    [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null),
-    [deleting, setDeleting] = useState(false);
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const { pos, loadAllPOs, deletePO } = usePOStore();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadAllPOs(selectedProjectId || undefined);
@@ -44,10 +44,10 @@ export function POTable({ onEdit }: POTableProps) {
     <>
       <Table
         hasHover
+        idKey="po_id"
         textOverflow="truncate"
         columns={columns}
         data={pos as PORow[]}
-        idKey="po_id"
         emptyState={<TableEmptyState message="Belum ada PO. Klik 'Buat Baru' untuk memulai." />}
       />
       <ConfirmDialog

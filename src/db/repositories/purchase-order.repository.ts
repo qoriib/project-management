@@ -18,7 +18,7 @@ export type POWithSummary = PurchaseOrder & {
   project_name?: string;
   total_price?: number;
   item_count?: number;
-  vendor_names?: string;
+  vendor_names?: string[];
 };
 
 export interface POItemDetail {
@@ -103,7 +103,11 @@ class PurchaseOrderRepository extends BaseRepository<
       }
 
       const { sql, params } = qb.build();
-      return this.rawSelect<POWithSummary>(sql, params);
+      const rows = await this.rawSelect<any>(sql, params);
+      return rows.map((r) => ({
+        ...r,
+        vendor_names: r.vendor_names ? r.vendor_names.split(",").map((v: string) => v.trim()) : [],
+      }));
     } catch (error) {
       throw wrapDbError(error, this.model.tableName);
     }
@@ -130,11 +134,18 @@ class PurchaseOrderRepository extends BaseRepository<
         .leftJoin("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
         .leftJoin("vendors", "v", "v.vendor_id = poi.vendor_id")
         .where("po.po_id", "=", id)
-        .withSoftDelete("po")
         .groupBy("po.po_id")
         .build(),
-      rows = await this.rawSelect<POWithSummary>(sql, params);
-    return rows[0] ?? null;
+      rows = await this.rawSelect<any>(sql, params);
+
+    if (!rows[0]) return null;
+
+    return {
+      ...rows[0],
+      vendor_names: rows[0].vendor_names
+        ? rows[0].vendor_names.split(",").map((v: string) => v.trim())
+        : [],
+    };
   }
 
   /**

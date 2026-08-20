@@ -148,14 +148,6 @@ export function BOMTable() {
           handleItemChange(form.getFieldValue("item_id"));
         }}
       />
-      <form
-        id="bom-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-      />
     </>
   );
 }

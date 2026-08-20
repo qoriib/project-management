@@ -8,6 +8,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
+import { formatItemCode } from "@/utils/formatters";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { ItemWithDetails } from "@/db/repositories";
 
@@ -48,8 +49,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       key: "item_code",
       width: pixel(180),
       renderCell: (row: ItemRow) => {
-        const code =
-          `${row.category_prefix || ""} ${row.category_code || ""} ${row.item_code || ""}`.trim();
+        const code = formatItemCode(row);
         return code ? <EntityCode id={code} /> : "-";
       },
     },

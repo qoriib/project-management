@@ -32,7 +32,10 @@ export function useBOMForm({
 
         const payload = {
           project_id: selectedProjectId,
-          ...value,
+          bom_group_id: value.bom_group_id,
+          item_id: value.item_id,
+          qty: value.qty,
+          item_price_id: value.item_price_id,
         };
 
         if (initialData) {

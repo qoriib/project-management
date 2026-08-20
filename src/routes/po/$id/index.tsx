@@ -17,25 +17,23 @@ import { PODeliveryLogTable } from "@/components/po/PODeliveryLogTable";
 import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function PODetailPage() {
-  const navigate = useNavigate(),
-    { id } = useParams({ strict: false }),
-    { currentPO: po, loadPODetail, clearPODetail } = usePOStore(),
-    [loading, setLoading] = useState(true);
+  const navigate = useNavigate()
+  const { id } = useParams({ strict: false })
+  const { currentPO: po, loadPODetail, clearPODetail } = usePOStore()
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) {
-      return;
-    }
+    if (!id) return;
+
     async function load() {
       setLoading(true);
       await loadPODetail(id as string);
       setLoading(false);
     }
+
     load();
 
-    return () => {
-      clearPODetail();
-    };
+    return () => clearPODetail();
   }, [id, loadPODetail, clearPODetail]);
 
   if (loading) {
@@ -58,13 +56,14 @@ function PODetailPage() {
     <Section padding={6}>
       <VStack gap={6}>
         <PageHeader
-          title={`Detail ${po.po_code || formatEntityCode(po.po_id)}`}
+          title={`Detail ${po.po_code ?? formatEntityCode(po.po_id)}`}
+          subtitle="Lihat rincian pesanan dan pantau progres penerimaan barang"
           actions={
             <HStack gap={2}>
               <Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/po" })} />
               <Button
                 variant="primary"
-                label="Edit PO"
+                label="Edit"
                 onClick={() => navigate({ to: `/po/${po.po_id}/edit` })}
               />
             </HStack>
@@ -80,13 +79,10 @@ function PODetailPage() {
             </Text>
           </VStack>
         </HStack>
-        <Card padding={4}>
-          <VStack gap={4}>
-            <Heading level={3}>Item PO (Rencana & Realisasi)</Heading>
-            <POItemTrackingTable />
-          </VStack>
+        <Card>
+          <POItemTrackingTable />
         </Card>
-        <Card padding={4}>
+        <Card>
           <VStack gap={4}>
             <HStack gap={2} justify="between" align="center">
               <Heading level={3}>Log Penerimaan</Heading>
