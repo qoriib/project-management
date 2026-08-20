@@ -73,6 +73,10 @@ export function useDeliveryForm({
       const projectId = selectedProjectId ?? undefined;
       await loadAllPOs(projectId);
 
+      if (projectId) {
+        usePOStore.getState().loadBOMReportForProject(projectId);
+      }
+
       const hasEditId = isEdit && initialEditId !== undefined;
 
       if (hasEditId) {

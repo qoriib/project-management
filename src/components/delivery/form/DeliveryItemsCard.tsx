@@ -3,8 +3,9 @@ import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core
 import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
 import { DeliveryQtyCell } from "./DeliveryQtyCell";
-import { DeliveryRemainingCell } from "./DeliveryRemainingCell";
 import { EntityCode } from "@/components/shared/EntityCode";
+import { formatItemCode, formatNumber } from "@/utils/formatters";
+import { usePOStore } from "@/store/usePOStore";
 import { useMemo } from "react";
 
 interface DeliveryItemsCardProps {
@@ -15,6 +16,8 @@ function DeliveryItemsCardInner({
   form,
   items,
 }: DeliveryItemsCardProps & { items: DeliveryItemRow[] }) {
+  const bomData = usePOStore((s) => s.currentBOMData);
+
   const columns: TableColumn<DeliveryItemRow>[] = useMemo(
     () => [
       {
@@ -24,7 +27,9 @@ function DeliveryItemsCardInner({
           <VStack gap={0.5}>
             <Text weight="medium">{row.item_name}</Text>
             {row.item_id ? (
-              <EntityCode id={row.item_id} />
+              <Text type="code" size="sm" color="secondary">
+                {formatItemCode(row.category_prefix, row.category_code, row.item_code)}
+              </Text>
             ) : (
               <Text size="sm" color="secondary">
                 Non-Master
@@ -36,11 +41,24 @@ function DeliveryItemsCardInner({
       },
       {
         align: "end",
-        header: "Dipesan / Diterima",
-        key: "remaining",
-        renderCell: (row) => <DeliveryRemainingCell row={row} />,
-        width: pixel(180),
+        header: "Harga Rencana",
+        key: "planned_price",
+        width: pixel(140),
+        renderCell: (row) => {
+          const bomItem = bomData.find(
+            (b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id,
+          );
+          return <Text type="code">{formatNumber(bomItem?.price ?? 0)}</Text>;
+        },
       },
+      {
+        align: "end",
+        header: "Harga Realisasi",
+        key: "realized_price",
+        width: pixel(140),
+        renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0)}</Text>,
+      },
+
       {
         align: "end",
         header: "Volume Diterima",
@@ -58,7 +76,7 @@ function DeliveryItemsCardInner({
         width: pixel(100),
       },
     ],
-    [form, items],
+    [form, items, bomData],
   );
 
   return (

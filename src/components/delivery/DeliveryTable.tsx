@@ -3,24 +3,24 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
-import { type DeliveryRow, useDeliveryColumns } from "./table/useDeliveryColumns";
 import { Table } from "@astryxdesign/core";
+import { type DeliveryRow, useDeliveryColumns } from "./table/useDeliveryColumns";
 
 export function DeliveryTable() {
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null),
-    [deleting, setDeleting] = useState(false),
-    selectedProjectId = useAppStore((s) => s.selectedProjectId),
-    { deliveries, loadAllDeliveries, deleteDelivery } = useDeliveryStore();
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const { deliveries, loadAllDeliveries, deleteDelivery } = useDeliveryStore();
 
   useEffect(() => {
     loadAllDeliveries(selectedProjectId || undefined);
   }, [selectedProjectId, loadAllDeliveries]);
 
   async function handleDelete() {
-    if (!deleteTarget) {
-      return;
-    }
+    if (!deleteTarget) return;
     setDeleting(true);
+
     try {
       await deleteDelivery(deleteTarget);
       setDeleteTarget(null);
@@ -35,10 +35,10 @@ export function DeliveryTable() {
     <>
       <Table
         hasHover
+        idKey="delivery_id"
         textOverflow="truncate"
         columns={columns}
         data={deliveries as DeliveryRow[]}
-        idKey="delivery_id"
         emptyState={<TableEmptyState message="Tidak ada data pengiriman yang cocok." />}
       />
       <ConfirmDialog
@@ -46,7 +46,7 @@ export function DeliveryTable() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Log Pengiriman"
-        message="Apakah Anda yakin ingin menghapus data pengiriman ini? Jumlah sisa PO terkait akan bertambah kembali."
+        message="Apakah Anda yakin ingin menghapus data pengiriman ini?"
         isLoading={deleting}
       />
     </>

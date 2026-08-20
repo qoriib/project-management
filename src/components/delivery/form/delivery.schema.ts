@@ -11,11 +11,6 @@ const itemRowSchema = v.object({
   unit: v.string(),
 });
 
-function itemQtyDoesNotExceedRemaining(item: unknown): boolean {
-  const row = item as { qty: number; remaining: number };
-  return row.qty <= row.remaining;
-}
-
 function atLeastOneItemReceived(items: unknown): boolean {
   const rows = items as { qty: number }[];
   return rows.some((it) => it.qty > 0);
@@ -25,9 +20,7 @@ export const deliverySchema = v.object({
   delivery_code: v.pipe(v.string(), v.nonEmpty("Kode pengiriman harus diisi.")),
   delivery_date: v.pipe(v.string(), v.nonEmpty("Tanggal kirim harus diisi.")),
   items: v.pipe(
-    v.array(
-      v.pipe(itemRowSchema, v.custom(itemQtyDoesNotExceedRemaining, "Volume melebihi sisa PO.")),
-    ),
+    v.array(itemRowSchema),
     v.custom(atLeastOneItemReceived, "Minimal ada 1 item yang diterima."),
   ),
   po_id: v.pipe(v.string(), v.nonEmpty("PO harus dipilih.")),
@@ -38,6 +31,11 @@ export interface DeliveryItemRow extends Record<string, unknown> {
   po_item_id: string;
   item_id: string | null;
   item_name: string;
+  category_prefix?: string | null;
+  category_code?: string | null;
+  item_code?: string | null;
+  price?: number;
+  item_price_id?: string | null;
   unit: string;
   remaining: number;
   qty: number;

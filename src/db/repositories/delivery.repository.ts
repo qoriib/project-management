@@ -11,7 +11,7 @@ import { type CreateDelivery, type Delivery, DeliveryModel } from "@/db/models";
 
 export type DeliverySummary = Delivery & {
   item_count?: number;
-  vendor_names?: string;
+  vendor_names?: string[];
   project_name?: string;
   po_code?: string;
   delivery_code?: string;
@@ -95,7 +95,11 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
       }
 
       const { sql, params } = qb.build();
-      return this.rawSelect<DeliverySummary>(sql, params);
+      const rows = await this.rawSelect<any>(sql, params);
+      return rows.map((r) => ({
+        ...r,
+        vendor_names: r.vendor_names ? r.vendor_names.split(",").map((v: string) => v.trim()) : [],
+      }));
     } catch (error) {
       throw wrapDbError(error, this.model.tableName);
     }

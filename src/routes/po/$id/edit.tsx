@@ -5,7 +5,6 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { POForm } from "@/components/po/POForm";
 import { usePOStore } from "@/store/usePOStore";
-import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function POEditPage() {
   const { id } = useParams({ strict: false });
@@ -42,7 +41,7 @@ function POEditPage() {
     <Section padding={6}>
       <VStack gap={6}>
         <PageHeader
-          title={`Edit ${po.po_code ?? formatEntityCode(po.po_id)}`}
+          title="Edit Pemesanan"
           subtitle="Perbarui informasi dan daftar item pesanan pembelian"
         />
         <POForm po={po} initialItems={currentItems} bomData={currentBOMData} />

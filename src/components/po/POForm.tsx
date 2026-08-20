@@ -154,7 +154,6 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
                   isRequired
                   label="Nomor PO"
                   statusVariant="tooltip"
-                  placeholder="Misal: PO/2026/08/001"
                   value={field.state.value}
                   onChange={(v) => field.handleChange(v ?? "")}
                   onBlur={field.handleBlur}

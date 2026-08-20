@@ -77,7 +77,14 @@ export function DeliveryForm({
       }}
     >
       <VStack gap={4}>
-        <DeliveryHeaderCard form={form} pos={pos} isEdit={isEdit} handlePOChange={handlePOChange} />
+        <HStack width={720}>
+          <DeliveryHeaderCard
+            form={form}
+            pos={pos}
+            isEdit={isEdit}
+            handlePOChange={handlePOChange}
+          />
+        </HStack>
         <DeliveryItemsCard form={form} />
         <DeliveryFormActions form={form as any} onCancel={onCancel} />
       </VStack>

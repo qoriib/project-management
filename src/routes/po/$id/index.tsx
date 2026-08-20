@@ -53,7 +53,7 @@ function PODetailPage() {
     <Section padding={6}>
       <VStack gap={6}>
         <PageHeader
-          title={`Detail ${po.po_code ?? formatEntityCode(po.po_id)}`}
+          title="Detail Pemesanan"
           subtitle="Lihat rincian pesanan dan pantau progres penerimaan barang"
           actions={
             <HStack gap={2}>
@@ -67,6 +67,14 @@ function PODetailPage() {
           }
         />
         <HStack gap={8}>
+          <VStack gap={1}>
+            <Text color="secondary" size="sm">
+              Nomor PO
+            </Text>
+            <Text weight="medium" type="code">
+              {po.po_code ?? formatEntityCode(po.po_id)}
+            </Text>
+          </VStack>
           <VStack gap={1}>
             <Text color="secondary" size="sm">
               Tanggal PO

@@ -1,5 +1,5 @@
 import { Pencil, Trash2 } from "lucide-react";
-import { HStack, IconButton, Text } from "@astryxdesign/core";
+import { HStack, IconButton, Text, VStack } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -52,21 +52,6 @@ export function usePOItemFormColumns({
 
   const columns: TableColumn<POItemRow>[] = [
     {
-      header: "Kode Item",
-      key: "item_code",
-      width: pixel(160),
-      renderCell: (row: POItemRow) => {
-        if (row.isFooter) return <div />;
-
-        if (row.po_item_id === editingId) {
-          return <ItemCodeDisplayCell form={form} />;
-        }
-
-        const code = formatItemCode(row);
-        return code ? <EntityCode id={code} /> : "-";
-      },
-    },
-    {
       header: "Item",
       key: "item",
       width: proportional(2),
@@ -77,19 +62,35 @@ export function usePOItemFormColumns({
           const selectedItemIds = new Set(items.map((i) => i.item_id).filter(Boolean) as string[]);
 
           return (
-            <ItemSelectorCell
-              form={form}
-              bomOptions={bomData}
-              selectedItemIds={selectedItemIds}
-              onChangeItem={handleItemChange as (itemId: string) => Promise<void>}
-              editingId={editingId}
-            />
+            <VStack gap={1} align="start" width="100%">
+              <ItemSelectorCell
+                form={form}
+                bomOptions={bomData}
+                selectedItemIds={selectedItemIds}
+                onChangeItem={handleItemChange as (itemId: string) => Promise<void>}
+                editingId={editingId}
+              />
+              <ItemCodeDisplayCell form={form} />
+            </VStack>
           );
         }
 
-        return <Text weight="medium">{row.item_name}</Text>;
+        const code = formatItemCode(row);
+        return (
+          <VStack gap={1} align="start">
+            <Text weight="medium">{row.item_name}</Text>
+            {code ? (
+              <EntityCode id={code} />
+            ) : (
+              <Text size="sm" color="secondary">
+                -
+              </Text>
+            )}
+          </VStack>
+        );
       },
     },
+
     {
       align: "end",
       header: "Harga & Variasi (Rp)",
@@ -102,10 +103,26 @@ export function usePOItemFormColumns({
           return <PriceSelectorCell form={form} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
         }
 
+        const bomItem = bomData.find(
+          (b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id,
+        );
+        const bomPrice = bomItem?.price ?? 0;
+
         return (
-          <Text type="code" weight="medium">
-            {formatNumber(row.price)}
-          </Text>
+          <VStack gap={0.5} align="end">
+            <HStack gap={1} justify="end">
+              <Text weight="medium">Realisasi:</Text>
+              <Text type="code">{formatNumber(row.price)}</Text>
+            </HStack>
+            <HStack gap={1} justify="end">
+              <Text size="sm" color="secondary">
+                Rencana:
+              </Text>
+              <Text type="code" size="sm" color="secondary">
+                {formatNumber(bomPrice)}
+              </Text>
+            </HStack>
+          </VStack>
         );
       },
     },
