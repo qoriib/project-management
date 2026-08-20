@@ -115,6 +115,7 @@ export function usePOItemFormColumns({
       width: pixel(280),
       renderCell: (row: POItemRow) => {
         if (row.isFooter) return <div />;
+
         if (row.po_item_id === editingId) {
           return (
             <VendorSelectorCell
@@ -124,7 +125,8 @@ export function usePOItemFormColumns({
             />
           );
         }
-        return row.vendor_name || "—";
+
+        return row.vendor_name ?? "—";
       },
     },
     {
@@ -138,7 +140,7 @@ export function usePOItemFormColumns({
           return <UnitDisplayCell form={form} />;
         }
 
-        return row.unit || "-";
+        return row.unit ?? "-";
       },
     },
     {
@@ -171,7 +173,7 @@ export function usePOItemFormColumns({
           return <SubtotalCell form={form} />;
         }
 
-        return <Text type="code">{formatNumber((row.qty || 0) * (row.price || 0))}</Text>;
+        return <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0))}</Text>;
       },
       width: pixel(180),
     },

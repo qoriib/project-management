@@ -21,9 +21,11 @@ export function usePOItemTableState({
 }: UsePOItemTableStateProps) {
   const dataWithFooters = useMemo(() => {
     const list = [...items] as POItemRow[];
+
     if (editingId === "new-item") {
       list.push({ isDraft: true, po_item_id: "new-item" } as unknown as POItemRow);
     }
+
     list.push({ isFooter: true, po_item_id: "footer" } as unknown as POItemRow);
     return list;
   }, [items, editingId]);
@@ -33,6 +35,7 @@ export function usePOItemTableState({
       transformBodyRow(props, item) {
         if (item.isFooter) {
           const hideButton = Boolean(editingId);
+
           return {
             ...props,
             children: (
@@ -41,7 +44,7 @@ export function usePOItemTableState({
                 style={{
                   background: "var(--color-bg-base)",
                   borderBottom: "1px solid var(--color-border)",
-                  padding: "8px 16px",
+                  padding: "8px 12px",
                 }}
               >
                 {!hideButton && (
@@ -60,12 +63,7 @@ export function usePOItemTableState({
             ),
           };
         }
-        if (item.po_item_id === editingId) {
-          return {
-            ...props,
-            xstyle: [...props.xstyle, { background: "var(--color-bg-muted)" }],
-          };
-        }
+
         return props;
       },
     }),
