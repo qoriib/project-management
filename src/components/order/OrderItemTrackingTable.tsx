@@ -55,8 +55,40 @@ export function OrderItemTrackingTable() {
       align: "end",
       header: "Subtotal (Rp)",
       key: "subtotal",
-      width: pixel(200),
+      width: pixel(180),
       renderCell: (row) => <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0))}</Text>,
+    },
+    {
+      align: "end",
+      header: "PPn (12%)",
+      key: "has_tax",
+      width: pixel(140),
+      renderCell: (row) => {
+        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
+        const taxAmount = row.has_tax === 1 ? subtotal * 0.12 : 0;
+        return row.has_tax === 1 ? (
+          <Text type="code">{formatNumber(taxAmount)}</Text>
+        ) : (
+          <Text size="sm" color="secondary">
+            -
+          </Text>
+        );
+      },
+    },
+    {
+      align: "end",
+      header: "Total (Rp)",
+      key: "total",
+      width: pixel(180),
+      renderCell: (row) => {
+        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
+        const total = row.has_tax === 1 ? subtotal * 1.12 : subtotal;
+        return (
+          <Text type="code" weight="medium">
+            {formatNumber(total)}
+          </Text>
+        );
+      },
     },
     {
       align: "end",

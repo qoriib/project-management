@@ -1,5 +1,5 @@
 import { Check, Pencil, Trash2, X } from "lucide-react";
-import { Badge, HStack, IconButton, Switch, Text } from "@astryxdesign/core";
+import { HStack, IconButton, Switch, Text } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -144,31 +144,59 @@ export function useOrderItemFormColumns({
       },
     },
     {
-      align: "center",
+      align: "end",
       header: "PPn (12%)",
       key: "has_tax",
-      width: pixel(100),
+      width: pixel(140),
       renderCell: (row) => {
         if (row.isFooter) return null;
 
         if (isEditing(row)) {
           return (
-            <form.Field name="has_tax">
-              {(field) => (
-                <Switch
-                  label="PPn"
-                  isLabelHidden
-                  value={field.state.value}
-                  onChange={(checked) => field.handleChange(checked)}
-                  onBlur={field.handleBlur}
-                />
-              )}
-            </form.Field>
+            <form.Subscribe
+              selector={(s) => ({
+                itemId: s.values.item_id,
+                priceId: s.values.item_price_id,
+                qty: s.values.qty,
+                hasTax: s.values.has_tax,
+              })}
+            >
+              {({ qty, priceId, itemId, hasTax }) => {
+                let priceNum = 0;
+                if (itemId && priceId) {
+                  const prices = useMasterStore.getState().itemPricesMap.get(itemId) ?? [];
+                  const priceObj = prices.find((p) => String(p.item_price_id) === String(priceId));
+                  if (priceObj) {
+                    priceNum = priceObj.price;
+                  }
+                }
+                const sub = (qty || 0) * priceNum;
+                const taxAmount = hasTax ? sub * 0.12 : 0;
+                return (
+                  <HStack gap={2} align="center" justify="end">
+                    <form.Field name="has_tax">
+                      {(field) => (
+                        <Switch
+                          label="PPn"
+                          isLabelHidden
+                          value={field.state.value}
+                          onChange={(checked) => field.handleChange(checked)}
+                          onBlur={field.handleBlur}
+                        />
+                      )}
+                    </form.Field>
+                    <Text type="code">{hasTax ? formatNumber(taxAmount) : "-"}</Text>
+                  </HStack>
+                );
+              }}
+            </form.Subscribe>
           );
         }
 
+        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
+        const taxAmount = row.has_tax ? subtotal * 0.12 : 0;
         return row.has_tax ? (
-          <Badge label="12%" variant="blue" />
+          <Text type="code">{formatNumber(taxAmount)}</Text>
         ) : (
           <Text size="sm" color="secondary">
             -

@@ -2,6 +2,7 @@ import { BaseRepository } from "@/db/core/base-repository";
 import { type CreateItem, type Item, ItemModel, type UpdateItem } from "@/db/models";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
+import type { FindOptions } from "@/db/core/types";
 
 export type ItemWithDetails = Item & {
   category_name?: string;
@@ -19,7 +20,7 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
   /**
    * Get all items with category, unit, and relation status.
    */
-  async findAll(): Promise<ItemWithDetails[]> {
+  async findAll(options?: FindOptions): Promise<ItemWithDetails[]> {
     try {
       const query = new QueryBuilder()
         .select(
@@ -36,9 +37,31 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
         )
         .from("items", "items")
         .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
-        .leftJoin("units", "units", "items.unit_id = units.unit_id")
-        .where("items.deleted_at", "IS NULL")
-        .orderBy("items.item_name", "ASC");
+        .leftJoin("units", "units", "items.unit_id = units.unit_id");
+
+      if (!options?.includeDeleted) {
+        query.where("items.deleted_at", "IS NULL");
+      }
+
+      if (options?.where) {
+        for (const [column, value] of Object.entries(options.where)) {
+          const colName = column.includes(".") ? column : `items.${column}`;
+          if (value === null) {
+            query.where(colName, "IS NULL");
+          } else {
+            query.where(colName, "=", value);
+          }
+        }
+      }
+
+      if (options?.limit !== undefined) {
+        query.limit(options.limit);
+      }
+      if (options?.offset !== undefined) {
+        query.offset(options.offset);
+      }
+
+      query.orderBy("items.item_name", "ASC");
 
       const { sql, params } = query.build();
       const rows = await this.rawSelect<ItemWithDetails & { has_relation: number | boolean }>(sql, params);

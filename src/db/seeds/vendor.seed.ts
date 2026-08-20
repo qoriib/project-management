@@ -23,6 +23,11 @@ export async function seedVendors(): Promise<void> {
       vendor_name: "Toko Cat Warna Indah",
     },
     {
+      address: "Jl. R.E. Martadinata # 10, Jakarta",
+      phone: "081399887766",
+      vendor_name: "Toko Cat Mitra Abadi",
+    },
+    {
       address: "Jl. Gatot Subroto Kav. 1, Jakarta",
       phone: "021-5551234",
       vendor_name: "PT. Keramik Indah",
@@ -36,6 +41,11 @@ export async function seedVendors(): Promise<void> {
       address: "Jl. Serpong Raya # 10, Tangerang",
       phone: "021-8889990",
       vendor_name: "Depo Bangunan Mandiri",
+    },
+    {
+      address: "Jl. Daan Mogot Km. 14, Jakarta Barat",
+      phone: "021-5432109",
+      vendor_name: "CV. Elektrika Mandiri",
     },
   ];
 

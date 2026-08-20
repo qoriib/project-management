@@ -9,16 +9,16 @@ import { formatItemCode } from "@/utils/formatters";
 export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheetContext): void {
   const { project_name, company_name, fiscal_year, period, orderData } = context;
   const ws = workbook.addWorksheet("RINCIAN PESANAN", {
-    views: [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }],
+    views: [{ state: "frozen", xSplit: 0, ySplit: 5, showGridLines: true }],
   });
 
-  ws.columns = [
-    { header: "NO", key: "no", width: 5 },
+  const COLUMNS = [
+    { header: "NO", key: "no", width: 6 },
     { header: "TANGGAL PESANAN", key: "order_date", width: 16 },
     { header: "NOMOR ORDER (PO)", key: "order_code", width: 18 },
     { header: "NAMA PENYEDIA / VENDOR", key: "vendor_name", width: 28 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 34 },
+    { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category_name", width: 16 },
     { header: "SATUAN", key: "unit_name", width: 10 },
     { header: "VOLUME", key: "qty", width: 14 },
@@ -27,27 +27,28 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     { header: "TOTAL HARGA (RP)", key: "total_price", width: 22 },
   ];
 
+  // Set column keys and widths
+  ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }));
+
   // Kop Formal
   createFormalKop(ws, {
-    startCol: "A",
-    endCol: "L",
-    startColIdx: 1,
-    endColIdx: 12,
     company_name,
-    title: "BUKU REGISTER PEMESANAN BARANG (PURCHASE ORDERS)",
+    endCol: "L",
+    endColIdx: 12,
+    startCol: "A",
+    startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
+    title: "BUKU REGISTER PEMESANAN BARANG (PURCHASE ORDERS)",
   });
 
-  ws.getRow(4).height = 6;
-
-  // Table Headers
+  // Table Headers at Row 5
   const headerRow = ws.getRow(5);
-  headerRow.height = 28;
-  ws.columns.forEach((_, colIdx) => {
+  COLUMNS.forEach((col, colIdx) => {
     const cell = headerRow.getCell(colIdx + 1);
-    cell.font = { name: FORMAL_STYLE.fontFamily, bold: true, size: 9, color: { argb: FORMAL_STYLE.tableHeaderText } };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: FORMAL_STYLE.tableHeaderBg } };
-    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+    cell.value = col.header;
+    cell.font = { bold: true, color: { argb: FORMAL_STYLE.tableHeaderText }, name: FORMAL_STYLE.fontFamily, size: 9 };
+    cell.fill = { fgColor: { argb: FORMAL_STYLE.tableHeaderBg }, pattern: "solid", type: "pattern" };
+    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
     cell.border = BORDER_ALL_THIN;
   });
 
@@ -57,7 +58,6 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   orderData.forEach((item, index) => {
     const rowIdx = index + 6;
     const row = ws.getRow(rowIdx);
-    row.height = 20;
 
     const code = formatItemCode(item) || item.item_code || "-";
     const taxStatus = item.has_tax === 1 ? "PPn 12%" : "Non-PPn";
@@ -85,7 +85,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
       cell.border = BORDER_ALL_LIGHT;
       cell.font = { name: FORMAL_STYLE.fontFamily, size: 9 };
       if (isEven) {
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: FORMAL_STYLE.zebraBg } };
+        cell.fill = { fgColor: { argb: FORMAL_STYLE.zebraBg }, pattern: "solid", type: "pattern" };
       }
 
       if (
@@ -96,18 +96,18 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
         colNumber === 8 ||
         colNumber === 11
       ) {
-        cell.alignment = { vertical: "middle", horizontal: "center" };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
       } else if (colNumber === 3 || colNumber === 4 || colNumber === 6) {
-        cell.alignment = { vertical: "middle", horizontal: "left" };
-      } else if (colNumber === 9) {
-        cell.alignment = { vertical: "middle", horizontal: "right" };
-        cell.numFmt = "#,##0.00";
-      } else if (colNumber === 10 || colNumber === 12) {
-        cell.alignment = { vertical: "middle", horizontal: "right" };
-        cell.numFmt = "#,##0";
-        if (colNumber === 12) {
-          cell.font = { name: FORMAL_STYLE.fontFamily, size: 9, bold: true };
-        }
+        cell.alignment = { horizontal: "left", vertical: "middle" };
+      } else {
+        cell.alignment = { horizontal: "right", vertical: "middle" };
+      }
+
+      if (colNumber === 9) {
+        cell.numFmt = "#,##0.00;(#,##0.00);-";
+      }
+      if (colNumber === 10 || colNumber === 12) {
+        cell.numFmt = "#,##0;(#,##0);-";
       }
     });
   });
@@ -115,40 +115,25 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   // Total Row
   const totalRowIdx = orderData.length + 6;
   const totalRow = ws.getRow(totalRowIdx);
-  totalRow.height = 24;
+  totalRow.values = ["", "TOTAL PEMESANAN", "", "", "", "", "", "", sumQty, "", "", sumTotalPrice];
 
-  totalRow.values = [
-    "",
-    "TOTAL",
-    `Total ${orderData.length} Baris Transaksi`,
-    "",
-    "",
-    "",
-    "",
-    "",
-    sumQty,
-    "",
-    "",
-    sumTotalPrice,
-  ];
+  ws.mergeCells(`B${totalRowIdx}:H${totalRowIdx}`);
 
   totalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+    cell.font = { bold: true, color: { argb: FORMAL_STYLE.totalRowText }, name: FORMAL_STYLE.fontFamily, size: 9 };
+    cell.fill = { fgColor: { argb: FORMAL_STYLE.totalRowBg }, pattern: "solid", type: "pattern" };
     cell.border = BORDER_ACCOUNTING_TOTAL;
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: FORMAL_STYLE.totalRowBg } };
-    cell.font = { name: FORMAL_STYLE.fontFamily, size: 9.5, bold: true, color: { argb: FORMAL_STYLE.totalRowText } };
 
     if (colNumber === 2) {
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-    } else if (colNumber === 3) {
-      cell.alignment = { vertical: "middle", horizontal: "left" };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
     } else if (colNumber === 9) {
-      cell.alignment = { vertical: "middle", horizontal: "right" };
-      cell.numFmt = "#,##0.00";
+      cell.numFmt = "#,##0.00;(#,##0.00);-";
+      cell.alignment = { horizontal: "right", vertical: "middle" };
     } else if (colNumber === 12) {
-      cell.alignment = { vertical: "middle", horizontal: "right" };
-      cell.numFmt = "#,##0";
+      cell.numFmt = "#,##0;(#,##0);-";
+      cell.alignment = { horizontal: "right", vertical: "middle" };
     }
   });
 
-  ws.autoFilter = { from: "A5", to: "L5" };
+  ws.autoFilter = "A5:L5";
 }

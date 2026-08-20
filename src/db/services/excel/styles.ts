@@ -1,48 +1,55 @@
 import type * as ExcelJS from "exceljs";
 
-// ── Formal Institutional Palette (Standar Instansi / Kedinasan / BUMN) ────────
+// ── Formal Monochromatic Grayscale Palette (Hitam, Putih, Abu-abu Soft) ────────
 export const FORMAL_STYLE = {
   fontFamily: "Calibri",
-  primaryHeaderBg: "FF1F4E78", // Formal Navy Blue
+  // Section Headers (Dark charcoal header with white bold text)
+  primaryHeaderBg: "FF262626",
   primaryHeaderText: "FFFFFFFF",
-  secondaryHeaderBg: "FFD9E1F2", // Soft Ice Blue
+  // Sub-headers / Category bars (Soft neutral gray)
+  secondaryHeaderBg: "FFE5E5E5",
   secondaryHeaderText: "FF000000",
-  tableHeaderBg: "FF2F5597", // Deep Blue Table Header
-  tableHeaderText: "FFFFFFFF",
-  totalRowBg: "FFE7E6E6", // Formal Accounting Light Gray
+  // Table Column Headers (Clean soft light-gray header with black text)
+  tableHeaderBg: "FFEDEDED",
+  tableHeaderText: "FF000000",
+  // Summary & Totals
+  totalRowBg: "FFF2F2F2",
   totalRowText: "FF000000",
-  zebraBg: "FFF2F2F2", // Subtle alternate row
-  unplannedRowBg: "FFFFF2CC", // Soft Cream for Non-BOM items
-  borderDark: "FF000000", // Solid Black/Dark Gray for formal grid
-  borderLight: "FFBFBFBF",
-  statusGreenText: "FF006100", // Excel standard soft dark green
-  statusRedText: "FF9C0006", // Excel standard soft dark red
-  statusNeutralText: "FF1F4E78",
+  // Subtle zebra row for readability
+  zebraBg: "FFFAFAFA",
+  unplannedRowBg: "FFF5F5F5",
+  // Borders
+  borderDark: "FF000000",
+  borderMedium: "FF595959",
+  borderLight: "FFCCCCCC",
+  // Status text (Professional neutral)
+  statusNeutralText: "FF262626",
+  statusMutedText: "FF595959",
 };
 
 export const BORDER_ALL_THIN: Partial<ExcelJS.Borders> = {
-  top: { style: "thin", color: { argb: FORMAL_STYLE.borderDark } },
-  left: { style: "thin", color: { argb: FORMAL_STYLE.borderDark } },
-  bottom: { style: "thin", color: { argb: FORMAL_STYLE.borderDark } },
-  right: { style: "thin", color: { argb: FORMAL_STYLE.borderDark } },
+  bottom: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
+  left: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
+  right: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
+  top: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
 };
 
 export const BORDER_ALL_LIGHT: Partial<ExcelJS.Borders> = {
-  top: { style: "thin", color: { argb: FORMAL_STYLE.borderLight } },
-  left: { style: "thin", color: { argb: FORMAL_STYLE.borderLight } },
-  bottom: { style: "thin", color: { argb: FORMAL_STYLE.borderLight } },
-  right: { style: "thin", color: { argb: FORMAL_STYLE.borderLight } },
+  bottom: { color: { argb: FORMAL_STYLE.borderLight }, style: "thin" },
+  left: { color: { argb: FORMAL_STYLE.borderLight }, style: "thin" },
+  right: { color: { argb: FORMAL_STYLE.borderLight }, style: "thin" },
+  top: { color: { argb: FORMAL_STYLE.borderLight }, style: "thin" },
 };
 
 export const BORDER_ACCOUNTING_TOTAL: Partial<ExcelJS.Borders> = {
-  top: { style: "thin", color: { argb: FORMAL_STYLE.borderDark } },
-  left: { style: "thin", color: { argb: FORMAL_STYLE.borderDark } },
-  bottom: { style: "double", color: { argb: FORMAL_STYLE.borderDark } },
-  right: { style: "thin", color: { argb: FORMAL_STYLE.borderDark } },
+  bottom: { color: { argb: FORMAL_STYLE.borderDark }, style: "double" },
+  left: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  right: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  top: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
 };
 
 /**
- * Creates a formal Kop (Letterhead/Document Header) across specified columns.
+ * Creates a formal Kop (Letterhead/Document Header) across specified columns in grayscale.
  */
 export function createFormalKop(
   ws: ExcelJS.Worksheet,
@@ -62,24 +69,24 @@ export function createFormalKop(
   ws.mergeCells(`${startCol}1:${options.endCol}1`);
   const kop1 = ws.getCell(`${startCol}1`);
   kop1.value = options.company_name.toUpperCase();
-  kop1.font = { name: FORMAL_STYLE.fontFamily, size: 11, bold: true, color: { argb: "FF1F4E78" } };
-  kop1.alignment = { vertical: "middle", horizontal: "center" };
+  kop1.font = { bold: true, color: { argb: "FF000000" }, name: FORMAL_STYLE.fontFamily, size: 11 };
+  kop1.alignment = { horizontal: "center", vertical: "middle" };
 
   ws.mergeCells(`${startCol}2:${options.endCol}2`);
   const kop2 = ws.getCell(`${startCol}2`);
   kop2.value = options.title;
-  kop2.font = { name: FORMAL_STYLE.fontFamily, size: 13, bold: true, color: { argb: "FF000000" } };
-  kop2.alignment = { vertical: "middle", horizontal: "center" };
+  kop2.font = { bold: true, color: { argb: "FF000000" }, name: FORMAL_STYLE.fontFamily, size: 13 };
+  kop2.alignment = { horizontal: "center", vertical: "middle" };
 
   ws.mergeCells(`${startCol}3:${options.endCol}3`);
   const kop3 = ws.getCell(`${startCol}3`);
   kop3.value = options.subtitle;
-  kop3.font = { name: FORMAL_STYLE.fontFamily, size: 10, color: { argb: "FF595959" } };
-  kop3.alignment = { vertical: "middle", horizontal: "center" };
+  kop3.font = { color: { argb: "FF595959" }, name: FORMAL_STYLE.fontFamily, size: 10 };
+  kop3.alignment = { horizontal: "center", vertical: "middle" };
 
   for (let c = startColIdx; c <= options.endColIdx; c++) {
     ws.getRow(3).getCell(c).border = {
-      bottom: { style: "medium", color: { argb: FORMAL_STYLE.borderDark } },
+      bottom: { color: { argb: FORMAL_STYLE.borderDark }, style: "medium" },
     };
   }
 }

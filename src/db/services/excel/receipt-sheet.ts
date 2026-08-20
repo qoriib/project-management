@@ -9,43 +9,44 @@ import { formatItemCode } from "@/utils/formatters";
 export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptSheetContext): void {
   const { project_name, company_name, fiscal_year, period, receiptData } = context;
   const ws = workbook.addWorksheet("RINCIAN PENERIMAAN", {
-    views: [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }],
+    views: [{ state: "frozen", xSplit: 0, ySplit: 5, showGridLines: true }],
   });
 
-  ws.columns = [
-    { header: "NO", key: "no", width: 5 },
+  const COLUMNS = [
+    { header: "NO", key: "no", width: 6 },
     { header: "TANGGAL TERIMA", key: "receipt_date", width: 16 },
     { header: "NOMOR PENERIMAAN (NP)", key: "receipt_code", width: 22 },
     { header: "NOMOR PESANAN (PO)", key: "order_code", width: 20 },
     { header: "NAMA PENYEDIA / VENDOR", key: "vendor_name", width: 28 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 34 },
+    { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category_name", width: 16 },
     { header: "SATUAN", key: "unit_name", width: 10 },
     { header: "VOLUME DITERIMA", key: "qty", width: 18 },
   ];
 
+  // Set column keys and widths
+  ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }));
+
   // Kop Formal
   createFormalKop(ws, {
-    startCol: "A",
-    endCol: "J",
-    startColIdx: 1,
-    endColIdx: 10,
     company_name,
-    title: "BUKU REGISTER PENERIMAAN BARANG (GOODS RECEIPTS / SURAT JALAN)",
+    endCol: "J",
+    endColIdx: 10,
+    startCol: "A",
+    startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
+    title: "BUKU REGISTER PENERIMAAN BARANG (GOODS RECEIPTS / SURAT JALAN)",
   });
 
-  ws.getRow(4).height = 6;
-
-  // Table Headers
+  // Table Headers at Row 5
   const headerRow = ws.getRow(5);
-  headerRow.height = 28;
-  ws.columns.forEach((_, colIdx) => {
+  COLUMNS.forEach((col, colIdx) => {
     const cell = headerRow.getCell(colIdx + 1);
-    cell.font = { name: FORMAL_STYLE.fontFamily, bold: true, size: 9, color: { argb: FORMAL_STYLE.tableHeaderText } };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: FORMAL_STYLE.tableHeaderBg } };
-    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+    cell.value = col.header;
+    cell.font = { bold: true, color: { argb: FORMAL_STYLE.tableHeaderText }, name: FORMAL_STYLE.fontFamily, size: 9 };
+    cell.fill = { fgColor: { argb: FORMAL_STYLE.tableHeaderBg }, pattern: "solid", type: "pattern" };
+    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
     cell.border = BORDER_ALL_THIN;
   });
 
@@ -54,7 +55,6 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
   receiptData.forEach((item, index) => {
     const rowIdx = index + 6;
     const row = ws.getRow(rowIdx);
-    row.height = 20;
 
     const code = formatItemCode(item) || item.item_code || "-";
     sumQty += item.qty || 0;
@@ -77,17 +77,19 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
       cell.border = BORDER_ALL_LIGHT;
       cell.font = { name: FORMAL_STYLE.fontFamily, size: 9 };
       if (isEven) {
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: FORMAL_STYLE.zebraBg } };
+        cell.fill = { fgColor: { argb: FORMAL_STYLE.zebraBg }, pattern: "solid", type: "pattern" };
       }
 
       if (colNumber === 1 || colNumber === 2 || colNumber === 6 || colNumber === 8 || colNumber === 9) {
-        cell.alignment = { vertical: "middle", horizontal: "center" };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
       } else if (colNumber === 3 || colNumber === 4 || colNumber === 5 || colNumber === 7) {
-        cell.alignment = { vertical: "middle", horizontal: "left" };
-      } else if (colNumber === 10) {
-        cell.alignment = { vertical: "middle", horizontal: "right" };
-        cell.numFmt = "#,##0.00";
-        cell.font = { name: FORMAL_STYLE.fontFamily, size: 9, bold: true };
+        cell.alignment = { horizontal: "left", vertical: "middle" };
+      } else {
+        cell.alignment = { horizontal: "right", vertical: "middle" };
+      }
+
+      if (colNumber === 10) {
+        cell.numFmt = "#,##0.00;(#,##0.00);-";
       }
     });
   });
@@ -95,35 +97,22 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
   // Total Row
   const totalRowIdx = receiptData.length + 6;
   const totalRow = ws.getRow(totalRowIdx);
-  totalRow.height = 24;
+  totalRow.values = ["", "TOTAL PENERIMAAN", "", "", "", "", "", "", "", sumQty];
 
-  totalRow.values = [
-    "",
-    "TOTAL",
-    `Total ${receiptData.length} Surat Jalan / Penerimaan`,
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    sumQty,
-  ];
+  ws.mergeCells(`B${totalRowIdx}:I${totalRowIdx}`);
 
   totalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+    cell.font = { bold: true, color: { argb: FORMAL_STYLE.totalRowText }, name: FORMAL_STYLE.fontFamily, size: 9 };
+    cell.fill = { fgColor: { argb: FORMAL_STYLE.totalRowBg }, pattern: "solid", type: "pattern" };
     cell.border = BORDER_ACCOUNTING_TOTAL;
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: FORMAL_STYLE.totalRowBg } };
-    cell.font = { name: FORMAL_STYLE.fontFamily, size: 9.5, bold: true, color: { argb: FORMAL_STYLE.totalRowText } };
 
     if (colNumber === 2) {
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-    } else if (colNumber === 3) {
-      cell.alignment = { vertical: "middle", horizontal: "left" };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
     } else if (colNumber === 10) {
-      cell.alignment = { vertical: "middle", horizontal: "right" };
-      cell.numFmt = "#,##0.00";
+      cell.numFmt = "#,##0.00;(#,##0.00);-";
+      cell.alignment = { horizontal: "right", vertical: "middle" };
     }
   });
 
-  ws.autoFilter = { from: "A5", to: "J5" };
+  ws.autoFilter = "A5:J5";
 }
