@@ -55,7 +55,7 @@ export function POTable({ onEdit }: POTableProps) {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus PO"
-        message={`Hapus PO "${deleteTarget?.label}"? Semua item dan pengiriman terkait akan ikut terhapus.`}
+        message={`Hapus PO "${deleteTarget?.label}"? Semua item dan Penerimaan terkait akan ikut terhapus.`}
         isLoading={deleting}
       />
     </>

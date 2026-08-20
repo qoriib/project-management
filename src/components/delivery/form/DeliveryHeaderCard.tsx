@@ -22,7 +22,7 @@ export function DeliveryHeaderCard({ form, pos, isEdit, handlePOChange }: Delive
       <form.Field name="delivery_code">
         {(field) => (
           <TextInput
-            label="Kode Pengiriman"
+            label="Kode Penerimaan"
             value={field.state.value}
             onChange={(v) => field.handleChange(v)}
             onBlur={field.handleBlur}

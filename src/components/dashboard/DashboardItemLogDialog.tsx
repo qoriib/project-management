@@ -15,7 +15,7 @@ import { type ItemLogEntry, getItemLog } from "@/db/services";
 import { formatNumber } from "@/utils/formatters";
 import { X } from "lucide-react";
 
-interface LogRow extends ItemLogEntry, Record<string, unknown> {}
+interface LogRow extends ItemLogEntry, Record<string, unknown> { }
 
 interface DashboardItemLogDialogProps {
   isOpen: boolean;
@@ -97,7 +97,7 @@ export function DashboardItemLogDialog({
         />
         {logs.length === 0 && !loading && (
           <VStack align="center" style={{ marginTop: 16 }}>
-            <Text color="secondary">Belum ada log PO atau Pengiriman untuk item ini.</Text>
+            <Text color="secondary">Belum ada log PO atau Penerimaan untuk item ini.</Text>
           </VStack>
         )}
       </VStack>

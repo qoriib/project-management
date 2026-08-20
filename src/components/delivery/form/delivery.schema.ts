@@ -17,7 +17,7 @@ function atLeastOneItemReceived(items: unknown): boolean {
 }
 
 export const deliverySchema = v.object({
-  delivery_code: v.pipe(v.string(), v.nonEmpty("Kode pengiriman harus diisi.")),
+  delivery_code: v.pipe(v.string(), v.nonEmpty("Kode Penerimaan harus diisi.")),
   delivery_date: v.pipe(v.string(), v.nonEmpty("Tanggal kirim harus diisi.")),
   items: v.pipe(
     v.array(itemRowSchema),

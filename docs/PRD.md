@@ -152,7 +152,7 @@ Fitur-fitur berikut sudah **terimplementasi atau dalam pengembangan aktif**:
 
 ### FR-05: Delivery / Penerimaan Barang
 
-- **User Story:** _Sebagai Tim Pengadaan, saya ingin mencatat penerimaan barang berdasarkan PO agar realisasi pengiriman terlacak dan tidak melebihi kuantitas yang dipesan._
+- **User Story:** _Sebagai Tim Pengadaan, saya ingin mencatat penerimaan barang berdasarkan PO agar realisasi Penerimaan terlacak dan tidak melebihi kuantitas yang dipesan._
 - **Acceptance Criteria:**
   - **Given** PO sudah ada dan halaman `/delivery` terbuka,
   - **When** pengguna membuat delivery baru dengan memilih PO dan mengisi qty per item yang diterima,

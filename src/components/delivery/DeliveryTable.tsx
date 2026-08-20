@@ -39,14 +39,14 @@ export function DeliveryTable() {
         textOverflow="truncate"
         columns={columns}
         data={deliveries as DeliveryRow[]}
-        emptyState={<TableEmptyState message="Tidak ada data pengiriman yang cocok." />}
+        emptyState={<TableEmptyState message="Tidak ada data Penerimaan yang cocok." />}
       />
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Hapus Log Pengiriman"
-        message="Apakah Anda yakin ingin menghapus data pengiriman ini?"
+        title="Hapus Log Penerimaan"
+        message="Apakah Anda yakin ingin menghapus data Penerimaan ini?"
         isLoading={deleting}
       />
     </>

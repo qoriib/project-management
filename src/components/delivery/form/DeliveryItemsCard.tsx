@@ -1,4 +1,4 @@
-import { Card, Text, VStack } from "@astryxdesign/core";
+import { Card, HStack, Text, VStack } from "@astryxdesign/core";
 import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
@@ -23,40 +23,45 @@ function DeliveryItemsCardInner({
       {
         header: "Item",
         key: "item",
-        renderCell: (row) => (
-          <VStack gap={0.5}>
-            <Text weight="medium">{row.item_name}</Text>
-            {row.item_id ? (
-              <Text type="code" size="sm" color="secondary">
-                {formatItemCode(row.category_prefix, row.category_code, row.item_code)}
-              </Text>
-            ) : (
-              <Text size="sm" color="secondary">
-                Non-Master
-              </Text>
-            )}
-          </VStack>
-        ),
-        width: proportional(1),
+        renderCell: (row) => {
+          const code = formatItemCode(row);
+          return (
+            <VStack gap={0.5} align="start">
+              <Text weight="medium">{row.item_name}</Text>
+              <EntityCode id={code} />
+            </VStack>
+          );
+        },
+        width: proportional(2),
       },
       {
         align: "end",
-        header: "Harga Rencana",
-        key: "planned_price",
-        width: pixel(140),
+        header: "Harga (Rp)",
+        key: "price_info",
+        width: pixel(240),
         renderCell: (row) => {
           const bomItem = bomData.find(
             (b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id,
           );
-          return <Text type="code">{formatNumber(bomItem?.price ?? 0)}</Text>;
+          const bomPrice = bomItem?.price ?? 0;
+
+          return (
+            <VStack gap={0.5} align="end">
+              <HStack gap={1} justify="end">
+                <Text weight="medium">Realisasi:</Text>
+                <Text type="code">{formatNumber(row.price ?? 0)}</Text>
+              </HStack>
+              <HStack gap={1} justify="end">
+                <Text size="sm" color="secondary">
+                  Rencana:
+                </Text>
+                <Text type="code" size="sm" color="secondary">
+                  {formatNumber(bomPrice)}
+                </Text>
+              </HStack>
+            </VStack>
+          );
         },
-      },
-      {
-        align: "end",
-        header: "Harga Realisasi",
-        key: "realized_price",
-        width: pixel(140),
-        renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0)}</Text>,
       },
 
       {

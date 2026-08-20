@@ -71,7 +71,7 @@ export function PODeliveryLogTable() {
       columns={deliveryColumns}
       data={deliveryItems as LogRow[]}
       emptyState={
-        <TableEmptyState message="Belum ada realisasi pengiriman material untuk PO ini." />
+        <TableEmptyState message="Belum ada realisasi Penerimaan material untuk PO ini." />
       }
     />
   );

@@ -21,9 +21,9 @@ export function POItemTrackingTable() {
         const code = formatItemCode(row);
 
         return (
-          <VStack gap={1} align="start">
+          <VStack gap={0.5} align="start">
             <Text weight="medium">{row.item_name}</Text>
-            {code && <EntityCode id={code} />}
+            <EntityCode id={code} />
           </VStack>
         );
       },
@@ -123,7 +123,7 @@ export function POItemTrackingTable() {
     },
     {
       align: "end",
-      header: "Pengiriman",
+      header: "Penerimaan",
       key: "progress",
       width: proportional(1),
       renderCell: (row) => {
