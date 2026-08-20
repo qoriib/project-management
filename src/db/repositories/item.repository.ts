@@ -1,10 +1,5 @@
-/**
- * Item Repository — Catalog items with price lookup.
- */
-
 import { BaseRepository } from "@/db/core/base-repository";
 import { type CreateItem, type Item, ItemModel, type UpdateItem } from "@/db/models";
-
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
 
@@ -21,41 +16,58 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
     super(ItemModel);
   }
 
+  /**
+   * Get all items with category, unit, and relation status.
+   */
   async findAll(): Promise<ItemWithDetails[]> {
     try {
-      const qb = new QueryBuilder()
-          .select("i.*", "c.category_name", "c.prefix as category_prefix", "c.category_code", "u.unit_name")
-          .selectRaw(
-            "(EXISTS(SELECT 1 FROM item_prices WHERE item_id = i.item_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM requirements WHERE item_id = i.item_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM order_items WHERE item_id = i.item_id)) as has_relation",
-          )
-          .from("items i")
-          .leftJoin("item_categories c", "i.category_id = c.category_id")
-          .leftJoin("units u", "i.unit_id = u.unit_id")
-          .where("i.deleted_at", "IS NULL")
-          .orderBy("i.item_name", "ASC"),
-        { sql, params } = qb.build(),
-        rows = await this.rawSelect<any>(sql, params);
-      return rows.map((r) => ({
-        ...r,
-        has_relation: Boolean(r.has_relation),
+      const query = new QueryBuilder()
+        .select(
+          "items.*",
+          "categories.category_name",
+          "categories.prefix as category_prefix",
+          "categories.category_code",
+          "units.unit_name",
+        )
+        .selectRaw(
+          `(EXISTS(SELECT 1 FROM item_prices WHERE item_id = items.item_id AND deleted_at IS NULL) 
+            OR EXISTS(SELECT 1 FROM requirements WHERE item_id = items.item_id AND deleted_at IS NULL) 
+            OR EXISTS(SELECT 1 FROM order_items WHERE item_id = items.item_id)) as has_relation`,
+        )
+        .from("items", "items")
+        .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
+        .leftJoin("units", "units", "items.unit_id = units.unit_id")
+        .where("items.deleted_at", "IS NULL")
+        .orderBy("items.item_name", "ASC");
+
+      const { sql, params } = query.build();
+      const rows = await this.rawSelect<ItemWithDetails & { has_relation: number | boolean }>(sql, params);
+
+      return rows.map((row) => ({
+        ...row,
+        has_relation: Boolean(row.has_relation),
       }));
     } catch (error) {
       throw wrapDbError(error, "Failed to get items with details");
     }
   }
 
+  /**
+   * Create an item with auto-generated 5-digit item_code if omitted.
+   */
   async create(data: CreateItem): Promise<string> {
-    const dataToInsert = { ...data };
+    const payload = { ...data };
 
-    if (!dataToInsert.item_code || dataToInsert.item_code.trim() === "") {
-      const db = await this.db(),
-        rows = await db.select<{ max_code: string }[]>(`SELECT MAX(CAST(item_code AS INTEGER)) as max_code FROM items`),
-        maxCode = parseInt(rows[0]?.max_code || "0", 10),
-        newCode = (maxCode + 1).toString().padStart(5, "0");
-      dataToInsert.item_code = newCode;
+    if (!payload.item_code || payload.item_code.trim() === "") {
+      const db = await this.db();
+      const rows = await db.select<{ max_code: string | null }[]>(
+        "SELECT MAX(CAST(item_code AS INTEGER)) as max_code FROM items",
+      );
+      const maxCodeNumber = parseInt(rows[0]?.max_code || "0", 10);
+      payload.item_code = (maxCodeNumber + 1).toString().padStart(5, "0");
     }
 
-    return super.create(dataToInsert);
+    return super.create(payload);
   }
 }
 

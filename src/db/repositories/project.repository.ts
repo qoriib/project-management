@@ -1,17 +1,9 @@
-/**
- * Project Repository — CRUD.
- */
-
 import { BaseRepository } from "@/db/core/base-repository";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
 import { type CreateProject, type Project, ProjectModel, type UpdateProject } from "@/db/models";
 
-// ── Extended Types ───────────────────────────────────────────────────────────
-
 export type ProjectWithRelations = Project & { has_relation?: boolean };
-
-// ── Repository ───────────────────────────────────────────────────────────────
 
 class ProjectRepository extends BaseRepository<Project, CreateProject, UpdateProject> {
   constructor() {
@@ -23,20 +15,22 @@ class ProjectRepository extends BaseRepository<Project, CreateProject, UpdatePro
    */
   async findAllWithRelations(): Promise<ProjectWithRelations[]> {
     try {
-      const pQb = new QueryBuilder()
-          .select("p.*")
-          .selectRaw(
-            "(EXISTS(SELECT 1 FROM requirements WHERE project_id = p.project_id AND deleted_at IS NULL) OR EXISTS(SELECT 1 FROM orders WHERE project_id = p.project_id AND deleted_at IS NULL)) as has_relation",
-          )
-          .from("projects p")
-          .where("p.deleted_at", "IS NULL")
-          .orderBy("p.created_at", "DESC"),
-        { sql, params } = pQb.build(),
-        projects = await this.rawSelect<any>(sql, params);
+      const query = new QueryBuilder()
+        .select("projects.*")
+        .selectRaw(
+          `(EXISTS(SELECT 1 FROM requirements WHERE project_id = projects.project_id AND deleted_at IS NULL) 
+            OR EXISTS(SELECT 1 FROM orders WHERE project_id = projects.project_id AND deleted_at IS NULL)) as has_relation`,
+        )
+        .from("projects", "projects")
+        .where("projects.deleted_at", "IS NULL")
+        .orderBy("projects.created_at", "DESC");
 
-      return projects.map((proj: any) => ({
-        ...proj,
-        has_relation: Boolean(proj.has_relation),
+      const { sql, params } = query.build();
+      const rows = await this.rawSelect<ProjectWithRelations & { has_relation: number | boolean }>(sql, params);
+
+      return rows.map((project) => ({
+        ...project,
+        has_relation: Boolean(project.has_relation),
       }));
     } catch (error) {
       throw wrapDbError(error, this.model.tableName);

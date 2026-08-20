@@ -1,7 +1,3 @@
-/**
- * Unit Repository — Standard CRUD with soft delete.
- */
-
 import { BaseRepository } from "@/db/core/base-repository";
 import { type CreateUnit, type Unit, UnitModel, type UpdateUnit } from "@/db/models";
 
@@ -11,7 +7,7 @@ class UnitRepository extends BaseRepository<Unit, CreateUnit, UpdateUnit> {
   }
 
   /**
-   * Get all units sorted alphabetically.
+   * Get all units sorted alphabetically by name.
    */
   async findAllSorted(): Promise<Unit[]> {
     return this.findAll({

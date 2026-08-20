@@ -3,8 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 let isAuthenticated = false;
 
 /**
- * Checks if the provided PIN matches the stored PIN.
- * If correct, sets the isAuthenticated flag.
+ * Checks if the provided PIN matches the stored PIN in the system.
  */
 export async function login(pin: string): Promise<boolean> {
   try {
@@ -27,20 +26,20 @@ export function checkIsAuthenticated(): boolean {
 }
 
 /**
- * Logs the user out.
+ * Logs the user out by resetting the authentication state.
  */
 export function logout(): void {
   isAuthenticated = false;
 }
 
 /**
- * Changes the PIN.
+ * Changes the security PIN for the application.
  */
 export async function changePin(newPin: string): Promise<boolean> {
   try {
-    const success: boolean = await invoke("change_pin", { newPin });
-    return success;
-  } catch (error: any) {
-    throw new Error(error.toString(), { cause: error });
+    return await invoke<boolean>("change_pin", { newPin });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(errorMessage, { cause: error });
   }
 }

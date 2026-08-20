@@ -1,7 +1,3 @@
-/**
- * Item Category Repository — Standard CRUD with soft delete.
- */
-
 import { BaseRepository } from "@/db/core/base-repository";
 import { type CreateItemCategory, type ItemCategory, ItemCategoryModel, type UpdateItemCategory } from "@/db/models";
 
@@ -11,7 +7,7 @@ class ItemCategoryRepository extends BaseRepository<ItemCategory, CreateItemCate
   }
 
   /**
-   * Get all categories sorted alphabetically.
+   * Get all categories sorted alphabetically by name.
    */
   async findAllSorted(): Promise<ItemCategory[]> {
     return this.findAll({
@@ -19,20 +15,22 @@ class ItemCategoryRepository extends BaseRepository<ItemCategory, CreateItemCate
     });
   }
 
+  /**
+   * Create a category with auto-generated 5-digit category_code if omitted.
+   */
   async create(data: CreateItemCategory): Promise<string> {
-    const dataToInsert = { ...data };
+    const payload = { ...data };
 
-    if (!dataToInsert.category_code || dataToInsert.category_code.trim() === "") {
-      const db = await this.db(),
-        rows = await db.select<{ max_code: string }[]>(
-          `SELECT MAX(CAST(category_code AS INTEGER)) as max_code FROM item_categories`,
-        ),
-        maxCode = parseInt(rows[0]?.max_code || "0", 10),
-        newCode = (maxCode + 1).toString().padStart(5, "0");
-      dataToInsert.category_code = newCode;
+    if (!payload.category_code || payload.category_code.trim() === "") {
+      const db = await this.db();
+      const rows = await db.select<{ max_code: string | null }[]>(
+        "SELECT MAX(CAST(category_code AS INTEGER)) as max_code FROM item_categories",
+      );
+      const maxCodeNumber = parseInt(rows[0]?.max_code || "0", 10);
+      payload.category_code = (maxCodeNumber + 1).toString().padStart(5, "0");
     }
 
-    return super.create(dataToInsert);
+    return super.create(payload);
   }
 }
 
