@@ -5,7 +5,12 @@
 import { BaseRepository } from "@/db/core/base-repository";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
-import { BOMModel, type BillOfMaterial, type CreateBOM, type UpdateBOM } from "@/db/models";
+import {
+  BOMModel,
+  type BillOfMaterial,
+  type CreateBOM,
+  type UpdateBOM,
+} from "@/db/models";
 
 // ── Extended Types ───────────────────────────────────────────────────────────
 
@@ -29,7 +34,11 @@ export interface BOMFilters {
 
 // ── Repository ───────────────────────────────────────────────────────────────
 
-class BOMRepository extends BaseRepository<BillOfMaterial, CreateBOM, UpdateBOM> {
+class BOMRepository extends BaseRepository<
+  BillOfMaterial,
+  CreateBOM,
+  UpdateBOM
+> {
   constructor() {
     super(BOMModel);
   }

@@ -6,7 +6,11 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import type { Vendor } from "@/db/repositories";
 
 interface MasterVendorTableProps {
@@ -19,7 +23,10 @@ interface VendorRow extends Vendor, Record<string, unknown> {
 
 export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
   const showToast = useToast();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    label: string;
+  } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const { vendors, deleteVendor } = useMasterStore();
@@ -76,7 +83,9 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            onClick={() => setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })}
+            onClick={() =>
+              setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })
+            }
             isDisabled={row.has_relation}
           />
         </HStack>

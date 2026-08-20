@@ -1,6 +1,9 @@
 // ── Currency ──────────────────────────────────────────────────────────────────
 
-export function formatNumber(value: number | undefined | null, decimals = 2): string {
+export function formatNumber(
+  value: number | undefined | null,
+  decimals = 2,
+): string {
   if (value === undefined || value === null || isNaN(value)) {
     return "0";
   }
@@ -53,10 +56,12 @@ export const KATEGORI_LABELS: Record<string, string> = {
   SOLAR: "Solar",
 };
 
-export const KATEGORI_OPTIONS = Object.entries(KATEGORI_LABELS).map(([value, label]) => ({
-  label,
-  value,
-}));
+export const KATEGORI_OPTIONS = Object.entries(KATEGORI_LABELS).map(
+  ([value, label]) => ({
+    label,
+    value,
+  }),
+);
 
 export const SATUAN_OPTIONS = [
   "m3",
@@ -79,10 +84,12 @@ export const VENDOR_TIPE_LABELS: Record<string, string> = {
   STORE: "Toko Umum",
 };
 
-export const VENDOR_TIPE_OPTIONS = Object.entries(VENDOR_TIPE_LABELS).map(([value, label]) => ({
-  label,
-  value,
-}));
+export const VENDOR_TIPE_OPTIONS = Object.entries(VENDOR_TIPE_LABELS).map(
+  ([value, label]) => ({
+    label,
+    value,
+  }),
+);
 
 export const STATUS_PO_LABELS: Record<string, string> = {
   aktif: "Aktif",

@@ -13,7 +13,10 @@ interface POTableProps {
 export function POTable({ onEdit }: POTableProps) {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const { pos, loadAllPOs, deletePO } = usePOStore();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    label: string;
+  } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -48,7 +51,9 @@ export function POTable({ onEdit }: POTableProps) {
         textOverflow="truncate"
         columns={columns}
         data={pos as PORow[]}
-        emptyState={<TableEmptyState message="Belum ada PO. Klik 'Buat Baru' untuk memulai." />}
+        emptyState={
+          <TableEmptyState message="Belum ada PO. Klik 'Buat Baru' untuk memulai." />
+        }
       />
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}

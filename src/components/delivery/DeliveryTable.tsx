@@ -4,7 +4,10 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { Table } from "@astryxdesign/core";
-import { type DeliveryRow, useDeliveryColumns } from "./table/useDeliveryColumns";
+import {
+  type DeliveryRow,
+  useDeliveryColumns,
+} from "./table/useDeliveryColumns";
 
 export function DeliveryTable() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
@@ -39,7 +42,9 @@ export function DeliveryTable() {
         textOverflow="truncate"
         columns={columns}
         data={deliveries as DeliveryRow[]}
-        emptyState={<TableEmptyState message="Tidak ada data Penerimaan yang cocok." />}
+        emptyState={
+          <TableEmptyState message="Tidak ada data Penerimaan yang cocok." />
+        }
       />
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}

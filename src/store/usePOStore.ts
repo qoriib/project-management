@@ -39,7 +39,12 @@ interface POStore {
 
 export const usePOStore = create<POStore>((set, get) => ({
   clearPODetail: () => {
-    set({ currentPO: null, currentItems: [], currentDeliveryItems: [], currentBOMData: [] });
+    set({
+      currentPO: null,
+      currentItems: [],
+      currentDeliveryItems: [],
+      currentBOMData: [],
+    });
   },
   createPO: async (data, items) => {
     const poId = await purchaseOrderRepo.createWithItems(data, items);
@@ -63,7 +68,9 @@ export const usePOStore = create<POStore>((set, get) => ({
     }
   },
   loadAllPOs: async (projectId) => {
-    const p = await purchaseOrderRepo.findAllWithSummary({ project_id: projectId });
+    const p = await purchaseOrderRepo.findAllWithSummary({
+      project_id: projectId,
+    });
     set({ pos: p });
   },
   loadBOMReportForProject: async (projectId) => {
@@ -85,7 +92,12 @@ export const usePOStore = create<POStore>((set, get) => ({
         currentBOMData: bom,
       });
     } else {
-      set({ currentPO: null, currentItems: [], currentDeliveryItems: [], currentBOMData: [] });
+      set({
+        currentPO: null,
+        currentItems: [],
+        currentDeliveryItems: [],
+        currentBOMData: [],
+      });
     }
   },
   pos: [],

@@ -1,5 +1,13 @@
 import { useEffect } from "react";
-import { Button, Dialog, HStack, Heading, TextArea, TextInput, VStack } from "@astryxdesign/core";
+import {
+  Button,
+  Dialog,
+  HStack,
+  Heading,
+  TextArea,
+  TextInput,
+  VStack,
+} from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -20,7 +28,11 @@ interface MasterVendorFormProps {
   initialData: Vendor | null;
 }
 
-export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorFormProps) {
+export function MasterVendorForm({
+  isOpen,
+  onClose,
+  initialData,
+}: MasterVendorFormProps) {
   const showToast = useToast();
   const { createVendor, updateVendor } = useMasterStore();
 
@@ -63,7 +75,11 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
   }, [isOpen, initialData]);
 
   return (
-    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
+    <Dialog
+      isOpen={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      width={520}
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -72,7 +88,9 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
         }}
       >
         <VStack gap={3}>
-          <Heading level={3}>{initialData ? "Edit Vendor" : "Tambah Vendor"}</Heading>
+          <Heading level={3}>
+            {initialData ? "Edit Vendor" : "Tambah Vendor"}
+          </Heading>
           <FormLayout>
             <form.Field
               name="vendor_name"
@@ -84,7 +102,10 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
                 />
               )}
             />
@@ -97,7 +118,10 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
                 />
               )}
             />
@@ -110,15 +134,25 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
                 />
               )}
             />
           </FormLayout>
           <HStack gap={2} justify="end">
-            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
+            <Button
+              variant="secondary"
+              label="Batal"
+              onClick={onClose}
+              type="button"
+            />
             <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+              selector={(state) =>
+                [state.canSubmit, state.isSubmitting] as const
+              }
               children={([canSubmit, isSubmitting]) => (
                 <Button
                   variant="primary"

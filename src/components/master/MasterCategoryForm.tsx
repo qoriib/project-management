@@ -1,5 +1,12 @@
 import { useEffect } from "react";
-import { Button, Dialog, HStack, Heading, TextInput, VStack } from "@astryxdesign/core";
+import {
+  Button,
+  Dialog,
+  HStack,
+  Heading,
+  TextInput,
+  VStack,
+} from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -24,7 +31,11 @@ interface MasterCategoryFormProps {
   initialData: ItemCategory | null;
 }
 
-export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCategoryFormProps) {
+export function MasterCategoryForm({
+  isOpen,
+  onClose,
+  initialData,
+}: MasterCategoryFormProps) {
   const showToast = useToast();
   const { createCategory, updateCategory } = useMasterStore();
 
@@ -67,7 +78,11 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
   }, [isOpen, initialData]);
 
   return (
-    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
+    <Dialog
+      isOpen={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      width={520}
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -76,7 +91,9 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
         }}
       >
         <VStack gap={3}>
-          <Heading level={3}>{initialData ? "Edit Kategori" : "Tambah Kategori"}</Heading>
+          <Heading level={3}>
+            {initialData ? "Edit Kategori" : "Tambah Kategori"}
+          </Heading>
           <FormLayout>
             <form.Field
               name="prefix"
@@ -85,11 +102,16 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
                   label="Prefix"
                   placeholder="Contoh: A"
                   value={field.state.value}
-                  onChange={(val) => field.handleChange(val.toUpperCase().slice(0, 1))}
+                  onChange={(val) =>
+                    field.handleChange(val.toUpperCase().slice(0, 1))
+                  }
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
                 />
               )}
             />
@@ -103,7 +125,10 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
                 />
               )}
             />
@@ -117,15 +142,25 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
                   onBlur={field.handleBlur}
                   isRequired
                   statusVariant="attached"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                  status={getFieldError(
+                    field.state.meta.errors,
+                    field.state.meta.isTouched,
+                  )}
                 />
               )}
             />
           </FormLayout>
           <HStack gap={2} justify="end">
-            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
+            <Button
+              variant="secondary"
+              label="Batal"
+              onClick={onClose}
+              type="button"
+            />
             <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+              selector={(state) =>
+                [state.canSubmit, state.isSubmitting] as const
+              }
               children={([canSubmit, isSubmitting]) => (
                 <Button
                   variant="primary"

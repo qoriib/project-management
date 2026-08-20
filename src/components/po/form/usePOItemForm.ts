@@ -12,7 +12,11 @@ export interface POItemFormProps {
   onSubmitItem: (item: any) => void;
 }
 
-export function usePOItemForm({ initialData, onSuccess, onSubmitItem }: POItemFormProps) {
+export function usePOItemForm({
+  initialData,
+  onSuccess,
+  onSubmitItem,
+}: POItemFormProps) {
   const showToast = useToast(),
     form = useForm({
       defaultValues: buildDefaultValues(initialData),

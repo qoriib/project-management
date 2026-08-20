@@ -8,7 +8,10 @@ export async function seedItemCategories(): Promise<void> {
   ];
 
   for (const cat of categories) {
-    const exists = await itemCategoryRepo.exists({ category_name: cat.name }, true);
+    const exists = await itemCategoryRepo.exists(
+      { category_name: cat.name },
+      true,
+    );
     if (!exists) {
       await itemCategoryRepo.create({
         category_code: "",

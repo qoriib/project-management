@@ -8,7 +8,10 @@ export interface ItemCategory {
   deleted_at: string | null;
 }
 
-export type CreateItemCategory = Pick<ItemCategory, "prefix" | "category_code" | "category_name">;
+export type CreateItemCategory = Pick<
+  ItemCategory,
+  "prefix" | "category_code" | "category_name"
+>;
 export type UpdateItemCategory = Partial<CreateItemCategory>;
 
 export const ItemCategoryModel: ModelDefinition = {

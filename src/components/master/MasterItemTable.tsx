@@ -9,7 +9,11 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
 import { formatItemCode } from "@/utils/formatters";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import type { ItemWithDetails } from "@/db/repositories";
 
 interface MasterItemTableProps {
@@ -20,7 +24,10 @@ interface ItemRow extends ItemWithDetails, Record<string, unknown> {}
 
 export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   const showToast = useToast();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    label: string;
+  } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [priceItem, setPriceItem] = useState<ItemWithDetails | null>(null);
 
@@ -69,7 +76,9 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       header: "Kategori",
       key: "category",
       width: pixel(150),
-      renderCell: (row: ItemRow) => <Badge variant="neutral" label={row.category_name || "—"} />,
+      renderCell: (row: ItemRow) => (
+        <Badge variant="neutral" label={row.category_name || "—"} />
+      ),
     },
     {
       align: "end",
@@ -78,7 +87,12 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       width: pixel(180),
       renderCell: (row: ItemRow) => (
         <HStack gap={2} justify="end">
-          <Button size="sm" variant="secondary" label="Harga" onClick={() => setPriceItem(row)} />
+          <Button
+            size="sm"
+            variant="secondary"
+            label="Harga"
+            onClick={() => setPriceItem(row)}
+          />
           <IconButton
             size="sm"
             variant="secondary"
@@ -91,7 +105,9 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })}
+            onClick={() =>
+              setDeleteTarget({ id: row.item_id, label: row.item_name })
+            }
             isDisabled={row.has_relation}
           />
         </HStack>

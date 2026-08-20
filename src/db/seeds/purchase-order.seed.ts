@@ -41,7 +41,11 @@ export async function seedPurchaseOrders(): Promise<void> {
           { itemName: "Semen Portland 50 Kg", price: 76000, qty: 300 },
           { itemName: "Pasir Beton", price: 290000, qty: 15 },
           { itemName: "Pasir Pasang", price: 240000, qty: 20 },
-          { itemName: "Perekat Bata Ringan / Mortar 40 Kg", price: 92000, qty: 80 },
+          {
+            itemName: "Perekat Bata Ringan / Mortar 40 Kg",
+            price: 92000,
+            qty: 80,
+          },
           { itemName: "Semen Putih 40 Kg", price: 85000, qty: 10 },
         ],
         poDate: "2026-03-05",
@@ -85,7 +89,11 @@ export async function seedPurchaseOrders(): Promise<void> {
       },
       {
         items: [
-          { itemName: "Cat Tembok Interior 25kg (Pail)", price: 850000, qty: 15 },
+          {
+            itemName: "Cat Tembok Interior 25kg (Pail)",
+            price: 850000,
+            qty: 15,
+          },
           { itemName: "Cat Tembok Eksterior 20L", price: 1250000, qty: 10 },
           { itemName: "Waterproofing 20kg", price: 750000, qty: 5 },
         ],
@@ -97,7 +105,11 @@ export async function seedPurchaseOrders(): Promise<void> {
         items: [
           { itemName: "Tukang Batu / Pekerja", price: 150000, qty: 20 },
           { itemName: "Triplek / Multiplek 12mm", price: 145000, qty: 160 },
-          { itemName: "Cat Tembok Interior 25kg (Pail)", price: 850000, qty: 5 },
+          {
+            itemName: "Cat Tembok Interior 25kg (Pail)",
+            price: 850000,
+            qty: 5,
+          },
         ],
         poDate: "2026-04-20",
         projectName: p2,
@@ -123,7 +135,9 @@ export async function seedPurchaseOrders(): Promise<void> {
         vendorName: "Sewa Alat Berat Nusantara",
       },
       {
-        items: [{ itemName: "Besi Beton Ulir 16mm x 12m", price: 165000, qty: 400 }],
+        items: [
+          { itemName: "Besi Beton Ulir 16mm x 12m", price: 165000, qty: 400 },
+        ],
         poDate: "2026-05-15",
         projectName: p3,
         vendorName: "PT. Baja Jaya Nusantara",
@@ -132,11 +146,20 @@ export async function seedPurchaseOrders(): Promise<void> {
     projects = await projectRepo.findAll(),
     vendors = await vendorRepo.findAll(),
     items = await itemRepo.findAll(),
-    projMap = new Map<string, string>(projects.map((p) => [p.project_name, p.project_id])),
-    vendMap = new Map<string, string>(vendors.map((v) => [v.vendor_name, v.vendor_id])),
-    itemMap = new Map<string, string>(items.map((i) => [i.item_name, i.item_id])),
+    projMap = new Map<string, string>(
+      projects.map((p) => [p.project_name, p.project_id]),
+    ),
+    vendMap = new Map<string, string>(
+      vendors.map((v) => [v.vendor_name, v.vendor_id]),
+    ),
+    itemMap = new Map<string, string>(
+      items.map((i) => [i.item_name, i.item_id]),
+    ),
     // Cache item prices
-    itemPriceCache = new Map<string, { item_price_id: string; price: number }[]>();
+    itemPriceCache = new Map<
+      string,
+      { item_price_id: string; price: number }[]
+    >();
 
   for (const po of pos) {
     const projectId = projMap.get(po.projectName),
@@ -166,7 +189,10 @@ export async function seedPurchaseOrders(): Promise<void> {
               const prices = await itemPriceRepo.findByItem(itemId);
               itemPriceCache.set(
                 itemId,
-                prices.map((p) => ({ item_price_id: p.item_price_id, price: p.price })),
+                prices.map((p) => ({
+                  item_price_id: p.item_price_id,
+                  price: p.price,
+                })),
               );
             }
             const prices = itemPriceCache.get(itemId)!,

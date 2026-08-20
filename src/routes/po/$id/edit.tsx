@@ -8,7 +8,13 @@ import { usePOStore } from "@/store/usePOStore";
 
 function POEditPage() {
   const { id } = useParams({ strict: false });
-  const { currentPO: po, currentItems, currentBOMData, loadPODetail, clearPODetail } = usePOStore();
+  const {
+    currentPO: po,
+    currentItems,
+    currentBOMData,
+    loadPODetail,
+    clearPODetail,
+  } = usePOStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

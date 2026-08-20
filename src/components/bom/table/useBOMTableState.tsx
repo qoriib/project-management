@@ -2,7 +2,10 @@ import { useMemo, useState } from "react";
 import { Button, HStack, Text } from "@astryxdesign/core";
 import { formatNumber } from "@/utils/formatters";
 import { Plus } from "lucide-react";
-import { type TablePlugin, useTableGroupedRows } from "@astryxdesign/core/Table";
+import {
+  type TablePlugin,
+  useTableGroupedRows,
+} from "@astryxdesign/core/Table";
 import type { BomRow } from "./useBOMColumns";
 import type { BOMDetail, BOMGroup } from "@/db/repositories";
 
@@ -86,7 +89,9 @@ export function useBOMTableState({
     return list;
   }, [boms, editingId, isApproved]);
 
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set(),
+  );
 
   const {
     data: groupedData,

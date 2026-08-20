@@ -22,8 +22,14 @@ interface EnrichedReportItem extends BOMReportItem, Record<string, unknown> {
   unique_id: string;
 }
 
-export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMTableProps) {
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set()),
+export function DashboardBOMTable({
+  report,
+  loading,
+  onLogClick,
+}: DashboardBOMTableProps) {
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+      new Set(),
+    ),
     enrichedReport: EnrichedReportItem[] = useMemo(
       () =>
         report.map((r) => ({
@@ -72,7 +78,8 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
         header: "Harga Satuan (Rp)",
         key: "price",
         renderCell: (r) => {
-          const poPrice = r.total_ordered > 0 ? r.total_po_price / r.total_ordered : 0;
+          const poPrice =
+            r.total_ordered > 0 ? r.total_po_price / r.total_ordered : 0;
           return (
             <VStack gap={0.5} align="end">
               <HStack gap={1} justify="end">
@@ -147,9 +154,13 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
         header: "Dipesan (PO)",
         key: "ordered",
         renderCell: (r) => {
-          const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
+          const percent =
+            r.planned_volume > 0
+              ? (r.total_ordered / r.planned_volume) * 100
+              : 0;
           const isOver = percent > 100;
-          const variant = percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
+          const variant =
+            percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
           return (
             <VStack gap={0.5}>
               <HStack justify="between">
@@ -161,7 +172,11 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
                   size="sm"
                   color={isOver ? undefined : "primary"}
                   weight="bold"
-                  style={isOver ? { color: "var(--color-error, #d32f2f)" } : undefined}
+                  style={
+                    isOver
+                      ? { color: "var(--color-error, #d32f2f)" }
+                      : undefined
+                  }
                 >
                   {percent.toFixed(0)}%
                 </Text>
@@ -182,9 +197,13 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
         header: "Diterima (NP)",
         key: "delivered",
         renderCell: (r) => {
-          const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
+          const percent =
+            r.total_ordered > 0
+              ? (r.total_delivered / r.total_ordered) * 100
+              : 0;
           const isOver = percent > 100;
-          const variant = percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
+          const variant =
+            percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
           return (
             <VStack gap={0.5}>
               <HStack justify="between">
@@ -196,7 +215,11 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
                   size="sm"
                   color={isOver ? undefined : "primary"}
                   weight="bold"
-                  style={isOver ? { color: "var(--color-error, #d32f2f)" } : undefined}
+                  style={
+                    isOver
+                      ? { color: "var(--color-error, #d32f2f)" }
+                      : undefined
+                  }
                 >
                   {percent.toFixed(0)}%
                 </Text>
@@ -230,7 +253,9 @@ export function DashboardBOMTable({ report, loading, onLogClick }: DashboardBOMT
   if (report.length === 0 && !loading) {
     return (
       <VStack align="center" padding={8}>
-        <Text color="secondary">Belum ada Kebutuhan (BOM) untuk proyek ini.</Text>
+        <Text color="secondary">
+          Belum ada Kebutuhan (BOM) untuk proyek ini.
+        </Text>
       </VStack>
     );
   }

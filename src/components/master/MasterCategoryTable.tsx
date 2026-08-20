@@ -7,7 +7,11 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import type { ItemCategory } from "@/db/repositories";
 
 interface MasterCategoryTableProps {
@@ -20,7 +24,10 @@ interface CategoryRow extends ItemCategory, Record<string, unknown> {
 
 export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   const showToast = useToast();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    label: string;
+  } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const { categories, items, deleteCategory } = useMasterStore();
@@ -44,7 +51,8 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
 
   const categoryRows = categories.map((category) => ({
     ...category,
-    count: items.filter((item) => item.category_id === category.category_id).length,
+    count: items.filter((item) => item.category_id === category.category_id)
+      .length,
   }));
 
   const columns: TableColumn<CategoryRow>[] = [
@@ -71,7 +79,9 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       header: "Jumlah Item",
       key: "count",
       width: pixel(150),
-      renderCell: (row: CategoryRow) => <Text type="code">{String(row.count)}</Text>,
+      renderCell: (row: CategoryRow) => (
+        <Text type="code">{String(row.count)}</Text>
+      ),
     },
     {
       align: "end",
@@ -93,7 +103,9 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
             label="Hapus"
             icon={<Trash2 size={16} />}
             isDisabled={row.count > 0}
-            onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })}
+            onClick={() =>
+              setDeleteTarget({ id: row.category_id, label: row.category_name })
+            }
           />
         </HStack>
       ),

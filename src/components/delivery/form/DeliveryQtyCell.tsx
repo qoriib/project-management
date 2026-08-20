@@ -20,7 +20,10 @@ export function DeliveryQtyCell({ form, row, idx }: DeliveryQtyCellProps) {
     <VStack gap={0.5}>
       <form.Field name={`items[${idx}]`}>
         {(field) => {
-          const rowErr = getFieldError(field.state.meta.errors, field.state.meta.isTouched);
+          const rowErr = getFieldError(
+            field.state.meta.errors,
+            field.state.meta.isTouched,
+          );
           return (
             <form.Field
               name={`items[${idx}].qty`}

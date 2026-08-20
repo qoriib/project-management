@@ -1,4 +1,12 @@
-import { Button, Dialog, HStack, Heading, Text, TextInput, VStack } from "@astryxdesign/core";
+import {
+  Button,
+  Dialog,
+  HStack,
+  Heading,
+  Text,
+  TextInput,
+  VStack,
+} from "@astryxdesign/core";
 import { useEffect, useState } from "react";
 
 interface SettingsResetDialogProps {
@@ -53,8 +61,8 @@ export function SettingsResetDialog({
           <Text as="span" weight="bold">
             SELURUH
           </Text>{" "}
-          isi database aplikasi ini termasuk semua Master Data (vendor, daftar harga item, dll)
-          secara permanen. Tindakan ini tidak bisa dibatalkan!
+          isi database aplikasi ini termasuk semua Master Data (vendor, daftar
+          harga item, dll) secara permanen. Tindakan ini tidak bisa dibatalkan!
         </Text>
 
         <TextInput
@@ -65,7 +73,12 @@ export function SettingsResetDialog({
         />
 
         <HStack gap={2} justify="end" style={{ marginTop: "var(--spacing-2)" }}>
-          <Button label="Batal" variant="secondary" onClick={onClose} isDisabled={isLoading} />
+          <Button
+            label="Batal"
+            variant="secondary"
+            onClick={onClose}
+            isDisabled={isLoading}
+          />
           <Button
             label="Hapus & Reset"
             variant="secondary"

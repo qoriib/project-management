@@ -1,4 +1,11 @@
-import { Card, Grid, GridSpan, Heading, Text, VStack } from "@astryxdesign/core";
+import {
+  Card,
+  Grid,
+  GridSpan,
+  Heading,
+  Text,
+  VStack,
+} from "@astryxdesign/core";
 import { formatNumber } from "@/utils/formatters";
 
 interface DashboardSummaryCardsProps {
@@ -20,7 +27,9 @@ export function DashboardSummaryCards({
             <Text size="sm" color="secondary">
               Nilai Rencana BOM (Rp)
             </Text>
-            <Heading level={2}>{loading ? "…" : formatNumber(totalBudget)}</Heading>
+            <Heading level={2}>
+              {loading ? "…" : formatNumber(totalBudget)}
+            </Heading>
           </VStack>
         </Card>
       </GridSpan>

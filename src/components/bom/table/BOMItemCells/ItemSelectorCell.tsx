@@ -34,7 +34,10 @@ export function ItemSelectorCell({
                 value: it.item_id,
               }))}
               statusVariant="tooltip"
-              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+              status={getFieldError(
+                field.state.meta.errors,
+                field.state.meta.isTouched,
+              )}
             />
           )}
         </form.Field>

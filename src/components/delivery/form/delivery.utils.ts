@@ -7,7 +7,9 @@ import type { DeliveryItemRow } from "./delivery.schema";
  * Ambil item-item dari sebuah PO dan konversi ke shape DeliveryItemRow
  * dengan qty = 0 (mode tambah baru).
  */
-export async function loadPOItemsAsDeliveryRows(poId: string): Promise<DeliveryItemRow[]> {
+export async function loadPOItemsAsDeliveryRows(
+  poId: string,
+): Promise<DeliveryItemRow[]> {
   const poItems = await purchaseOrderRepo.findItems(poId);
 
   return poItems.map((i) => {
@@ -58,7 +60,9 @@ export async function loadDeliveryEditData(deliveryId: string): Promise<{
   ]);
 
   const items: DeliveryItemRow[] = poItems.map((i) => {
-    const existingDelivItem = delivItems.find((di) => di.po_item_id === i.po_item_id);
+    const existingDelivItem = delivItems.find(
+      (di) => di.po_item_id === i.po_item_id,
+    );
     const oldQty = existingDelivItem?.qty ?? 0;
     const originalSisa = i.remaining ?? 0;
     const restoredSisa = originalSisa + oldQty; // kembalikan sisa yang sudah dipakai

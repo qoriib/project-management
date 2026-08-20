@@ -41,7 +41,9 @@ export function BOMTable() {
 
   const projects = useMasterStore((s) => s.projects);
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const currentProject = projects.find((p) => p.project_id === selectedProjectId);
+  const currentProject = projects.find(
+    (p) => p.project_id === selectedProjectId,
+  );
   const isApproved = currentProject?.bom_is_approved === 1;
 
   useEffect(() => {
@@ -84,13 +86,14 @@ export function BOMTable() {
     setIsPriceFormOpen,
   });
 
-  const { grandTotal, groupedData, groupedPlugin, groupedIdKey, footerPlugin } = useBOMTableState({
-    bomGroups,
-    boms,
-    editingId,
-    isApproved,
-    setEditingId,
-  });
+  const { grandTotal, groupedData, groupedPlugin, groupedIdKey, footerPlugin } =
+    useBOMTableState({
+      bomGroups,
+      boms,
+      editingId,
+      isApproved,
+      setEditingId,
+    });
 
   return (
     <>
@@ -142,7 +145,9 @@ export function BOMTable() {
       />
       <MasterItemPriceDialog
         isOpen={isPriceFormOpen}
-        item={items.find((i) => i.item_id === form.getFieldValue("item_id")) || null}
+        item={
+          items.find((i) => i.item_id === form.getFieldValue("item_id")) || null
+        }
         onClose={() => {
           setIsPriceFormOpen(false);
           handleItemChange(form.getFieldValue("item_id"));

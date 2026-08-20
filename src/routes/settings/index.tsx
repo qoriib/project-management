@@ -38,7 +38,10 @@ function SettingsPage() {
     [isResetting, setIsResetting] = useState(false),
     [projects, setProjects] = useState<Project[]>([]),
     [selectedProjectId, setSelectedProjectId] = useState<string>(""),
-    [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null),
+    [message, setMessage] = useState<{
+      text: string;
+      type: "success" | "error";
+    } | null>(null),
     // Dialog state
     [isResetDialogOpen, setIsResetDialogOpen] = useState(false),
     // Security state
@@ -64,21 +67,31 @@ function SettingsPage() {
           // YYYYMMDD_HHMMSS
           timestamp = `${now.getFullYear().toString()}-${(now.getMonth() + 1)
             .toString()
-            .padStart(2, "0")}-${now.getDate().toString().padStart(2, "0")}_${now
+            .padStart(
+              2,
+              "0",
+            )}-${now.getDate().toString().padStart(2, "0")}_${now
             .getHours()
             .toString()
-            .padStart(2, "0")}-${now.getMinutes().toString().padStart(2, "0")}-${now
+            .padStart(
+              2,
+              "0",
+            )}-${now.getMinutes().toString().padStart(2, "0")}-${now
             .getSeconds()
             .toString()
             .padStart(2, "0")}`;
 
-        const selectedProject = projects.find((p) => p.project_id === selectedProjectId),
+        const selectedProject = projects.find(
+            (p) => p.project_id === selectedProjectId,
+          ),
           projName = selectedProject
             ? selectedProject.project_name.replaceAll(/[^a-zA-Z0-9]/g, "_")
             : "FullBackup",
           targetPath = await save({
             defaultPath: `${timestamp}_${projName}.project`,
-            filters: [{ name: "Project Data Archive", extensions: ["project"] }],
+            filters: [
+              { name: "Project Data Archive", extensions: ["project"] },
+            ],
             title: "Simpan Backup Project",
           });
 
@@ -87,7 +100,10 @@ function SettingsPage() {
             projectId: selectedProjectId || null,
             targetPath,
           });
-          setMessage({ text: `Data berhasil diekspor ke ${targetPath}`, type: "success" });
+          setMessage({
+            text: `Data berhasil diekspor ke ${targetPath}`,
+            type: "success",
+          });
         }
       } catch (error) {
         console.error(error);
@@ -144,7 +160,10 @@ function SettingsPage() {
       setSecurityMessage(null);
 
       if (newPin !== confirmNewPin) {
-        setSecurityMessage({ text: "Konfirmasi PIN baru tidak cocok.", type: "error" });
+        setSecurityMessage({
+          text: "Konfirmasi PIN baru tidak cocok.",
+          type: "error",
+        });
         return;
       }
 
@@ -156,7 +175,10 @@ function SettingsPage() {
         setNewPin("");
         setConfirmNewPin("");
       } catch (error: any) {
-        setSecurityMessage({ text: error.message || "Gagal mengubah PIN.", type: "error" });
+        setSecurityMessage({
+          text: error.message || "Gagal mengubah PIN.",
+          type: "error",
+        });
       } finally {
         setIsChangingPin(false);
       }
@@ -182,7 +204,10 @@ function SettingsPage() {
               <Tab value="security" label="Keamanan (PIN)" />
             </TabList>
 
-            <VStack gap={6} style={{ marginTop: "var(--spacing-4)", maxWidth: "600px" }}>
+            <VStack
+              gap={6}
+              style={{ marginTop: "var(--spacing-4)", maxWidth: "600px" }}
+            >
               {activeTab === "appearance" && (
                 <VStack gap={4}>
                   <VStack gap={2}>
@@ -190,7 +215,8 @@ function SettingsPage() {
                       Tampilan Aplikasi
                     </Text>
                     <Text color="secondary">
-                      Sesuaikan tema warna aplikasi sesuai dengan preferensi Anda.
+                      Sesuaikan tema warna aplikasi sesuai dengan preferensi
+                      Anda.
                     </Text>
                   </VStack>
                   <div>
@@ -198,9 +224,17 @@ function SettingsPage() {
                       variant="secondary"
                       onClick={toggleThemeMode}
                       label={
-                        resolvedMode === "dark" ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"
+                        resolvedMode === "dark"
+                          ? "Ganti ke Mode Terang"
+                          : "Ganti ke Mode Gelap"
                       }
-                      icon={resolvedMode === "dark" ? <Sun size="1em" /> : <Moon size="1em" />}
+                      icon={
+                        resolvedMode === "dark" ? (
+                          <Sun size="1em" />
+                        ) : (
+                          <Moon size="1em" />
+                        )
+                      }
                     />
                   </div>
                 </VStack>
@@ -213,9 +247,10 @@ function SettingsPage() {
                       Sinkronisasi Data
                     </Text>
                     <Text color="secondary">
-                      Ekspor data proyek Anda menjadi file `.project` yang aman. File ini dienkripsi
-                      dengan standar AES dan dapat saling dibagikan antar anggota tim untuk
-                      digabungkan secara otomatis.
+                      Ekspor data proyek Anda menjadi file `.project` yang aman.
+                      File ini dienkripsi dengan standar AES dan dapat saling
+                      dibagikan antar anggota tim untuk digabungkan secara
+                      otomatis.
                     </Text>
                   </VStack>
 
@@ -234,25 +269,33 @@ function SettingsPage() {
                       variant="secondary"
                       onClick={handleExport}
                       isDisabled={isExporting || isImporting || isResetting}
-                      label={isExporting ? "Mengekspor..." : "Export ke .project"}
+                      label={
+                        isExporting ? "Mengekspor..." : "Export ke .project"
+                      }
                     />
                     <Button
                       variant="primary"
                       onClick={handleImport}
                       isDisabled={isExporting || isImporting || isResetting}
-                      label={isImporting ? "Mengimpor..." : "Import dari .project"}
+                      label={
+                        isImporting ? "Mengimpor..." : "Import dari .project"
+                      }
                     />
                   </HStack>
 
                   <Divider />
 
                   <VStack gap={2}>
-                    <Text size="lg" weight="bold" style={{ color: "var(--color-danger)" }}>
+                    <Text
+                      size="lg"
+                      weight="bold"
+                      style={{ color: "var(--color-danger)" }}
+                    >
                       Reset Data
                     </Text>
                     <Text color="secondary">
-                      Hapus keseluruhan isi aplikasi dan kembali ke keadaan kosong. Tindakan ini
-                      tidak dapat dibatalkan.
+                      Hapus keseluruhan isi aplikasi dan kembali ke keadaan
+                      kosong. Tindakan ini tidak dapat dibatalkan.
                     </Text>
                     <div>
                       <Button
@@ -289,8 +332,8 @@ function SettingsPage() {
                         Ubah PIN Akses
                       </Text>
                       <Text color="secondary">
-                        PIN default adalah 000000. PIN akan disimpan secara terenkripsi menggunakan
-                        AES-256-GCM.
+                        PIN default adalah 000000. PIN akan disimpan secara
+                        terenkripsi menggunakan AES-256-GCM.
                       </Text>
                     </VStack>
 
@@ -300,7 +343,11 @@ function SettingsPage() {
                         type="text"
                         placeholder="Masukkan PIN lama"
                         value={oldPin}
-                        onChange={(val) => setOldPin((val || "").replaceAll(/\D/g, "").slice(0, 6))}
+                        onChange={(val) =>
+                          setOldPin(
+                            (val || "").replaceAll(/\D/g, "").slice(0, 6),
+                          )
+                        }
                         style={{
                           fontSize: "1.75rem",
                           fontWeight: "bold",
@@ -313,7 +360,11 @@ function SettingsPage() {
                         type="text"
                         placeholder="6 digit PIN baru"
                         value={newPin}
-                        onChange={(val) => setNewPin((val || "").replaceAll(/\D/g, "").slice(0, 6))}
+                        onChange={(val) =>
+                          setNewPin(
+                            (val || "").replaceAll(/\D/g, "").slice(0, 6),
+                          )
+                        }
                         style={{
                           fontSize: "1.75rem",
                           fontWeight: "bold",
@@ -327,7 +378,9 @@ function SettingsPage() {
                         placeholder="Ketik ulang PIN baru"
                         value={confirmNewPin}
                         onChange={(val) =>
-                          setConfirmNewPin((val || "").replaceAll(/\D/g, "").slice(0, 6))
+                          setConfirmNewPin(
+                            (val || "").replaceAll(/\D/g, "").slice(0, 6),
+                          )
                         }
                         style={{
                           fontSize: "1.75rem",
@@ -343,7 +396,11 @@ function SettingsPage() {
                         type="submit"
                         variant="primary"
                         isLoading={isChangingPin}
-                        isDisabled={!oldPin || newPin.length !== 6 || confirmNewPin.length !== 6}
+                        isDisabled={
+                          !oldPin ||
+                          newPin.length !== 6 ||
+                          confirmNewPin.length !== 6
+                        }
                         label="Simpan PIN Baru"
                       />
                     </div>

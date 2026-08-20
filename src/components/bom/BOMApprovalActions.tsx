@@ -11,11 +11,15 @@ export function BOMApprovalActions() {
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const projects = useMasterStore((s) => s.projects);
-  const currentProject = projects.find((p) => p.project_id === selectedProjectId);
+  const currentProject = projects.find(
+    (p) => p.project_id === selectedProjectId,
+  );
   const isApproved = currentProject?.bom_is_approved === 1;
   const isManager = getUserRole() === AppRole.MANAGER;
 
-  const [confirmType, setConfirmType] = useState<"approve" | "cancel" | null>(null);
+  const [confirmType, setConfirmType] = useState<"approve" | "cancel" | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const { approveProjectBOM, cancelApproveProjectBOM } = useMasterStore();
 

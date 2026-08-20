@@ -18,7 +18,9 @@
     "db:seed": "vite-node src/db/seeds/run-cli.ts",
     "db:reset": "vite-node src/db/seeds/run-reset-cli.ts",
     "lint": "oxlint -c oxlint.config.ts",
-    "lint:fix": "oxlint -c oxlint.config.ts --fix"
+    "lint:fix": "oxlint -c oxlint.config.ts --fix",
+    "format": "oxfmt -c oxfmt.config.ts src",
+    "format:check": "oxfmt -c oxfmt.config.ts --check src"
   },
   "dependencies": {
     "@astryxdesign/core": "^0.3.0",
@@ -50,6 +52,7 @@
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^6.0.5",
     "cross-env": "^10.1.0",
+    "oxfmt": "^0.64.0",
     "oxlint": "^1.79.0",
     "typescript": "~7.0.2",
     "vite": "^8.2.1",

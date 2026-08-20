@@ -36,7 +36,10 @@ export function logout(): void {
 /**
  * Changes the PIN. Requires the old PIN to be correct.
  */
-export async function changePin(oldPin: string, newPin: string): Promise<boolean> {
+export async function changePin(
+  oldPin: string,
+  newPin: string,
+): Promise<boolean> {
   try {
     const success: boolean = await invoke("change_pin", { newPin, oldPin });
     return success;

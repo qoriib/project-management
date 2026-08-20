@@ -44,7 +44,8 @@ export function getLocalNodeDb(): NodeDatabaseWrapper {
   let baseDir = "";
 
   if (process.platform === "win32") {
-    baseDir = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
+    baseDir =
+      process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
   } else if (process.platform === "darwin") {
     baseDir = path.join(os.homedir(), "Library", "Application Support");
   } else {

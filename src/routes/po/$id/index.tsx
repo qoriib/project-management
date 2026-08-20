@@ -1,4 +1,8 @@
-import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  useNavigate,
+  useParams,
+} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Button,
@@ -57,7 +61,11 @@ function PODetailPage() {
           subtitle="Lihat rincian pesanan dan pantau progres penerimaan barang"
           actions={
             <HStack gap={2}>
-              <Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/po" })} />
+              <Button
+                variant="secondary"
+                label="Kembali"
+                onClick={() => navigate({ to: "/po" })}
+              />
               <Button
                 variant="primary"
                 label="Edit"
@@ -80,7 +88,15 @@ function PODetailPage() {
               Tanggal PO
             </Text>
             <Text weight="medium">
-              {po.po_date ? <Timestamp value={po.po_date} format="system_date" size="base" /> : "-"}
+              {po.po_date ? (
+                <Timestamp
+                  value={po.po_date}
+                  format="system_date"
+                  size="base"
+                />
+              ) : (
+                "-"
+              )}
             </Text>
           </VStack>
         </HStack>
@@ -94,7 +110,12 @@ function PODetailPage() {
               <Button
                 variant="secondary"
                 label="Buat Baru"
-                onClick={() => navigate({ search: { po: String(po.po_id) }, to: "/delivery/new" })}
+                onClick={() =>
+                  navigate({
+                    search: { po: String(po.po_id) },
+                    to: "/delivery/new",
+                  })
+                }
               />
             </HStack>
             <PODeliveryLogTable />

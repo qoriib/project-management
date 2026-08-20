@@ -7,7 +7,11 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
 import { handleFormError } from "@/utils/form";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import type { Project, ProjectWithRelations } from "@/db/repositories";
 
 interface MasterProjectTableProps {
@@ -18,7 +22,10 @@ interface ProjectRow extends ProjectWithRelations, Record<string, unknown> {}
 
 export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   const showToast = useToast();
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    label: string;
+  } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const { projects, deleteProject } = useMasterStore();
@@ -60,7 +67,9 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       header: "Tahun",
       key: "fiscal_year",
       width: pixel(100),
-      renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year}</Text>,
+      renderCell: (row: ProjectRow) => (
+        <Text type="code">{row.fiscal_year}</Text>
+      ),
     },
     {
       align: "end",
@@ -75,7 +84,9 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
               size="sm"
               variant={isActive ? "primary" : "secondary"}
               label={isActive ? "Aktif" : "Aktifkan"}
-              onClick={() => setSelectedProjectId(isActive ? null : row.project_id)}
+              onClick={() =>
+                setSelectedProjectId(isActive ? null : row.project_id)
+              }
             />
             <IconButton
               size="sm"
@@ -89,7 +100,9 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
               variant="destructive"
               label="Hapus"
               icon={<Trash2 size={16} />}
-              onClick={() => setDeleteTarget({ id: row.project_id, label: row.project_name })}
+              onClick={() =>
+                setDeleteTarget({ id: row.project_id, label: row.project_name })
+              }
               isDisabled={row.has_relation}
             />
           </HStack>

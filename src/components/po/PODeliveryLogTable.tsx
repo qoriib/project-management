@@ -6,7 +6,12 @@ import { formatNumber } from "@/utils/formatters";
 import { usePOStore } from "@/store/usePOStore";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  Table,
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import type { DeliveryItemByPO } from "@/db/repositories";
 
 type LogRow = DeliveryItemByPO & Record<string, unknown>;
@@ -20,13 +25,17 @@ export function PODeliveryLogTable() {
       header: "No. NP",
       key: "delivery_id",
       width: pixel(160),
-      renderCell: (row) => <EntityCode id={row.delivery_code ?? row.delivery_id} />,
+      renderCell: (row) => (
+        <EntityCode id={row.delivery_code ?? row.delivery_id} />
+      ),
     },
     {
       header: "Tanggal Kirim",
       key: "delivery_date",
       width: pixel(120),
-      renderCell: (row) => <Timestamp value={row.delivery_date} format="system_date" size="base" />,
+      renderCell: (row) => (
+        <Timestamp value={row.delivery_date} format="system_date" size="base" />
+      ),
     },
     {
       header: "Item",

@@ -106,7 +106,9 @@ class PurchaseOrderRepository extends BaseRepository<
       const rows = await this.rawSelect<any>(sql, params);
       return rows.map((r) => ({
         ...r,
-        vendor_names: r.vendor_names ? r.vendor_names.split(",").map((v: string) => v.trim()) : [],
+        vendor_names: r.vendor_names
+          ? r.vendor_names.split(",").map((v: string) => v.trim())
+          : [],
       }));
     } catch (error) {
       throw wrapDbError(error, this.model.tableName);
@@ -229,7 +231,9 @@ class PurchaseOrderRepository extends BaseRepository<
           [poId],
         ),
         newIds = new Set(items.map((i) => i.po_item_id).filter(Boolean)),
-        idsToDelete = existing.map((ex) => ex.po_item_id).filter((id) => !newIds.has(id));
+        idsToDelete = existing
+          .map((ex) => ex.po_item_id)
+          .filter((id) => !newIds.has(id));
 
       if (idsToDelete.length > 0) {
         const placeholders = idsToDelete.map((_, i) => `$${i + 1}`).join(",");
@@ -253,7 +257,14 @@ class PurchaseOrderRepository extends BaseRepository<
         ]);
         await this.bulkInsert(
           "po_items",
-          ["po_item_id", "po_id", "item_id", "vendor_id", "item_price_id", "qty"],
+          [
+            "po_item_id",
+            "po_id",
+            "item_id",
+            "vendor_id",
+            "item_price_id",
+            "qty",
+          ],
           rows,
         );
       }
@@ -276,12 +287,22 @@ class PurchaseOrderRepository extends BaseRepository<
   /**
    * Add a single item to an existing PO.
    */
-  async createItem(poId: string, item: Omit<POItemInput, "po_item_id">): Promise<string> {
+  async createItem(
+    poId: string,
+    item: Omit<POItemInput, "po_item_id">,
+  ): Promise<string> {
     const poItemId = this.generateId();
     await this.rawExecute(
       `INSERT INTO po_items (po_item_id, po_id, item_id, vendor_id, item_price_id, qty)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [poItemId, poId, item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty],
+      [
+        poItemId,
+        poId,
+        item.item_id ?? null,
+        item.vendor_id ?? null,
+        item.item_price_id,
+        item.qty,
+      ],
     );
     return poItemId;
   }
@@ -294,7 +315,13 @@ class PurchaseOrderRepository extends BaseRepository<
       `UPDATE po_items 
        SET item_id = $1, vendor_id = $2, item_price_id = $3, qty = $4 
        WHERE po_item_id = $5`,
-      [item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty, poItemId],
+      [
+        item.item_id ?? null,
+        item.vendor_id ?? null,
+        item.item_price_id,
+        item.qty,
+        poItemId,
+      ],
     );
   }
 
@@ -302,7 +329,9 @@ class PurchaseOrderRepository extends BaseRepository<
    * Delete a single item.
    */
   async deleteItem(poItemId: string): Promise<void> {
-    await this.rawExecute(`DELETE FROM po_items WHERE po_item_id = $1`, [poItemId]);
+    await this.rawExecute(`DELETE FROM po_items WHERE po_item_id = $1`, [
+      poItemId,
+    ]);
   }
 }
 

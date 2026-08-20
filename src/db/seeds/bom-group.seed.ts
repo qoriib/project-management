@@ -10,10 +10,15 @@ export async function seedBOMGroups() {
 
   for (const project of projects) {
     for (const group of groups) {
-      await bomGroupRepo.create({ group_name: group, project_id: project.project_id });
+      await bomGroupRepo.create({
+        group_name: group,
+        project_id: project.project_id,
+      });
       totalSeeded++;
     }
   }
 
-  console.log(`Seeded ${totalSeeded} BOM Groups across ${projects.length} projects`);
+  console.log(
+    `Seeded ${totalSeeded} BOM Groups across ${projects.length} projects`,
+  );
 }

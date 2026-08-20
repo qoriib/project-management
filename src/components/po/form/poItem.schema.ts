@@ -10,7 +10,9 @@ export const poItemSchema = v.object({
 
 export type POItemFormValues = v.InferOutput<typeof poItemSchema>;
 
-export function buildDefaultValues(initialData?: Partial<POItemDetail>): POItemFormValues {
+export function buildDefaultValues(
+  initialData?: Partial<POItemDetail>,
+): POItemFormValues {
   return {
     item_id: initialData?.item_id ?? "",
     item_price_id: initialData?.item_price_id ?? "",

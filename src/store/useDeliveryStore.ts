@@ -30,7 +30,9 @@ export const useDeliveryStore = create<DeliveryStore>((set, get) => ({
 
     // Sync PO Store
     const poStore = usePOStore.getState();
-    await poStore.loadAllPOs(useAppStore.getState().selectedProjectId || undefined);
+    await poStore.loadAllPOs(
+      useAppStore.getState().selectedProjectId || undefined,
+    );
     if (poStore.currentPO?.po_id === data.po_id) {
       await poStore.loadPODetail(data.po_id);
     }
@@ -43,7 +45,9 @@ export const useDeliveryStore = create<DeliveryStore>((set, get) => ({
 
     // Sync PO Store
     const poStore = usePOStore.getState();
-    await poStore.loadAllPOs(useAppStore.getState().selectedProjectId || undefined);
+    await poStore.loadAllPOs(
+      useAppStore.getState().selectedProjectId || undefined,
+    );
     if (delivery && poStore.currentPO?.po_id === delivery.po_id) {
       await poStore.loadPODetail(delivery.po_id);
     }
@@ -62,7 +66,9 @@ export const useDeliveryStore = create<DeliveryStore>((set, get) => ({
 
     // Sync PO Store
     const poStore = usePOStore.getState();
-    await poStore.loadAllPOs(useAppStore.getState().selectedProjectId || undefined);
+    await poStore.loadAllPOs(
+      useAppStore.getState().selectedProjectId || undefined,
+    );
     if (poStore.currentPO?.po_id === data.po_id) {
       await poStore.loadPODetail(data.po_id);
     }

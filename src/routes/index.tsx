@@ -50,7 +50,11 @@ function DashboardPage() {
         />
         <ProjectRequired>
           <>
-            <DashboardSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
+            <DashboardSummaryCards
+              totalBudget={totalBudget}
+              totalPO={totalPO}
+              loading={loading}
+            />
             <DashboardBOMTable
               report={report}
               loading={loading}

@@ -1,4 +1,9 @@
-import { Outlet, createRootRoute, redirect, useLocation } from "@tanstack/react-router";
+import {
+  Outlet,
+  createRootRoute,
+  redirect,
+  useLocation,
+} from "@tanstack/react-router";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { AppShell, useToast } from "@astryxdesign/core";
@@ -19,7 +24,9 @@ function RootComponent() {
     return (
       <>
         <Outlet />
-        {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}
+        {import.meta.env.DEV && (
+          <TanStackRouterDevtools position="bottom-right" />
+        )}
       </>
     );
   }
@@ -72,7 +79,9 @@ function AppLayout() {
   return (
     <AppShell height="fill" variant="elevated" sideNav={<AppSideNav />}>
       <Outlet />
-      {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-right" />}
+      {import.meta.env.DEV && (
+        <TanStackRouterDevtools position="bottom-right" />
+      )}
     </AppShell>
   );
 }

@@ -9,7 +9,11 @@ interface VendorSelectorCellProps extends CellFormProps {
   onAddNewVendor: () => void;
 }
 
-export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSelectorCellProps) {
+export function VendorSelectorCell({
+  form,
+  vendors,
+  onAddNewVendor,
+}: VendorSelectorCellProps) {
   return (
     <form.Field name="vendor_id">
       {(field) => {
@@ -30,7 +34,10 @@ export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSele
                 onChange={(v) => field.handleChange(v)}
                 onBlur={field.handleBlur}
                 statusVariant="tooltip"
-                status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                status={getFieldError(
+                  field.state.meta.errors,
+                  field.state.meta.isTouched,
+                )}
               />
             </VStack>
             <IconButton

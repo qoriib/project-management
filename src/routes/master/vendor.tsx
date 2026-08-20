@@ -36,7 +36,13 @@ function MasterVendorPage() {
         <PageHeader
           title="Master Data Vendor"
           subtitle="Kelola data vendor pemasok kebutuhan"
-          actions={<Button variant="primary" label="Tambah Vendor" onClick={openCreate} />}
+          actions={
+            <Button
+              variant="primary"
+              label="Tambah Vendor"
+              onClick={openCreate}
+            />
+          }
         />
         <MasterVendorTable onEdit={openEdit} />
         <MasterVendorForm

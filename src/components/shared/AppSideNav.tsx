@@ -26,7 +26,9 @@ export function AppSideNav() {
   );
 
   const projects = useMasterStore((state) => state.projects);
-  const activeProject = projects.find((p) => p.project_id === selectedProjectId);
+  const activeProject = projects.find(
+    (p) => p.project_id === selectedProjectId,
+  );
 
   return (
     <SideNav

@@ -3,7 +3,11 @@ import ReactDOM from "react-dom/client";
 import { Theme } from "@astryxdesign/core/theme";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 import { routeTree } from "@/routeTree.gen";
-import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
+import {
+  RouterProvider,
+  createHashHistory,
+  createRouter,
+} from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
 import { InternationalizationProvider } from "@astryxdesign/core/i18n";
 import "@astryxdesign/core/reset.css";

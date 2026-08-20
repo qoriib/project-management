@@ -22,7 +22,11 @@ import { formatNumber } from "@/utils/formatters";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError, handleFormError } from "@/utils/form";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
@@ -30,7 +34,10 @@ import * as v from "valibot";
 interface PriceRow extends ItemPriceWithRelation, Record<string, unknown> {}
 
 const priceSchema = v.object({
-  price: v.pipe(v.number("Harga harus berupa angka"), v.minValue(0, "Harga tidak valid.")),
+  price: v.pipe(
+    v.number("Harga harus berupa angka"),
+    v.minValue(0, "Harga tidak valid."),
+  ),
 });
 
 interface MasterItemPriceDialogProps {
@@ -39,10 +46,15 @@ interface MasterItemPriceDialogProps {
   item: ItemWithDetails | null;
 }
 
-export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPriceDialogProps) {
+export function MasterItemPriceDialog({
+  isOpen,
+  onClose,
+  item,
+}: MasterItemPriceDialogProps) {
   const showToast = useToast();
   const { createItemPrice, deleteItemPrice } = useMasterStore();
-  const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null);
+  const [deleteTarget, setDeleteTarget] =
+    useState<ItemPriceWithRelation | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [prices, setPrices] = useState<ItemPriceWithRelation[]>([]);
 
@@ -111,7 +123,9 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       key: "no",
       width: pixel(60),
       renderCell: (row: ItemPriceWithRelation) => {
-        const index = prices.findIndex((p) => p.item_price_id === row.item_price_id);
+        const index = prices.findIndex(
+          (p) => p.item_price_id === row.item_price_id,
+        );
         return index >= 0 ? index + 1 : "-";
       },
     },
@@ -164,7 +178,11 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
+      <Dialog
+        isOpen={isOpen}
+        onOpenChange={(open) => !open && onClose()}
+        width={560}
+      >
         <VStack gap={4}>
           <PageHeader
             title={`Harga: ${item?.item_name}`}
@@ -182,7 +200,9 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
             textOverflow="truncate"
             columns={columns}
             data={prices as PriceRow[]}
-            emptyState={<TableEmptyState message="Belum ada harga. Tambahkan di bawah." />}
+            emptyState={
+              <TableEmptyState message="Belum ada harga. Tambahkan di bawah." />
+            }
           />
           <form
             onSubmit={(e) => {
@@ -201,20 +221,27 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                         label="Harga (Rp)"
                         placeholder="Contoh: 50000"
                         value={field.state.value}
-                        onChange={(val) => field.handleChange(val ?? (null as unknown as number))}
+                        onChange={(val) =>
+                          field.handleChange(val ?? (null as unknown as number))
+                        }
                         onBlur={field.handleBlur}
                         isRequired
                         min={0}
                         step={0.01}
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                        status={getFieldError(
+                          field.state.meta.errors,
+                          field.state.meta.isTouched,
+                        )}
                       />
                     )}
                   />
                 </FormLayout>
                 <HStack justify="end" gap={2}>
                   <form.Subscribe
-                    selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                    selector={(state) =>
+                      [state.canSubmit, state.isSubmitting] as const
+                    }
                     children={([canSubmit, isSubmitting]) => (
                       <Button
                         type="submit"

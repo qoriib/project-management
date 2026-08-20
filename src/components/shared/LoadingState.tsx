@@ -4,7 +4,9 @@ interface LoadingStateProps {
   message?: string;
 }
 
-export function LoadingState({ message = "Memuat data..." }: LoadingStateProps) {
+export function LoadingState({
+  message = "Memuat data...",
+}: LoadingStateProps) {
   return (
     <Center padding={8} height="100%" width="100%">
       <VStack align="center" gap={2}>

@@ -11,7 +11,9 @@ export function DeliveryFormActions({
 }) {
   return (
     <form.Subscribe
-      selector={(state) => [state.canSubmit, state.isSubmitting, state.isSubmitted] as const}
+      selector={(state) =>
+        [state.canSubmit, state.isSubmitting, state.isSubmitted] as const
+      }
     >
       {([canSubmit, isSubmitting, isSubmitted]) => (
         <VStack gap={4}>
@@ -24,7 +26,11 @@ export function DeliveryFormActions({
                     title={
                       typeof field.state.meta.errors[0] === "string"
                         ? field.state.meta.errors[0]
-                        : (field.state.meta.errors[0] as unknown as { message?: string })?.message
+                        : (
+                            field.state.meta.errors[0] as unknown as {
+                              message?: string;
+                            }
+                          )?.message
                     }
                   />
                 ) : null
@@ -32,7 +38,12 @@ export function DeliveryFormActions({
             </form.Field>
           )}
           <HStack gap={2} justify="end">
-            <Button variant="secondary" label="Batal" type="button" onClick={onCancel} />
+            <Button
+              variant="secondary"
+              label="Batal"
+              type="button"
+              onClick={onCancel}
+            />
             <Button
               variant="primary"
               label="Simpan"

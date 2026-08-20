@@ -38,7 +38,9 @@ export abstract class BaseRepository<
    * Find all records, optionally filtered, sorted, and paginated.
    */
   async findAll(options?: FindOptions): Promise<TEntity[]> {
-    dbLog.debug(`[${this.model.tableName}] findAll options=${JSON.stringify(options ?? {})}`);
+    dbLog.debug(
+      `[${this.model.tableName}] findAll options=${JSON.stringify(options ?? {})}`,
+    );
     try {
       const qb = new QueryBuilder().select("*").from(this.model.tableName);
 
@@ -136,7 +138,10 @@ export abstract class BaseRepository<
   /**
    * Find the first record matching the given where conditions.
    */
-  async findOne(where: Record<string, unknown>, includeDeleted = false): Promise<TEntity | null> {
+  async findOne(
+    where: Record<string, unknown>,
+    includeDeleted = false,
+  ): Promise<TEntity | null> {
     const results = await this.findAll({
       includeDeleted,
       limit: 1,
@@ -148,10 +153,17 @@ export abstract class BaseRepository<
   /**
    * Count records matching optional where conditions.
    */
-  async count(where?: Record<string, unknown>, includeDeleted = false): Promise<number> {
-    dbLog.debug(`[${this.model.tableName}] count where=${JSON.stringify(where ?? {})}`);
+  async count(
+    where?: Record<string, unknown>,
+    includeDeleted = false,
+  ): Promise<number> {
+    dbLog.debug(
+      `[${this.model.tableName}] count where=${JSON.stringify(where ?? {})}`,
+    );
     try {
-      const qb = new QueryBuilder().selectRaw("COUNT(*) as count").from(this.model.tableName);
+      const qb = new QueryBuilder()
+        .selectRaw("COUNT(*) as count")
+        .from(this.model.tableName);
 
       if (this.model.softDelete && !includeDeleted) {
         qb.withSoftDelete();
@@ -184,7 +196,10 @@ export abstract class BaseRepository<
   /**
    * Check if a record exists matching the given conditions.
    */
-  async exists(where: Record<string, unknown>, includeDeleted = false): Promise<boolean> {
+  async exists(
+    where: Record<string, unknown>,
+    includeDeleted = false,
+  ): Promise<boolean> {
     const c = await this.count(where, includeDeleted);
     return c > 0;
   }
@@ -196,7 +211,9 @@ export abstract class BaseRepository<
    * Returns the UUID string of the newly created record.
    */
   async create(data: TCreate): Promise<string> {
-    dbLog.debug(`[${this.model.tableName}] create data=${JSON.stringify(data)}`);
+    dbLog.debug(
+      `[${this.model.tableName}] create data=${JSON.stringify(data)}`,
+    );
     try {
       const id = this.generateId(),
         columns: string[] = [this.model.primaryKey],
@@ -231,7 +248,9 @@ export abstract class BaseRepository<
    * Only updates columns that are present in the data object and allowed by the model.
    */
   async update(id: string, data: TUpdate): Promise<void> {
-    dbLog.debug(`[${this.model.tableName}] update id=${id} data=${JSON.stringify(data)}`);
+    dbLog.debug(
+      `[${this.model.tableName}] update id=${id} data=${JSON.stringify(data)}`,
+    );
     try {
       const setClauses: string[] = [],
         params: unknown[] = [];
@@ -246,7 +265,9 @@ export abstract class BaseRepository<
       }
 
       if (setClauses.length === 0) {
-        dbLog.debug(`[${this.model.tableName}] update id=${id} → no columns to update, skipped`);
+        dbLog.debug(
+          `[${this.model.tableName}] update id=${id} → no columns to update, skipped`,
+        );
         return;
       }
 
@@ -300,9 +321,10 @@ export abstract class BaseRepository<
     dbLog.warn(`[${this.model.tableName}] hardDelete id=${id}`);
     try {
       const db = await this.db();
-      await db.execute(`DELETE FROM ${this.model.tableName} WHERE ${this.model.primaryKey} = $1`, [
-        id,
-      ]);
+      await db.execute(
+        `DELETE FROM ${this.model.tableName} WHERE ${this.model.primaryKey} = $1`,
+        [id],
+      );
       dbLog.info(`[${this.model.tableName}] hardDelete OK id=${id}`);
     } catch (error) {
       dbLog.error(
@@ -318,8 +340,12 @@ export abstract class BaseRepository<
   async restore(id: string): Promise<void> {
     dbLog.debug(`[${this.model.tableName}] restore id=${id}`);
     if (!this.model.softDelete) {
-      dbLog.warn(`[${this.model.tableName}] restore failed — table does not support soft delete`);
-      throw new DbError(`Tabel ${this.model.tableName} tidak mendukung soft delete`);
+      dbLog.warn(
+        `[${this.model.tableName}] restore failed — table does not support soft delete`,
+      );
+      throw new DbError(
+        `Tabel ${this.model.tableName} tidak mendukung soft delete`,
+      );
     }
 
     try {
@@ -356,11 +382,15 @@ export abstract class BaseRepository<
    * Used by subclasses for complex joins and aggregations.
    */
   protected async rawSelect<T>(sql: string, params?: unknown[]): Promise<T[]> {
-    dbLog.debug(`[${this.model.tableName}] rawSelect sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
+    dbLog.debug(
+      `[${this.model.tableName}] rawSelect sql=${sql.replaceAll(/\s+/g, " ").trim()}`,
+    );
     try {
       const db = await this.db(),
         rows = await db.select<T[]>(sql, params);
-      dbLog.debug(`[${this.model.tableName}] rawSelect → ${rows.length} row(s)`);
+      dbLog.debug(
+        `[${this.model.tableName}] rawSelect → ${rows.length} row(s)`,
+      );
       return rows;
     } catch (error) {
       dbLog.error(
@@ -378,7 +408,9 @@ export abstract class BaseRepository<
     sql: string,
     params?: unknown[],
   ): Promise<{ lastInsertId: string | number; rowsAffected: number }> {
-    dbLog.debug(`[${this.model.tableName}] rawExecute sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
+    dbLog.debug(
+      `[${this.model.tableName}] rawExecute sql=${sql.replaceAll(/\s+/g, " ").trim()}`,
+    );
     try {
       const db = await this.db(),
         result = await db.execute(sql, params);
@@ -415,8 +447,14 @@ export abstract class BaseRepository<
    * Reduces IPC calls from O(N) to O(1).
    * Each row must include the UUID primary key as the first element.
    */
-  protected async bulkInsert(table: string, columns: string[], data: unknown[][]): Promise<void> {
-    dbLog.info(`[${this.model.tableName}] bulkInsert into=${table} rows=${data.length}`);
+  protected async bulkInsert(
+    table: string,
+    columns: string[],
+    data: unknown[][],
+  ): Promise<void> {
+    dbLog.info(
+      `[${this.model.tableName}] bulkInsert into=${table} rows=${data.length}`,
+    );
     if (data.length === 0) {
       dbLog.debug(`[${this.model.tableName}] bulkInsert skipped — empty data`);
       return;
@@ -449,7 +487,9 @@ export abstract class BaseRepository<
         `[${this.model.tableName}] bulkInsert chunk ${Math.floor(i / chunkSize) + 1} — ${chunk.length} row(s)`,
       );
     }
-    dbLog.info(`[${this.model.tableName}] bulkInsert OK total=${totalAffected} row(s)`);
+    dbLog.info(
+      `[${this.model.tableName}] bulkInsert OK total=${totalAffected} row(s)`,
+    );
   }
 
   /**

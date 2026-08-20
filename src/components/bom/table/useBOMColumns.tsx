@@ -11,7 +11,11 @@ import {
   SubtotalCell,
   UnitDisplayCell,
 } from "@/components/bom/table/BOMItemCells";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import type { BOMDetail, ItemWithDetails } from "@/db/repositories";
 
 export interface BomRow extends BOMDetail, Record<string, unknown> {
@@ -54,7 +58,9 @@ export function useBOMColumns({
           return <div />;
         }
 
-        const groupItems = boms.filter((b) => b.bom_group_id === row.bom_group_id);
+        const groupItems = boms.filter(
+          (b) => b.bom_group_id === row.bom_group_id,
+        );
         const index = groupItems.findIndex((b) => b.bom_id === row.bom_id);
 
         return index >= 0 ? index + 1 : "-";
@@ -160,7 +166,9 @@ export function useBOMColumns({
           return <SubtotalCell form={form} />;
         }
 
-        return <Text type="code">{formatNumber(row.estimated_total ?? 0)}</Text>;
+        return (
+          <Text type="code">{formatNumber(row.estimated_total ?? 0)}</Text>
+        );
       },
     },
     {

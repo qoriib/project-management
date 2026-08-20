@@ -23,7 +23,10 @@ export function usePOItemTableState({
     const list = [...items] as POItemRow[];
 
     if (editingId === "new-item") {
-      list.push({ isDraft: true, po_item_id: "new-item" } as unknown as POItemRow);
+      list.push({
+        isDraft: true,
+        po_item_id: "new-item",
+      } as unknown as POItemRow);
     }
 
     list.push({ isFooter: true, po_item_id: "footer" } as unknown as POItemRow);

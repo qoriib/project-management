@@ -15,7 +15,10 @@ export function QtyInputCell({ form }: QtyInputCellProps) {
           onChange={(v) => field.handleChange(v || 0)}
           onBlur={field.handleBlur}
           statusVariant="tooltip"
-          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+          status={getFieldError(
+            field.state.meta.errors,
+            field.state.meta.isTouched,
+          )}
         />
       )}
     </form.Field>

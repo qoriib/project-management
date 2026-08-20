@@ -20,7 +20,13 @@ export type UpdateBOM = Partial<
 >;
 
 export const BOMModel: ModelDefinition = {
-  createColumns: ["project_id", "bom_group_id", "item_id", "item_price_id", "qty"],
+  createColumns: [
+    "project_id",
+    "bom_group_id",
+    "item_id",
+    "item_price_id",
+    "qty",
+  ],
   primaryKey: "bom_id",
   softDelete: true,
   tableName: "bill_of_materials",

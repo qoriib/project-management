@@ -20,7 +20,10 @@ export function DeliveryDateField({ form }: DeliveryDateFieldProps) {
           value={field.state.value as DateInputProps["value"]}
           onChange={(v) => field.handleChange(v ?? "")}
           onBlur={field.handleBlur}
-          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+          status={getFieldError(
+            field.state.meta.errors,
+            field.state.meta.isTouched,
+          )}
           isRequired
         />
       )}

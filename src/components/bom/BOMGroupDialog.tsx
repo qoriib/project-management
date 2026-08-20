@@ -1,6 +1,14 @@
 import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button, Card, Dialog, HStack, IconButton, Table, VStack } from "@astryxdesign/core";
+import {
+  Button,
+  Card,
+  Dialog,
+  HStack,
+  IconButton,
+  Table,
+  VStack,
+} from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -12,14 +20,21 @@ import { bomGroupRepo } from "@/db/repositories";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError, handleFormError } from "@/utils/form";
 import { useBOMStore } from "@/store/useBOMStore";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import type { BOMGroup, ProjectWithRelations } from "@/db/repositories";
 import * as v from "valibot";
 
 interface GroupRow extends BOMGroup, Record<string, unknown> {}
 
 const bomGroupSchema = v.object({
-  group_name: v.pipe(v.string(), v.nonEmpty("Nama grup pekerjaan harus diisi.")),
+  group_name: v.pipe(
+    v.string(),
+    v.nonEmpty("Nama grup pekerjaan harus diisi."),
+  ),
 });
 
 interface BOMGroupDialogProps {
@@ -28,7 +43,11 @@ interface BOMGroupDialogProps {
   project: ProjectWithRelations | null;
 }
 
-export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps) {
+export function BOMGroupDialog({
+  isOpen,
+  onClose,
+  project,
+}: BOMGroupDialogProps) {
   const showToast = useToast();
   const [editTarget, setEditTarget] = useState<BOMGroup | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<BOMGroup | null>(null);
@@ -44,7 +63,9 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
 
       try {
         if (editTarget) {
-          await bomGroupRepo.update(editTarget.bom_group_id, { group_name: value.group_name });
+          await bomGroupRepo.update(editTarget.bom_group_id, {
+            group_name: value.group_name,
+          });
         } else {
           await bomGroupRepo.create({
             project_id: project.project_id,
@@ -110,7 +131,9 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
       key: "no",
       width: pixel(60),
       renderCell: (row: BOMGroup) => {
-        const index = bomGroups.findIndex((g) => g.bom_group_id === row.bom_group_id);
+        const index = bomGroups.findIndex(
+          (g) => g.bom_group_id === row.bom_group_id,
+        );
         return index >= 0 ? index + 1 : "-";
       },
     },
@@ -171,7 +194,11 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
+      <Dialog
+        isOpen={isOpen}
+        onOpenChange={(open) => !open && onClose()}
+        width={560}
+      >
         <VStack gap={4}>
           <PageHeader
             title="Grup Pekerjaan"
@@ -189,7 +216,9 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
             data={bomGroups as GroupRow[]}
             idKey="bom_group_id"
             textOverflow="truncate"
-            emptyState={<TableEmptyState message="Belum ada grup pekerjaan. Tambahkan di bawah." />}
+            emptyState={
+              <TableEmptyState message="Belum ada grup pekerjaan. Tambahkan di bawah." />
+            }
           />
           <form
             onSubmit={(e) => {
@@ -212,17 +241,27 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
                         onBlur={field.handleBlur}
                         isRequired
                         statusVariant="attached"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                        status={getFieldError(
+                          field.state.meta.errors,
+                          field.state.meta.isTouched,
+                        )}
                       />
                     )}
                   />
                 </FormLayout>
                 <HStack justify="end" gap={2}>
                   {editTarget && (
-                    <Button type="button" variant="secondary" label="Batal" onClick={cancelEdit} />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      label="Batal"
+                      onClick={cancelEdit}
+                    />
                   )}
                   <form.Subscribe
-                    selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                    selector={(state) =>
+                      [state.canSubmit, state.isSubmitting] as const
+                    }
                     children={([canSubmit, isSubmitting]) => (
                       <Button
                         type="submit"

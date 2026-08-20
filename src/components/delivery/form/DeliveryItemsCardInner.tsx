@@ -1,5 +1,10 @@
 import { Card, HStack, Text, VStack } from "@astryxdesign/core";
-import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  Table,
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import type { DeliveryItemRow } from "./delivery.schema";
 import type { useDeliveryForm } from "./useDeliveryForm";
 import { DeliveryQtyCell } from "./DeliveryQtyCell";
@@ -13,7 +18,10 @@ export interface DeliveryItemsCardInnerProps {
   items: DeliveryItemRow[];
 }
 
-export function DeliveryItemsCardInner({ form, items }: DeliveryItemsCardInnerProps) {
+export function DeliveryItemsCardInner({
+  form,
+  items,
+}: DeliveryItemsCardInnerProps) {
   const bomData = usePOStore((s) => s.currentBOMData);
 
   const columns: TableColumn<DeliveryItemRow>[] = useMemo(
@@ -39,7 +47,9 @@ export function DeliveryItemsCardInner({ form, items }: DeliveryItemsCardInnerPr
         width: pixel(240),
         renderCell: (row) => {
           const bomItem = bomData.find(
-            (b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id,
+            (b) =>
+              b.item_id === row.item_id &&
+              b.item_price_id === row.item_price_id,
           );
           const bomPrice = bomItem?.price ?? 0;
 

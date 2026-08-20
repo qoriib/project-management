@@ -10,12 +10,16 @@ import {
   Timestamp,
   VStack,
 } from "@astryxdesign/core";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import { type ItemLogEntry, getItemLog } from "@/db/services";
 import { formatNumber } from "@/utils/formatters";
 import { X } from "lucide-react";
 
-interface LogRow extends ItemLogEntry, Record<string, unknown> { }
+interface LogRow extends ItemLogEntry, Record<string, unknown> {}
 
 interface DashboardItemLogDialogProps {
   isOpen: boolean;
@@ -50,14 +54,18 @@ export function DashboardItemLogDialog({
     {
       header: "Tanggal",
       key: "date",
-      renderCell: (r: LogRow) => <Timestamp value={r.date} format="system_date" size="base" />,
+      renderCell: (r: LogRow) => (
+        <Timestamp value={r.date} format="system_date" size="base" />
+      ),
       width: pixel(120),
     },
     {
       header: "Referensi",
       key: "reference",
       renderCell: (r: LogRow) => (
-        <Code style={{ background: "transparent", padding: 0 }}>{r.reference}</Code>
+        <Code style={{ background: "transparent", padding: 0 }}>
+          {r.reference}
+        </Code>
       ),
       width: pixel(120),
     },
@@ -65,7 +73,9 @@ export function DashboardItemLogDialog({
       align: "end",
       header: "Volume",
       key: "qty",
-      renderCell: (r: LogRow) => <Text type="code">{formatNumber(r.qty, 2)}</Text>,
+      renderCell: (r: LogRow) => (
+        <Text type="code">{formatNumber(r.qty, 2)}</Text>
+      ),
       width: pixel(100),
     },
     {
@@ -77,7 +87,11 @@ export function DashboardItemLogDialog({
   ];
 
   return (
-    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={700}>
+    <Dialog
+      isOpen={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      width={700}
+    >
       <VStack gap={4}>
         <HStack align="center" justify="between">
           <Heading level={3}>Log: {itemName}</Heading>
@@ -97,7 +111,9 @@ export function DashboardItemLogDialog({
         />
         {logs.length === 0 && !loading && (
           <VStack align="center" style={{ marginTop: 16 }}>
-            <Text color="secondary">Belum ada log PO atau Penerimaan untuk item ini.</Text>
+            <Text color="secondary">
+              Belum ada log PO atau Penerimaan untuk item ini.
+            </Text>
           </VStack>
         )}
       </VStack>

@@ -31,7 +31,10 @@ class ItemCategoryRepository extends BaseRepository<
   async create(data: CreateItemCategory): Promise<string> {
     const dataToInsert = { ...data };
 
-    if (!dataToInsert.category_code || dataToInsert.category_code.trim() === "") {
+    if (
+      !dataToInsert.category_code ||
+      dataToInsert.category_code.trim() === ""
+    ) {
       const db = await this.db(),
         rows = await db.select<{ max_code: string }[]>(
           `SELECT MAX(CAST(category_code AS INTEGER)) as max_code FROM item_categories`,

@@ -3,7 +3,12 @@
  */
 
 import { BaseRepository } from "@/db/core/base-repository";
-import { type CreateItem, type Item, ItemModel, type UpdateItem } from "@/db/models";
+import {
+  type CreateItem,
+  type Item,
+  ItemModel,
+  type UpdateItem,
+} from "@/db/models";
 
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";

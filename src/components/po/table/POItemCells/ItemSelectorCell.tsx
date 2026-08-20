@@ -44,7 +44,10 @@ export function ItemSelectorCell({
             options={options}
             onChange={(v) => onChangeItem(v)}
             onBlur={field.handleBlur}
-            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+            status={getFieldError(
+              field.state.meta.errors,
+              field.state.meta.isTouched,
+            )}
           />
         );
       }}

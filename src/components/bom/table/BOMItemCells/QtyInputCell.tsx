@@ -16,7 +16,10 @@ export function QtyInputCell({ form }: BaseCellProps) {
           min={0}
           step={0.000001}
           statusVariant="tooltip"
-          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+          status={getFieldError(
+            field.state.meta.errors,
+            field.state.meta.isTouched,
+          )}
         />
       )}
     </form.Field>

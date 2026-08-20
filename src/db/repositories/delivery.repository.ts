@@ -47,9 +47,15 @@ export interface DeliveryItemInput {
 // ── Repository ───────────────────────────────────────────────────────────────
 
 // Use Record<string, unknown> as TUpdate since deliveries are not typically updated
-type UpdateDelivery = Partial<Pick<Delivery, "po_id" | "delivery_date" | "delivery_code">>;
+type UpdateDelivery = Partial<
+  Pick<Delivery, "po_id" | "delivery_date" | "delivery_code">
+>;
 
-class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, UpdateDelivery> {
+class DeliveryRepository extends BaseRepository<
+  Delivery,
+  CreateDelivery,
+  UpdateDelivery
+> {
   constructor() {
     super(DeliveryModel);
   }
@@ -57,7 +63,9 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
   /**
    * Get all deliveries with summary info.
    */
-  async findAllWithSummary(filters?: DeliveryFilters): Promise<DeliverySummary[]> {
+  async findAllWithSummary(
+    filters?: DeliveryFilters,
+  ): Promise<DeliverySummary[]> {
     try {
       const qb = new QueryBuilder()
         .select(
@@ -98,7 +106,9 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
       const rows = await this.rawSelect<any>(sql, params);
       return rows.map((r) => ({
         ...r,
-        vendor_names: r.vendor_names ? r.vendor_names.split(",").map((v: string) => v.trim()) : [],
+        vendor_names: r.vendor_names
+          ? r.vendor_names.split(",").map((v: string) => v.trim())
+          : [],
       }));
     } catch (error) {
       throw wrapDbError(error, this.model.tableName);
@@ -192,7 +202,10 @@ class DeliveryRepository extends BaseRepository<Delivery, CreateDelivery, Update
         await this.update(deliveryId, header);
       }
 
-      await this.rawExecute("DELETE FROM delivery_items WHERE delivery_id = $1", [deliveryId]);
+      await this.rawExecute(
+        "DELETE FROM delivery_items WHERE delivery_id = $1",
+        [deliveryId],
+      );
 
       const itemsToInsert = items.filter((it) => it.qty > 0);
       if (itemsToInsert.length > 0) {

@@ -32,7 +32,8 @@ async function getTauriDb(): Promise<DatabaseLike> {
         rowsAffected: res.rowsAffected,
       };
     },
-    select: <T>(sql: string, params?: any[]): Promise<T> => dbInstance!.select<T>(sql, params),
+    select: <T>(sql: string, params?: any[]): Promise<T> =>
+      dbInstance!.select<T>(sql, params),
   };
 }
 

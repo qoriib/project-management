@@ -36,7 +36,13 @@ function MasterProjectPage() {
         <PageHeader
           title="Master Data Proyek"
           subtitle="Kelola data proyek dan tahapannya"
-          actions={<Button variant="primary" label="Tambah Proyek" onClick={openCreate} />}
+          actions={
+            <Button
+              variant="primary"
+              label="Tambah Proyek"
+              onClick={openCreate}
+            />
+          }
         />
         <MasterProjectTable onEdit={openEdit} />
         <MasterProjectForm

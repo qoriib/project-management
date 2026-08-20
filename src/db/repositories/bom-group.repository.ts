@@ -11,7 +11,11 @@ export interface BOMGroupWithProject extends BOMGroup {
   project_name?: string;
 }
 
-class BOMGroupRepository extends BaseRepository<BOMGroup, CreateBOMGroup, UpdateBOMGroup> {
+class BOMGroupRepository extends BaseRepository<
+  BOMGroup,
+  CreateBOMGroup,
+  UpdateBOMGroup
+> {
   constructor() {
     super(BOMGroupModel);
   }

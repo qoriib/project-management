@@ -10,21 +10,53 @@ export async function seedItems(): Promise<void> {
   const items: SeedItem[] = [
       { category: "Bahan", itemName: "Semen Portland 50 Kg", unit: "Zak" },
       { category: "Bahan", itemName: "Semen Putih 40 Kg", unit: "Zak" },
-      { category: "Bahan", itemName: "Perekat Bata Ringan / Mortar 40 Kg", unit: "Zak" },
+      {
+        category: "Bahan",
+        itemName: "Perekat Bata Ringan / Mortar 40 Kg",
+        unit: "Zak",
+      },
       { category: "Bahan", itemName: "Pasir Pasang", unit: "M3" },
       { category: "Bahan", itemName: "Pasir Beton", unit: "M3" },
       { category: "Bahan", itemName: "Batu Pecah / Split 1/2", unit: "M3" },
       { category: "Bahan", itemName: "Batu Kali", unit: "M3" },
-      { category: "Bahan", itemName: "Besi Beton Polos 8mm x 12m", unit: "Btg" },
-      { category: "Bahan", itemName: "Besi Beton Polos 10mm x 12m", unit: "Btg" },
-      { category: "Bahan", itemName: "Besi Beton Ulir 13mm x 12m", unit: "Btg" },
-      { category: "Bahan", itemName: "Besi Beton Ulir 16mm x 12m", unit: "Btg" },
+      {
+        category: "Bahan",
+        itemName: "Besi Beton Polos 8mm x 12m",
+        unit: "Btg",
+      },
+      {
+        category: "Bahan",
+        itemName: "Besi Beton Polos 10mm x 12m",
+        unit: "Btg",
+      },
+      {
+        category: "Bahan",
+        itemName: "Besi Beton Ulir 13mm x 12m",
+        unit: "Btg",
+      },
+      {
+        category: "Bahan",
+        itemName: "Besi Beton Ulir 16mm x 12m",
+        unit: "Btg",
+      },
       { category: "Bahan", itemName: "Kawat Bendrat", unit: "Kg" },
-      { category: "Bahan", itemName: "Triplek / Multiplek 9mm", unit: "Lembar" },
-      { category: "Bahan", itemName: "Triplek / Multiplek 12mm", unit: "Lembar" },
+      {
+        category: "Bahan",
+        itemName: "Triplek / Multiplek 9mm",
+        unit: "Lembar",
+      },
+      {
+        category: "Bahan",
+        itemName: "Triplek / Multiplek 12mm",
+        unit: "Lembar",
+      },
       { category: "Bahan", itemName: "Kaso 5/7 Meranti", unit: "Btg" },
       { category: "Bahan", itemName: "Papan Cor 2/20 Meranti", unit: "Lembar" },
-      { category: "Bahan", itemName: "Cat Tembok Interior 25kg (Pail)", unit: "Pail" },
+      {
+        category: "Bahan",
+        itemName: "Cat Tembok Interior 25kg (Pail)",
+        unit: "Pail",
+      },
       { category: "Bahan", itemName: "Cat Tembok Eksterior 20L", unit: "Pail" },
       { category: "Bahan", itemName: "Waterproofing 20kg", unit: "Pail" },
       { category: "Bahan", itemName: "Pipa PVC 4 inch tipe AW", unit: "Btg" },
@@ -35,13 +67,21 @@ export async function seedItems(): Promise<void> {
       { category: "Bahan", itemName: "Keramik Dinding 30x60", unit: "M2" },
       { category: "Alat", itemName: "Sewa Excavator PC100", unit: "Jam" },
       { category: "Alat", itemName: "Sewa Concrete Pump", unit: "Hari" },
-      { category: "Operasional", itemName: "Tukang Batu / Pekerja", unit: "Hari" },
+      {
+        category: "Operasional",
+        itemName: "Tukang Batu / Pekerja",
+        unit: "Hari",
+      },
       { category: "Operasional", itemName: "Mandor", unit: "Hari" },
     ],
     categories = await itemCategoryRepo.findAll(),
     units = await unitRepo.findAll(),
-    catMap = new Map<string, string>(categories.map((c) => [c.category_name, c.category_id])),
-    unitMap = new Map<string, string>(units.map((u) => [u.unit_name, u.unit_id]));
+    catMap = new Map<string, string>(
+      categories.map((c) => [c.category_name, c.category_id]),
+    ),
+    unitMap = new Map<string, string>(
+      units.map((u) => [u.unit_name, u.unit_id]),
+    );
 
   for (const it of items) {
     const exists = await itemRepo.exists({ item_name: it.itemName }, true);

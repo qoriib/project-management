@@ -4,7 +4,9 @@ import { createJSONStorage, persist } from "zustand/middleware";
 export type ThemeMode = "light" | "dark" | "system";
 
 function getSystemMode(): "light" | "dark" {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 interface AppStore {
@@ -67,7 +69,8 @@ export const useAppStore = create<AppStore>()(
           return;
         }
         const systemMode = getSystemMode();
-        state.resolvedMode = state.themeMode === "system" ? systemMode : state.themeMode;
+        state.resolvedMode =
+          state.themeMode === "system" ? systemMode : state.themeMode;
       },
     },
   ),

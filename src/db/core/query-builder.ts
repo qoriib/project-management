@@ -17,7 +17,13 @@
  * ```
  */
 
-import type { JoinClause, JoinType, OrderDirection, WhereCondition, WhereOperator } from "./types";
+import type {
+  JoinClause,
+  JoinType,
+  OrderDirection,
+  WhereCondition,
+  WhereOperator,
+} from "./types";
 
 interface BuiltQuery {
   sql: string;
@@ -63,7 +69,12 @@ export class QueryBuilder {
 
   // ── JOIN ─────────────────────────────────────────────────────────────────
 
-  private addJoin(type: JoinType, table: string, aliasOrOn: string, on?: string): this {
+  private addJoin(
+    type: JoinType,
+    table: string,
+    aliasOrOn: string,
+    on?: string,
+  ): this {
     if (on) {
       this._joins.push({ alias: aliasOrOn, on, table, type });
     } else {
@@ -174,14 +185,17 @@ export class QueryBuilder {
     let paramIdx = 1;
 
     // SELECT
-    const columns = this._selectColumns.length > 0 ? this._selectColumns.join(", ") : "*";
+    const columns =
+      this._selectColumns.length > 0 ? this._selectColumns.join(", ") : "*";
     parts.push(`SELECT ${columns}`);
 
     // FROM
     if (!this._from) {
       throw new Error("QueryBuilder: FROM clause is required");
     }
-    parts.push(`FROM ${this._from}${this._fromAlias ? ` ${this._fromAlias}` : ""}`);
+    parts.push(
+      `FROM ${this._from}${this._fromAlias ? ` ${this._fromAlias}` : ""}`,
+    );
 
     // JOINS
     for (const join of this._joins) {
@@ -223,10 +237,15 @@ export class QueryBuilder {
             paramIdx++;
           }
           fragment = adjustedExpr;
-        } else if (cond.operator === "IS NULL" || cond.operator === "IS NOT NULL") {
+        } else if (
+          cond.operator === "IS NULL" ||
+          cond.operator === "IS NOT NULL"
+        ) {
           fragment = `${cond.column} ${cond.operator}`;
         } else if (cond.operator === "IN" && Array.isArray(cond.value)) {
-          const placeholders = cond.value.map(() => `$${paramIdx++}`).join(", ");
+          const placeholders = cond.value
+            .map(() => `$${paramIdx++}`)
+            .join(", ");
           params.push(...cond.value);
           fragment = `${cond.column} IN (${placeholders})`;
         } else {
@@ -257,7 +276,9 @@ export class QueryBuilder {
 
     // ORDER BY
     if (this._orderBys.length > 0) {
-      const orderParts = this._orderBys.map((o) => `${o.column} ${o.direction}`);
+      const orderParts = this._orderBys.map(
+        (o) => `${o.column} ${o.direction}`,
+      );
       parts.push(`ORDER BY ${orderParts.join(", ")}`);
     }
 

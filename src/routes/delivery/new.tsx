@@ -24,9 +24,16 @@ function NewDeliveryPage() {
   return (
     <Section padding={6}>
       <VStack gap={4}>
-        <PageHeader title="Penerimaan Baru" subtitle="Catat log penerimaan item di lapangan" />
+        <PageHeader
+          title="Penerimaan Baru"
+          subtitle="Catat log penerimaan item di lapangan"
+        />
         <ProjectRequired>
-          <DeliveryForm initialPoId={initialPoId} onSuccess={handleSuccess} onCancel={goBack} />
+          <DeliveryForm
+            initialPoId={initialPoId}
+            onSuccess={handleSuccess}
+            onCancel={goBack}
+          />
         </ProjectRequired>
       </VStack>
     </Section>

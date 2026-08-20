@@ -2,7 +2,11 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { HStack, IconButton, Text, Timestamp, Token } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+} from "@astryxdesign/core/Table";
 import { type DeliverySummary } from "@/db/repositories";
 
 export interface DeliveryRow extends DeliverySummary, Record<string, unknown> {}
@@ -11,7 +15,9 @@ interface UseDeliveryColumnsProps {
   setDeleteTarget: (id: string | null) => void;
 }
 
-export function useDeliveryColumns({ setDeleteTarget }: UseDeliveryColumnsProps) {
+export function useDeliveryColumns({
+  setDeleteTarget,
+}: UseDeliveryColumnsProps) {
   const navigate = useNavigate();
 
   const columns: TableColumn<DeliveryRow>[] = [
@@ -25,7 +31,9 @@ export function useDeliveryColumns({ setDeleteTarget }: UseDeliveryColumnsProps)
       header: "Tanggal",
       key: "delivery_date",
       width: pixel(120),
-      renderCell: (row) => <Timestamp value={row.delivery_date} format="system_date" size="base" />,
+      renderCell: (row) => (
+        <Timestamp value={row.delivery_date} format="system_date" size="base" />
+      ),
     },
     {
       header: "Ref. PO",
@@ -65,7 +73,10 @@ export function useDeliveryColumns({ setDeleteTarget }: UseDeliveryColumnsProps)
             label="Edit"
             icon={<Pencil size={16} />}
             onClick={() =>
-              navigate({ to: "/delivery/$id/edit", params: { id: String(row.delivery_id) } })
+              navigate({
+                to: "/delivery/$id/edit",
+                params: { id: String(row.delivery_id) },
+              })
             }
           />
           <IconButton

@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import { type BOMDetail, type BOMGroup, bomGroupRepo, bomRepo } from "@/db/repositories";
+import {
+  type BOMDetail,
+  type BOMGroup,
+  bomGroupRepo,
+  bomRepo,
+} from "@/db/repositories";
 
 interface BOMStore {
   boms: BOMDetail[];
@@ -15,7 +20,12 @@ interface BOMStore {
   }) => Promise<void>;
   updateBOM: (
     id: string,
-    data: { bom_group_id?: string; item_id?: string; qty?: number; item_price_id?: string },
+    data: {
+      bom_group_id?: string;
+      item_id?: string;
+      qty?: number;
+      item_price_id?: string;
+    },
   ) => Promise<void>;
   deleteBOM: (id: string) => Promise<void>;
 }

@@ -8,7 +8,10 @@ export interface Delivery {
   deleted_at: string | null;
 }
 
-export type CreateDelivery = Pick<Delivery, "delivery_date" | "po_id" | "delivery_code">;
+export type CreateDelivery = Pick<
+  Delivery,
+  "delivery_date" | "po_id" | "delivery_code"
+>;
 
 export const DeliveryModel: ModelDefinition = {
   createColumns: ["po_id", "delivery_date", "delivery_code"],

@@ -32,7 +32,9 @@ export interface BOMReportItem {
 /**
  * Generate the full BOM fulfillment report for a project.
  */
-export async function getBOMReport(projectId: string): Promise<BOMReportItem[]> {
+export async function getBOMReport(
+  projectId: string,
+): Promise<BOMReportItem[]> {
   try {
     const db = await getDB(),
       // 1. Fetch BOMs with joined details (price resolved from item_prices)
@@ -74,7 +76,9 @@ export async function getBOMReport(projectId: string): Promise<BOMReportItem[]> 
         .select("poi.item_id", "poi.item_price_id")
         .selectRaw("SUM(poi.qty) as total_ordered")
         .selectRaw("SUM(d.total_delivered) as total_delivered")
-        .selectRaw("COALESCE(SUM(poi.qty * ip.price) / NULLIF(SUM(poi.qty), 0), 0) as avg_po_price")
+        .selectRaw(
+          "COALESCE(SUM(poi.qty * ip.price) / NULLIF(SUM(poi.qty), 0), 0) as avg_po_price",
+        )
         .from("po_items", "poi")
         .join("purchase_orders", "po", "po.po_id = poi.po_id")
         .join("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
@@ -97,7 +101,10 @@ export async function getBOMReport(projectId: string): Promise<BOMReportItem[]> 
         }[]
       >(poSql, poParams),
       // 3. Build remaining map
-      itemAgg = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
+      itemAgg = new Map<
+        string,
+        { ordered: number; delivered: number; avgPrice: number }
+      >();
     for (const agg of poAggs) {
       itemAgg.set(`${agg.item_id}-${agg.item_price_id}`, {
         avgPrice: agg.avg_po_price || 0,
@@ -183,7 +190,9 @@ export async function getItemLog(
       { sql: delSql, params: delParams } = delQb.build(),
       dels = await db.select<ItemLogEntry[]>(delSql, delParams),
       combined = [...pos, ...dels];
-    combined.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    combined.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
     return combined;
   } catch (error) {
     if (error instanceof DbError) {

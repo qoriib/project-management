@@ -17,7 +17,11 @@ export type ItemPriceWithRelation = ItemPrice & {
   has_relation: boolean;
 };
 
-class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, UpdateItemPrice> {
+class ItemPriceRepository extends BaseRepository<
+  ItemPrice,
+  CreateItemPrice,
+  UpdateItemPrice
+> {
   constructor() {
     super(ItemPriceModel);
   }
@@ -45,7 +49,9 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
    * Get all active price variants for an item, enriched with a has_relation flag
    * indicating whether the price is used in any BOM or PO line.
    */
-  async findByItemWithRelation(itemId: string): Promise<ItemPriceWithRelation[]> {
+  async findByItemWithRelation(
+    itemId: string,
+  ): Promise<ItemPriceWithRelation[]> {
     try {
       const sql = `
         SELECT ip.*,
