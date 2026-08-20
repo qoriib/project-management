@@ -13,35 +13,34 @@ interface OrderTableProps {
 
 export function OrderTable({ onEdit }: OrderTableProps) {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
+  const [deletingId, setDeletingId] = useState<{ id: string; label: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const { orders, loadAllOrders, deleteOrder } = useOrderStore();
-  const [deleteTarget, setDeleteTarget] = useState<{
-    id: string;
-    label: string;
-  } | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadAllOrders(selectedProjectId || undefined);
   }, [selectedProjectId, loadAllOrders]);
 
   async function handleDelete() {
-    if (!deleteTarget) {
+    if (!deletingId) {
       return;
     }
 
-    setDeleting(true);
+    setIsDeleting(true);
 
     try {
-      await deleteOrder(deleteTarget.id);
-      setDeleteTarget(null);
+      await deleteOrder(deletingId.id);
+      setDeletingId(null);
     } finally {
-      setDeleting(false);
+      setIsDeleting(false);
     }
   }
 
   const columns = useOrderTableColumns({
     onEdit,
-    setDeleteTarget,
+    setDeleteTarget: setDeletingId,
   });
 
   const rowIndexPlugin = useTableRowIndex({
@@ -55,19 +54,19 @@ export function OrderTable({ onEdit }: OrderTableProps) {
       <Table
         hasHover
         idKey="order_id"
-        plugins={{ rowIndex: rowIndexPlugin }}
         textOverflow="truncate"
         columns={columns}
         data={orders as PORow[]}
+        plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada Order. Klik 'Buat Baru' untuk memulai." />}
       />
       <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
         title="Hapus Order"
-        message={`Hapus Order "${deleteTarget?.label}"? Semua item dan Penerimaan terkait akan ikut terhapus.`}
-        isLoading={deleting}
+        message={`Hapus Order "${deletingId?.label}"? Semua item dan Penerimaan terkait akan ikut terhapus.`}
+        isOpen={Boolean(deletingId)}
+        onClose={() => setDeletingId(null)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
       />
     </>
   );

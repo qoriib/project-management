@@ -8,7 +8,7 @@ export function UnitDisplayCell({ form }: CellFormProps) {
     <form.Subscribe selector={(s) => s.values.item_id}>
       {(itemId) => {
         const item = masterItems.find((i) => i.item_id === itemId);
-        return <span>{item?.unit_name || "-"}</span>;
+        return item?.unit_name ?? "-";
       }}
     </form.Subscribe>
   );

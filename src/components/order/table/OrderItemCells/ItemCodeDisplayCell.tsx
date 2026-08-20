@@ -10,11 +10,12 @@ export function ItemCodeDisplayCell({ form }: CellFormProps) {
     <form.Subscribe selector={(s) => s.values.item_id}>
       {(itemId) => {
         const item = masterItems.find((i) => i.item_id === itemId);
-        if (!item) return <span>-</span>;
+
+        if (!item) return "-";
 
         const code = formatItemCode(item);
 
-        return code ? <EntityCode id={code} /> : <span>-</span>;
+        return <EntityCode id={code} />;
       }}
     </form.Subscribe>
   );

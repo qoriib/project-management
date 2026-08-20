@@ -20,7 +20,8 @@ export function ItemSelectorCell({ form, onChangeItem }: ItemSelectorCellProps) 
       {(field) => {
         const options = items.map((item) => {
           const inRequirement = requirementItemIds.has(item.item_id);
-          const suffix = inRequirement ? "" : " ⚠ Tidak di Rencana";
+          const suffix = inRequirement ? "" : "Tidak di Rencana";
+
           return {
             label: `${item.item_name} (${item.unit_name ?? ""})${suffix}`,
             value: item.item_id,

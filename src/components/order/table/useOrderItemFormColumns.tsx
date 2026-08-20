@@ -1,10 +1,9 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Check, Pencil, Trash2, X } from "lucide-react";
 import { HStack, IconButton, Text, VStack } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { useMasterStore } from "@/store/useMasterStore";
 import {
-  EditActionsCell,
   ItemSelectorCell,
   PriceSelectorCell,
   QtyInputCell,
@@ -45,9 +44,7 @@ export function useOrderItemFormColumns({
   setIsPriceFormOpen,
 }: UseOrderItemFormColumnsProps) {
   const vendors = useMasterStore((s) => s.vendors);
-
-  const isEditing = (row: OrderItemRow) =>
-    row.order_item_id === editingId || (editingId === "new" && row.isDraft);
+  const isEditing = (row: OrderItemRow) => row.order_item_id === editingId || (editingId === "new-item" && row.isDraft);
 
   const columns: TableColumn<OrderItemRow>[] = [
     {
@@ -56,22 +53,27 @@ export function useOrderItemFormColumns({
       width: proportional(2),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) {
           return (
             <VStack gap={1} align="start" width="100%">
-              <ItemSelectorCell
-                form={form}
-                onChangeItem={handleItemChange as (itemId: string) => Promise<void>}
-              />
+              <ItemSelectorCell form={form} onChangeItem={handleItemChange as (itemId: string) => Promise<void>} />
               <ItemCodeDisplayCell form={form} />
             </VStack>
           );
         }
+
         const code = formatItemCode(row);
         return (
           <VStack gap={1} align="start">
             <Text weight="medium">{row.item_name}</Text>
-            {code ? <EntityCode id={code} /> : <Text size="sm" color="secondary">-</Text>}
+            {code ? (
+              <EntityCode id={code} />
+            ) : (
+              <Text size="sm" color="secondary">
+                -
+              </Text>
+            )}
           </VStack>
         );
       },
@@ -79,13 +81,13 @@ export function useOrderItemFormColumns({
     {
       align: "end",
       header: "Harga (Rp)",
-      key: "price_info",
+      key: "price",
       width: pixel(200),
       renderCell: (row) => {
         if (row.isFooter) return null;
-        if (isEditing(row)) {
-          return <PriceSelectorCell form={form} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
-        }
+
+        if (isEditing(row)) return <PriceSelectorCell form={form} onAddNewPrice={() => setIsPriceFormOpen(true)} />;
+
         return <Text type="code">{formatNumber(row.price)}</Text>;
       },
     },
@@ -95,9 +97,11 @@ export function useOrderItemFormColumns({
       width: pixel(240),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) {
           return <VendorSelectorCell form={form} vendors={vendors} onAddNewVendor={() => setIsVendorFormOpen(true)} />;
         }
+
         return row.vendor_name ?? "—";
       },
     },
@@ -107,7 +111,9 @@ export function useOrderItemFormColumns({
       width: pixel(80),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) return <UnitDisplayCell form={form} />;
+
         return row.unit ?? "-";
       },
     },
@@ -118,8 +124,14 @@ export function useOrderItemFormColumns({
       width: pixel(130),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) return <QtyInputCell form={form} />;
-        return <Text type="code" weight="medium">{formatNumber(row.qty, 2)}</Text>;
+
+        return (
+          <Text type="code" weight="medium">
+            {formatNumber(row.qty, 2)}
+          </Text>
+        );
       },
     },
     {
@@ -129,7 +141,9 @@ export function useOrderItemFormColumns({
       width: pixel(180),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) return <SubtotalCell form={form} />;
+
         return <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0))}</Text>;
       },
     },
@@ -140,24 +154,41 @@ export function useOrderItemFormColumns({
       width: proportional(1),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) {
           return (
             <form.Subscribe selector={(s) => ({ isSubmitting: s.isSubmitting, canSubmit: s.canSubmit })}>
               {({ isSubmitting, canSubmit }) => (
-                <EditActionsCell
-                  isSubmitting={isSubmitting}
-                  canSubmit={canSubmit}
-                  onSave={() => form.handleSubmit()}
-                  onCancel={() => {
-                    setEditingId(null);
-                    setEditingData(undefined);
-                    form.reset();
-                  }}
-                />
+                <HStack gap={2} justify="end">
+                  <IconButton
+                    size="sm"
+                    type="button"
+                    variant="primary"
+                    label="Simpan"
+                    icon={<Check size={16} />}
+                    isLoading={isSubmitting}
+                    isDisabled={!canSubmit}
+                    onClick={() => form.handleSubmit()}
+                  />
+                  <IconButton
+                    size="sm"
+                    type="button"
+                    variant="secondary"
+                    label="Batal"
+                    icon={<X size={16} />}
+                    isDisabled={isSubmitting}
+                    onClick={() => {
+                      setEditingId(null);
+                      setEditingData(undefined);
+                      form.reset();
+                    }}
+                  />
+                </HStack>
               )}
             </form.Subscribe>
           );
         }
+
         return (
           <HStack gap={2} justify="end">
             <IconButton

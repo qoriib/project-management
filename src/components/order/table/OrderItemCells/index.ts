@@ -3,8 +3,6 @@ export * from "./ItemSelectorCell";
 export * from "./PriceSelectorCell";
 export * from "./VendorSelectorCell";
 export * from "./QtyInputCell";
-export * from "./EditActionsCell";
-export * from "./RequirementInfoCell";
 export * from "./SubtotalCell";
 export * from "./ItemCodeDisplayCell";
 export * from "./UnitDisplayCell";

@@ -32,13 +32,14 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const masterItems = useMasterStore((s) => s.items);
 
-  const { createOrder, updateOrder } = useOrderStore();
   const [items, setItems] = useState<OrderItemDetail[]>(initialItems);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isVendorFormOpen, setIsVendorFormOpen] = useState(false);
   const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<OrderItemDetail | undefined>();
+
+  const { createOrder, updateOrder } = useOrderStore();
 
   const form = useForm({
     defaultValues: buildDefaultValues(order),
@@ -79,7 +80,9 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
     onSubmitItem: (payload) => {
       const { items: globalItems, itemPricesMap, vendors } = useMasterStore.getState();
       const itemDef = globalItems.find((i) => i.item_id === payload.item_id);
-      const priceDef = (itemPricesMap.get(payload.item_id) ?? []).find((p) => p.item_price_id === payload.item_price_id);
+      const priceDef = (itemPricesMap.get(payload.item_id) ?? []).find(
+        (p) => p.item_price_id === payload.item_price_id,
+      );
       const vendorDef = vendors.find((v) => v.vendor_id === payload.vendor_id);
 
       const newDetail: OrderItemDetail = {
@@ -117,7 +120,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
     form: tableForm,
     handleItemChange,
     items,
-    setDeleteTarget,
+    setDeleteTarget: setDeletingId,
     setEditingData,
     setEditingId,
     setIsPriceFormOpen,
@@ -127,7 +130,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const { dataWithFooters, footerPlugin } = useOrderItemTableState({
     items: items as OrderItemRow[],
     editingId,
-    setEditingId,
+    setEditingId: (id) => setEditingId(id === null ? null : "new-item"),
     setEditingData,
   });
 
@@ -138,9 +141,9 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   });
 
   async function handleDelete() {
-    if (!deleteTarget) return;
-    setItems(items.filter((i) => i.order_item_id !== deleteTarget));
-    setDeleteTarget(null);
+    if (!deletingId) return;
+    setItems(items.filter((i) => i.order_item_id !== deletingId));
+    setDeletingId(null);
   }
 
   return (
@@ -205,8 +208,8 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         </HStack>
       </VStack>
       <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
+        isOpen={Boolean(deletingId)}
+        onClose={() => setDeletingId(null)}
         onConfirm={handleDelete}
         title="Hapus Item Order"
         message="Apakah Anda yakin ingin menghapus item ini dari Order?"

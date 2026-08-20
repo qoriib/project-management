@@ -42,7 +42,7 @@ export function useOrderItemTableState({ items, editingId, setEditingId, setEdit
                     variant="secondary"
                     size="sm"
                     icon={<Plus size={16} />}
-                    label="Tambah Kebutuhan"
+                    label="Tambah Item"
                     onClick={() => {
                       setEditingData(undefined);
                       setEditingId("new-item");
