@@ -151,13 +151,13 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
             <form.Field name="po_code">
               {(field) => (
                 <TextInput
+                  isRequired
                   label="Nomor PO"
+                  statusVariant="tooltip"
                   placeholder="Misal: PO/2026/08/001"
                   value={field.state.value}
                   onChange={(v) => field.handleChange(v ?? "")}
                   onBlur={field.handleBlur}
-                  isRequired
-                  statusVariant="attached"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
@@ -167,12 +167,12 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
             <form.Field name="po_date">
               {(field) => (
                 <DateInput
+                  isRequired
                   label="Tanggal PO"
+                  statusVariant="tooltip"
                   value={field.state.value as DateInputProps["value"]}
                   onChange={(v) => field.handleChange(v ?? "")}
                   onBlur={field.handleBlur}
-                  isRequired
-                  statusVariant="attached"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
