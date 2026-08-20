@@ -12,6 +12,7 @@ import { login } from "@/db/services/auth.service";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError } from "@/utils/form";
 import { APP } from "@/configs/app.config";
+import { sanitizePin } from "@/utils/formatters";
 import * as v from "valibot";
 
 const loginSchema = v.object({
@@ -122,9 +123,6 @@ function LoginPage() {
     </Center>
   );
 }
-
-const sanitizePin = (val?: string) =>
-  (val || "").replaceAll(/\D/g, "").slice(0, 6);
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,

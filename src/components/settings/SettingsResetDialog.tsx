@@ -49,30 +49,18 @@ export function SettingsResetDialog({
       purpose="required"
     >
       <VStack gap={4}>
-        <VStack gap={1}>
-          <Heading level={3}>Reset Database</Heading>
-          <Text style={{ color: "var(--color-danger)" }}>
-            Peringatan: Tindakan ini tidak dapat dibatalkan!
-          </Text>
-        </VStack>
-
-        <Text>
-          Anda akan menghapus bersih{" "}
-          <Text as="span" weight="bold">
-            SELURUH
-          </Text>{" "}
-          isi database aplikasi ini termasuk semua Master Data (vendor, daftar
-          harga item, dll) secara permanen. Tindakan ini tidak bisa dibatalkan!
+        <Heading level={3}>Reset Database</Heading>
+        <Text color="secondary">
+          Tindakan ini akan menghapus bersih <strong>seluruh</strong> isi basis
+          data termasuk semua Master Data secara permanen.
         </Text>
-
         <TextInput
           label="Ketik 'RESET' untuk melanjutkan:"
           placeholder="RESET"
           value={resetConfirmText}
           onChange={(val) => setResetConfirmText(val || "")}
         />
-
-        <HStack gap={2} justify="end" style={{ marginTop: "var(--spacing-2)" }}>
+        <HStack gap={2} justify="end">
           <Button
             label="Batal"
             variant="secondary"
@@ -81,7 +69,7 @@ export function SettingsResetDialog({
           />
           <Button
             label="Hapus & Reset"
-            variant="secondary"
+            variant="destructive"
             isDisabled={resetConfirmText !== "RESET"}
             onClick={handleConfirm}
             isLoading={isLoading}

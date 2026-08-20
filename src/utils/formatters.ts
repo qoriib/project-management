@@ -12,6 +12,10 @@ export function formatNumber(
     minimumFractionDigits: 0,
   }).format(value);
 }
+// ── PIN ───────────────────────────────────────────────────────────────────────
+
+export const sanitizePin = (val?: string) =>
+  (val || "").replaceAll(/\D/g, "").slice(0, 6);
 
 // ── Date ─────────────────────────────────────────────────────────────────────
 
@@ -21,6 +25,10 @@ export function toISODate(date: Date = new Date()): string {
 
 export function todayISO(): string {
   return toISODate(new Date());
+}
+
+export function getTimestampString(date: Date = new Date()): string {
+  return `${date.getFullYear().toString()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}_${date.getHours().toString().padStart(2, "0")}-${date.getMinutes().toString().padStart(2, "0")}-${date.getSeconds().toString().padStart(2, "0")}`;
 }
 
 // ── Item Code ─────────────────────────────────────────────────────────────────

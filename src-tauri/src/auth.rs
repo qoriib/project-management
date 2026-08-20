@@ -30,13 +30,7 @@ pub fn check_pin(app: tauri::AppHandle, pin: String) -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub fn change_pin(app: tauri::AppHandle, old_pin: String, new_pin: String) -> Result<bool, String> {
-    let stored = get_stored_pin(&app)?;
-    
-    if stored != old_pin {
-        return Err("PIN lama tidak sesuai.".into());
-    }
-    
+pub fn change_pin(app: tauri::AppHandle, new_pin: String) -> Result<bool, String> {
     if new_pin.len() != 6 || !new_pin.chars().all(char::is_numeric) {
         return Err("PIN baru harus terdiri dari 6 angka.".into());
     }

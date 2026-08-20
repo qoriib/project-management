@@ -1,7 +1,6 @@
 import { Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
-  Badge,
   Button,
   Card,
   Dialog,

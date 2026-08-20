@@ -54,6 +54,23 @@ export const APP = {
     },
   ],
   title: "Manajemen Proyek",
+  settingsNav: [
+    {
+      id: "database",
+      label: "Database",
+      href: "/settings/database",
+    },
+    {
+      id: "security",
+      label: "Keamanan",
+      href: "/settings/security",
+    },
+    {
+      id: "appearance",
+      label: "Tampilan",
+      href: "/settings/appearance",
+    },
+  ],
 };
 
 export function getUserRole(): AppRole {
