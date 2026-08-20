@@ -6,7 +6,7 @@ interface LoadingStateProps {
 
 export function LoadingState({ message = "Memuat data..." }: LoadingStateProps) {
   return (
-    <Center padding={8} height="100%" width="100%">
+    <Center padding={8} height="100vh" width="100%">
       <VStack align="center" gap={2}>
         <Spinner size="md" />
         <Text color="secondary">{message}</Text>

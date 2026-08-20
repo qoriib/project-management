@@ -10,8 +10,8 @@ const searchSchema = z.object({
 });
 
 function NewReceiptPage() {
-  const navigate = useNavigate(),
-    { order: initialPoId } = Route.useSearch();
+  const navigate = useNavigate();
+  const { order: initialPoId } = Route.useSearch();
 
   function handleSuccess(poId: string) {
     navigate({ to: `/order/${poId}` });

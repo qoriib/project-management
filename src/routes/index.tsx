@@ -4,7 +4,6 @@ import { IconButton, Section, VStack } from "@astryxdesign/core";
 import { Download } from "lucide-react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
-import { type ISODateString } from "@astryxdesign/core/Calendar";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ReportFilterForm } from "@/components/report/ReportFilterForm";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
@@ -12,6 +11,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { ReportItemLogDialog } from "@/components/report/ReportItemLogDialog";
 import { ReportSummaryCards } from "@/components/report/ReportSummaryCards";
 import { ReportRequirementTable } from "@/components/report/ReportRequirementTable";
+import { type ISODateString } from "@astryxdesign/core/Calendar";
 import { type RequirementReportItem, getRequirementReport, generateRequirementReportExcel } from "@/db/services";
 
 function DashboardPage() {
@@ -77,23 +77,25 @@ function DashboardPage() {
           title="Laporan Kebutuhan & Realisasi"
           subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
           actions={
-            <>
-              <ReportFilterForm
-                startDate={startDate}
-                endDate={endDate}
-                onFilterChange={(start, end) => {
-                  setStartDate(start);
-                  setEndDate(end);
-                }}
-              />
-              <IconButton
-                variant="secondary"
-                label="Export Excel"
-                icon={<Download size={16} />}
-                onClick={handleExport}
-                isDisabled={exporting}
-              />
-            </>
+            selectedProjectId ? (
+              <>
+                <ReportFilterForm
+                  startDate={startDate}
+                  endDate={endDate}
+                  onFilterChange={(start, end) => {
+                    setStartDate(start);
+                    setEndDate(end);
+                  }}
+                />
+                <IconButton
+                  variant="secondary"
+                  label="Export Excel"
+                  icon={<Download size={16} />}
+                  onClick={handleExport}
+                  isDisabled={exporting}
+                />
+              </>
+            ) : undefined
           }
         />
         <ProjectRequired>

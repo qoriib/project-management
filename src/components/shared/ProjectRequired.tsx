@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import { Card, Text, VStack } from "@astryxdesign/core";
+import { useNavigate } from "@tanstack/react-router";
+import { Button, Card, Grid, GridSpan, Heading, HStack, Text, VStack } from "@astryxdesign/core";
+import { Plus } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 
@@ -8,15 +10,54 @@ interface ProjectRequiredProps {
 }
 
 export function ProjectRequired({ children }: ProjectRequiredProps) {
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId),
-    projects = useMasterStore((s) => s.projects),
-    isValidProject = projects.some((p) => p.project_id === selectedProjectId);
+  const navigate = useNavigate();
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const setSelectedProjectId = useAppStore((state) => state.setSelectedProjectId);
+  const projects = useMasterStore((state) => state.projects);
+
+  const isValidProject = projects.some((project) => project.project_id === selectedProjectId);
 
   if (!selectedProjectId || !isValidProject) {
     return (
-      <Card padding={8}>
-        <VStack align="center">
-          <Text color="secondary">Pilih Proyek Aktif di menu samping terlebih dahulu.</Text>
+      <Card padding={6}>
+        <VStack gap={6} align="center">
+          <VStack gap={2} align="center">
+            <Heading level={2}>Pilih Proyek Aktif</Heading>
+            <Text color="secondary" size="sm">
+              Silakan pilih proyek di bawah ini untuk melihat data dan mengelola transaksi.
+            </Text>
+          </VStack>
+          {projects.length > 0 ? (
+            <Grid width="100%" gap={3} columns={{ max: 2, minWidth: 280 }}>
+              {projects.map((project) => (
+                <GridSpan key={project.project_id} columns={1}>
+                  <Card padding={4}>
+                    <HStack justify="between" align="center" gap={4}>
+                      <VStack gap={1}>
+                        <Text weight="bold">{project.project_name}</Text>
+                        <Text size="sm" color="secondary">
+                          {project.company_name} - {project.fiscal_year}
+                        </Text>
+                      </VStack>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        label="Pilih"
+                        onClick={() => setSelectedProjectId(project.project_id)}
+                      />
+                    </HStack>
+                  </Card>
+                </GridSpan>
+              ))}
+            </Grid>
+          ) : (
+            <Button
+              variant="primary"
+              label="Buat Proyek Baru"
+              icon={<Plus size={16} />}
+              onClick={() => navigate({ to: "/master/project" })}
+            />
+          )}
         </VStack>
       </Card>
     );

@@ -5,8 +5,8 @@ import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { ReceiptForm } from "@/components/receipt/ReceiptForm";
 
 function EditReceiptPage() {
-  const navigate = useNavigate(),
-    { id } = Route.useParams();
+  const navigate = useNavigate();
+  const { id } = Route.useParams();
 
   function handleSuccess(poId: string) {
     navigate({ to: `/order/${poId}` });

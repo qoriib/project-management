@@ -13,8 +13,6 @@ function SettingsAppearance() {
   );
 
   const isDark = resolvedMode === "dark";
-  const buttonLabel = isDark ? "Ganti ke Terang" : "Ganti ke Gelap";
-  const buttonIcon = isDark ? <Sun /> : <Moon />;
 
   return (
     <HStack align="start" gap={6}>
@@ -24,7 +22,12 @@ function SettingsAppearance() {
           Sesuaikan tema warna aplikasi sesuai dengan preferensi Anda.
         </Text>
       </VStack>
-      <Button variant="secondary" onClick={toggleThemeMode} label={buttonLabel} icon={buttonIcon} />
+      <Button
+        variant="secondary"
+        onClick={toggleThemeMode}
+        label={isDark ? "Ganti ke Terang" : "Ganti ke Gelap"}
+        icon={isDark ? <Sun /> : <Moon />}
+      />
     </HStack>
   );
 }

@@ -4,13 +4,10 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { ReceiptTable } from "@/components/receipt/ReceiptTable";
 import { useAppStore } from "@/store/useAppStore";
-import { useMasterStore } from "@/store/useMasterStore";
 
 function ReceiptPage() {
-  const navigate = useNavigate(),
-    selectedProjectId = useAppStore((s) => s.selectedProjectId),
-    projects = useMasterStore((s) => s.projects),
-    isValidProject = projects.some((p) => p.project_id === selectedProjectId);
+  const navigate = useNavigate();
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   return (
     <Section padding={6}>
@@ -19,7 +16,7 @@ function ReceiptPage() {
           title="Daftar Penerimaan (NP)"
           subtitle="Log kronologis penerimaan item di lapangan"
           actions={
-            selectedProjectId && isValidProject ? (
+            selectedProjectId ? (
               <Button variant="primary" label="Buat Baru" onClick={() => navigate({ to: "/receipt/new" })} />
             ) : null
           }
