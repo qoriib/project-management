@@ -12,27 +12,37 @@ interface UseRequirementTableStateProps {
   setEditingId: (id: string | null) => void;
 }
 
-export function useRequirementTableState({ requirements, editingId, isApproved, setEditingId }: UseRequirementTableStateProps) {
+export function useRequirementTableState({
+  requirements,
+  editingId,
+  isApproved,
+  setEditingId,
+}: UseRequirementTableStateProps) {
   const grandTotal = useMemo(() => {
     let grand = 0;
+
     for (const b of requirements) {
       grand += b.estimated_total ?? 0;
     }
+
     return grand;
   }, [requirements]);
 
   const dataWithFooters = useMemo(() => {
     const list = [...requirements] as RequirementRow[];
+
     if (editingId === "new") {
       list.push({
         requirement_id: "new",
         isDraft: true,
       } as RequirementRow);
     }
+
     list.push({
       requirement_id: "footer",
       isFooter: true,
     } as RequirementRow);
+
     return list;
   }, [requirements, editingId, isApproved]);
 
@@ -41,6 +51,7 @@ export function useRequirementTableState({ requirements, editingId, isApproved, 
       transformBodyRow(props, item) {
         if (item.isFooter) {
           const hideButton = Boolean(editingId);
+
           return {
             ...props,
             children: (

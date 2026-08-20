@@ -10,12 +10,12 @@ export function QtyInputCell({ form }: BaseCellProps) {
           isLabelHidden
           label="Volume"
           placeholder="Contoh: 100"
+          statusVariant="tooltip"
           value={field.state.value}
           onChange={(v) => field.handleChange(v ?? 0)}
           onBlur={field.handleBlur}
           min={0}
           step={0.000001}
-          statusVariant="tooltip"
           status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
         />
       )}

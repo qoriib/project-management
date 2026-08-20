@@ -10,7 +10,7 @@ import type { OrderItemDetail } from "@/db/repositories";
 type TrackingRow = OrderItemDetail & Record<string, unknown>;
 
 export function OrderItemTrackingTable() {
-  const { currentItems: items, currentRequirementData: bomData } = useOrderStore();
+  const { currentItems: items } = useOrderStore();
 
   const itemColumns: TableColumn<TrackingRow>[] = [
     {
@@ -19,7 +19,6 @@ export function OrderItemTrackingTable() {
       width: proportional(2),
       renderCell: (row) => {
         const code = formatItemCode(row);
-
         return (
           <VStack gap={0.5} align="start">
             <Text weight="medium">{row.item_name}</Text>
@@ -37,83 +36,22 @@ export function OrderItemTrackingTable() {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
-      width: pixel(240),
-      renderCell: (row) => {
-        const bomItem = bomData.find((b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id);
-        const bomPrice = bomItem?.price ?? 0;
-
-        return (
-          <VStack gap={0.5} align="end">
-            <HStack gap={1} justify="end">
-              <Text weight="medium">Realisasi:</Text>
-              <Text type="code">{formatNumber(row.price)}</Text>
-            </HStack>
-            <HStack gap={1} justify="end">
-              <Text size="sm" color="secondary">
-                Rencana:
-              </Text>
-              <Text type="code" size="sm" color="secondary">
-                {formatNumber(bomPrice)}
-              </Text>
-            </HStack>
-          </VStack>
-        );
-      },
+      width: pixel(180),
+      renderCell: (row) => <Text type="code">{formatNumber(row.price)}</Text>,
     },
     {
       align: "end",
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => {
-        const bomItem = bomData.find((b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id);
-        const bomQty = bomItem?.planned_volume ?? 0;
-        return (
-          <VStack gap={0.5} align="end">
-            <HStack gap={1} justify="end">
-              <Text weight="medium">Realisasi:</Text>
-              <Text type="code">{formatNumber(row.qty, 2)}</Text>
-            </HStack>
-            <HStack gap={1} justify="end">
-              <Text size="sm" color="secondary">
-                Rencana:
-              </Text>
-              <Text type="code" size="sm" color="secondary">
-                {formatNumber(bomQty, 2)}
-              </Text>
-            </HStack>
-          </VStack>
-        );
-      },
+      renderCell: (row) => <Text type="code" weight="medium">{formatNumber(row.qty, 2)}</Text>,
     },
     {
       align: "end",
-      header: "Subtotal",
+      header: "Subtotal (Rp)",
       key: "subtotal",
-      width: pixel(240),
-      renderCell: (row) => {
-        const bomItem = bomData.find((b) => b.item_id === row.item_id && b.item_price_id === row.item_price_id);
-        const bomPrice = bomItem?.price ?? 0;
-        const totalBOM = (row.qty ?? 0) * bomPrice;
-        const totalPO = (row.qty ?? 0) * (row.price ?? 0);
-
-        return (
-          <VStack gap={0.5} align="end">
-            <HStack gap={1} justify="end">
-              <Text weight="medium">Realisasi:</Text>
-              <Text type="code">{formatNumber(totalPO)}</Text>
-            </HStack>
-            <HStack gap={1} justify="end">
-              <Text size="sm" color="secondary">
-                Rencana:
-              </Text>
-              <Text type="code" size="sm" color="secondary">
-                {formatNumber(totalBOM)}
-              </Text>
-            </HStack>
-          </VStack>
-        );
-      },
+      width: pixel(200),
+      renderCell: (row) => <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0))}</Text>,
     },
     {
       align: "end",

@@ -70,17 +70,12 @@ export function useReceiptForm({
       const projectId = selectedProjectId ?? undefined;
       await loadAllOrders(projectId);
 
-      if (projectId) {
-        useOrderStore.getState().loadRequirementReportForProject(projectId);
-      }
-
       const hasEditId = isEdit && initialEditId !== undefined;
 
       if (hasEditId) {
-        const editData = await loadReceiptEditData(initialEditId!),
-          hasData = editData !== null;
+        const editData = await loadReceiptEditData(initialEditId!)
 
-        if (hasData) {
+        if (editData !== null) {
           form.reset({
             order_id: editData!.order_id,
             receipt_code: editData!.receipt_code,

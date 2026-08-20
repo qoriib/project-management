@@ -9,19 +9,19 @@ import { handleFormError } from "@/utils/form";
 
 export function RequirementApprovalActions() {
   const showToast = useToast();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
   const projects = useMasterStore((s) => s.projects);
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const currentProject = projects.find((p) => p.project_id === selectedProjectId);
   const isApproved = currentProject?.requirements_is_approved === 1;
   const isManager = getUserRole() === AppRole.MANAGER;
 
   const [confirmType, setConfirmType] = useState<"approve" | "cancel" | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { approveProjectBOM, cancelApproveProjectBOM } = useMasterStore();
+  const [isLoading, setIsLoading] = useState(false);
 
-  if (!selectedProjectId || !currentProject) {
-    return null;
-  }
+  const { approveRequirements, cancelApproveRequirements } = useMasterStore();
+
+  if (!selectedProjectId || !currentProject) return null;
 
   if (!isManager) {
     return (
@@ -32,18 +32,18 @@ export function RequirementApprovalActions() {
   const handleConfirm = async () => {
     if (!confirmType) return;
 
-    setLoading(true);
+    setIsLoading(true);
     try {
       if (confirmType === "approve") {
-        await approveProjectBOM(selectedProjectId);
+        await approveRequirements(selectedProjectId);
       } else {
-        await cancelApproveProjectBOM(selectedProjectId);
+        await cancelApproveRequirements(selectedProjectId);
       }
       setConfirmType(null);
     } catch (err: any) {
       handleFormError(err, showToast);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -51,11 +51,11 @@ export function RequirementApprovalActions() {
 
   return (
     <>
-      {isApproved ? (
-        <Button variant="destructive" label="Batalkan Persetujuan" onClick={() => setConfirmType("cancel")} />
-      ) : (
-        <Button variant="primary" label="Setujui Rancangan" onClick={() => setConfirmType("approve")} />
-      )}
+      <Button
+        variant={isApproved ? "destructive" : "primary"}
+        label={isApproved ? "Batalkan Persetujuan" : "Setujui Rancangan"}
+        onClick={() => setConfirmType(isApproved ? "cancel" : "approve")}
+      />
       <ConfirmDialog
         isOpen={Boolean(confirmType)}
         onClose={() => setConfirmType(null)}
@@ -68,7 +68,7 @@ export function RequirementApprovalActions() {
         }
         confirmLabel={isApprove ? "Setuju" : "Batalkan Persetujuan"}
         isDestructive={!isApprove}
-        isLoading={loading}
+        isLoading={isLoading}
       />
     </>
   );

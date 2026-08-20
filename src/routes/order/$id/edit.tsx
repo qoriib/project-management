@@ -8,7 +8,7 @@ import { useOrderStore } from "@/store/useOrderStore";
 
 function POEditPage() {
   const { id } = useParams({ strict: false });
-  const { currentOrder: order, currentItems, currentRequirementData, loadOrderDetail, clearOrderDetail } = useOrderStore();
+  const { currentOrder: order, currentItems, loadOrderDetail, clearOrderDetail } = useOrderStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ function POEditPage() {
     <Section padding={6}>
       <VStack gap={6}>
         <PageHeader title="Edit Pemesanan" subtitle="Perbarui informasi dan daftar item pesanan pembelian" />
-        <OrderForm order={order} initialItems={currentItems} bomData={currentRequirementData} />
+        <OrderForm order={order} initialItems={currentItems} />
       </VStack>
     </Section>
   );

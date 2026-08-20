@@ -20,7 +20,6 @@ export async function resetDatabase(): Promise<void> {
       "po_items",
       "purchase_orders",
       "bill_of_materials",
-      "bom_groups",
       // shared tables
       "projects",
       "item_prices",

@@ -19,15 +19,13 @@ import { useOrderItemTableState } from "@/components/order/table/useOrderItemTab
 import { useTableRowIndex } from "@astryxdesign/core/Table";
 import { poSchema, buildDefaultValues } from "@/components/order/form/order.schema";
 import type { OrderItemDetail, OrderItemInput, OrderWithSummary } from "@/db/repositories";
-import type { RequirementReportItem } from "@/db/services";
 
 export interface OrderFormProps {
   order?: OrderWithSummary;
   initialItems?: OrderItemDetail[];
-  bomData: RequirementReportItem[];
 }
 
-export function OrderForm({ order, initialItems = [], bomData }: OrderFormProps) {
+export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const navigate = useNavigate();
   const showToast = useToast();
 
@@ -60,39 +58,28 @@ export function OrderForm({ order, initialItems = [], bomData }: OrderFormProps)
         if (order) {
           await updateOrder(
             order.order_id,
-            {
-              order_date: value.order_date,
-              project_id: selectedProjectId,
-              order_code: value.order_code,
-            },
+            { order_date: value.order_date, project_id: selectedProjectId, order_code: value.order_code },
             itemInputs,
           );
         } else {
           await createOrder(
-            {
-              order_date: value.order_date,
-              project_id: selectedProjectId,
-              order_code: value.order_code,
-            },
+            { order_date: value.order_date, project_id: selectedProjectId, order_code: value.order_code },
             itemInputs,
           );
         }
-
-        navigate({ to: `/order` });
+        navigate({ to: "/order" });
       } catch (error: unknown) {
         handleFormError(error, showToast);
       }
     },
   });
 
-  // Table form hooks
   const { form: tableForm, handleItemChange } = useOrderItemForm({
     initialData: editingData,
     onSubmitItem: (payload) => {
       const { items: globalItems, itemPricesMap, vendors } = useMasterStore.getState();
       const itemDef = globalItems.find((i) => i.item_id === payload.item_id);
-      const prices = itemPricesMap.get(payload.item_id) ?? [];
-      const priceDef = prices.find((p) => p.item_price_id === payload.item_price_id);
+      const priceDef = (itemPricesMap.get(payload.item_id) ?? []).find((p) => p.item_price_id === payload.item_price_id);
       const vendorDef = vendors.find((v) => v.vendor_id === payload.vendor_id);
 
       const newDetail: OrderItemDetail = {
@@ -126,7 +113,6 @@ export function OrderForm({ order, initialItems = [], bomData }: OrderFormProps)
   });
 
   const columns = useOrderItemFormColumns({
-    bomData,
     editingId,
     form: tableForm,
     handleItemChange,
@@ -153,8 +139,7 @@ export function OrderForm({ order, initialItems = [], bomData }: OrderFormProps)
 
   async function handleDelete() {
     if (!deleteTarget) return;
-    const newItems = items.filter((i) => i.order_item_id !== deleteTarget);
-    setItems(newItems);
+    setItems(items.filter((i) => i.order_item_id !== deleteTarget));
     setDeleteTarget(null);
   }
 
@@ -201,18 +186,11 @@ export function OrderForm({ order, initialItems = [], bomData }: OrderFormProps)
             data={dataWithFooters}
             idKey="order_item_id"
             plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin }}
-            emptyState={<TableEmptyState message="Belum ada item. Klik 'Tambah Kebutuhan'." />}
+            emptyState={<TableEmptyState message="Belum ada item. Klik 'Tambah Item'." />}
           />
         </Card>
         <HStack justify="end" gap={2}>
-          <Button
-            variant="secondary"
-            type="button"
-            label="Batal"
-            onClick={() => {
-              navigate({ to: "/order" });
-            }}
-          />
+          <Button variant="secondary" type="button" label="Batal" onClick={() => navigate({ to: "/order" })} />
           <form.Subscribe selector={(s) => s.canSubmit}>
             {(canSubmit) => (
               <Button
@@ -231,7 +209,7 @@ export function OrderForm({ order, initialItems = [], bomData }: OrderFormProps)
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Hapus Item Order"
-        message="Apakah Anda yakin ingin menghapus item ini dari Purchase Order?"
+        message="Apakah Anda yakin ingin menghapus item ini dari Order?"
       />
       <MasterVendorForm isOpen={isVendorFormOpen} onClose={() => setIsVendorFormOpen(false)} initialData={null} />
       <MasterItemPriceDialog

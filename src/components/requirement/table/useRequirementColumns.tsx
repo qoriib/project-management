@@ -27,7 +27,7 @@ interface UseRequirementColumnsProps {
   setIsItemFormOpen: (open: boolean) => void;
   setIsPriceFormOpen: (open: boolean) => void;
   setEditingId: (id: string | null) => void;
-  setDeleteTarget: (id: string | null) => void;
+  setDeletingId: (id: string | null) => void;
   isApproved: boolean;
 }
 
@@ -39,7 +39,7 @@ export function useRequirementColumns({
   setIsItemFormOpen,
   setIsPriceFormOpen,
   setEditingId,
-  setDeleteTarget,
+  setDeletingId,
   isApproved,
 }: UseRequirementColumnsProps) {
   const isEditing = (row: RequirementRow) => row.requirement_id === editingId || (editingId === "new" && row.isDraft);
@@ -51,7 +51,9 @@ export function useRequirementColumns({
       width: pixel(160),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) return <ItemCodeDisplayCell form={form} items={items} />;
+
         const code = formatItemCode(row);
         return code ? <EntityCode id={code} /> : "-";
       },
@@ -62,6 +64,7 @@ export function useRequirementColumns({
       width: proportional(3),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) {
           return (
             <ItemSelectorCell
@@ -72,6 +75,7 @@ export function useRequirementColumns({
             />
           );
         }
+
         return row.item_name;
       },
     },
@@ -81,8 +85,10 @@ export function useRequirementColumns({
       width: pixel(80),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) return <UnitDisplayCell form={form} items={items} />;
-        return row.unit ?? "-";
+
+        return row.unit;
       },
     },
     {
@@ -92,7 +98,9 @@ export function useRequirementColumns({
       width: pixel(140),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) return <QtyInputCell form={form} />;
+
         return <Text type="code">{formatNumber(row.qty, 6)}</Text>;
       },
     },
@@ -103,15 +111,13 @@ export function useRequirementColumns({
       width: pixel(220),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) {
           return (
-            <PriceSelectorCell
-              form={form}
-              editingId={editingId ?? ""}
-              onAddNewPrice={() => setIsPriceFormOpen(true)}
-            />
+            <PriceSelectorCell form={form} editingId={editingId ?? ""} onAddNewPrice={() => setIsPriceFormOpen(true)} />
           );
         }
+
         return <Text type="code">{formatNumber(row.price)}</Text>;
       },
     },
@@ -122,7 +128,9 @@ export function useRequirementColumns({
       width: pixel(260),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) return <SubtotalCell form={form} />;
+
         return <Text type="code">{formatNumber(row.estimated_total ?? 0)}</Text>;
       },
     },
@@ -133,6 +141,7 @@ export function useRequirementColumns({
       width: proportional(1),
       renderCell: (row) => {
         if (row.isFooter) return null;
+
         if (isEditing(row)) {
           return (
             <HStack gap={2} justify="end">
@@ -180,7 +189,7 @@ export function useRequirementColumns({
               label="Hapus"
               icon={<Trash2 size={16} />}
               isDisabled={!!editingId}
-              onClick={() => setDeleteTarget(row.requirement_id)}
+              onClick={() => setDeletingId(row.requirement_id)}
             />
           </HStack>
         );

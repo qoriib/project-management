@@ -68,8 +68,8 @@ interface MasterStore {
   createProject: (data: CreateProject) => Promise<void>;
   updateProject: (id: string, data: UpdateProject) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
-  approveProjectBOM: (id: string) => Promise<void>;
-  cancelApproveProjectBOM: (id: string) => Promise<void>;
+  approveRequirements: (id: string) => Promise<void>;
+  cancelApproveRequirements: (id: string) => Promise<void>;
 
   // Units
   createUnit: (data: CreateUnit) => Promise<void>;
@@ -202,11 +202,11 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     await projectRepo.delete(id);
     await get().reloadProjects();
   },
-  approveProjectBOM: async (id) => {
+  approveRequirements: async (id) => {
     await projectRepo.update(id, { requirements_is_approved: 1 });
     await get().reloadProjects();
   },
-  cancelApproveProjectBOM: async (id) => {
+  cancelApproveRequirements: async (id) => {
     await projectRepo.update(id, { requirements_is_approved: 0 });
     await get().reloadProjects();
   },

@@ -7,8 +7,6 @@ import {
   receiptRepo,
   orderRepo,
 } from "@/db/repositories";
-import { type RequirementReportItem, getRequirementReport } from "@/db/services";
-import { useRequirementStore } from "@/store/useRequirementStore";
 
 interface OrderStore {
   // ── States ─────────────────────────────────────────────────────────────────
@@ -16,12 +14,10 @@ interface OrderStore {
   currentOrder: OrderWithSummary | null;
   currentItems: OrderItemDetail[];
   currentReceiptItems: ReceiptItemByOrder[];
-  currentRequirementData: RequirementReportItem[];
 
   // ── Load Actions ───────────────────────────────────────────────────────────
   loadAllOrders: (projectId?: string) => Promise<void>;
   loadOrderDetail: (id: string) => Promise<void>;
-  loadRequirementReportForProject: (projectId: string) => Promise<void>;
   clearOrderDetail: () => void;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
@@ -35,77 +31,52 @@ interface OrderStore {
 }
 
 export const useOrderStore = create<OrderStore>((set, get) => ({
+  orders: [],
+  currentOrder: null,
+  currentItems: [],
+  currentReceiptItems: [],
+
   clearOrderDetail: () => {
-    set({
-      currentOrder: null,
-      currentItems: [],
-      currentReceiptItems: [],
-      currentRequirementData: [],
-    });
+    set({ currentOrder: null, currentItems: [], currentReceiptItems: [] });
   },
+
+  loadAllOrders: async (projectId) => {
+    const o = await orderRepo.findAllWithSummary({ project_id: projectId });
+    set({ orders: o });
+  },
+
+  loadOrderDetail: async (id) => {
+    const o = await orderRepo.findByIdWithSummary(id);
+    if (o) {
+      const [items, recItems] = await Promise.all([
+        orderRepo.findItems(id),
+        receiptRepo.findItemsByOrder(id),
+      ]);
+      set({ currentOrder: o, currentItems: items, currentReceiptItems: recItems });
+    } else {
+      set({ currentOrder: null, currentItems: [], currentReceiptItems: [] });
+    }
+  },
+
   createOrder: async (data, items) => {
     const orderId = await orderRepo.createWithItems(data, items);
     await get().loadAllOrders(data.project_id);
-    await useRequirementStore.getState().loadRequirements(data.project_id);
     return orderId;
   },
-  currentRequirementData: [],
-  currentReceiptItems: [],
-  currentItems: [],
-  currentOrder: null,
+
+  updateOrder: async (id, data, items) => {
+    await orderRepo.updateWithItems(id, data, items);
+    await get().loadAllOrders(data.project_id);
+    const { currentOrder } = get();
+    if (currentOrder?.order_id === id) {
+      await get().loadOrderDetail(id);
+    }
+  },
+
   deleteOrder: async (id) => {
     const { orders } = get();
     const order = orders.find((o) => o.order_id === id);
     await orderRepo.delete(id);
-    if (order) {
-      await get().loadAllOrders(order.project_id);
-      await useRequirementStore.getState().loadRequirements(order.project_id);
-    } else {
-      await get().loadAllOrders();
-    }
-  },
-  loadAllOrders: async (projectId) => {
-    const o = await orderRepo.findAllWithSummary({
-      project_id: projectId,
-    });
-    set({ orders: o });
-  },
-  loadRequirementReportForProject: async (projectId) => {
-    const reqData = await getRequirementReport(projectId);
-    set({ currentRequirementData: reqData });
-  },
-  loadOrderDetail: async (id) => {
-    const o = await orderRepo.findByIdWithSummary(id);
-    if (o) {
-      const [items, recItems, reqData] = await Promise.all([
-        orderRepo.findItems(id),
-        receiptRepo.findItemsByOrder(id),
-        getRequirementReport(o.project_id),
-      ]);
-      set({
-        currentOrder: o,
-        currentItems: items,
-        currentReceiptItems: recItems,
-        currentRequirementData: reqData,
-      });
-    } else {
-      set({
-        currentOrder: null,
-        currentItems: [],
-        currentReceiptItems: [],
-        currentRequirementData: [],
-      });
-    }
-  },
-  orders: [],
-  updateOrder: async (id, data, items) => {
-    await orderRepo.updateWithItems(id, data, items);
-    await get().loadAllOrders(data.project_id);
-    // Reload detail if it's the currently viewed Order
-    const { currentOrder } = get();
-    if (currentOrder && currentOrder.order_id === id) {
-      await get().loadOrderDetail(id);
-    }
-    await useRequirementStore.getState().loadRequirements(data.project_id);
+    await get().loadAllOrders(order?.project_id);
   },
 }));

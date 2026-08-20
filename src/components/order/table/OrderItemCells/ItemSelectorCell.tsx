@@ -1,32 +1,31 @@
 import { Selector } from "@astryxdesign/core";
 import { getFieldError } from "@/utils/form";
-import type { RequirementReportItem } from "@/db/services/report.service";
+import { useMasterStore } from "@/store/useMasterStore";
+import { useRequirementStore } from "@/store/useRequirementStore";
 import type { CellFormProps } from "./types";
 
 interface ItemSelectorCellProps extends CellFormProps {
-  bomOptions: RequirementReportItem[];
-  selectedItemIds: Set<string>;
   onChangeItem: (itemId: string) => Promise<void>;
-  editingId: string | null;
 }
 
-export function ItemSelectorCell({
-  form,
-  bomOptions,
-  selectedItemIds,
-  onChangeItem,
-  editingId,
-}: ItemSelectorCellProps) {
+export function ItemSelectorCell({ form, onChangeItem }: ItemSelectorCellProps) {
+  const { items } = useMasterStore();
+  const { requirements } = useRequirementStore();
+
+  // Set of item_ids that exist in the project's requirements
+  const requirementItemIds = new Set(requirements.map((r) => r.item_id).filter(Boolean) as string[]);
+
   return (
     <form.Field name="item_id">
       {(field) => {
-        const currentVal = field.state.value,
-          options = bomOptions
-            .filter((b) => b.item_id === currentVal || !selectedItemIds.has(b.item_id) || editingId !== "new-item")
-            .map((b) => ({
-              label: `${b.item_name} (${b.unit ?? ""})`,
-              value: b.item_id,
-            }));
+        const options = items.map((item) => {
+          const inRequirement = requirementItemIds.has(item.item_id);
+          const suffix = inRequirement ? "" : " ⚠ Tidak di Rencana";
+          return {
+            label: `${item.item_name} (${item.unit_name ?? ""})${suffix}`,
+            value: item.item_id,
+          };
+        });
 
         return (
           <Selector
@@ -37,7 +36,7 @@ export function ItemSelectorCell({
             statusVariant="tooltip"
             value={field.state.value}
             options={options}
-            onChange={(v) => onChangeItem(v)}
+            onChange={(v) => onChangeItem(v as string)}
             onBlur={field.handleBlur}
             status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
           />

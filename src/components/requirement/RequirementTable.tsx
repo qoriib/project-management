@@ -15,11 +15,11 @@ import { useRequirementTableState } from "./table/useRequirementTableState";
 export function RequirementTable() {
   const { requirements, deleteRequirement, loadRequirements } = useRequirementStore();
 
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
   const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
 
   const editingData = useMemo(
     () => (editingId && editingId !== "new" ? requirements.find((r) => r.requirement_id === editingId) : undefined),
@@ -36,13 +36,13 @@ export function RequirementTable() {
   }, [selectedProjectId, loadRequirements]);
 
   async function handleDelete() {
-    if (!deleteTarget) return;
-    setDeleting(true);
+    if (!deletingId) return;
+    setIsDeleting(true);
     try {
-      await deleteRequirement(deleteTarget);
-      setDeleteTarget(null);
+      await deleteRequirement(deletingId);
+      setDeletingId(null);
     } finally {
-      setDeleting(false);
+      setIsDeleting(false);
     }
   }
 
@@ -52,13 +52,13 @@ export function RequirementTable() {
   });
 
   const columns = useRequirementColumns({
-    editingId,
     form,
-    handleItemChange,
-    isApproved,
     items,
-    setDeleteTarget,
+    isApproved,
+    editingId,
+    setDeletingId,
     setEditingId,
+    handleItemChange,
     setIsItemFormOpen,
     setIsPriceFormOpen,
   });
@@ -81,7 +81,6 @@ export function RequirementTable() {
         plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini." />}
       />
-
       {requirements.length > 0 && (
         <HStack justify="end" paddingBlock={3}>
           <Text type="code" weight="bold" size="lg" color="primary">
@@ -89,14 +88,13 @@ export function RequirementTable() {
           </Text>
         </HStack>
       )}
-
       <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
+        isOpen={Boolean(deletingId)}
+        onClose={() => setDeletingId(null)}
         onConfirm={handleDelete}
         title="Hapus Kebutuhan"
         message="Apakah Anda yakin ingin menghapus material ini dari rencana?"
-        isLoading={deleting}
+        isLoading={isDeleting}
       />
       <MasterItemForm isOpen={isItemFormOpen} onClose={() => setIsItemFormOpen(false)} initialData={null} />
       <MasterItemPriceDialog

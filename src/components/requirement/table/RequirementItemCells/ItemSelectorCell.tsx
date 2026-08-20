@@ -17,10 +17,11 @@ export function ItemSelectorCell({ form, items, handleItemChange, onAddNewItem }
         <form.Field name="item_id">
           {(field) => (
             <Selector
+              hasSearch
               isLabelHidden
               label="Item"
-              hasSearch
               placeholder="Pilih item..."
+              statusVariant="tooltip"
               value={field.state.value}
               onChange={(v) => handleItemChange(v)}
               onBlur={field.handleBlur}
@@ -28,7 +29,6 @@ export function ItemSelectorCell({ form, items, handleItemChange, onAddNewItem }
                 label: it.item_name,
                 value: it.item_id,
               }))}
-              statusVariant="tooltip"
               status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
             />
           )}

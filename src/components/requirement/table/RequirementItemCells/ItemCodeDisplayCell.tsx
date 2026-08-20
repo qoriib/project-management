@@ -9,12 +9,12 @@ export function ItemCodeDisplayCell({ form, items }: Omit<ItemSelectorCellProps,
         const selected = items.find((i) => i.item_id === itemId);
 
         if (!selected) {
-          return <span>-</span>;
+          return "-";
         }
 
         const code = formatItemCode(selected);
 
-        return code ? <EntityCode id={code} /> : <span>-</span>;
+        return <EntityCode id={code} />;
       }}
     </form.Subscribe>
   );
