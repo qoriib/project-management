@@ -33,12 +33,12 @@ export async function generateRequirementReportExcel(
     { header: "NAMA ITEM", key: "item_name", width: 35 },
     { header: "KATEGORI", key: "category", width: 20 },
     { header: "SATUAN", key: "unit", width: 15 },
-    { header: "HARGA SATUAN", key: "price", width: 20, style: { numFmt: '#,##0.00' } },
-    { header: "QTY RENCANA", key: "planned_volume", width: 15, style: { numFmt: '#,##0.00' } },
-    { header: "ANGGARAN RENCANA", key: "planned_budget", width: 25, style: { numFmt: '#,##0.00' } },
-    { header: "QTY DIPESAN", key: "total_ordered", width: 20, style: { numFmt: '#,##0.00' } },
-    { header: "TOTAL DIPESAN", key: "total_order_price", width: 25, style: { numFmt: '#,##0.00' } },
-    { header: "QTY DITERIMA", key: "total_delivered", width: 20, style: { numFmt: '#,##0.00' } },
+    { header: "HARGA SATUAN", key: "price", width: 20, style: { numFmt: "#,##0.00" } },
+    { header: "QTY RENCANA", key: "planned_volume", width: 15, style: { numFmt: "#,##0.00" } },
+    { header: "ANGGARAN RENCANA", key: "planned_budget", width: 25, style: { numFmt: "#,##0.00" } },
+    { header: "QTY DIPESAN", key: "total_ordered", width: 20, style: { numFmt: "#,##0.00" } },
+    { header: "TOTAL DIPESAN", key: "total_order_price", width: 25, style: { numFmt: "#,##0.00" } },
+    { header: "QTY DITERIMA", key: "total_delivered", width: 20, style: { numFmt: "#,##0.00" } },
   ];
 
   // Style DETAIL header row
@@ -74,7 +74,7 @@ export async function generateRequirementReportExcel(
       total_order_price: item.total_order_price,
       total_delivered: item.total_delivered,
     });
-    
+
     // add border and align center for text
     row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
       cell.border = {
@@ -96,8 +96,8 @@ export async function generateRequirementReportExcel(
 
   // Auto filter for DETAIL
   worksheet.autoFilter = {
-    from: 'A1',
-    to: 'J1',
+    from: "A1",
+    to: "J1",
   };
 
   // 3. Create Order Worksheet
@@ -115,9 +115,9 @@ export async function generateRequirementReportExcel(
     { header: "NAMA ITEM", key: "item_name", width: 35 },
     { header: "KATEGORI", key: "category_name", width: 20 },
     { header: "SATUAN", key: "unit_name", width: 15 },
-    { header: "QTY", key: "qty", width: 15, style: { numFmt: '#,##0.00' } },
-    { header: "HARGA SATUAN", key: "price", width: 20, style: { numFmt: '#,##0.00' } },
-    { header: "TOTAL HARGA", key: "total_price", width: 20, style: { numFmt: '#,##0.00' } },
+    { header: "QTY", key: "qty", width: 15, style: { numFmt: "#,##0.00" } },
+    { header: "HARGA SATUAN", key: "price", width: 20, style: { numFmt: "#,##0.00" } },
+    { header: "TOTAL HARGA", key: "total_price", width: 20, style: { numFmt: "#,##0.00" } },
   ];
 
   const headerRowOrder = wsOrder.getRow(1);
@@ -153,7 +153,7 @@ export async function generateRequirementReportExcel(
     });
   });
 
-  wsOrder.autoFilter = { from: 'A1', to: 'J1' };
+  wsOrder.autoFilter = { from: "A1", to: "J1" };
 
   // 4. Create Receipt Worksheet
   const wsReceipt = workbook.addWorksheet("PENERIMAAN", {
@@ -171,7 +171,7 @@ export async function generateRequirementReportExcel(
     { header: "NAMA ITEM", key: "item_name", width: 35 },
     { header: "KATEGORI", key: "category_name", width: 20 },
     { header: "SATUAN", key: "unit_name", width: 15 },
-    { header: "QTY DITERIMA", key: "qty", width: 20, style: { numFmt: '#,##0.00' } },
+    { header: "QTY DITERIMA", key: "qty", width: 20, style: { numFmt: "#,##0.00" } },
   ];
 
   const headerRowReceipt = wsReceipt.getRow(1);
@@ -207,7 +207,7 @@ export async function generateRequirementReportExcel(
     });
   });
 
-  wsReceipt.autoFilter = { from: 'A1', to: 'I1' };
+  wsReceipt.autoFilter = { from: "A1", to: "I1" };
 
   // Generate buffer
   const buffer = await workbook.xlsx.writeBuffer();

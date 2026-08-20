@@ -18,4 +18,3 @@ export const OrderItemModel: ModelDefinition = {
   tableName: "order_items",
   updateColumns: ["item_id", "vendor_id", "item_price_id", "qty"],
 };
-

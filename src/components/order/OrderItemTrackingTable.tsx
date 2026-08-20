@@ -44,7 +44,11 @@ export function OrderItemTrackingTable() {
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => <Text type="code" weight="medium">{formatNumber(row.qty, 2)}</Text>,
+      renderCell: (row) => (
+        <Text type="code" weight="medium">
+          {formatNumber(row.qty, 2)}
+        </Text>
+      ),
     },
     {
       align: "end",

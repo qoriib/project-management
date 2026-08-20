@@ -177,4 +177,3 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
 }
 
 export const receiptRepo = new ReceiptRepository();
-

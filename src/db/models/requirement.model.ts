@@ -20,4 +20,3 @@ export const RequirementModel: ModelDefinition = {
   tableName: "requirements",
   updateColumns: ["item_id", "item_price_id", "qty"],
 };
-

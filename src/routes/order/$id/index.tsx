@@ -49,7 +49,11 @@ function PODetailPage() {
           actions={
             <HStack gap={2}>
               <Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/order" })} />
-              <Button variant="primary" label="Edit" onClick={() => navigate({ to: `/order/${order.order_id}/edit` })} />
+              <Button
+                variant="primary"
+                label="Edit"
+                onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
+              />
             </HStack>
           }
         />

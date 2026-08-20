@@ -3,6 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { Button, Card, HStack, VStack, Table } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
+import { Switch } from "@astryxdesign/core/Switch";
 import { useToast } from "@astryxdesign/core/Toast";
 import { getFieldError, handleFormError } from "@/utils/form";
 import { useOrderStore } from "@/store/useOrderStore";
@@ -59,12 +60,22 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         if (order) {
           await updateOrder(
             order.order_id,
-            { order_date: value.order_date, project_id: selectedProjectId, order_code: value.order_code },
+            {
+              order_date: value.order_date,
+              project_id: selectedProjectId,
+              order_code: value.order_code,
+              has_tax: value.has_tax ? 1 : 0,
+            },
             itemInputs,
           );
         } else {
           await createOrder(
-            { order_date: value.order_date, project_id: selectedProjectId, order_code: value.order_code },
+            {
+              order_date: value.order_date,
+              project_id: selectedProjectId,
+              order_code: value.order_code,
+              has_tax: value.has_tax ? 1 : 0,
+            },
             itemInputs,
           );
         }
@@ -149,8 +160,8 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   return (
     <>
       <VStack gap={6}>
-        <HStack gap={4} width={480}>
-          <VStack gap={1} width="50%">
+        <HStack gap={4}>
+          <VStack gap={1} width={240}>
             <form.Field name="order_code">
               {(field) => (
                 <TextInput
@@ -165,7 +176,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
               )}
             </form.Field>
           </VStack>
-          <VStack gap={1} width="50%">
+          <VStack gap={1} width={240}>
             <form.Field name="order_date">
               {(field) => (
                 <DateInput
@@ -176,6 +187,19 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
                   onChange={(v) => field.handleChange(v ?? "")}
                   onBlur={field.handleBlur}
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                />
+              )}
+            </form.Field>
+          </VStack>
+          <VStack gap={1} justify="center">
+            <form.Field name="has_tax">
+              {(field) => (
+                <Switch
+                  label="Ppn 12%"
+                  description="Gunakan perhitungan pajak PPn 12%"
+                  value={field.state.value}
+                  onChange={(checked) => field.handleChange(checked)}
+                  onBlur={field.handleBlur}
                 />
               )}
             </form.Field>

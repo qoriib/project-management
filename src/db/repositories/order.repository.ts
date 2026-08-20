@@ -5,12 +5,7 @@
 import { BaseRepository } from "@/db/core/base-repository";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
-import {
-  type CreateOrder,
-  type Order,
-  OrderModel,
-  type UpdateOrder,
-} from "@/db/models";
+import { type CreateOrder, type Order, OrderModel, type UpdateOrder } from "@/db/models";
 
 // ── Extended Types ───────────────────────────────────────────────────────────
 
@@ -67,7 +62,15 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
   async findAllWithSummary(filters?: OrderFilters): Promise<OrderWithSummary[]> {
     try {
       const qb = new QueryBuilder()
-        .select("o.order_id", "o.order_code", "o.project_id", "o.order_date", "o.created_at", "p.project_name")
+        .select(
+          "o.order_id",
+          "o.order_code",
+          "o.project_id",
+          "o.order_date",
+          "o.has_tax",
+          "o.created_at",
+          "p.project_name",
+        )
         .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
         .selectRaw("COALESCE(SUM(oi.qty * ip.price), 0) as total_price")
         .selectRaw("COUNT(oi.order_item_id) as item_count")
@@ -107,7 +110,15 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
    */
   async findByIdWithSummary(id: string): Promise<OrderWithSummary | null> {
     const { sql, params } = new QueryBuilder()
-        .select("o.order_id", "o.order_code", "o.project_id", "o.order_date", "o.created_at", "p.project_name")
+        .select(
+          "o.order_id",
+          "o.order_code",
+          "o.project_id",
+          "o.order_date",
+          "o.has_tax",
+          "o.created_at",
+          "p.project_name",
+        )
         .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
         .selectRaw("COALESCE(SUM(oi.qty * ip.price), 0) as total_price")
         .from("orders", "o")
@@ -178,7 +189,11 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
           it.item_price_id,
           it.qty,
         ]);
-      await this.bulkInsert("order_items", ["order_item_id", "order_id", "item_id", "vendor_id", "item_price_id", "qty"], rows);
+      await this.bulkInsert(
+        "order_items",
+        ["order_item_id", "order_id", "item_id", "vendor_id", "item_price_id", "qty"],
+        rows,
+      );
 
       return orderId;
     });
@@ -267,4 +282,3 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
 }
 
 export const orderRepo = new OrderRepository();
-

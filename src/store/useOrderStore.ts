@@ -21,10 +21,13 @@ interface OrderStore {
   clearOrderDetail: () => void;
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
-  createOrder: (data: { order_date: string; project_id: string; order_code: string }, items: OrderItemInput[]) => Promise<string>;
+  createOrder: (
+    data: { order_date: string; project_id: string; order_code: string; has_tax: number },
+    items: OrderItemInput[],
+  ) => Promise<string>;
   updateOrder: (
     id: string,
-    data: { order_date: string; project_id: string; order_code: string },
+    data: { order_date: string; project_id: string; order_code: string; has_tax: number },
     items: OrderItemInput[],
   ) => Promise<void>;
   deleteOrder: (id: string) => Promise<void>;
@@ -48,10 +51,7 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
   loadOrderDetail: async (id) => {
     const o = await orderRepo.findByIdWithSummary(id);
     if (o) {
-      const [items, recItems] = await Promise.all([
-        orderRepo.findItems(id),
-        receiptRepo.findItemsByOrder(id),
-      ]);
+      const [items, recItems] = await Promise.all([orderRepo.findItems(id), receiptRepo.findItemsByOrder(id)]);
       set({ currentOrder: o, currentItems: items, currentReceiptItems: recItems });
     } else {
       set({ currentOrder: null, currentItems: [], currentReceiptItems: [] });

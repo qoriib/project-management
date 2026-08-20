@@ -73,7 +73,7 @@ export function useReceiptForm({
       const hasEditId = isEdit && initialEditId !== undefined;
 
       if (hasEditId) {
-        const editData = await loadReceiptEditData(initialEditId!)
+        const editData = await loadReceiptEditData(initialEditId!);
 
         if (editData !== null) {
           form.reset({

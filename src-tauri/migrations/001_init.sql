@@ -82,6 +82,7 @@ CREATE TABLE `orders` (
 	`project_id` text NOT NULL,
 	`order_code` text,
 	`order_date` text NOT NULL,
+	`has_tax` integer DEFAULT 0,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
 	`deleted_at` text DEFAULT NULL,

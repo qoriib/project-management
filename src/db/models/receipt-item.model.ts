@@ -16,4 +16,3 @@ export const ReceiptItemModel: ModelDefinition = {
   tableName: "receipt_items",
   updateColumns: ["order_item_id", "qty"],
 };
-

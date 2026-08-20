@@ -12,7 +12,12 @@ interface UseOrderItemTableStateProps {
   setEditingData: (data: OrderItemDetail | undefined) => void;
 }
 
-export function useOrderItemTableState({ items, editingId, setEditingId, setEditingData }: UseOrderItemTableStateProps) {
+export function useOrderItemTableState({
+  items,
+  editingId,
+  setEditingId,
+  setEditingData,
+}: UseOrderItemTableStateProps) {
   const dataWithFooters = useMemo(() => {
     const list = [...items] as OrderItemRow[];
 

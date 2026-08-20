@@ -75,4 +75,3 @@ export type {
 // ── Error Types ──────────────────────────────────────────────────────────────
 
 export { DbError, NotFoundError, DuplicateError, ForeignKeyError, ValidationError } from "@/db/core/errors";
-

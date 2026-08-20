@@ -2,14 +2,14 @@
  * Services Barrel Export.
  */
 
-export { 
-  getRequirementReport, 
-  getItemLog, 
-  getProjectOrderReport, 
+export {
+  getRequirementReport,
+  getItemLog,
+  getProjectOrderReport,
   getProjectReceiptReport,
-  type RequirementReportItem, 
+  type RequirementReportItem,
   type ItemLogEntry,
   type OrderReportItem,
-  type ReceiptReportItem
+  type ReceiptReportItem,
 } from "./report.service";
 export { generateRequirementReportExcel } from "./excel.service";

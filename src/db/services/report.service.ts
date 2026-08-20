@@ -88,65 +88,67 @@ export async function getRequirementReport(
         .where("o.project_id", "=", projectId)
         .where("o.deleted_at", "IS NULL");
 
-      if (startDate) orderQb.where("o.order_date", ">=", startDate);
-      if (endDate) orderQb.where("o.order_date", "<=", endDate);
+    if (startDate) orderQb.where("o.order_date", ">=", startDate);
+    if (endDate) orderQb.where("o.order_date", "<=", endDate);
 
-      orderQb.groupBy("oi.item_id", "oi.item_price_id");
+    orderQb.groupBy("oi.item_id", "oi.item_price_id");
 
-      const { sql: orderSql, params: orderParams } = orderQb.build();
-      const orderAggs = await db.select<
-        {
-          item_id: string;
-          item_price_id: string;
-          total_ordered: number;
-          avg_order_price: number;
-        }[]
-      >(orderSql, orderParams);
+    const { sql: orderSql, params: orderParams } = orderQb.build();
+    const orderAggs = await db.select<
+      {
+        item_id: string;
+        item_price_id: string;
+        total_ordered: number;
+        avg_order_price: number;
+      }[]
+    >(orderSql, orderParams);
 
-      // 3. Fetch Receipt Aggregates
-      const recQb = new QueryBuilder()
-        .select("oi.item_id", "oi.item_price_id")
-        .selectRaw("SUM(ri.qty) as total_delivered")
-        .from("receipt_items", "ri")
-        .join("receipts", "r", "r.receipt_id = ri.receipt_id")
-        .join("order_items", "oi", "oi.order_item_id = ri.order_item_id")
-        .join("orders", "o", "o.order_id = oi.order_id")
-        .where("o.project_id", "=", projectId)
-        .where("r.deleted_at", "IS NULL");
+    // 3. Fetch Receipt Aggregates
+    const recQb = new QueryBuilder()
+      .select("oi.item_id", "oi.item_price_id")
+      .selectRaw("SUM(ri.qty) as total_delivered")
+      .from("receipt_items", "ri")
+      .join("receipts", "r", "r.receipt_id = ri.receipt_id")
+      .join("order_items", "oi", "oi.order_item_id = ri.order_item_id")
+      .join("orders", "o", "o.order_id = oi.order_id")
+      .where("o.project_id", "=", projectId)
+      .where("r.deleted_at", "IS NULL");
 
-      if (startDate) recQb.where("r.receipt_date", ">=", startDate);
-      if (endDate) recQb.where("r.receipt_date", "<=", endDate);
+    if (startDate) recQb.where("r.receipt_date", ">=", startDate);
+    if (endDate) recQb.where("r.receipt_date", "<=", endDate);
 
-      recQb.groupBy("oi.item_id", "oi.item_price_id");
-      const { sql: recSql, params: recParams } = recQb.build();
-      const recAggs = await db.select<{
+    recQb.groupBy("oi.item_id", "oi.item_price_id");
+    const { sql: recSql, params: recParams } = recQb.build();
+    const recAggs = await db.select<
+      {
         item_id: string;
         item_price_id: string;
         total_delivered: number;
-      }[]>(recSql, recParams);
+      }[]
+    >(recSql, recParams);
 
-      // 4. Build remaining map
-      const itemAgg = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
-      for (const agg of orderAggs) {
-        itemAgg.set(`${agg.item_id}-${agg.item_price_id}`, {
-          avgPrice: agg.avg_order_price || 0,
-          delivered: 0,
-          ordered: agg.total_ordered || 0,
+    // 4. Build remaining map
+    const itemAgg = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
+    for (const agg of orderAggs) {
+      itemAgg.set(`${agg.item_id}-${agg.item_price_id}`, {
+        avgPrice: agg.avg_order_price || 0,
+        delivered: 0,
+        ordered: agg.total_ordered || 0,
+      });
+    }
+
+    for (const agg of recAggs) {
+      const key = `${agg.item_id}-${agg.item_price_id}`;
+      if (itemAgg.has(key)) {
+        itemAgg.get(key)!.delivered = agg.total_delivered || 0;
+      } else {
+        itemAgg.set(key, {
+          avgPrice: 0,
+          delivered: agg.total_delivered || 0,
+          ordered: 0,
         });
       }
-
-      for (const agg of recAggs) {
-        const key = `${agg.item_id}-${agg.item_price_id}`;
-        if (itemAgg.has(key)) {
-          itemAgg.get(key)!.delivered = agg.total_delivered || 0;
-        } else {
-          itemAgg.set(key, {
-            avgPrice: 0,
-            delivered: agg.total_delivered || 0,
-            ordered: 0,
-          });
-        }
-      }
+    }
 
     // 4. Attach to Requirements
     for (const row of reqs) {
@@ -261,7 +263,7 @@ export async function getProjectOrderReport(
         "c.category_name",
         "u.unit_name",
         "oi.qty",
-        "ip.price"
+        "ip.price",
       )
       .selectRaw("oi.qty * ip.price as total_price")
       .from("order_items", "oi")
@@ -315,7 +317,7 @@ export async function getProjectReceiptReport(
         "i.item_name",
         "c.category_name",
         "u.unit_name",
-        "ri.qty"
+        "ri.qty",
       )
       .from("receipt_items", "ri")
       .join("receipts", "r", "r.receipt_id = ri.receipt_id")
@@ -339,4 +341,3 @@ export async function getProjectReceiptReport(
     throw wrapDbError(error, "receipt_report");
   }
 }
-

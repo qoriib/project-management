@@ -14,15 +14,21 @@ class NodeDatabaseWrapper {
     // Node:sqlite expects standard SQL parameter bindings ($1, $2) or named parameters
     // Let's replace $1, $2 with ? if node:sqlite requires it.
     // Actually, node:sqlite supports ? out of the box, but let's convert $1, $2 to ? to match standard SQL syntax or just map them.
-    const normalizedSql = sql.replaceAll(/\$\d+/g, "?"),
-      statement = this.db.prepare(normalizedSql);
+    const normalizedSql = sql.replaceAll(/\$\d+/g, "?");
+    const statement = this.db.prepare(normalizedSql);
+
     return statement.all(...params) as T;
   }
 
+  async exec(sql: string): Promise<void> {
+    this.db.exec(sql);
+  }
+
   async execute(sql: string, params: any[] = []): Promise<{ lastInsertId: number; rowsAffected: number }> {
-    const normalizedSql = sql.replaceAll(/\$\d+/g, "?"),
-      statement = this.db.prepare(normalizedSql),
-      result = statement.run(...params);
+    const normalizedSql = sql.replaceAll(/\$\d+/g, "?");
+    const statement = this.db.prepare(normalizedSql);
+    const result = statement.run(...params);
+
     return {
       lastInsertId: Number(result.lastInsertRowid),
       rowsAffected: Number(result.changes),
@@ -32,11 +38,7 @@ class NodeDatabaseWrapper {
 
 let _nodeDb: NodeDatabaseWrapper | null = null;
 
-export function getLocalNodeDb(): NodeDatabaseWrapper {
-  if (_nodeDb) {
-    return _nodeDb;
-  }
-
+export function getDbPath(): string {
   const appIdentifier = "com.laman.project";
   let baseDir = "";
 
@@ -48,7 +50,13 @@ export function getLocalNodeDb(): NodeDatabaseWrapper {
     baseDir = path.join(os.homedir(), ".local", "share");
   }
 
-  const dbPath = path.join(baseDir, appIdentifier, DB_NAME);
+  return path.join(baseDir, appIdentifier, DB_NAME);
+}
+
+export function getLocalNodeDb(): NodeDatabaseWrapper {
+  if (_nodeDb) return _nodeDb;
+
+  const dbPath = getDbPath();
   console.log("Connecting node:sqlite to:", dbPath);
   _nodeDb = new NodeDatabaseWrapper(dbPath);
   return _nodeDb;
