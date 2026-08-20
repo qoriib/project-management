@@ -2,13 +2,14 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Section, Text, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { LoadingState } from "@/components/shared/LoadingState";
 import { POForm } from "@/components/po/POForm";
 import { usePOStore } from "@/store/usePOStore";
 import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function POEditPage() {
-  const { id } = useParams({ strict: false })
-  const { currentPO: po, currentItems, currentBOMData, loadPODetail, clearPODetail } = usePOStore()
+  const { id } = useParams({ strict: false });
+  const { currentPO: po, currentItems, currentBOMData, loadPODetail, clearPODetail } = usePOStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,17 +27,13 @@ function POEditPage() {
   }, [id, loadPODetail, clearPODetail]);
 
   if (loading) {
-    return (
-      <Section padding={6}>
-        <Text color="secondary">Memuat data PO…</Text>
-      </Section>
-    );
+    return <LoadingState message="Memuat data PO…" />;
   }
 
   if (!po) {
     return (
       <Section padding={6}>
-        <Text color="secondary">PO tidak ditemukan.</Text>
+        <Text color="secondary">Pemesanan tidak ditemukan.</Text>
       </Section>
     );
   }

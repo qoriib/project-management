@@ -11,15 +11,16 @@ import {
   VStack,
 } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { LoadingState } from "@/components/shared/LoadingState";
 import { usePOStore } from "@/store/usePOStore";
 import { POItemTrackingTable } from "@/components/po/POItemTrackingTable";
 import { PODeliveryLogTable } from "@/components/po/PODeliveryLogTable";
 import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function PODetailPage() {
-  const navigate = useNavigate()
-  const { id } = useParams({ strict: false })
-  const { currentPO: po, loadPODetail, clearPODetail } = usePOStore()
+  const navigate = useNavigate();
+  const { id } = useParams({ strict: false });
+  const { currentPO: po, loadPODetail, clearPODetail } = usePOStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,17 +38,13 @@ function PODetailPage() {
   }, [id, loadPODetail, clearPODetail]);
 
   if (loading) {
-    return (
-      <Section padding={6}>
-        <Text color="secondary">Memuat data PO…</Text>
-      </Section>
-    );
+    return <LoadingState message="Memuat data PO…" />;
   }
 
   if (!po) {
     return (
       <Section padding={6}>
-        <Text color="secondary">PO tidak ditemukan.</Text>
+        <Text color="secondary">Pemesanan tidak ditemukan.</Text>
       </Section>
     );
   }

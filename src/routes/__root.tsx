@@ -1,7 +1,7 @@
 import { Outlet, createRootRoute, redirect, useLocation } from "@tanstack/react-router";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { AppShell, Text, VStack, useToast } from "@astryxdesign/core";
+import { AppShell, useToast } from "@astryxdesign/core";
 import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { getDB } from "@/db";
@@ -10,6 +10,7 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { APP, getUserRole } from "@/configs/app.config";
 import { checkIsAuthenticated } from "@/db/services/auth.service";
 import { AppSideNav } from "@/components/shared/AppSideNav";
+import { LoadingState } from "@/components/shared/LoadingState";
 
 function RootComponent() {
   const location = useLocation();
@@ -65,11 +66,7 @@ function AppLayout() {
   }, [setDbReady, showToast]);
 
   if (!dbReady) {
-    return (
-      <VStack gap={2} align="center" justify="center" height="100vh">
-        <Text color="secondary">Memuat database…</Text>
-      </VStack>
-    );
+    return <LoadingState message="Memuat database…" />;
   }
 
   return (

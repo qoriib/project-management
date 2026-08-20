@@ -1,4 +1,4 @@
-import { Spinner, Text, VStack } from "@astryxdesign/core";
+import { Center, Spinner, Text, VStack } from "@astryxdesign/core";
 
 interface LoadingStateProps {
   message?: string;
@@ -6,11 +6,11 @@ interface LoadingStateProps {
 
 export function LoadingState({ message = "Memuat data..." }: LoadingStateProps) {
   return (
-    <VStack align="center" justify="center" padding={8} style={{ flex: 1 }}>
-      <Spinner size="md" />
-      <Text color="secondary" style={{ marginTop: 8 }}>
-        {message}
-      </Text>
-    </VStack>
+    <Center padding={8} height="100%" width="100%">
+      <VStack align="center" gap={2}>
+        <Spinner size="md" />
+        <Text color="secondary">{message}</Text>
+      </VStack>
+    </Center>
   );
 }
