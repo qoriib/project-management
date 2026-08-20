@@ -144,7 +144,7 @@ export function POItemTrackingTable() {
   const rowIndexPlugin = useTableRowIndex({
     data: items as TrackingRow[],
     getRowKey: (item) => item.po_item_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

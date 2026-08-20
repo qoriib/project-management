@@ -146,7 +146,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
   const rowIndexPlugin = useTableRowIndex({
     data: prices as PriceRow[],
     getRowKey: (item) => item.item_price_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

@@ -90,7 +90,7 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: vendors as VendorRow[],
     getRowKey: (item) => item.vendor_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

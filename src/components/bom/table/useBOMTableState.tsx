@@ -162,7 +162,7 @@ export function useBOMTableState({ boms, bomGroups, editingId, isApproved, setEd
   const rowIndexPlugin = useTableRowIndex<BomRow>({
     data: boms as BomRow[],
     getRowKey: (item) => String(item.bom_id),
-    label: "No.",
+    label: "#",
   });
 
   return {

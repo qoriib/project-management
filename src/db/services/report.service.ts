@@ -35,7 +35,11 @@ export interface BOMReportItem {
 /**
  * Generate the full BOM fulfillment report for a project.
  */
-export async function getBOMReport(projectId: string): Promise<BOMReportItem[]> {
+export async function getBOMReport(
+  projectId: string,
+  startDate?: string,
+  endDate?: string,
+): Promise<BOMReportItem[]> {
   try {
     const db = await getDB(),
       // 1. Fetch BOMs with joined details (price resolved from item_prices)
@@ -82,38 +86,72 @@ export async function getBOMReport(projectId: string): Promise<BOMReportItem[]> 
       poQb = new QueryBuilder()
         .select("poi.item_id", "poi.item_price_id")
         .selectRaw("SUM(poi.qty) as total_ordered")
-        .selectRaw("SUM(d.total_delivered) as total_delivered")
         .selectRaw("COALESCE(SUM(poi.qty * ip.price) / NULLIF(SUM(poi.qty), 0), 0) as avg_po_price")
         .from("po_items", "poi")
         .join("purchase_orders", "po", "po.po_id = poi.po_id")
         .join("item_prices", "ip", "ip.item_price_id = poi.item_price_id")
-        .leftJoin(
-          "(SELECT po_item_id, SUM(qty) as total_delivered FROM delivery_items GROUP BY po_item_id)",
-          "d",
-          "d.po_item_id = poi.po_item_id",
-        )
         .where("po.project_id", "=", projectId)
-        .where("po.deleted_at", "IS NULL")
-        .groupBy("poi.item_id", "poi.item_price_id"),
-      { sql: poSql, params: poParams } = poQb.build(),
-      poAggs = await db.select<
+        .where("po.deleted_at", "IS NULL");
+
+      if (startDate) poQb.where("po.po_date", ">=", startDate);
+      if (endDate) poQb.where("po.po_date", "<=", endDate);
+
+      poQb.groupBy("poi.item_id", "poi.item_price_id");
+
+      const { sql: poSql, params: poParams } = poQb.build();
+      const poAggs = await db.select<
         {
           item_id: string;
           item_price_id: string;
           total_ordered: number;
-          total_delivered: number;
           avg_po_price: number;
         }[]
-      >(poSql, poParams),
-      // 3. Build remaining map
-      itemAgg = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
-    for (const agg of poAggs) {
-      itemAgg.set(`${agg.item_id}-${agg.item_price_id}`, {
-        avgPrice: agg.avg_po_price || 0,
-        delivered: agg.total_delivered || 0,
-        ordered: agg.total_ordered || 0,
-      });
-    }
+      >(poSql, poParams);
+
+      // 3. Fetch Delivery Aggregates
+      const delQb = new QueryBuilder()
+        .select("poi.item_id", "poi.item_price_id")
+        .selectRaw("SUM(di.qty) as total_delivered")
+        .from("delivery_items", "di")
+        .join("deliveries", "d", "d.delivery_id = di.delivery_id")
+        .join("po_items", "poi", "poi.po_item_id = di.po_item_id")
+        .join("purchase_orders", "po", "po.po_id = poi.po_id")
+        .where("po.project_id", "=", projectId)
+        .where("d.deleted_at", "IS NULL");
+
+      if (startDate) delQb.where("d.delivery_date", ">=", startDate);
+      if (endDate) delQb.where("d.delivery_date", "<=", endDate);
+
+      delQb.groupBy("poi.item_id", "poi.item_price_id");
+      const { sql: delSql, params: delParams } = delQb.build();
+      const delAggs = await db.select<{
+        item_id: string;
+        item_price_id: string;
+        total_delivered: number;
+      }[]>(delSql, delParams);
+
+      // 4. Build remaining map
+      const itemAgg = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
+      for (const agg of poAggs) {
+        itemAgg.set(`${agg.item_id}-${agg.item_price_id}`, {
+          avgPrice: agg.avg_po_price || 0,
+          delivered: 0,
+          ordered: agg.total_ordered || 0,
+        });
+      }
+
+      for (const agg of delAggs) {
+        const key = `${agg.item_id}-${agg.item_price_id}`;
+        if (itemAgg.has(key)) {
+          itemAgg.get(key)!.delivered = agg.total_delivered || 0;
+        } else {
+          itemAgg.set(key, {
+            avgPrice: 0,
+            delivered: agg.total_delivered || 0,
+            ordered: 0,
+          });
+        }
+      }
 
     // 4. Attach to BOMs
     for (const row of boms) {

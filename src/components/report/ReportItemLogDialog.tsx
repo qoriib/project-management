@@ -67,7 +67,7 @@ export function ReportItemLogDialog({
   const rowIndexPlugin = useTableRowIndex({
     data: logs as LogRow[],
     getRowKey: (item) => item.reference,
-    label: "No.",
+    label: "#",
   });
 
   return (

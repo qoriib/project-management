@@ -3,7 +3,7 @@ import { vendorRepo } from "@/db/repositories";
 export async function seedVendors(): Promise<void> {
   const vendors = [
     {
-      address: "Jl. Pembangunan Raya No. 12, Jakarta",
+      address: "Jl. Pembangunan Raya # 12, Jakarta",
       phone: "081234567890",
       vendor_name: "TB. Sinar Bangunan",
     },
@@ -13,12 +13,12 @@ export async function seedVendors(): Promise<void> {
       vendor_name: "PT. Baja Jaya Nusantara",
     },
     {
-      address: "Jl. Raya Bogor No. 88, Depok",
+      address: "Jl. Raya Bogor # 88, Depok",
       phone: "085677788899",
       vendor_name: "CV. Sumber Pasir",
     },
     {
-      address: "Jl. Merdeka No. 45, Bandung",
+      address: "Jl. Merdeka # 45, Bandung",
       phone: "081912312312",
       vendor_name: "Toko Cat Warna Indah",
     },
@@ -33,7 +33,7 @@ export async function seedVendors(): Promise<void> {
       vendor_name: "Sewa Alat Berat Nusantara",
     },
     {
-      address: "Jl. Serpong Raya No. 10, Tangerang",
+      address: "Jl. Serpong Raya # 10, Tangerang",
       phone: "021-8889990",
       vendor_name: "Depo Bangunan Mandiri",
     },

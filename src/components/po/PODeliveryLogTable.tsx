@@ -17,7 +17,7 @@ export function PODeliveryLogTable() {
 
   const deliveryColumns: TableColumn<LogRow>[] = [
     {
-      header: "No. NP",
+      header: "# NP",
       key: "delivery_id",
       width: pixel(160),
       renderCell: (row) => <EntityCode id={row.delivery_code ?? row.delivery_id} />,
@@ -66,7 +66,7 @@ export function PODeliveryLogTable() {
   const rowIndexPlugin = useTableRowIndex({
     data: deliveryItems as LogRow[],
     getRowKey: (item) => item.delivery_item_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

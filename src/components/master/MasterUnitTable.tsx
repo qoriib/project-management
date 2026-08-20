@@ -92,7 +92,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: unitRows as UnitRow[],
     getRowKey: (item) => item.unit_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

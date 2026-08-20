@@ -56,7 +56,7 @@ export function ReportBOMTable({ report, loading, onLogClick }: ReportBOMTablePr
   const rowIndexPlugin = useTableRowIndex({
     data: enrichedReport,
     getRowKey: (item) => item.unique_id,
-    label: "No.",
+    label: "#",
   });
 
   const columns: TableColumn<EnrichedReportItem>[] = [

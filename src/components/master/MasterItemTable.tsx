@@ -105,7 +105,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: items as ItemRow[],
     getRowKey: (item) => item.item_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

@@ -20,7 +20,7 @@ export function usePOTableColumns({ onEdit, setDeleteTarget }: UsePOTableColumns
 
   const columns: TableColumn<PORow>[] = [
     {
-      header: "No. PO",
+      header: "# PO",
       key: "po_code",
       width: pixel(180),
       renderCell: (row: PORow) => <EntityCode id={row.po_code} />,

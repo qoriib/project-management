@@ -165,7 +165,7 @@ export function BOMGroupDialog({ isOpen, onClose, project }: BOMGroupDialogProps
   const rowIndexPlugin = useTableRowIndex({
     data: bomGroups as GroupRow[],
     getRowKey: (item) => item.bom_group_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

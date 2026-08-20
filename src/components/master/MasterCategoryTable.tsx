@@ -106,7 +106,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: categoryRows as CategoryRow[],
     getRowKey: (item) => item.category_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

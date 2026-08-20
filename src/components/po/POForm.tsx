@@ -148,7 +148,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
   const rowIndexPlugin = useTableRowIndex<POItemRow>({
     data: items as POItemRow[],
     getRowKey: (item) => item.po_item_id,
-    label: "No.",
+    label: "#",
   });
 
   async function handleDelete() {

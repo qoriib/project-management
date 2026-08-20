@@ -47,7 +47,7 @@ export function POTable({ onEdit }: POTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: pos as PORow[],
     getRowKey: (item) => item.po_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

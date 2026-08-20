@@ -16,7 +16,7 @@ export function useDeliveryColumns({ setDeleteTarget }: UseDeliveryColumnsProps)
 
   const columns: TableColumn<DeliveryRow>[] = [
     {
-      header: "No. Penerimaan",
+      header: "# Penerimaan",
       key: "delivery_id",
       width: pixel(180),
       renderCell: (row) => <EntityCode id={row.delivery_code} />,

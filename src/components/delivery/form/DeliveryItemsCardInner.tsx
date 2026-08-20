@@ -83,7 +83,7 @@ export function DeliveryItemsCardInner({ form, items }: DeliveryItemsCardInnerPr
   const rowIndexPlugin = useTableRowIndex({
     data: items,
     getRowKey: (item) => item.po_item_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

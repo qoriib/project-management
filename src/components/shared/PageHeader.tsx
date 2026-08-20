@@ -10,7 +10,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
     <HStack gap={4} align="start">
-      <VStack gap={0.5} style={{ flex: 1 }}>
+      <VStack gap={0.5} width="100%">
         <Heading level={2}>{title}</Heading>
         {subtitle && <Text color="secondary">{subtitle}</Text>}
       </VStack>

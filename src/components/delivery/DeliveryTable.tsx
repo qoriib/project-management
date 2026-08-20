@@ -34,7 +34,7 @@ export function DeliveryTable() {
   const rowIndexPlugin = useTableRowIndex({
     data: deliveries as DeliveryRow[],
     getRowKey: (item) => item.delivery_id,
-    label: "No.",
+    label: "#",
   });
 
   return (

@@ -104,7 +104,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: projects as ProjectRow[],
     getRowKey: (item) => item.project_id,
-    label: "No.",
+    label: "#",
   });
 
   return (
