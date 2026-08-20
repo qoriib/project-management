@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Table } from "@astryxdesign/core";
-import { useTableRowIndex } from "@astryxdesign/core/Table";
+
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { type PORow, useOrderTableColumns } from "./table/useOrderTableColumns";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface OrderTableProps {
   onEdit: (id: string) => void;

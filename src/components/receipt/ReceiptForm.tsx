@@ -9,8 +9,9 @@ import { ReceiptQtyCell } from "./form/ReceiptQtyCell";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatItemCode, formatNumber } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
-import { Table, type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
+import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { ReceiptFormProps, ReceiptItemRow } from "./form/receipt.schema";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 export type { ReceiptFormProps };
 

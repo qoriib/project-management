@@ -5,12 +5,14 @@ export const requirementSchema = v.object({
   item_id: v.pipe(v.string(), v.nonEmpty("Material harus dipilih.")),
   item_price_id: v.pipe(v.string(), v.nonEmpty("Pilih harga terlebih dahulu.")),
   qty: v.pipe(v.number(), v.minValue(0, "Volume tidak boleh negatif.")),
+  has_tax: v.boolean(),
 });
 
 export interface RequirementFormValues {
   item_id: string;
   qty: number;
   item_price_id: string;
+  has_tax: boolean;
 }
 
 export function buildDefaultValues(initialData?: RequirementDetail): RequirementFormValues {
@@ -18,6 +20,7 @@ export function buildDefaultValues(initialData?: RequirementDetail): Requirement
     item_id: initialData?.item_id ?? "",
     qty: initialData?.qty ? Number(initialData.qty) : 0,
     item_price_id: initialData?.item_price_id ?? "",
+    has_tax: Boolean(initialData?.has_tax),
   };
 }
 

@@ -7,14 +7,15 @@ export interface OrderItem {
   vendor_id: string;
   item_price_id: string;
   qty: number;
+  has_tax: number;
 }
 
 export type CreateOrderItem = Omit<OrderItem, "order_item_id">;
 
 export const OrderItemModel: ModelDefinition = {
-  createColumns: ["order_id", "item_id", "vendor_id", "item_price_id", "qty"],
+  createColumns: ["order_id", "item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
   primaryKey: "order_item_id",
   softDelete: false,
   tableName: "order_items",
-  updateColumns: ["item_id", "vendor_id", "item_price_id", "qty"],
+  updateColumns: ["item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
 };

@@ -11,7 +11,7 @@ function BOMPage() {
       <VStack style={{ minHeight: "calc(100vh - 48px)" }}>
         <VStack gap={4} style={{ flex: 1 }}>
           <PageHeader
-            title="Rencana Kebutuhan (Requirement)"
+            title="Rencana Kebutuhan (BOM)"
             subtitle="Rincian item yang dibutuhkan untuk proyek ini"
             actions={<RequirementApprovalActions />}
           />

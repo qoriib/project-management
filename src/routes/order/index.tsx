@@ -24,7 +24,7 @@ function POListPage() {
     <Section padding={6}>
       <VStack gap={4}>
         <PageHeader
-          title="Daftar Pemesanan (Order)"
+          title="Daftar Pemesanan (PO)"
           subtitle="Manajemen dan pelacakan seluruh pemesanan"
           actions={
             selectedProjectId && isValidProject ? (

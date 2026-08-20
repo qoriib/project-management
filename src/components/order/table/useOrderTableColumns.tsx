@@ -20,7 +20,7 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
 
   const columns: TableColumn<PORow>[] = [
     {
-      header: "# Order",
+      header: "No. PO",
       key: "order_code",
       width: pixel(180),
       renderCell: (row: PORow) => <EntityCode id={row.order_code} />,
@@ -32,7 +32,7 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
       renderCell: (row: PORow) => <Timestamp value={row.order_date} format="system_date" size="base" />,
     },
     {
-      header: "Vendor Pemasok",
+      header: "Vendor",
       key: "vendor_names",
       width: proportional(3),
       renderCell: (row: PORow) => (

@@ -24,6 +24,7 @@ export function useOrderItemForm({ initialData, onSuccess, onSubmitItem }: Order
             vendor_id: value.vendor_id,
             item_price_id: value.item_price_id,
             qty: value.qty,
+            has_tax: value.has_tax ? 1 : 0,
           };
 
           onSubmitItem(payload);

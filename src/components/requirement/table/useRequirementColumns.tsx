@@ -1,5 +1,5 @@
 import { Check, Pencil, Trash2, X } from "lucide-react";
-import { HStack, IconButton, Text } from "@astryxdesign/core";
+import { Badge, HStack, IconButton, Switch, Text } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { useRequirementForm } from "@/components/requirement/form/useRequirementForm";
@@ -108,7 +108,7 @@ export function useRequirementColumns({
       align: "end",
       header: "Harga Rencana (Rp)",
       key: "price",
-      width: pixel(220),
+      width: pixel(200),
       renderCell: (row) => {
         if (row.isFooter) return null;
 
@@ -125,13 +125,97 @@ export function useRequirementColumns({
       align: "end",
       header: "Subtotal (Rp)",
       key: "subtotal",
-      width: pixel(260),
+      width: pixel(180),
       renderCell: (row) => {
         if (row.isFooter) return null;
 
         if (isEditing(row)) return <SubtotalCell form={form} />;
 
-        return <Text type="code">{formatNumber(row.estimated_total ?? 0)}</Text>;
+        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
+        return <Text type="code">{formatNumber(subtotal)}</Text>;
+      },
+    },
+    {
+      align: "center",
+      header: "PPn (12%)",
+      key: "has_tax",
+      width: pixel(100),
+      renderCell: (row) => {
+        if (row.isFooter) return null;
+
+        if (isEditing(row)) {
+          return (
+            <form.Field name="has_tax">
+              {(field) => (
+                <Switch
+                  label="PPn"
+                  isLabelHidden
+                  value={field.state.value}
+                  onChange={(checked) => field.handleChange(checked)}
+                  onBlur={field.handleBlur}
+                />
+              )}
+            </form.Field>
+          );
+        }
+
+        return row.has_tax ? (
+          <Badge label="12%" variant="blue" />
+        ) : (
+          <Text size="sm" color="secondary">
+            -
+          </Text>
+        );
+      },
+    },
+    {
+      align: "end",
+      header: "Total (Rp)",
+      key: "total",
+      width: pixel(180),
+      renderCell: (row) => {
+        if (row.isFooter) return null;
+
+        if (isEditing(row)) {
+          return (
+            <form.Subscribe
+              selector={(s) => ({
+                itemId: s.values.item_id,
+                priceId: s.values.item_price_id,
+                qty: s.values.qty,
+                hasTax: s.values.has_tax,
+              })}
+            >
+              {({ qty, priceId, itemId, hasTax }) => {
+                let priceNum = 0;
+                if (itemId && priceId) {
+                  const item = items.find((i) => i.item_id === itemId);
+                  if (item) {
+                    const priceDef = (item as any).prices?.find(
+                      (p: any) => String(p.item_price_id) === String(priceId),
+                    );
+                    if (priceDef) priceNum = priceDef.price;
+                  }
+                }
+                const sub = (qty || 0) * priceNum;
+                const total = hasTax ? sub * 1.12 : sub;
+                return (
+                  <Text type="code" weight="bold">
+                    {formatNumber(total)}
+                  </Text>
+                );
+              }}
+            </form.Subscribe>
+          );
+        }
+
+        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
+        const total = row.has_tax ? subtotal * 1.12 : subtotal;
+        return (
+          <Text type="code" weight="bold">
+            {formatNumber(total)}
+          </Text>
+        );
       },
     },
     {

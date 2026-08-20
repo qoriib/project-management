@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Button, Section, VStack } from "@astryxdesign/core";
+import { IconButton, Section, VStack } from "@astryxdesign/core";
 import { Download } from "lucide-react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
@@ -86,7 +86,7 @@ function DashboardPage() {
                   setEndDate(end);
                 }}
               />
-              <Button
+              <IconButton
                 variant="secondary"
                 label="Export Excel"
                 icon={<Download size={16} />}

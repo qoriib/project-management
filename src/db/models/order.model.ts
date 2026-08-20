@@ -5,18 +5,17 @@ export interface Order {
   project_id: string;
   order_code: string;
   order_date: string;
-  has_tax: number;
   created_at: string;
   deleted_at: string | null;
 }
 
-export type CreateOrder = Pick<Order, "order_date" | "project_id" | "order_code" | "has_tax">;
+export type CreateOrder = Pick<Order, "order_date" | "project_id" | "order_code">;
 export type UpdateOrder = Partial<CreateOrder>;
 
 export const OrderModel: ModelDefinition = {
-  createColumns: ["project_id", "order_date", "order_code", "has_tax"],
+  createColumns: ["project_id", "order_date", "order_code"],
   primaryKey: "order_id",
   softDelete: true,
   tableName: "orders",
-  updateColumns: ["project_id", "order_date", "order_code", "has_tax"],
+  updateColumns: ["project_id", "order_date", "order_code"],
 };

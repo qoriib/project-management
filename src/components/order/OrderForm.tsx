@@ -3,7 +3,6 @@ import { useForm } from "@tanstack/react-form";
 import { Button, Card, HStack, VStack, Table } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
-import { Switch } from "@astryxdesign/core/Switch";
 import { useToast } from "@astryxdesign/core/Toast";
 import { getFieldError, handleFormError } from "@/utils/form";
 import { useOrderStore } from "@/store/useOrderStore";
@@ -17,8 +16,8 @@ import { MasterVendorForm } from "@/components/master/MasterVendorForm";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
 import { useOrderItemTableState } from "@/components/order/table/useOrderItemTableState";
-import { useTableRowIndex } from "@astryxdesign/core/Table";
 import { poSchema, buildDefaultValues } from "@/components/order/form/order.schema";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { OrderItemDetail, OrderItemInput, OrderWithSummary } from "@/db/repositories";
 
 export interface OrderFormProps {
@@ -54,6 +53,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         vendor_id: i.vendor_id,
         item_price_id: i.item_price_id,
         qty: i.qty,
+        has_tax: i.has_tax ? 1 : 0,
       }));
 
       try {
@@ -64,7 +64,6 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
               order_date: value.order_date,
               project_id: selectedProjectId,
               order_code: value.order_code,
-              has_tax: value.has_tax ? 1 : 0,
             },
             itemInputs,
           );
@@ -74,7 +73,6 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
               order_date: value.order_date,
               project_id: selectedProjectId,
               order_code: value.order_code,
-              has_tax: value.has_tax ? 1 : 0,
             },
             itemInputs,
           );
@@ -107,6 +105,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         order_item_id: editingData ? editingData.order_item_id : `draft-${Date.now()}`,
         price: priceDef?.price ?? 0,
         qty: payload.qty,
+        has_tax: payload.has_tax ? 1 : 0,
         remaining: payload.qty,
         total_delivered: 0,
         unit: itemDef?.unit_name ?? "",
@@ -187,19 +186,6 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
                   onChange={(v) => field.handleChange(v ?? "")}
                   onBlur={field.handleBlur}
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                />
-              )}
-            </form.Field>
-          </VStack>
-          <VStack gap={1} justify="center">
-            <form.Field name="has_tax">
-              {(field) => (
-                <Switch
-                  label="Ppn 12%"
-                  description="Gunakan perhitungan pajak PPn 12%"
-                  value={field.state.value}
-                  onChange={(checked) => field.handleChange(checked)}
-                  onBlur={field.handleBlur}
                 />
               )}
             </form.Field>

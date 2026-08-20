@@ -22,12 +22,12 @@ interface OrderStore {
 
   // ── CRUD Wrappers ──────────────────────────────────────────────────────────
   createOrder: (
-    data: { order_date: string; project_id: string; order_code: string; has_tax: number },
+    data: { order_date: string; project_id: string; order_code: string },
     items: OrderItemInput[],
   ) => Promise<string>;
   updateOrder: (
     id: string,
-    data: { order_date: string; project_id: string; order_code: string; has_tax: number },
+    data: { order_date: string; project_id: string; order_code: string },
     items: OrderItemInput[],
   ) => Promise<void>;
   deleteOrder: (id: string) => Promise<void>;

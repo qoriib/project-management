@@ -25,6 +25,7 @@ export interface OrderItemDetail {
   /** Resolved price from joined item_prices */
   price: number;
   qty: number;
+  has_tax?: number;
   item_name?: string;
   category_prefix?: string;
   category_code?: string;
@@ -47,6 +48,7 @@ export interface OrderItemInput {
   vendor_id: string | null;
   item_price_id: string;
   qty: number;
+  has_tax?: number;
 }
 
 // ── Repository ───────────────────────────────────────────────────────────────
@@ -62,17 +64,11 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
   async findAllWithSummary(filters?: OrderFilters): Promise<OrderWithSummary[]> {
     try {
       const qb = new QueryBuilder()
-        .select(
-          "o.order_id",
-          "o.order_code",
-          "o.project_id",
-          "o.order_date",
-          "o.has_tax",
-          "o.created_at",
-          "p.project_name",
-        )
+        .select("o.order_id", "o.order_code", "o.project_id", "o.order_date", "o.created_at", "p.project_name")
         .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
-        .selectRaw("COALESCE(SUM(oi.qty * ip.price), 0) as total_price")
+        .selectRaw(
+          "COALESCE(SUM(oi.qty * ip.price * (CASE WHEN oi.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price",
+        )
         .selectRaw("COUNT(oi.order_item_id) as item_count")
         .from("orders", "o")
         .leftJoin("projects", "p", "p.project_id = o.project_id")
@@ -110,17 +106,11 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
    */
   async findByIdWithSummary(id: string): Promise<OrderWithSummary | null> {
     const { sql, params } = new QueryBuilder()
-        .select(
-          "o.order_id",
-          "o.order_code",
-          "o.project_id",
-          "o.order_date",
-          "o.has_tax",
-          "o.created_at",
-          "p.project_name",
-        )
+        .select("o.order_id", "o.order_code", "o.project_id", "o.order_date", "o.created_at", "p.project_name")
         .selectRaw("GROUP_CONCAT(DISTINCT v.vendor_name) as vendor_names")
-        .selectRaw("COALESCE(SUM(oi.qty * ip.price), 0) as total_price")
+        .selectRaw(
+          "COALESCE(SUM(oi.qty * ip.price * (CASE WHEN oi.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price",
+        )
         .from("orders", "o")
         .leftJoin("projects", "p", "p.project_id = o.project_id")
         .leftJoin("order_items", "oi", "oi.order_id = o.order_id")
@@ -151,6 +141,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
         "oi.vendor_id",
         "oi.item_price_id",
         "oi.qty",
+        "oi.has_tax",
         "ip.price",
         "i.item_name",
         "i.item_code",
@@ -188,10 +179,11 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
           it.vendor_id ?? null,
           it.item_price_id,
           it.qty,
+          it.has_tax ? 1 : 0,
         ]);
       await this.bulkInsert(
         "order_items",
-        ["order_item_id", "order_id", "item_id", "vendor_id", "item_price_id", "qty"],
+        ["order_item_id", "order_id", "item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
         rows,
       );
 
@@ -231,18 +223,26 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
           it.vendor_id ?? null,
           it.item_price_id,
           it.qty,
+          it.has_tax ? 1 : 0,
         ]);
         await this.bulkInsert(
           "order_items",
-          ["order_item_id", "order_id", "item_id", "vendor_id", "item_price_id", "qty"],
+          ["order_item_id", "order_id", "item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
           rows,
         );
       }
 
       for (const item of existingItems) {
         await this.rawExecute(
-          "UPDATE order_items SET item_id = $1, vendor_id = $2, item_price_id = $3, qty = $4 WHERE order_item_id = $5",
-          [item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty, item.order_item_id],
+          "UPDATE order_items SET item_id = $1, vendor_id = $2, item_price_id = $3, qty = $4, has_tax = $5 WHERE order_item_id = $6",
+          [
+            item.item_id ?? null,
+            item.vendor_id ?? null,
+            item.item_price_id,
+            item.qty,
+            item.has_tax ? 1 : 0,
+            item.order_item_id,
+          ],
         );
       }
     });
@@ -254,9 +254,17 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
   async createItem(orderId: string, item: Omit<OrderItemInput, "order_item_id">): Promise<string> {
     const orderItemId = this.generateId();
     await this.rawExecute(
-      `INSERT INTO order_items (order_item_id, order_id, item_id, vendor_id, item_price_id, qty)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [orderItemId, orderId, item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty],
+      `INSERT INTO order_items (order_item_id, order_id, item_id, vendor_id, item_price_id, qty, has_tax)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        orderItemId,
+        orderId,
+        item.item_id ?? null,
+        item.vendor_id ?? null,
+        item.item_price_id,
+        item.qty,
+        item.has_tax ? 1 : 0,
+      ],
     );
     return orderItemId;
   }
@@ -267,9 +275,9 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
   async updateItem(orderItemId: string, item: OrderItemInput): Promise<void> {
     await this.rawExecute(
       `UPDATE order_items 
-       SET item_id = $1, vendor_id = $2, item_price_id = $3, qty = $4 
-       WHERE order_item_id = $5`,
-      [item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty, orderItemId],
+       SET item_id = $1, vendor_id = $2, item_price_id = $3, qty = $4, has_tax = $5 
+       WHERE order_item_id = $6`,
+      [item.item_id ?? null, item.vendor_id ?? null, item.item_price_id, item.qty, item.has_tax ? 1 : 0, orderItemId],
     );
   }
 

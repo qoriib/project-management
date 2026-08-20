@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import { Button } from "@astryxdesign/core";
 import { Plus } from "lucide-react";
-import { type TablePlugin, TableCell, useTableRowIndex } from "@astryxdesign/core/Table";
+import { type TablePlugin, TableCell } from "@astryxdesign/core/Table";
 import type { RequirementRow } from "./useRequirementColumns";
 import type { RequirementDetail } from "@/db/repositories";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface UseRequirementTableStateProps {
   requirements: RequirementDetail[];
@@ -22,7 +23,12 @@ export function useRequirementTableState({
     let grand = 0;
 
     for (const b of requirements) {
-      grand += b.estimated_total ?? 0;
+      if (b.estimated_total != null) {
+        grand += b.estimated_total;
+      } else {
+        const sub = (b.qty ?? 0) * (b.price ?? 0);
+        grand += b.has_tax === 1 ? sub * 1.12 : sub;
+      }
     }
 
     return grand;

@@ -45,6 +45,7 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
           "r.item_id",
           "r.item_price_id",
           "r.qty",
+          "r.has_tax",
           "r.created_at",
           "ip.price",
           "i.item_name",
@@ -55,7 +56,7 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
           "c.category_code",
           "p.project_name",
         )
-        .selectRaw("(r.qty * ip.price) as estimated_total")
+        .selectRaw("(r.qty * ip.price * (CASE WHEN r.has_tax = 1 THEN 1.12 ELSE 1.0 END)) as estimated_total")
         .from("requirements", "r")
         .leftJoin("item_prices", "ip", "ip.item_price_id = r.item_price_id")
         .leftJoin("items", "i", "i.item_id = r.item_id")

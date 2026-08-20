@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { Badge, HStack, IconButton, Table, Text, VStack } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
-import { type TableColumn, pixel, proportional, useTableGroupedRows, useTableRowIndex } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableGroupedRows } from "@astryxdesign/core/Table";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { Eye } from "lucide-react";
 import { EntityCode } from "@/components/shared/EntityCode";
 import type { RequirementReportItem } from "@/db/services";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface ReportRequirementTableProps {
   report: RequirementReportItem[];
@@ -93,9 +94,9 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       renderCell: (r) => {
         const poPrice = r.total_ordered > 0 ? r.total_order_price / r.total_ordered : 0;
         const plannedPrice = r.price ?? 0;
-        const isOver = poPrice > plannedPrice;
-        const isUnder = poPrice > 0 && poPrice < plannedPrice;
-        const color = isOver ? "var(--color-error, #d32f2f)" : isUnder ? "var(--color-success, #2e7d32)" : undefined;
+        const isOver = !r.is_unplanned && poPrice > plannedPrice;
+        const isUnder = !r.is_unplanned && poPrice > 0 && poPrice < plannedPrice;
+        const color = isOver ? "var(--color-error)" : isUnder ? "var(--color-success)" : undefined;
 
         return (
           <VStack gap={0.5} align="end">
@@ -110,7 +111,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
                 Rencana:
               </Text>
               <Text type="code" size="sm" color="secondary">
-                {formatNumber(r.price ?? 0)}
+                {r.is_unplanned ? "-" : formatNumber(r.price ?? 0)}
               </Text>
             </HStack>
           </VStack>
@@ -133,7 +134,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
               Rencana:
             </Text>
             <Text type="code" size="sm" color="secondary">
-              {formatNumber(r.planned_volume, 2)}
+              {r.is_unplanned ? "-" : formatNumber(r.planned_volume, 2)}
             </Text>
           </HStack>
         </VStack>
@@ -147,8 +148,8 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       renderCell: (r) => {
         const poTotal = r.total_order_price ?? 0;
         const plannedTotal = r.planned_budget ?? 0;
-        const isOver = poTotal > plannedTotal;
-        const isUnder = poTotal > 0 && poTotal < plannedTotal;
+        const isOver = !r.is_unplanned && poTotal > plannedTotal;
+        const isUnder = !r.is_unplanned && poTotal > 0 && poTotal < plannedTotal;
         const color = isOver ? "var(--color-error, #d32f2f)" : isUnder ? "var(--color-success, #2e7d32)" : undefined;
 
         return (
@@ -164,7 +165,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
                 Rencana:
               </Text>
               <Text type="code" size="sm" color="secondary">
-                {formatNumber(r.planned_budget ?? 0)}
+                {r.is_unplanned ? "-" : formatNumber(r.planned_budget ?? 0)}
               </Text>
             </HStack>
           </VStack>
@@ -173,10 +174,18 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
     },
     {
       align: "end",
-      header: "Dipesan (Order)",
+      header: "Dipesan (PO)",
       key: "ordered",
       width: proportional(1),
       renderCell: (r) => {
+        if (r.is_unplanned) {
+          return (
+            <Text size="sm" color="secondary">
+              -
+            </Text>
+          );
+        }
+
         const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
         const isOver = percent > 100;
         const isComplete = Math.round(percent) === 100 && !isOver;
@@ -201,6 +210,14 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       key: "delivered",
       width: proportional(1),
       renderCell: (r) => {
+        if (r.is_unplanned) {
+          return (
+            <Text size="sm" color="secondary">
+              -
+            </Text>
+          );
+        }
+
         const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
         const isOver = percent > 100;
         const isComplete = Math.round(percent) === 100 && !isOver;
@@ -236,7 +253,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
   if (report.length === 0 && !loading) {
     return (
       <VStack align="center" padding={8}>
-        <Text color="secondary">Belum ada Kebutuhan (Requirement) untuk proyek ini.</Text>
+        <Text color="secondary">Belum ada Kebutuhan (BOM) untuk proyek ini.</Text>
       </VStack>
     );
   }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Code, Dialog, HStack, Heading, IconButton, Table, Text, Timestamp, VStack } from "@astryxdesign/core";
-import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
 import { type ItemLogEntry, getItemLog } from "@/db/services";
 import { X } from "lucide-react";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface LogRow extends ItemLogEntry, Record<string, unknown> {}
 

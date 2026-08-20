@@ -6,8 +6,9 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
-import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { Vendor } from "@/db/repositories";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface MasterVendorTableProps {
   onEdit: (vendor: Vendor) => void;

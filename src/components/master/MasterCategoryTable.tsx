@@ -7,8 +7,9 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
-import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { ItemCategory } from "@/db/repositories";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface MasterCategoryTableProps {
   onEdit: (category: ItemCategory) => void;

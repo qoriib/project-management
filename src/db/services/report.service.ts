@@ -27,6 +27,7 @@ export interface RequirementReportItem {
   total_ordered: number;
   total_delivered: number;
   total_order_price: number;
+  is_unplanned?: boolean;
 }
 
 // ── Service ──────────────────────────────────────────────────────────────────
@@ -55,7 +56,7 @@ export async function getRequirementReport(
           "ip.price",
         )
         .selectRaw("SUM(r.qty) as planned_volume")
-        .selectRaw("SUM(r.qty * ip.price) as planned_budget")
+        .selectRaw("SUM(r.qty * ip.price * (CASE WHEN r.has_tax = 1 THEN 1.12 ELSE 1.0 END)) as planned_budget")
         .from("requirements", "r")
         .join("items", "i", "i.item_id = r.item_id")
         .join("item_prices", "ip", "ip.item_price_id = r.item_price_id")
@@ -81,7 +82,9 @@ export async function getRequirementReport(
       orderQb = new QueryBuilder()
         .select("oi.item_id", "oi.item_price_id")
         .selectRaw("SUM(oi.qty) as total_ordered")
-        .selectRaw("COALESCE(SUM(oi.qty * ip.price) / NULLIF(SUM(oi.qty), 0), 0) as avg_order_price")
+        .selectRaw(
+          "COALESCE(SUM(oi.qty * ip.price * (CASE WHEN oi.has_tax = 1 THEN 1.12 ELSE 1.0 END)) / NULLIF(SUM(oi.qty), 0), 0) as avg_order_price",
+        )
         .from("order_items", "oi")
         .join("orders", "o", "o.order_id = oi.order_id")
         .join("item_prices", "ip", "ip.item_price_id = oi.item_price_id")
@@ -128,9 +131,19 @@ export async function getRequirementReport(
     >(recSql, recParams);
 
     // 4. Build remaining map
-    const itemAgg = new Map<string, { ordered: number; delivered: number; avgPrice: number }>();
+    interface AggEntry {
+      itemId: string;
+      itemPriceId: string;
+      ordered: number;
+      delivered: number;
+      avgPrice: number;
+    }
+    const itemAgg = new Map<string, AggEntry>();
     for (const agg of orderAggs) {
-      itemAgg.set(`${agg.item_id}-${agg.item_price_id}`, {
+      const key = `${agg.item_id}:::${agg.item_price_id}`;
+      itemAgg.set(key, {
+        itemId: agg.item_id,
+        itemPriceId: agg.item_price_id,
         avgPrice: agg.avg_order_price || 0,
         delivered: 0,
         ordered: agg.total_ordered || 0,
@@ -138,11 +151,13 @@ export async function getRequirementReport(
     }
 
     for (const agg of recAggs) {
-      const key = `${agg.item_id}-${agg.item_price_id}`;
+      const key = `${agg.item_id}:::${agg.item_price_id}`;
       if (itemAgg.has(key)) {
         itemAgg.get(key)!.delivered = agg.total_delivered || 0;
       } else {
         itemAgg.set(key, {
+          itemId: agg.item_id,
+          itemPriceId: agg.item_price_id,
           avgPrice: 0,
           delivered: agg.total_delivered || 0,
           ordered: 0,
@@ -151,9 +166,11 @@ export async function getRequirementReport(
     }
 
     // 4. Attach to Requirements
+    const matchedKeys = new Set<string>();
     for (const row of reqs) {
-      const key = `${row.item_id}-${row.item_price_id}`,
+      const key = `${row.item_id}:::${row.item_price_id}`,
         agg = itemAgg.get(key);
+      matchedKeys.add(key);
       if (!agg) {
         row.total_ordered = 0;
         row.total_delivered = 0;
@@ -165,6 +182,70 @@ export async function getRequirementReport(
       row.total_delivered = agg.delivered;
       row.total_order_price = agg.ordered * agg.avgPrice;
     }
+
+    // 5. Append Unplanned items
+    const missingKeys = Array.from(itemAgg.keys()).filter((k) => !matchedKeys.has(k));
+    if (missingKeys.length > 0) {
+      const missingEntries = missingKeys.map((k) => itemAgg.get(k)!);
+      const missingItemIds = Array.from(new Set(missingEntries.map((e) => e.itemId)));
+      const missingPriceIds = Array.from(new Set(missingEntries.map((e) => e.itemPriceId)));
+
+      const missingQb = new QueryBuilder()
+        .select(
+          "i.item_id",
+          "ip.item_price_id",
+          "i.item_code",
+          "c.prefix as category_prefix",
+          "c.category_code",
+          "i.item_name",
+          "c.category_name as category",
+          "u.unit_name as unit",
+          "ip.price",
+        )
+        .from("items", "i")
+        .join("item_prices", "ip", "ip.item_id = i.item_id")
+        .leftJoin("item_categories", "c", "i.category_id = c.category_id")
+        .leftJoin("units", "u", "i.unit_id = u.unit_id")
+        .where("i.item_id", "IN" as any, missingItemIds)
+        .where("ip.item_price_id", "IN" as any, missingPriceIds);
+
+      const { sql: missingSql, params: missingParams } = missingQb.build();
+      const missingItems = await db.select<any[]>(missingSql, missingParams);
+
+      for (const entry of missingEntries) {
+        const itemInfo = missingItems.find(
+          (mi) => mi.item_id === entry.itemId && String(mi.item_price_id) === String(entry.itemPriceId),
+        );
+
+        reqs.push({
+          item_id: entry.itemId,
+          item_price_id: entry.itemPriceId,
+          item_code: itemInfo?.item_code ?? "",
+          category_prefix: itemInfo?.category_prefix,
+          category_code: itemInfo?.category_code,
+          item_name: itemInfo?.item_name ?? "Item Tidak Dikenal",
+          category: itemInfo?.category ?? "LAINNYA",
+          unit: itemInfo?.unit ?? "-",
+          price: itemInfo?.price ?? 0,
+          planned_volume: 0,
+          planned_budget: 0,
+          total_ordered: entry.ordered,
+          total_delivered: entry.delivered,
+          total_order_price: entry.ordered * entry.avgPrice,
+          is_unplanned: true,
+        });
+      }
+    }
+
+    reqs.sort((a, b) => {
+      const catA = a.category ?? "LAINNYA";
+      const catB = b.category ?? "LAINNYA";
+      if (catA < catB) return -1;
+      if (catA > catB) return 1;
+      const nameA = a.item_name ?? "";
+      const nameB = b.item_name ?? "";
+      return nameA.localeCompare(nameB);
+    });
 
     return reqs;
   } catch (error) {
@@ -238,11 +319,14 @@ export interface OrderReportItem {
   order_date: string;
   vendor_name: string | null;
   item_code: string;
+  category_prefix?: string;
+  category_code?: string;
   item_name: string;
   category_name: string | null;
   unit_name: string | null;
   qty: number;
   price: number;
+  has_tax: number;
   total_price: number;
 }
 
@@ -259,13 +343,16 @@ export async function getProjectOrderReport(
         "o.order_date",
         "v.vendor_name",
         "i.item_code",
+        "c.prefix as category_prefix",
+        "c.category_code",
         "i.item_name",
         "c.category_name",
         "u.unit_name",
         "oi.qty",
         "ip.price",
+        "oi.has_tax",
       )
-      .selectRaw("oi.qty * ip.price as total_price")
+      .selectRaw("oi.qty * ip.price * (CASE WHEN oi.has_tax = 1 THEN 1.12 ELSE 1.0 END) as total_price")
       .from("order_items", "oi")
       .join("orders", "o", "o.order_id = oi.order_id")
       .join("items", "i", "i.item_id = oi.item_id")
@@ -294,6 +381,8 @@ export interface ReceiptReportItem {
   order_code: string;
   vendor_name: string | null;
   item_code: string;
+  category_prefix?: string;
+  category_code?: string;
   item_name: string;
   category_name: string | null;
   unit_name: string | null;
@@ -314,6 +403,8 @@ export async function getProjectReceiptReport(
         "o.order_code",
         "v.vendor_name",
         "i.item_code",
+        "c.prefix as category_prefix",
+        "c.category_code",
         "i.item_name",
         "c.category_name",
         "u.unit_name",

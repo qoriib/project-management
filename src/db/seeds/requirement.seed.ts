@@ -6,6 +6,7 @@ interface SeedRequirementRaw {
   /** Used to match against item_prices.price to find the correct item_price_id */
   price: number;
   qty: number;
+  hasTax?: boolean;
 }
 
 export async function seedRequirements(): Promise<void> {
@@ -239,6 +240,7 @@ export async function seedRequirements(): Promise<void> {
         item_price_id: matchedPrice.item_price_id,
         project_id: projectId,
         qty: b.qty,
+        has_tax: b.hasTax ? 1 : 0,
       });
     }
   }

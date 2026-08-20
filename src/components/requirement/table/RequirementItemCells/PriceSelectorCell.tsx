@@ -1,5 +1,5 @@
 import { HStack, IconButton, Selector, VStack } from "@astryxdesign/core";
-import { Plus } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { formatNumber } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -44,7 +44,7 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId: _ }: PriceSe
             </VStack>
             <IconButton
               variant="secondary"
-              icon={<Plus size={16} />}
+              icon={<MoreHorizontal size={16} />}
               label="Tambah Harga Baru"
               onClick={onAddNewPrice}
               isDisabled={!itemId}

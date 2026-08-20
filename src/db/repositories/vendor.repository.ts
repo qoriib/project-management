@@ -20,7 +20,7 @@ class VendorRepository extends BaseRepository<Vendor, CreateVendor, UpdateVendor
   async findAllSorted(): Promise<VendorWithRelation[]> {
     const qb = new QueryBuilder()
         .select("v.*")
-        .selectRaw("(EXISTS(SELECT 1 FROM po_items WHERE vendor_id = v.vendor_id)) as has_relation")
+        .selectRaw("(EXISTS(SELECT 1 FROM order_items WHERE vendor_id = v.vendor_id)) as has_relation")
         .from("vendors v")
         .where("v.deleted_at", "IS NULL")
         .orderBy("v.vendor_name", "ASC"),

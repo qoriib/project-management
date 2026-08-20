@@ -6,8 +6,9 @@ import { formatNumber } from "@/utils/formatters";
 import { useOrderStore } from "@/store/useOrderStore";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { Table, type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
+import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { ReceiptItemByOrder } from "@/db/repositories";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 type LogRow = ReceiptItemByOrder & Record<string, unknown>;
 
@@ -17,7 +18,7 @@ export function OrderReceiptLogTable() {
 
   const receiptColumns: TableColumn<LogRow>[] = [
     {
-      header: "# NP",
+      header: "No. NP",
       key: "receipt_id",
       width: pixel(160),
       renderCell: (row) => <EntityCode id={row.receipt_code ?? row.receipt_id} />,

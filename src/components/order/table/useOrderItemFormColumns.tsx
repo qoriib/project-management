@@ -1,5 +1,5 @@
 import { Check, Pencil, Trash2, X } from "lucide-react";
-import { HStack, IconButton, Text, VStack } from "@astryxdesign/core";
+import { Badge, HStack, IconButton, Switch, Text } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -9,8 +9,8 @@ import {
   QtyInputCell,
   VendorSelectorCell,
   SubtotalCell,
-  ItemCodeDisplayCell,
   UnitDisplayCell,
+  ItemCodeDisplayCell,
 } from "@/components/order/table/OrderItemCells";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
@@ -48,34 +48,30 @@ export function useOrderItemFormColumns({
 
   const columns: TableColumn<OrderItemRow>[] = [
     {
-      header: "Item",
-      key: "item",
+      header: "Kode Item",
+      key: "item_code_full",
+      width: pixel(160),
+      renderCell: (row) => {
+        if (row.isFooter) return null;
+
+        if (isEditing(row)) return <ItemCodeDisplayCell form={form} />;
+
+        const code = formatItemCode(row);
+        return code ? <EntityCode id={code} /> : "-";
+      },
+    },
+    {
+      header: "Nama Item",
+      key: "item_name",
       width: proportional(2),
       renderCell: (row) => {
         if (row.isFooter) return null;
 
         if (isEditing(row)) {
-          return (
-            <VStack gap={1} align="start" width="100%">
-              <ItemSelectorCell form={form} onChangeItem={handleItemChange as (itemId: string) => Promise<void>} />
-              <ItemCodeDisplayCell form={form} />
-            </VStack>
-          );
+          return <ItemSelectorCell form={form} onChangeItem={handleItemChange as (itemId: string) => Promise<void>} />;
         }
 
-        const code = formatItemCode(row);
-        return (
-          <VStack gap={1} align="start">
-            <Text weight="medium">{row.item_name}</Text>
-            {code ? (
-              <EntityCode id={code} />
-            ) : (
-              <Text size="sm" color="secondary">
-                -
-              </Text>
-            )}
-          </VStack>
-        );
+        return <Text weight="medium">{row.item_name}</Text>;
       },
     },
     {
@@ -94,7 +90,7 @@ export function useOrderItemFormColumns({
     {
       header: "Vendor",
       key: "vendor",
-      width: pixel(240),
+      width: pixel(260),
       renderCell: (row) => {
         if (row.isFooter) return null;
 
@@ -145,6 +141,87 @@ export function useOrderItemFormColumns({
         if (isEditing(row)) return <SubtotalCell form={form} />;
 
         return <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0))}</Text>;
+      },
+    },
+    {
+      align: "center",
+      header: "PPn (12%)",
+      key: "has_tax",
+      width: pixel(100),
+      renderCell: (row) => {
+        if (row.isFooter) return null;
+
+        if (isEditing(row)) {
+          return (
+            <form.Field name="has_tax">
+              {(field) => (
+                <Switch
+                  label="PPn"
+                  isLabelHidden
+                  value={field.state.value}
+                  onChange={(checked) => field.handleChange(checked)}
+                  onBlur={field.handleBlur}
+                />
+              )}
+            </form.Field>
+          );
+        }
+
+        return row.has_tax ? (
+          <Badge label="12%" variant="blue" />
+        ) : (
+          <Text size="sm" color="secondary">
+            -
+          </Text>
+        );
+      },
+    },
+    {
+      align: "end",
+      header: "Total (Rp)",
+      key: "total",
+      width: pixel(180),
+      renderCell: (row) => {
+        if (row.isFooter) return null;
+
+        if (isEditing(row)) {
+          return (
+            <form.Subscribe
+              selector={(s) => ({
+                itemId: s.values.item_id,
+                priceId: s.values.item_price_id,
+                qty: s.values.qty,
+                hasTax: s.values.has_tax,
+              })}
+            >
+              {({ qty, priceId, itemId, hasTax }) => {
+                let priceNum = 0;
+                if (itemId && priceId) {
+                  const prices = useMasterStore.getState().itemPricesMap.get(itemId) ?? [];
+                  const priceObj = prices.find((p) => String(p.item_price_id) === String(priceId));
+                  if (priceObj) {
+                    priceNum = priceObj.price;
+                  }
+                }
+                const sub = (qty || 0) * priceNum;
+                const total = hasTax ? sub * 1.12 : sub;
+                return (
+                  <Text type="code" weight="bold">
+                    {formatNumber(total)}
+                  </Text>
+                );
+              }}
+            </form.Subscribe>
+          );
+        }
+
+        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
+        const total = row.has_tax ? subtotal * 1.12 : subtotal;
+        return (
+          <Text type="code" weight="bold">
+            {formatNumber(total)}
+          </Text>
+        );
       },
     },
     {

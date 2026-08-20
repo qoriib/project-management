@@ -31,6 +31,7 @@ export function useRequirementForm({ initialData, onSuccess }: RequirementFormPr
           item_id: value.item_id,
           qty: value.qty,
           item_price_id: value.item_price_id,
+          has_tax: value.has_tax ? 1 : 0,
         };
 
         if (initialData) {

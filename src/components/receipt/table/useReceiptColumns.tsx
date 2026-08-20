@@ -16,7 +16,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
 
   const columns: TableColumn<ReceiptRow>[] = [
     {
-      header: "# Penerimaan",
+      header: "No. NP",
       key: "receipt_id",
       width: pixel(180),
       renderCell: (row) => <EntityCode id={row.receipt_code} />,

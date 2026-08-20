@@ -17,12 +17,12 @@ export const APP = {
     {
       icon: ClipboardList,
       label: "Kebutuhan (BOM)",
-      href: "/bom",
+      href: "/requirement",
     },
     {
       label: "Pemesanan (PO)",
       icon: ShoppingCart,
-      href: "/po",
+      href: "/order",
     },
     {
       label: "Penerimaan (NP)",

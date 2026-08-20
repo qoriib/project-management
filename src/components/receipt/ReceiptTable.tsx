@@ -3,8 +3,9 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import { Table, useTableRowIndex } from "@astryxdesign/core/Table";
+import { Table } from "@astryxdesign/core/Table";
 import { type ReceiptRow, useReceiptColumns } from "./table/useReceiptColumns";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 export function ReceiptTable() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
