@@ -137,14 +137,7 @@ export function useBOMTableState({
           return {
             ...props,
             children: (
-              <td
-                colSpan={999}
-                style={{
-                  background: "var(--color-bg-base)",
-                  borderBottom: "1px solid var(--color-border)",
-                  padding: "8px 16px",
-                }}
-              >
+              <td colSpan={999}>
                 {!hideButton && !isApproved && (
                   <Button
                     variant="secondary"

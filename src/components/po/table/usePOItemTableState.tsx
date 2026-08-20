@@ -39,14 +39,7 @@ export function usePOItemTableState({
           return {
             ...props,
             children: (
-              <td
-                colSpan={999}
-                style={{
-                  background: "var(--color-bg-base)",
-                  borderBottom: "1px solid var(--color-border)",
-                  padding: "8px 12px",
-                }}
-              >
+              <td colSpan={999}>
                 {!hideButton && (
                   <Button
                     variant="secondary"

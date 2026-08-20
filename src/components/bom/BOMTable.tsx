@@ -115,7 +115,7 @@ export function BOMTable() {
           />
         )}
         {boms.length > 0 && (
-          <HStack justify="end" gap={2} style={{ flex: 1 }}>
+          <HStack justify="end" gap={2} width="100%">
             <Text type="code" weight="bold" size="lg" color="primary">
               {formatNumber(grandTotal)}
             </Text>

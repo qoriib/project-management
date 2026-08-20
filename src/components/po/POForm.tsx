@@ -147,7 +147,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
     <>
       <VStack gap={6}>
         <HStack gap={4} width={480}>
-          <VStack gap={1} style={{ flex: 1 }}>
+          <VStack gap={1} width="50%">
             <form.Field name="po_code">
               {(field) => (
                 <TextInput
@@ -163,7 +163,7 @@ export function POForm({ po, initialItems = [], bomData }: POFormProps) {
               )}
             </form.Field>
           </VStack>
-          <VStack gap={1} style={{ flex: 1 }}>
+          <VStack gap={1} width="50%">
             <form.Field name="po_date">
               {(field) => (
                 <DateInput
