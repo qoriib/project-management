@@ -84,13 +84,14 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
   }, [isOpen, initialData, nextItemCode, categories, units]);
 
   const categoryOptions = categories.map((category) => ({
-      label: category.category_name,
-      value: String(category.category_id),
-    })),
-    unitOptions = units.map((unit) => ({
-      label: unit.unit_name,
-      value: String(unit.unit_id),
-    }));
+    label: category.category_name,
+    value: String(category.category_id),
+  }));
+
+  const unitOptions = units.map((unit) => ({
+    label: unit.unit_name,
+    value: String(unit.unit_id),
+  }));
 
   return (
     <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
