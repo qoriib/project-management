@@ -1,5 +1,5 @@
 import { VStack, TextInput } from "@astryxdesign/core";
-import { formatNumber, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
+import { sanitizeDecimalInput } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import type { ReceiptItemRow } from "./receipt.schema";
 import type { useReceiptForm } from "./useReceiptForm";
@@ -14,25 +14,14 @@ interface ReceiptQtyCellProps {
  * Cell input volume yang diterima untuk satu baris item receipt.
  * Menampilkan error dari dua sumber: level-row (v.custom) dan level-field (onChange validator).
  */
-export function ReceiptQtyCell({ form, row, idx }: ReceiptQtyCellProps) {
+export function ReceiptQtyCell({ form, idx }: ReceiptQtyCellProps) {
   return (
     <VStack gap={0.5}>
       <form.Field name={`items[${idx}]`}>
         {(field) => {
           const rowErr = getFieldError(field.state.meta.errors, field.state.meta.isTouched);
           return (
-            <form.Field
-              name={`items[${idx}].qty`}
-              validators={{
-                onChange: ({ value }) => {
-                  const val = parseDecimalInput(value as string | number);
-                  if (val > (row.remaining || 0)) {
-                    return `Melebihi sisa Order (${formatNumber(row.remaining)}).`;
-                  }
-                  return;
-                },
-              }}
-            >
+            <form.Field name={`items[${idx}].qty`}>
               {(qtyField) => {
                 const qtyErr = getFieldError(qtyField.state.meta.errors, qtyField.state.meta.isTouched);
 
