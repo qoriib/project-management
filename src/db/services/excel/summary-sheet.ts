@@ -1,6 +1,7 @@
 import type * as ExcelJS from "exceljs";
 import type { ExecutiveSummaryContext } from "./types";
 import { FORMAL_STYLE, BORDER_ALL_LIGHT, BORDER_ALL_THIN, BORDER_ACCOUNTING_TOTAL, createFormalKop } from "./styles";
+import { formatItemCode } from "@/utils/formatters";
 
 /**
  * Format ISO date string (YYYY-MM-DD) to DD/MM/YYYY.
@@ -25,26 +26,18 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
   });
 
   const COLUMNS = [
-    { header: "NO.", key: "no", width: 6 },
-    { header: "MATERIAL", key: "material", width: 36 },
-    { header: "VOLUME PLAFOND MATERIAL", key: "plafond_vol", width: 20 },
-    { header: "TANGGAL PERMINTAAN", key: "order_date", width: 18 },
-    { header: "VOLUME PERMINTAAN", key: "order_vol", width: 18 },
-    { header: "TANGGAL PENERIMAAN", key: "receipt_date", width: 18 },
-    { header: "VOLUME PENERIMAAN", key: "receipt_vol", width: 18 },
-    { header: "VOLUME PENERIMAAN DARI AWAL S/D MINGGU INI", key: "cumulative_delivered", width: 26 },
-    {
-      header: "SISA VOLUME PLAFOND (Volume Plafond Material Dikurangin Volume Penerimaan S/D Minggu Ini)",
-      key: "sisa_plafond",
-      width: 26,
-    },
-    { header: "VOLUME KONTRAK", key: "contract_vol", width: 18 },
-    {
-      header: "SISA VOLUME DARI KONTRAK (Volume Kontrak Dikurangi Volume Penerimaan Dari Awal S/D Minggu Ini)",
-      key: "sisa_kontrak_pct",
-      width: 26,
-    },
-    { header: "KETERANGAN", key: "keterangan", width: 34 },
+    { header: "NO", key: "no", width: 6 },
+    { header: "KODE ITEM", key: "item_code", width: 16 },
+    { header: "URAIAN MATERIAL / BARANG", key: "item_name", width: 36 },
+    { header: "SATUAN", key: "unit", width: 10 },
+    { header: "VOL. KONTRAK / PLAFOND", key: "contract_vol", width: 22 },
+    { header: "TGL. PERMINTAAN", key: "order_date", width: 18 },
+    { header: "VOL. PERMINTAAN", key: "order_vol", width: 18 },
+    { header: "TGL. PENERIMAAN", key: "receipt_date", width: 18 },
+    { header: "VOL. PENERIMAAN", key: "receipt_vol", width: 18 },
+    { header: "KUMULATIF PENERIMAAN", key: "cumulative_delivered", width: 22 },
+    { header: "SISA VOL. PLAFOND", key: "sisa_plafond", width: 20 },
+    { header: "% SISA KONTRAK", key: "sisa_kontrak_pct", width: 16 },
   ];
 
   // Set column keys and widths
@@ -72,12 +65,11 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
     cell.border = BORDER_ALL_THIN;
   });
 
-  let sumPlafond = 0;
+  let sumContractVol = 0;
   let sumOrderVol = 0;
   let sumLatestReceiptVol = 0;
   let sumCumulativeDelivered = 0;
   let sumSisaPlafond = 0;
-  let sumContractVol = 0;
 
   data.forEach((item, index) => {
     const rowIdx = index + 6;
@@ -95,7 +87,6 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
     const latestReceiptVol = latestReceipt ? latestReceipt.qty : item.total_delivered || 0;
 
     const isPlanned = !item.is_unplanned && (item.planned_volume || 0) > 0;
-    const plafondVol = isPlanned ? (item.planned_volume ?? 0) : null;
     const contractVol = isPlanned ? (item.planned_volume ?? 0) : null;
     const cumulativeDelivered = item.total_delivered || 0;
     const sisaPlafond = isPlanned ? (item.planned_volume ?? 0) - cumulativeDelivered : null;
@@ -104,29 +95,27 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
         ? ((item.planned_volume ?? 0) - cumulativeDelivered) / (item.planned_volume ?? 1)
         : null;
 
-    const materialNameWithUnit = item.unit ? `${item.item_name} (${item.unit})` : item.item_name;
-    const keterangan = "Untuk Tagihan Sesuai Dengan Volume Penerimaan";
+    const code = formatItemCode(item) || item.item_code || "-";
 
-    if (plafondVol !== null) sumPlafond += plafondVol;
+    if (contractVol !== null) sumContractVol += contractVol;
     sumOrderVol += orderVol;
     sumLatestReceiptVol += latestReceiptVol;
     sumCumulativeDelivered += cumulativeDelivered;
     if (sisaPlafond !== null) sumSisaPlafond += sisaPlafond;
-    if (contractVol !== null) sumContractVol += contractVol;
 
     row.values = [
       index + 1,
-      materialNameWithUnit,
-      plafondVol !== null ? plafondVol : "-",
+      code,
+      item.item_name,
+      item.unit || "-",
+      contractVol !== null ? contractVol : "-",
       orderDateStr,
       orderVol > 0 ? orderVol : "-",
       receiptDateStr,
       latestReceiptVol > 0 ? latestReceiptVol : "-",
       cumulativeDelivered > 0 ? cumulativeDelivered : "-",
       sisaPlafond !== null ? sisaPlafond : "-",
-      contractVol !== null ? contractVol : "-",
       sisaKontrakPct !== null ? sisaKontrakPct : "-",
-      keterangan,
     ];
 
     const isEven = index % 2 === 1;
@@ -137,9 +126,9 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
         cell.fill = { fgColor: { argb: FORMAL_STYLE.zebraBg }, pattern: "solid", type: "pattern" };
       }
 
-      if (colNumber === 1 || colNumber === 4 || colNumber === 6) {
+      if (colNumber === 1 || colNumber === 2 || colNumber === 4 || colNumber === 6 || colNumber === 8) {
         cell.alignment = { horizontal: "center", vertical: "middle" };
-      } else if (colNumber === 2 || colNumber === 12) {
+      } else if (colNumber === 3) {
         cell.alignment = { horizontal: "left", vertical: "middle" };
       } else {
         cell.alignment = { horizontal: "right", vertical: "middle" };
@@ -147,19 +136,14 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
 
       // Quantity number formatting
       if (
-        (colNumber === 3 ||
-          colNumber === 5 ||
-          colNumber === 7 ||
-          colNumber === 8 ||
-          colNumber === 9 ||
-          colNumber === 10) &&
+        (colNumber === 5 || colNumber === 7 || colNumber === 9 || colNumber === 10 || colNumber === 11) &&
         typeof cell.value === "number"
       ) {
         cell.numFmt = "#,##0.00;(#,##0.00);-";
       }
 
       // Percentage formatting
-      if (colNumber === 11 && typeof cell.value === "number") {
+      if (colNumber === 12 && typeof cell.value === "number") {
         cell.numFmt = "0.00%;(0.00%);-";
       }
     });
@@ -173,17 +157,19 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
   totalRow.values = [
     "",
     "TOTAL",
-    sumPlafond > 0 ? sumPlafond : "-",
+    "",
+    "",
+    sumContractVol > 0 ? sumContractVol : "-",
     "",
     sumOrderVol > 0 ? sumOrderVol : "-",
     "",
     sumLatestReceiptVol > 0 ? sumLatestReceiptVol : "-",
     sumCumulativeDelivered > 0 ? sumCumulativeDelivered : "-",
     sumSisaPlafond,
-    sumContractVol > 0 ? sumContractVol : "-",
     totalSisaKontrakPct !== null ? totalSisaKontrakPct : "-",
-    "",
   ];
+
+  ws.mergeCells(`B${totalRowIdx}:D${totalRowIdx}`);
 
   totalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
     cell.font = { bold: true, color: { argb: FORMAL_STYLE.totalRowText }, name: FORMAL_STYLE.fontFamily, size: 9 };
@@ -193,17 +179,12 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
     if (colNumber === 2) {
       cell.alignment = { horizontal: "center", vertical: "middle" };
     } else if (
-      (colNumber === 3 ||
-        colNumber === 5 ||
-        colNumber === 7 ||
-        colNumber === 8 ||
-        colNumber === 9 ||
-        colNumber === 10) &&
+      (colNumber === 5 || colNumber === 7 || colNumber === 9 || colNumber === 10 || colNumber === 11) &&
       typeof cell.value === "number"
     ) {
       cell.numFmt = "#,##0.00;(#,##0.00);-";
       cell.alignment = { horizontal: "right", vertical: "middle" };
-    } else if (colNumber === 11 && typeof cell.value === "number") {
+    } else if (colNumber === 12 && typeof cell.value === "number") {
       cell.numFmt = "0.00%;(0.00%);-";
       cell.alignment = { horizontal: "right", vertical: "middle" };
     }

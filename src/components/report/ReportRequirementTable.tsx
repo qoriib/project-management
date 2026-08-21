@@ -25,7 +25,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
     () =>
       report.map((r) => ({
         ...r,
-        unique_id: `${r.item_id}-${r.item_price_id}`,
+        unique_id: r.item_id,
       })),
     [report],
   );
