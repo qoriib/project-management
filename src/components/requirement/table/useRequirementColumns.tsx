@@ -47,7 +47,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
     },
     {
       align: "end",
-      header: "Volume Rencana",
+      header: "Volume",
       key: "qty",
       width: pixel(140),
       renderCell: (row) => {
@@ -61,7 +61,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
     },
     {
       align: "end",
-      header: "Harga Rencana (Rp)",
+      header: "Harga (Rp)",
       key: "price",
       width: pixel(200),
       renderCell: (row) => {

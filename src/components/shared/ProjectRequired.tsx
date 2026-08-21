@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, Card, Grid, GridSpan, Heading, HStack, Text, VStack } from "@astryxdesign/core";
+import { Item } from "@astryxdesign/core/Item";
 import { Plus } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -32,20 +33,19 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
               {projects.map((project) => (
                 <GridSpan key={project.project_id} columns={1}>
                   <Card padding={3}>
-                    <HStack justify="between" align="center" gap={3}>
-                      <VStack gap={0.5}>
-                        <Text weight="bold">{project.project_name}</Text>
-                        <Text size="sm" color="secondary">
-                          {project.company_name} - {project.fiscal_year}
-                        </Text>
-                      </VStack>
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        label="Pilih"
-                        onClick={() => setSelectedProjectId(project.project_id)}
-                      />
-                    </HStack>
+                    <Item
+                      density="compact"
+                      label={project.project_name}
+                      description={`${project.company_name} - ${project.fiscal_year}`}
+                      endContent={
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          label="Pilih"
+                          onClick={() => setSelectedProjectId(project.project_id)}
+                        />
+                      }
+                    />
                   </Card>
                 </GridSpan>
               ))}

@@ -72,7 +72,7 @@ export async function generateRequirementReportExcel(
     data,
   });
 
-  // 3. Sheet: Rincian Kebutuhan (Bill of Materials / BOM)
+  // 3. Sheet: Rincian Kebutuhan (Bill of Items / BOM)
   createRequirementSheet(workbook, {
     project_name: projectName,
     company_name: companyName,

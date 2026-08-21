@@ -26,7 +26,8 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
         {(field) => (
           <DateInput
             hasClear
-            label="Dari Tanggal"
+            label=""
+            placeholder="Dari Tanggal"
             format="system_date"
             statusVariant="tooltip"
             value={field.state.value as DateInputProps["value"]}
@@ -41,7 +42,8 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
         {(field) => (
           <DateInput
             hasClear
-            label="Sampai Tanggal"
+            label=""
+            placeholder="Sampai Tanggal"
             format="system_date"
             statusVariant="tooltip"
             value={field.state.value as DateInputProps["value"]}

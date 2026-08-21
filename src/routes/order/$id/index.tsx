@@ -78,7 +78,7 @@ function PODetailPage() {
           <OrderItemTrackingTable />
         </Card>
         <Card>
-          <VStack gap={4}>
+          <VStack gap={3}>
             <HStack gap={2} justify="between" align="center">
               <Heading level={3}>Log Penerimaan</Heading>
               <Button

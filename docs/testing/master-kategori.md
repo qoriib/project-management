@@ -7,7 +7,7 @@
 
 | No  | Field / Bagian    | Nilai yang Diinput                  | Langkah Pengujian                                                       | Hasil yang Diharapkan                                                    |
 | :-: | ----------------- | ----------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-|  1  | **Prefix**        | `""` (Kosong)                       | Kosongkan kolom Prefix, lalu isi Nama Kategori `"Material"`.            | Tombol **Simpan** mati (_disabled_), muncul tanda wajib diisi.           |
+|  1  | **Prefix**        | `""` (Kosong)                       | Kosongkan kolom Prefix, lalu isi Nama Kategori `"Item"`.                | Tombol **Simpan** mati (_disabled_), muncul tanda wajib diisi.           |
 |  2  | **Prefix**        | `"a"` (1 huruf kecil)               | Ketik huruf kecil `"a"` di kolom Prefix.                                | Otomatis berubah menjadi huruf besar `"A"`, tombol Simpan bisa ditekan.  |
 |  3  | **Prefix**        | `"Z"` (1 huruf besar)               | Ketik huruf besar `"Z"` di kolom Prefix.                                | Diterima sebagai `"Z"` dan valid.                                        |
 |  4  | **Prefix**        | `"AB"` (2 huruf)                    | Ketik `"AB"` secara cepat di kolom Prefix.                              | Sistem hanya menerima 1 huruf pertama (`"A"`), karakter kedua terpotong. |

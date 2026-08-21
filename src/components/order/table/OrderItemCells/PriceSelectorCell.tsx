@@ -37,6 +37,8 @@ export function PriceSelectorCell({ form, onAddNewPrice }: PriceSelectorCellProp
                     value={field.state.value}
                     onChange={(v) => field.handleChange(v)}
                     onBlur={field.handleBlur}
+                    hasSearch
+                    searchPlaceholder="Cari harga..."
                     statusVariant="tooltip"
                     status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                     isDisabled={!itemId}

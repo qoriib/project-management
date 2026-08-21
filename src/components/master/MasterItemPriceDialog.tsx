@@ -1,10 +1,11 @@
 import { Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card, Dialog, HStack, IconButton, Table, Text, TextInput, VStack } from "@astryxdesign/core";
+import { Button, Card, Dialog, HStack, Heading, IconButton, Table, Text, TextInput, VStack } from "@astryxdesign/core";
+import { Layout, LayoutHeader, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { formatNumber, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
@@ -188,7 +189,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
         <VStack gap={4}>
           <PageHeader
-            title={`Harga: ${item?.item_name}`}
+            title={item?.item_name ?? ""}
             actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
           />
           <Table
@@ -206,50 +207,65 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
               form.handleSubmit();
             }}
           >
-            <Card padding={4}>
-              <VStack gap={3}>
-                <FormLayout>
-                  <form.Field
-                    name="price"
-                    children={(field) => (
-                      <TextInput
-                        label="Harga (Rp)"
-                        value={field.state.value}
-                        onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
-                        onBlur={field.handleBlur}
-                        isRequired
-                        statusVariant="tooltip"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+            <Card>
+              <Layout
+                header={
+                  <LayoutHeader hasDivider>
+                    <Heading level={4}>Tambah Harga</Heading>
+                  </LayoutHeader>
+                }
+                content={
+                  <LayoutContent>
+                    <FormLayout>
+                      <form.Field
+                        name="price"
+                        children={(field) => (
+                          <TextInput
+                            label="Harga (Rp)"
+                            value={field.state.value}
+                            onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
+                            onBlur={field.handleBlur}
+                            isRequired
+                            statusVariant="tooltip"
+                            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                          />
+                        )}
                       />
-                    )}
-                  />
-                </FormLayout>
-                <HStack justify="end" gap={2}>
-                  <form.Subscribe
-                    selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-                    children={([canSubmit, isSubmitting]) => (
-                      <Button
-                        type="submit"
-                        variant="primary"
-                        label="Tambah"
-                        isLoading={isSubmitting}
-                        isDisabled={!canSubmit}
+                    </FormLayout>
+                  </LayoutContent>
+                }
+                footer={
+                  <LayoutFooter hasDivider>
+                    <HStack justify="end" gap={2} width="100%">
+                      <form.Subscribe
+                        selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                        children={([canSubmit, isSubmitting]) => (
+                          <Button
+                            type="submit"
+                            variant="primary"
+                            label="Tambah"
+                            isLoading={isSubmitting}
+                            isDisabled={!canSubmit}
+                          />
+                        )}
                       />
-                    )}
-                  />
-                </HStack>
-              </VStack>
+                    </HStack>
+                  </LayoutFooter>
+                }
+              />
             </Card>
           </form>
         </VStack>
       </Dialog>
-      <ConfirmDialog
+      <AlertDialog
         title="Hapus Harga"
-        message={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}?`}
+        description={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}?`}
+        actionLabel="Hapus"
+        cancelLabel="Batal"
         isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
-        isLoading={deleting}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onAction={handleDelete}
+        isActionLoading={deleting}
       />
     </>
   );

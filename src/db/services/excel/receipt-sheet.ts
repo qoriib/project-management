@@ -22,7 +22,7 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
     { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category_name", width: 16 },
     { header: "SATUAN", key: "unit_name", width: 10 },
-    { header: "VOLUME DITERIMA", key: "qty", width: 18 },
+    { header: "Volume", key: "qty", width: 18 },
   ];
 
   // Set column keys and widths

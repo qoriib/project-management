@@ -1,4 +1,5 @@
-import { Badge, HStack, Table, Text, VStack } from "@astryxdesign/core";
+import { Table, Text } from "@astryxdesign/core";
+import { Item } from "@astryxdesign/core/Item";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
@@ -21,10 +22,11 @@ export function OrderItemTrackingTable() {
       renderCell: (row) => {
         const code = formatItemCode(row);
         return (
-          <VStack gap={0.5} align="start">
-            <Text weight="medium">{row.item_name || "-"}</Text>
-            {code ? <EntityCode id={code} /> : "-"}
-          </VStack>
+          <Item
+            density="compact"
+            label={row.item_name || "-"}
+            description={code ? <EntityCode id={code} /> : undefined}
+          />
         );
       },
     },
@@ -97,21 +99,20 @@ export function OrderItemTrackingTable() {
       key: "progress",
       width: proportional(1),
       renderCell: (row) => {
-        const pct = row.qty > 0 ? ((row.total_delivered ?? 0) / row.qty) * 100 : 0;
+        const delivered = row.total_delivered ?? 0;
+        const total = row.qty ?? 0;
+        const pct = total > 0 ? (delivered / total) * 100 : 0;
         const variant = pct > 100 ? "error" : pct >= 100 ? "success" : "accent";
-        const isOver = pct > 100;
-        const isComplete = Math.round(pct) === 100 && !isOver;
 
         return (
-          <VStack gap={0.5}>
-            <HStack justify="between">
-              <Text type="code" color="secondary" weight="medium">
-                {`${formatNumber(row.total_delivered ?? 0)} / ${formatNumber(row.qty ?? 0)}`}
-              </Text>
-              <Badge variant={isOver ? "red" : isComplete ? "green" : undefined} label={`${pct.toFixed(0)}%`} />
-            </HStack>
-            <ProgressBar value={row.total_delivered ?? 0} max={row.qty ?? 1} variant={variant} label="" />
-          </VStack>
+          <ProgressBar
+            value={delivered}
+            max={total || 1}
+            label={`${pct.toFixed(0)}%`}
+            hasValueLabel
+            formatValueLabel={() => `${formatNumber(delivered)} / ${formatNumber(total)}`}
+            variant={variant}
+          />
         );
       },
     },

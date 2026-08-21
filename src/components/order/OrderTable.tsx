@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Table } from "@astryxdesign/core";
-
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
@@ -61,13 +60,15 @@ export function OrderTable({ onEdit }: OrderTableProps) {
         plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada Order." />}
       />
-      <ConfirmDialog
+      <AlertDialog
         title="Hapus Order"
-        message={`Hapus Order "${deletingId?.label}"? Semua item dan Penerimaan terkait akan ikut terhapus.`}
+        description={`Hapus Order "${deletingId?.label}"? Semua item dan Penerimaan terkait akan ikut terhapus.`}
+        actionLabel="Hapus"
+        cancelLabel="Batal"
         isOpen={Boolean(deletingId)}
-        onClose={() => setDeletingId(null)}
-        onConfirm={handleDelete}
-        isLoading={isDeleting}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        onAction={handleDelete}
+        isActionLoading={isDeleting}
       />
     </>
   );

@@ -1,6 +1,6 @@
 # Sistem Manajemen Proyek & Logistik (Tauri v2 + React 19)
 
-Aplikasi desktop cross-platform untuk manajemen logistik proyek, pengadaan material, Purchase Order (SPK), surat jalan / penerimaan barang, dan pelaporan logistik berbasis Tauri v2, React 19, dan SQLite.
+Aplikasi desktop cross-platform untuk manajemen logistik proyek, pengadaan Item, Purchase Order (SPK), surat jalan / penerimaan barang, dan pelaporan logistik berbasis Tauri v2, React 19, dan SQLite.
 
 ## Fitur Utama
 
@@ -9,7 +9,7 @@ Aplikasi desktop cross-platform untuk manajemen logistik proyek, pengadaan mater
   - **Manager**: Persetujuan (_approval_) kebutuhan proyek, monitoring anggaran, dan ekspor laporan rekapitulasi.
 - **Master Data**:
   - Kategori Barang (otomatisasi kode & prefix 1 karakter).
-  - Satuan Material.
+  - Satuan Item.
   - Item Proyek dengan relasi multi-harga (_price variants_).
   - Vendor & Rekanan Supplier.
   - Proyek & Tahun Fiskal beserta status approval kebutuhan.

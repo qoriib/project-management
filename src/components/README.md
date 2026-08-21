@@ -27,12 +27,11 @@ src/components/
 │   ├── ReceiptForm.tsx, ReceiptTable.tsx, ReceiptDetail.tsx
 ├── report/         # Komponen Pelaporan & Rekapitulasi Proyek
 │   ├── ReportRequirementTable.tsx, ReportOrderTable.tsx, ReportReceiptTable.tsx
-├── requirement/    # Komponen Estimasi Kebutuhan Material Proyek
+├── requirement/    # Komponen Estimasi Kebutuhan Item Proyek
 │   ├── RequirementTable.tsx, RequirementApprovalActions.tsx, form/, table/
 ├── settings/       # Komponen Pengaturan & Database Backup
 └── shared/         # Komponen yang Digunakan Bersama
     ├── PageHeader.tsx         # Header halaman terstandarisasi (judul, subtitle, aksi)
-    ├── ConfirmDialog.tsx      # Dialog konfirmasi aksi destruktif (hapus, approval)
     ├── TableEmptyState.tsx    # State visual ketika data tabel kosong
     └── useTableRowIndex.ts    # Plugin nomor urut baris tabel Astryx
 ```

@@ -142,6 +142,8 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
+                  hasSearch
+                  searchPlaceholder="Cari kategori..."
                   statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
@@ -156,6 +158,8 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
+                  hasSearch
+                  searchPlaceholder="Cari satuan..."
                   statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />

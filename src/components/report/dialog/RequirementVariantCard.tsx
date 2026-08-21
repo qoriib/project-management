@@ -1,6 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, Heading, Text, VStack } from "@astryxdesign/core";
-import { Table, type TableColumn, pixel, useTableRowIndex } from "@astryxdesign/core/Table";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import {
+  Table,
+  type TableColumn,
+  pixel,
+  useTableRowIndex,
+  useTablePagination,
+  paginateData,
+  TableRow,
+  TableCell,
+} from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
 import type { RequirementReportItem, RequirementReportVariant } from "@/db/services/report.service";
 
@@ -13,6 +23,9 @@ interface RequirementVariantCardProps {
 }
 
 export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+
   const plannedRows: VariantRow[] = useMemo(
     () =>
       (item.planned_variants || []).map((v, i) => ({
@@ -22,10 +35,22 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
     [item.planned_variants],
   );
 
+  const paginatedRows = useMemo(() => paginateData(plannedRows, page, pageSize), [plannedRows, page, pageSize]);
+
+  const paginationPlugin = useTablePagination<VariantRow>({
+    page,
+    onPageChange: setPage,
+    totalItems: plannedRows.length,
+    pageSize,
+    variant: "pages",
+    size: "sm",
+  });
+
   const plannedIndexPlugin = useTableRowIndex({
-    data: plannedRows,
+    data: paginatedRows as VariantRow[],
     getRowKey: (row: VariantRow) => row.unique_id,
     label: "#",
+    startFrom: (page - 1) * pageSize + 1,
   });
 
   const columns: TableColumn<VariantRow>[] = [
@@ -71,58 +96,51 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
   ];
 
   return (
-    <Card padding={3}>
-      <VStack gap={2}>
+    <Card>
+      <VStack gap={3}>
         <Heading level={4}>Kebutuhan (BOM)</Heading>
         {plannedRows.length > 0 ? (
-          <VStack gap={0}>
-            <Table
-              textOverflow="truncate"
-              columns={columns}
-              data={plannedRows}
-              idKey="unique_id"
-              plugins={{
-                rowIndex: plannedIndexPlugin,
-                footer: {
-                  transformBodyRow: (props, _row, index) => {
-                    if (index === plannedRows.length - 1) {
-                      return {
-                        ...props,
-                        afterRow: (
-                          <tr className="astryx-table-row" style={{ background: "var(--color-surface-sunken)" }}>
-                            <td
-                              className="astryx-table-cell"
-                              colSpan={5}
-                              style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}
-                            >
-                              <Text weight="bold" color="secondary">
-                                TOTAL BUDGET
-                              </Text>
-                            </td>
-                            <td
-                              className="astryx-table-cell"
-                              style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}
-                            >
-                              <Text weight="bold" type="code" size="lg">
-                                {formatNumber(item.planned_budget)}
-                              </Text>
-                            </td>
-                          </tr>
-                        ),
-                      };
-                    }
-                    return props;
-                  },
+          <Table
+            hasHover
+            textOverflow="truncate"
+            columns={columns}
+            data={paginatedRows as VariantRow[]}
+            idKey="unique_id"
+            plugins={{
+              rowIndex: plannedIndexPlugin,
+              pagination: paginationPlugin,
+              footer: {
+                transformBodyRow: (props, _row, index) => {
+                  if (index === paginatedRows.length - 1) {
+                    return {
+                      ...props,
+                      afterRow: (
+                        <TableRow style={{ background: "var(--color-surface-sunken)" }}>
+                          <TableCell colSpan={5} style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}>
+                            <Text weight="bold" color="secondary">
+                              TOTAL BUDGET
+                            </Text>
+                          </TableCell>
+                          <TableCell style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}>
+                            <Text weight="bold" type="code" size="lg">
+                              {formatNumber(item.planned_budget)}
+                            </Text>
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    };
+                  }
+                  return props;
                 },
-              }}
-            />
-          </VStack>
+              },
+            }}
+          />
         ) : (
-          <VStack align="center" padding={2}>
-            <Text size="sm" color="secondary">
-              Tidak ada data kebutuhan (BOM) untuk item ini.
-            </Text>
-          </VStack>
+          <EmptyState
+            title="Tidak ada data kebutuhan (BOM)"
+            description="Tidak ada rincian kebutuhan Item untuk item ini."
+            isCompact
+          />
         )}
       </VStack>
     </Card>

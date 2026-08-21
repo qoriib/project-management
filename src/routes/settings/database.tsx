@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { SettingsResetDialog } from "@/components/settings/SettingsResetDialog";
 import { SettingsExportDialog } from "@/components/settings/SettingsExportDialog";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Download, Upload } from "lucide-react";
 import { useToast } from "@astryxdesign/core/Toast";
 import { getTimestampString } from "@/utils/formatters";
@@ -157,15 +157,16 @@ function SettingsDatabase() {
         onConfirm={executeExport}
         isLoading={isExporting}
       />
-      <ConfirmDialog
+      <AlertDialog
         title="Impor Backup"
-        message="PERINGATAN: Mengimpor data akan menggabungkan perubahan ke dalam basis data saat ini. Aplikasi akan memuat ulang setelah selesai. Apakah Anda ingin melanjutkan?"
-        confirmLabel="Ya, Impor"
-        isDestructive={false}
+        description="PERINGATAN: Mengimpor data akan menggabungkan perubahan ke dalam basis data saat ini. Aplikasi akan memuat ulang setelah selesai. Apakah Anda ingin melanjutkan?"
+        actionLabel="Ya, Impor"
+        actionVariant="primary"
+        cancelLabel="Batal"
         isOpen={isImportConfirmOpen}
-        onClose={() => setIsImportConfirmOpen(false)}
-        onConfirm={executeImport}
-        isLoading={isImporting}
+        onOpenChange={(open) => !open && setIsImportConfirmOpen(false)}
+        onAction={executeImport}
+        isActionLoading={isImporting}
       />
     </>
   );

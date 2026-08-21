@@ -18,6 +18,7 @@ export function ItemSelectorCell({ form, items, handleItemChange, onAddNewItem }
           {(field) => (
             <Selector
               hasSearch
+              searchPlaceholder="Cari item..."
               isLabelHidden
               label="Item"
               statusVariant="tooltip"

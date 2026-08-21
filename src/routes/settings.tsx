@@ -13,7 +13,6 @@ function SettingsLayout() {
   return (
     <Layout
       height="fill"
-      contentWidth={1200}
       content={
         <LayoutContent padding={6}>
           <VStack gap={6}>

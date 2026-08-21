@@ -1,6 +1,17 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, Heading, Text, VStack } from "@astryxdesign/core";
-import { Table, type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import {
+  Table,
+  type TableColumn,
+  pixel,
+  proportional,
+  useTableRowIndex,
+  useTablePagination,
+  paginateData,
+  TableRow,
+  TableCell,
+} from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
 import type { RequirementReportItem, RequirementReportVariant } from "@/db/services/report.service";
 
@@ -13,6 +24,9 @@ interface OrderVariantCardProps {
 }
 
 export function OrderVariantCard({ item }: OrderVariantCardProps) {
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+
   const orderRows: VariantRow[] = useMemo(
     () =>
       (item.order_variants || []).map((v, i) => ({
@@ -22,10 +36,22 @@ export function OrderVariantCard({ item }: OrderVariantCardProps) {
     [item.order_variants],
   );
 
+  const paginatedRows = useMemo(() => paginateData(orderRows, page, pageSize), [orderRows, page, pageSize]);
+
+  const paginationPlugin = useTablePagination<VariantRow>({
+    page,
+    onPageChange: setPage,
+    totalItems: orderRows.length,
+    pageSize,
+    variant: "pages",
+    size: "sm",
+  });
+
   const orderIndexPlugin = useTableRowIndex({
-    data: orderRows,
+    data: paginatedRows as VariantRow[],
     getRowKey: (row: VariantRow) => row.unique_id,
     label: "#",
+    startFrom: (page - 1) * pageSize + 1,
   });
 
   const columns: TableColumn<VariantRow>[] = [
@@ -77,58 +103,51 @@ export function OrderVariantCard({ item }: OrderVariantCardProps) {
   ];
 
   return (
-    <Card padding={3}>
-      <VStack gap={2}>
+    <Card>
+      <VStack gap={3}>
         <Heading level={4}>Pemesanan (PO)</Heading>
         {orderRows.length > 0 ? (
-          <VStack gap={0}>
-            <Table
-              textOverflow="truncate"
-              columns={columns}
-              data={orderRows}
-              idKey="unique_id"
-              plugins={{
-                rowIndex: orderIndexPlugin,
-                footer: {
-                  transformBodyRow: (props, _row, index) => {
-                    if (index === orderRows.length - 1) {
-                      return {
-                        ...props,
-                        afterRow: (
-                          <tr className="astryx-table-row" style={{ background: "var(--color-surface-sunken)" }}>
-                            <td
-                              className="astryx-table-cell"
-                              colSpan={6}
-                              style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}
-                            >
-                              <Text weight="bold" color="secondary">
-                                TOTAL PEMESANAN
-                              </Text>
-                            </td>
-                            <td
-                              className="astryx-table-cell"
-                              style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}
-                            >
-                              <Text weight="bold" type="code" size="lg">
-                                {formatNumber(item.total_order_price)}
-                              </Text>
-                            </td>
-                          </tr>
-                        ),
-                      };
-                    }
-                    return props;
-                  },
+          <Table
+            hasHover
+            textOverflow="truncate"
+            columns={columns}
+            data={paginatedRows as VariantRow[]}
+            idKey="unique_id"
+            plugins={{
+              rowIndex: orderIndexPlugin,
+              pagination: paginationPlugin,
+              footer: {
+                transformBodyRow: (props, _row, index) => {
+                  if (index === paginatedRows.length - 1) {
+                    return {
+                      ...props,
+                      afterRow: (
+                        <TableRow style={{ background: "var(--color-surface-sunken)" }}>
+                          <TableCell colSpan={6} style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}>
+                            <Text weight="bold" color="secondary">
+                              TOTAL PEMESANAN
+                            </Text>
+                          </TableCell>
+                          <TableCell style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}>
+                            <Text weight="bold" type="code" size="lg">
+                              {formatNumber(item.total_order_price)}
+                            </Text>
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    };
+                  }
+                  return props;
                 },
-              }}
-            />
-          </VStack>
+              },
+            }}
+          />
         ) : (
-          <VStack align="center" padding={2}>
-            <Text size="sm" color="secondary">
-              Belum ada pemesanan (PO) untuk item ini.
-            </Text>
-          </VStack>
+          <EmptyState
+            title="Belum ada pemesanan (PO)"
+            description="Belum ada rincian pemesanan untuk item ini."
+            isCompact
+          />
         )}
       </VStack>
     </Card>

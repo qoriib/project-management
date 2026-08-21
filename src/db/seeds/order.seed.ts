@@ -235,7 +235,7 @@ export async function seedOrders(): Promise<void> {
       ],
     },
     {
-      // PO 3: Semen & Material Pasir (Ada Over-Delivered Pasir Beton, Parsial Semen, Unplanned Batu Kali)
+      // PO 3: Semen & Item Pasir (Ada Over-Delivered Pasir Beton, Parsial Semen, Unplanned Batu Kali)
       orderCode: "PO-2026-0013",
       orderDate: "2026-05-18",
       projectName: p3,

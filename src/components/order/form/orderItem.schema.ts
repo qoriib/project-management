@@ -3,7 +3,7 @@ import type { OrderItemDetail } from "@/db/repositories";
 import { parseDecimalInput } from "@/utils/formatters";
 
 export const orderItemSchema = v.object({
-  item_id: v.pipe(v.string(), v.nonEmpty("Material harus dipilih.")),
+  item_id: v.pipe(v.string(), v.nonEmpty("Item harus dipilih.")),
   item_price_id: v.pipe(v.string(), v.nonEmpty("Variasi harga harus dipilih.")),
   qty: v.pipe(
     v.union([v.string(), v.number()]),

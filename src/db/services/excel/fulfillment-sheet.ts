@@ -15,7 +15,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
   const COLUMNS = [
     { header: "NO", key: "no", width: 6 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN MATERIAL / BARANG", key: "item_name", width: 36 },
+    { header: "URAIAN Item / BARANG", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category", width: 16 },
     { header: "SATUAN", key: "unit", width: 10 },
     // BOM Section
@@ -50,7 +50,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     startCol: "A",
     startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
-    title: "REKAPITULASI KEBUTUHAN MATERIAL (BOM) & REALISASI PENGADAAN (PO)",
+    title: "REKAPITULASI KEBUTUHAN Item (BOM) & REALISASI PENGADAAN (PO)",
   });
 
   // Table Headers at Row 5

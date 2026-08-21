@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Table } from "@astryxdesign/core";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { RequirementItemDialog } from "@/components/requirement/RequirementItemDialog";
 import { useAppStore } from "@/store/useAppStore";
@@ -69,15 +69,17 @@ export function RequirementTable() {
         data={dataWithFooters}
         idKey={(item) => String(item.requirement_id)}
         plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin }}
-        emptyState={<TableEmptyState message="Belum ada rencana material di proyek ini." />}
+        emptyState={<TableEmptyState message="Belum ada rencana Item di proyek ini." />}
       />
-      <ConfirmDialog
+      <AlertDialog
         isOpen={Boolean(deletingId)}
-        onClose={() => setDeletingId(null)}
-        onConfirm={handleDelete}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        onAction={handleDelete}
         title="Hapus Kebutuhan"
-        message="Apakah Anda yakin ingin menghapus material ini dari rencana?"
-        isLoading={isDeleting}
+        description="Apakah Anda yakin ingin menghapus Item ini dari rencana?"
+        actionLabel="Hapus"
+        cancelLabel="Batal"
+        isActionLoading={isDeleting}
       />
       <RequirementItemDialog
         isOpen={isDialogOpen}

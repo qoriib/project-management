@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
@@ -49,13 +49,15 @@ export function ReceiptTable() {
         plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada Penerimaan." />}
       />
-      <ConfirmDialog
+      <AlertDialog
         title="Hapus Log Penerimaan"
-        message="Apakah Anda yakin ingin menghapus data Penerimaan ini?"
+        description="Apakah Anda yakin ingin menghapus data Penerimaan ini?"
+        actionLabel="Hapus"
+        cancelLabel="Batal"
         isOpen={Boolean(deletingId)}
-        onClose={() => setDeletingId(null)}
-        onConfirm={handleDelete}
-        isLoading={isDeleting}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        onAction={handleDelete}
+        isActionLoading={isDeleting}
       />
     </>
   );

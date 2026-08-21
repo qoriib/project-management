@@ -69,22 +69,20 @@ function LoginPage() {
             <VStack gap={4} width="100%">
               <form.Field
                 name="pin"
-                children={(field) => {
-                  return (
-                    <TextInput
-                      isLabelHidden
-                      hasAutoFocus
-                      label="PIN"
-                      type="text"
-                      size="lg"
-                      statusVariant="tooltip"
-                      value={field.state.value}
-                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                      onBlur={field.handleBlur}
-                      onChange={(val) => field.handleChange(sanitizePin(val))}
-                    />
-                  );
-                }}
+                children={(field) => (
+                  <TextInput
+                    isLabelHidden
+                    hasAutoFocus
+                    label="PIN"
+                    type="text"
+                    size="lg"
+                    statusVariant="tooltip"
+                    value={field.state.value}
+                    status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                    onBlur={field.handleBlur}
+                    onChange={(val) => field.handleChange(sanitizePin(val))}
+                  />
+                )}
               />
               <form.Subscribe
                 selector={(state) => [state.canSubmit, state.isSubmitting] as const}

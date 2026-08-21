@@ -17,7 +17,7 @@ function formatToDDMMYYYY(dateStr?: string | null): string {
 }
 
 /**
- * Creates the Executive Summary Sheet formatted as a Material Monitoring & Contract Realization Table.
+ * Creates the Executive Summary Sheet formatted as a Item Monitoring & Contract Realization Table.
  */
 export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context: ExecutiveSummaryContext): void {
   const { project_name, company_name, fiscal_year, period, data, orderData, receiptData } = context;
@@ -28,7 +28,7 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
   const COLUMNS = [
     { header: "NO", key: "no", width: 6 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN MATERIAL / BARANG", key: "item_name", width: 36 },
+    { header: "URAIAN Item / BARANG", key: "item_name", width: 36 },
     { header: "SATUAN", key: "unit", width: 10 },
     { header: "VOL. KONTRAK / PLAFOND", key: "contract_vol", width: 22 },
     { header: "TGL. PERMINTAAN", key: "order_date", width: 18 },
@@ -51,7 +51,7 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
     startCol: "A",
     startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
-    title: "REKAPITULASI VOLUME MATERIAL & REALISASI PENERIMAAN (SUMMARY MONITORING)",
+    title: "REKAPITULASI VOLUME Item & REALISASI PENERIMAAN (SUMMARY MONITORING)",
   });
 
   // Table Headers at Row 5

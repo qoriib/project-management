@@ -15,7 +15,7 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
   const COLUMNS = [
     { header: "NO", key: "no", width: 6 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN BARANG / MATERIAL", key: "item_name", width: 36 },
+    { header: "URAIAN BARANG / Item", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category_name", width: 16 },
     { header: "SATUAN", key: "unit_name", width: 10 },
     { header: "VOLUME", key: "qty", width: 14 },
@@ -36,7 +36,7 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
     startCol: "A",
     startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
-    title: "BUKU REGISTER KEBUTUHAN MATERIAL (BILL OF MATERIALS / BOM)",
+    title: "BUKU REGISTER KEBUTUHAN Item (BILL OF ItemS / BOM)",
   });
 
   // Table Headers at Row 5

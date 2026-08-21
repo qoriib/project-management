@@ -1,25 +1,25 @@
-# Lembar Pengujian: Kebutuhan Material (Requirements)
+# Lembar Pengujian: Kebutuhan Item (Requirements)
 
-- **Menu**: Kebutuhan Material (`/requirement`)
+- **Menu**: Kebutuhan Item (`/requirement`)
 - **Aksi Awal**: Pilih salah satu Proyek aktif pada dropdown pemilihan proyek di bagian atas.
 
 ## Checklist Pengujian BVA & Alur Kebutuhan
 
 | No  | Field / Bagian          | Nilai yang Diinput          | Langkah Pengujian                                                                                    | Hasil yang Diharapkan                                                                             |
 | --- | ----------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 1   | **Pemilihan Material**  | Belum dipilih (`""`)        | Buka form tambah material, biarkan pilihan material kosong.                                          | Error: _"Material harus dipilih."_, tombol simpan baris mati (_disabled_).                        |
-| 2   | **Pemilihan Harga**     | Belum dipilih (`""`)        | Pilih material yang belum memiliki varian harga terpilih.                                            | Error: _"Pilih harga terlebih dahulu."_, tombol simpan baris mati.                                |
+| 1   | **Pemilihan Item**      | Belum dipilih (`""`)        | Buka form tambah Item, biarkan pilihan Item kosong.                                                  | Error: _"Item harus dipilih."_, tombol simpan baris mati (_disabled_).                            |
+| 2   | **Pemilihan Harga**     | Belum dipilih (`""`)        | Pilih Item yang belum memiliki varian harga terpilih.                                                | Error: _"Pilih harga terlebih dahulu."_, tombol simpan baris mati.                                |
 | 3   | **Volume**              | `-1` atau `-10` (Negatif)   | Masukkan angka negatif pada kolom Volume.                                                            | Error: _"Volume tidak boleh negatif."_, tombol simpan baris mati.                                 |
 | 4   | **Volume**              | `0` (Batas minimum nol)     | Masukkan volume `0`.                                                                                 | Valid, tombol simpan baris aktif.                                                                 |
 | 5   | **Volume**              | `0.5` atau `1.25` (Desimal) | Masukkan angka desimal pada kolom Volume.                                                            | Valid, volume desimal tersimpan dan terhitung akurat.                                             |
 | 6   | **Volume**              | `500` (Angka normal)        | Masukkan angka volume normal.                                                                        | Valid, subtotal dihitung otomatis (`Volume × Harga Satuan`).                                      |
 | 7   | **PPN (has_tax)**       | Tidak Dicentang (`false`)   | Isi volume `10` dan harga `Rp 10.000` tanpa mencentang PPN.                                          | Subtotal baris bernilai tepat `Rp 100.000` (tanpa tambahan pajak).                                |
 | 8   | **PPN (has_tax)**       | Dicentang (`true`)          | Isi volume `10` dan harga `Rp 10.000` dengan mencentang PPN (11%).                                   | Subtotal baris bernilai `Rp 111.000` (termasuk PPN 11%).                                          |
-| 9   | **Grand Total**         | Penjumlahan otomatis        | Tambahkan 2 atau lebih baris kebutuhan material dengan kombinasi PPN.                                | Footer tabel otomatis menampilkan Grand Total kalkulasi seluruh baris.                            |
+| 9   | **Grand Total**         | Penjumlahan otomatis        | Tambahkan 2 atau lebih baris kebutuhan Item dengan kombinasi PPN.                                    | Footer tabel otomatis menampilkan Grand Total kalkulasi seluruh baris.                            |
 | 10  | **Shortcut Item Baru**  | Tambah item via form        | Klik opsi tambah master item baru langsung dari form kebutuhan.                                      | Modal master item terbuka, item baru langsung dapat dipilih setelah disimpan.                     |
 | 11  | **Shortcut Harga Baru** | Tambah harga via form       | Klik opsi tambah varian harga baru langsung dari form kebutuhan.                                     | Modal harga terbuka, harga baru langsung terpilih setelah disimpan.                               |
 | 12  | **Edit Kebutuhan**      | Ubah volume / harga         | Klik tombol **Edit** pada salah satu baris kebutuhan, ubah volume, simpan.                           | Baris terupdate dan Grand Total footer otomatis terkalkulasi ulang.                               |
-| 13  | **Hapus Kebutuhan**     | Hapus baris                 | Klik tombol **Hapus** pada baris kebutuhan, konfirmasi.                                              | Baris material terhapus dari tabel dan Grand Total berkurang sesuai nominal.                      |
+| 13  | **Hapus Kebutuhan**     | Hapus baris                 | Klik tombol **Hapus** pada baris kebutuhan, konfirmasi.                                              | Baris Item terhapus dari tabel dan Grand Total berkurang sesuai nominal.                          |
 | 14  | **Approval (Manager)**  | Setujui Rancangan           | Login sebagai Manager $\rightarrow$ klik tombol **"Setujui Rancangan"** $\rightarrow$ konfirmasi.    | Status proyek menjadi **"Sudah Disetujui"**, seluruh form/tabel kebutuhan terkunci (_read-only_). |
 | 15  | **Batal Approval**      | Batalkan Persetujuan        | Login sebagai Manager $\rightarrow$ klik tombol **"Batalkan Persetujuan"** $\rightarrow$ konfirmasi. | Status kembali menjadi **"Belum Disetujui"**, form kebutuhan terbuka kembali untuk diedit.        |
 | 16  | **Hak Akses (Staff)**   | Role Logistics Staff        | Login sebagai Staff $\rightarrow$ buka halaman Kebutuhan.                                            | Staff hanya melihat badge status (_Sudah/Belum Disetujui_) tanpa tombol approval.                 |

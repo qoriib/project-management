@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { HStack, IconButton, Table, Text } from "@astryxdesign/core";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -108,13 +108,15 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
         plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada satuan." />}
       />
-      <ConfirmDialog
+      <AlertDialog
         isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onAction={handleDelete}
         title="Hapus Master Data"
-        message={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
-        isLoading={deleting}
+        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
+        actionLabel="Hapus"
+        cancelLabel="Batal"
+        isActionLoading={deleting}
       />
     </>
   );

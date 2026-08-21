@@ -43,7 +43,7 @@ export function OrderReceiptLogTable() {
     },
     {
       align: "end",
-      header: "Volume Diterima",
+      header: "Volume",
       key: "qty",
       width: pixel(140),
       renderCell: (row) => <Text type="code">{formatNumber(row.qty)}</Text>,
@@ -79,7 +79,7 @@ export function OrderReceiptLogTable() {
       columns={receiptColumns}
       data={receiptItems as LogRow[]}
       plugins={{ rowIndex: rowIndexPlugin }}
-      emptyState={<TableEmptyState message="Belum ada realisasi Penerimaan material untuk Order ini." />}
+      emptyState={<TableEmptyState message="Belum ada realisasi Penerimaan Item untuk Order ini." />}
     />
   );
 }

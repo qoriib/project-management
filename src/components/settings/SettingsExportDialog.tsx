@@ -49,6 +49,8 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
           onChange={(val) => {
             setSelectedProjectId(val || null);
           }}
+          hasSearch
+          searchPlaceholder="Cari proyek..."
         />
 
         <HStack gap={2} justify="end" style={{ marginTop: "var(--spacing-2)" }}>

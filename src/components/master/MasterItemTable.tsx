@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Badge, Button, HStack, IconButton, Table } from "@astryxdesign/core";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { EntityCode } from "@/components/shared/EntityCode";
@@ -121,13 +121,15 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
         plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada item." />}
       />
-      <ConfirmDialog
+      <AlertDialog
         isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onAction={handleDelete}
         title="Hapus Master Data"
-        message={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
-        isLoading={deleting}
+        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
+        actionLabel="Hapus"
+        cancelLabel="Batal"
+        isActionLoading={deleting}
       />
       <MasterItemPriceDialog isOpen={Boolean(priceItem)} onClose={() => setPriceItem(null)} item={priceItem} />
     </>

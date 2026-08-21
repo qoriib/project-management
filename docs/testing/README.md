@@ -25,6 +25,6 @@ Panduan ini berisi daftar skenario dan checklist pengujian manual dengan metode 
 | 4   | **Master Harga Item**       | [master-harga.md](./master-harga.md)       | Harga negatif, Harga 0, Desimal, Proteksi hapus                        |
 | 5   | **Master Vendor**           | [master-vendor.md](./master-vendor.md)     | Nama vendor, Isian telepon & alamat opsional                           |
 | 6   | **Master Project**          | [master-project.md](./master-project.md)   | Tahun fiskal $\ge 1900$, Nama proyek & perusahaan                      |
-| 7   | **Kebutuhan Material**      | [kebutuhan.md](./kebutuhan.md)             | Volume $\ge 0$, Desimal, PPN 11%, Approval Manager, Penguncian data    |
+| 7   | **Kebutuhan Item**          | [kebutuhan.md](./kebutuhan.md)             | Volume $\ge 0$, Desimal, PPN 11%, Approval Manager, Penguncian data    |
 | 8   | **Pemesanan (Order / SPK)** | [pemesanan.md](./pemesanan.md)             | Nomor SPK, Volume $> 0$, PPN 11%, Status pemenuhan, Kalkulasi total    |
 | 9   | **Penerimaan Barang**       | [penerimaan.md](./penerimaan.md)           | Sisa order, $Qty \le Sisa$, Error jika $Qty > Sisa$, Update status SPK |

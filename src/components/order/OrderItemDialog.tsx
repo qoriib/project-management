@@ -101,6 +101,8 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                           await handleItemChange(val as string);
                         }}
                         onBlur={field.handleBlur}
+                        hasSearch
+                        searchPlaceholder="Cari item..."
                         isRequired
                         statusVariant="tooltip"
                         status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
@@ -129,6 +131,8 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val as string)}
                         onBlur={field.handleBlur}
+                        hasSearch
+                        searchPlaceholder="Cari harga..."
                         isDisabled={!selectedItemId}
                         isRequired
                         statusVariant="tooltip"
@@ -159,6 +163,8 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val as string)}
                         onBlur={field.handleBlur}
+                        hasSearch
+                        searchPlaceholder="Cari vendor..."
                         isRequired
                         statusVariant="tooltip"
                         status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}

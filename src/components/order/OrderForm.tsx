@@ -9,7 +9,7 @@ import { generateNextCode, todayISO } from "@/utils/formatters";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
 import { useNavigate } from "@tanstack/react-router";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useMasterStore } from "@/store/useMasterStore";
 import { OrderItemDialog } from "@/components/order/OrderItemDialog";
@@ -232,12 +232,14 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
           </form.Subscribe>
         </HStack>
       </VStack>
-      <ConfirmDialog
+      <AlertDialog
         isOpen={Boolean(deletingId)}
-        onClose={() => setDeletingId(null)}
-        onConfirm={handleDelete}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        onAction={handleDelete}
         title="Hapus Item Order"
-        message="Apakah Anda yakin ingin menghapus item ini dari Order?"
+        description="Apakah Anda yakin ingin menghapus item ini dari Order?"
+        actionLabel="Hapus"
+        cancelLabel="Batal"
       />
       <OrderItemDialog
         isOpen={isItemDialogOpen}

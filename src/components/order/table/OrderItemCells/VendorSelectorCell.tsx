@@ -28,6 +28,8 @@ export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSele
                 value={field.state.value}
                 onChange={(v) => field.handleChange(v)}
                 onBlur={field.handleBlur}
+                hasSearch
+                searchPlaceholder="Cari vendor..."
                 statusVariant="tooltip"
                 status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
               />

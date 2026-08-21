@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Badge, Button } from "@astryxdesign/core";
 import { useToast } from "@astryxdesign/core/Toast";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
 import { AppRole, getUserRole } from "@/configs/app.config";
@@ -56,19 +56,20 @@ export function RequirementApprovalActions() {
         label={isApproved ? "Batalkan Persetujuan" : "Setujui Rancangan"}
         onClick={() => setConfirmType(isApproved ? "cancel" : "approve")}
       />
-      <ConfirmDialog
+      <AlertDialog
         isOpen={Boolean(confirmType)}
-        onClose={() => setConfirmType(null)}
-        onConfirm={handleConfirm}
+        onOpenChange={(open) => !open && setConfirmType(null)}
+        onAction={handleConfirm}
         title={isApprove ? "Setujui Rancangan" : "Batal Persetujuan"}
-        message={
+        description={
           isApprove
             ? "Apakah Anda yakin ingin menyetujui Requirement proyek ini? Setelah disetujui, semua data Requirement pada proyek ini akan dikunci dan tidak dapat diubah lagi."
             : "Apakah Anda yakin ingin membatalkan persetujuan Requirement ini? Data Requirement akan dapat diedit kembali."
         }
-        confirmLabel={isApprove ? "Setuju" : "Batalkan Persetujuan"}
-        isDestructive={!isApprove}
-        isLoading={isLoading}
+        actionLabel={isApprove ? "Setuju" : "Batalkan Persetujuan"}
+        actionVariant={isApprove ? "primary" : "destructive"}
+        cancelLabel="Batal"
+        isActionLoading={isLoading}
       />
     </>
   );

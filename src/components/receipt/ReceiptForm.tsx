@@ -1,4 +1,5 @@
 import { HStack, VStack, Card, Button, Text } from "@astryxdesign/core";
+import { Item } from "@astryxdesign/core/Item";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
@@ -29,16 +30,7 @@ function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
       renderCell: (row) => {
         const code = formatItemCode(row);
         return (
-          <VStack gap={0.5} align="start">
-            <Text weight="medium">{row.item_name}</Text>
-            {code ? (
-              <EntityCode id={code} />
-            ) : (
-              <Text size="sm" color="secondary">
-                -
-              </Text>
-            )}
-          </VStack>
+          <Item density="compact" label={row.item_name} description={code ? <EntityCode id={code} /> : undefined} />
         );
       },
     },
@@ -51,7 +43,7 @@ function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
     },
     {
       align: "end",
-      header: "Volume Diterima",
+      header: "Volume",
       key: "qty",
       width: pixel(180),
       renderCell: (row) => {
@@ -74,7 +66,7 @@ function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
   });
 
   return (
-    <Card padding={4}>
+    <Card>
       <Table
         textOverflow="truncate"
         columns={columns}
@@ -116,6 +108,8 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
                   value={field.state.value}
                   onChange={(v) => handlePOChange(v as string)}
                   onBlur={field.handleBlur}
+                  hasSearch
+                  searchPlaceholder="Cari order..."
                   statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   isRequired

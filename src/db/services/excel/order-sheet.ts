@@ -18,7 +18,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     { header: "NOMOR ORDER (PO)", key: "order_code", width: 18 },
     { header: "NAMA PENYEDIA / VENDOR", key: "vendor_name", width: 28 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN BARANG / MATERIAL", key: "item_name", width: 36 },
+    { header: "URAIAN BARANG / Item", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category_name", width: 16 },
     { header: "SATUAN", key: "unit_name", width: 10 },
     { header: "VOLUME", key: "qty", width: 14 },

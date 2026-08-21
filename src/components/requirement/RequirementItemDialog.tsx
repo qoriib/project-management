@@ -75,16 +75,16 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
           }}
         >
           <VStack gap={4}>
-            <Heading level={3}>{initialData ? "Edit Kebutuhan Material" : "Tambah Kebutuhan Material"}</Heading>
+            <Heading level={3}>{initialData ? "Edit Kebutuhan Item" : "Tambah Kebutuhan Item"}</Heading>
             <FormLayout>
-              {/* Material */}
+              {/* Item */}
               <HStack gap={2} align="end" width="100%">
                 <VStack style={{ flex: 1 }}>
                   <form.Field
                     name="item_id"
                     children={(field) => (
                       <Selector
-                        label="Material"
+                        label="Item"
                         description={selectedItemCode ? `Kode: ${selectedItemCode}` : undefined}
                         options={itemOptions}
                         value={field.state.value}
@@ -92,6 +92,8 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                           await handleItemChange(val as string);
                         }}
                         onBlur={field.handleBlur}
+                        hasSearch
+                        searchPlaceholder="Cari item..."
                         isRequired
                         statusVariant="tooltip"
                         status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
@@ -120,6 +122,8 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val as string)}
                         onBlur={field.handleBlur}
+                        hasSearch
+                        searchPlaceholder="Cari harga..."
                         isDisabled={!selectedItemId}
                         isRequired
                         statusVariant="tooltip"

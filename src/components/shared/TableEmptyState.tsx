@@ -1,13 +1,25 @@
-import { Text, VStack } from "@astryxdesign/core";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import type { ReactNode } from "react";
 
 interface TableEmptyStateProps {
-  message: string;
+  title?: string;
+  message?: string;
+  description?: string;
+  icon?: ReactNode;
+  actions?: ReactNode;
+  isCompact?: boolean;
 }
 
-export function TableEmptyState({ message }: TableEmptyStateProps) {
+export function TableEmptyState({
+  title,
+  message,
+  description,
+  icon,
+  actions,
+  isCompact = true,
+}: TableEmptyStateProps) {
+  const displayTitle = title || message || "Tidak ada data";
   return (
-    <VStack align="center" padding={8}>
-      <Text color="secondary">{message}</Text>
-    </VStack>
+    <EmptyState title={displayTitle} description={description} icon={icon} actions={actions} isCompact={isCompact} />
   );
 }

@@ -24,7 +24,7 @@ src/routes/
 │   ├── index.tsx           # /receipt (Daftar Surat Jalan)
 │   ├── create.tsx          # /receipt/create (Form Penerimaan)
 │   └── $receiptId.tsx      # /receipt/:receiptId (Detail Surat Jalan)
-├── requirement/            # Rute Halaman Kebutuhan Material
+├── requirement/            # Rute Halaman Kebutuhan Item
 │   ├── index.tsx           # /requirement (Daftar Proyek)
 │   └── $projectId.tsx      # /requirement/:projectId (Input Kebutuhan per Proyek)
 ├── settings/               # Rute Pengaturan & Maintenance

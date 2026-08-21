@@ -10,7 +10,7 @@ Direktori `src/store` mengelola seluruh _Global State Management_ aplikasi mengg
 | **`useMasterStore.ts`**      | Master Data Terpusat            | `items`, `categories`, `projects`, `units`, `vendors`, `itemPricesMap` (cache varian harga per item), serta aksi CRUD master. |
 | **`useOrderStore.ts`**       | Transaksi SPK / Purchase Order  | `orders`, `currentOrder`, `reloadOrders()`, aksi pembuatan dan pembatalan SPK.                                                |
 | **`useReceiptStore.ts`**     | Penerimaan Barang (Surat Jalan) | `receipts`, `currentReceipt`, `reloadReceipts()`, pencatatan barang datang per SPK.                                           |
-| **`useRequirementStore.ts`** | Estimasi Kebutuhan Material     | `requirements`, `loadRequirementsByProject()`, aksi input & edit kebutuhan per proyek.                                        |
+| **`useRequirementStore.ts`** | Estimasi Kebutuhan Item         | `requirements`, `loadRequirementsByProject()`, aksi input & edit kebutuhan per proyek.                                        |
 
 ## Pola Penggunaan Zustand
 

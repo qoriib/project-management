@@ -3,7 +3,7 @@ import * as v from "valibot";
 import { parseDecimalInput } from "@/utils/formatters";
 
 export const requirementSchema = v.object({
-  item_id: v.pipe(v.string(), v.nonEmpty("Material harus dipilih.")),
+  item_id: v.pipe(v.string(), v.nonEmpty("Item harus dipilih.")),
   item_price_id: v.pipe(v.string(), v.nonEmpty("Pilih harga terlebih dahulu.")),
   qty: v.pipe(
     v.union([v.string(), v.number()]),

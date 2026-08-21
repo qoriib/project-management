@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Card, Code, Heading, Text, Timestamp, VStack } from "@astryxdesign/core";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
 import {
   Table,
   type TableColumn,
@@ -91,10 +92,11 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
   ];
 
   return (
-    <Card padding={3}>
-      <VStack gap={2}>
+    <Card>
+      <VStack gap={3}>
         <Heading level={4}>Riwayat Transaksi (PO & NP)</Heading>
         <Table
+          hasHover
           textOverflow="truncate"
           columns={columns}
           data={paginatedLogs as LogRow[]}
@@ -102,11 +104,11 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
           plugins={{ rowIndex: logIndexPlugin, pagination: paginationPlugin }}
         />
         {logs.length === 0 && !loading && (
-          <VStack align="center" padding={2}>
-            <Text size="sm" color="secondary">
-              Belum ada log Pemesanan atau Penerimaan untuk item ini.
-            </Text>
-          </VStack>
+          <EmptyState
+            title="Belum ada transaksi"
+            description="Belum ada log Pemesanan atau Penerimaan untuk item ini."
+            isCompact
+          />
         )}
       </VStack>
     </Card>

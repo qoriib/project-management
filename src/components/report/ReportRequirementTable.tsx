@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { Badge, HStack, IconButton, Table, Text, VStack } from "@astryxdesign/core";
+import { HStack, IconButton, Table, Text, VStack } from "@astryxdesign/core";
+import { Item } from "@astryxdesign/core/Item";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { type TableColumn, pixel, proportional, useTableGroupedRows } from "@astryxdesign/core/Table";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
@@ -67,18 +69,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       width: proportional(2),
       renderCell: (r) => {
         const code = formatItemCode(r);
-        return (
-          <VStack align="start" gap={0.5}>
-            <Text weight="medium">{r.item_name}</Text>
-            {code ? (
-              <EntityCode id={code} />
-            ) : (
-              <Text size="sm" color="secondary">
-                -
-              </Text>
-            )}
-          </VStack>
-        );
+        return <Item density="compact" label={r.item_name} description={code ? <EntityCode id={code} /> : undefined} />;
       },
     },
     {
@@ -231,21 +222,20 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
           );
         }
 
-        const percent = r.planned_volume > 0 ? (r.total_ordered / r.planned_volume) * 100 : 0;
-        const isOver = percent > 100;
-        const isComplete = Math.round(percent) === 100 && !isOver;
+        const ordered = r.total_ordered ?? 0;
+        const planned = r.planned_volume ?? 0;
+        const percent = planned > 0 ? (ordered / planned) * 100 : 0;
         const variant = percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
 
         return (
-          <VStack gap={0.5}>
-            <HStack justify="between">
-              <Text type="code" color="secondary" weight="medium">
-                {`${formatNumber(r.total_ordered)} / ${formatNumber(r.planned_volume)}`}
-              </Text>
-              <Badge variant={isOver ? "red" : isComplete ? "green" : undefined} label={`${percent.toFixed(0)}%`} />
-            </HStack>
-            <ProgressBar value={r.total_ordered} max={r.planned_volume ?? 1} variant={variant} label="" />
-          </VStack>
+          <ProgressBar
+            value={ordered}
+            max={planned || 1}
+            label={`${percent.toFixed(0)}%`}
+            hasValueLabel
+            formatValueLabel={() => `${formatNumber(ordered)} / ${formatNumber(planned)}`}
+            variant={variant}
+          />
         );
       },
     },
@@ -263,20 +253,20 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
           );
         }
 
-        const percent = r.total_ordered > 0 ? (r.total_delivered / r.total_ordered) * 100 : 0;
-        const isOver = percent > 100;
-        const isComplete = Math.round(percent) === 100 && !isOver;
+        const delivered = r.total_delivered ?? 0;
+        const ordered = r.total_ordered ?? 0;
+        const percent = ordered > 0 ? (delivered / ordered) * 100 : 0;
         const variant = percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
+
         return (
-          <VStack gap={0.5}>
-            <HStack justify="between">
-              <Text type="code" color="secondary" weight="medium">
-                {`${formatNumber(r.total_delivered)} / ${formatNumber(r.total_ordered)}`}
-              </Text>
-              <Badge variant={isOver ? "red" : isComplete ? "green" : undefined} label={`${percent.toFixed(0)}%`} />
-            </HStack>
-            <ProgressBar value={r.total_delivered} max={r.total_ordered ?? 1} variant={variant} label="" />
-          </VStack>
+          <ProgressBar
+            value={delivered}
+            max={ordered || 1}
+            label={`${percent.toFixed(0)}%`}
+            hasValueLabel
+            formatValueLabel={() => `${formatNumber(delivered)} / ${formatNumber(ordered)}`}
+            variant={variant}
+          />
         );
       },
     },
@@ -297,9 +287,11 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
 
   if (report.length === 0 && !loading) {
     return (
-      <VStack align="center" padding={8}>
-        <Text color="secondary">Belum ada Kebutuhan (BOM) untuk proyek ini.</Text>
-      </VStack>
+      <EmptyState
+        title="Belum ada Kebutuhan (BOM)"
+        description="Belum ada data kebutuhan Item yang direncanakan untuk proyek ini."
+        isCompact
+      />
     );
   }
 
