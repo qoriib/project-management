@@ -6,7 +6,6 @@ import { LoadingState } from "@/components/shared/LoadingState";
 import { useOrderStore } from "@/store/useOrderStore";
 import { OrderItemTrackingTable } from "@/components/order/OrderItemTrackingTable";
 import { OrderReceiptLogTable } from "@/components/order/OrderReceiptLogTable";
-import { formatEntityCode } from "@/components/shared/EntityCode";
 
 function PODetailPage() {
   const navigate = useNavigate();
@@ -63,7 +62,7 @@ function PODetailPage() {
               Nomor Order
             </Text>
             <Text weight="medium" type="code">
-              {order.order_code ?? formatEntityCode(order.order_id)}
+              {order.order_code || "-"}
             </Text>
           </VStack>
           <VStack gap={1}>

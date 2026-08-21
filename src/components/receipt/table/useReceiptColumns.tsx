@@ -17,7 +17,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
   const columns: TableColumn<ReceiptRow>[] = [
     {
       header: "No. NP",
-      key: "receipt_id",
+      key: "receipt_code",
       width: pixel(180),
       renderCell: (row) => <EntityCode id={row.receipt_code} />,
     },
@@ -29,9 +29,9 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
     },
     {
       header: "Ref. Order",
-      key: "order_id",
+      key: "order_code",
       width: pixel(180),
-      renderCell: (row) => <EntityCode id={row.order_code || row.order_id} />,
+      renderCell: (row) => <EntityCode id={row.order_code} />,
     },
     {
       header: "Vendor Pemasok",

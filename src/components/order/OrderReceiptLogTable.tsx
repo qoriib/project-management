@@ -19,9 +19,9 @@ export function OrderReceiptLogTable() {
   const receiptColumns: TableColumn<LogRow>[] = [
     {
       header: "No. NP",
-      key: "receipt_id",
+      key: "receipt_code",
       width: pixel(160),
-      renderCell: (row) => <EntityCode id={row.receipt_code ?? row.receipt_id} />,
+      renderCell: (row) => <EntityCode id={row.receipt_code} />,
     },
     {
       header: "Tanggal Kirim",

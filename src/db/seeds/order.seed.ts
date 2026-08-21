@@ -8,6 +8,7 @@ interface SeedOrderItemRaw {
 }
 
 interface SeedOrderRaw {
+  orderCode: string;
   projectName: string;
   orderDate: string;
   vendorName: string;
@@ -25,6 +26,7 @@ export async function seedOrders(): Promise<void> {
     // ═════════════════════════════════════════════════════════════════════════
     {
       // PO 1: Sewa Alat & Tenaga Kerja (Penerimaan Lengkap)
+      orderCode: "PO-2026-0001",
       orderDate: "2026-03-01",
       projectName: p1,
       vendorName: "Sewa Alat Berat Nusantara",
@@ -41,6 +43,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 2: Semen & Pasir (Penerimaan Parsial / Masih Ada Sisa)
+      orderCode: "PO-2026-0002",
       orderDate: "2026-03-05",
       projectName: p1,
       vendorName: "TB. Sinar Bangunan",
@@ -59,6 +62,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 3: Kayu, Batu & Non-Rencana (Ada Over-Delivered Batu Pecah & Unplanned Item)
+      orderCode: "PO-2026-0003",
       orderDate: "2026-03-10",
       projectName: p1,
       vendorName: "CV. Sumber Pasir",
@@ -77,6 +81,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 4: Besi Beton (Ada Parsial & Unplanned Besi 16mm)
+      orderCode: "PO-2026-0004",
       orderDate: "2026-03-12",
       projectName: p1,
       vendorName: "PT. Baja Jaya Nusantara",
@@ -95,6 +100,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 5: Finishing & Cat (Ada Over-Delivered Waterproofing, Parsial Cat, & 0% Cat Eksterior)
+      orderCode: "PO-2026-0005",
       orderDate: "2026-03-25",
       projectName: p1,
       vendorName: "Toko Cat Mitra Abadi",
@@ -115,6 +121,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 6: Elektrikal & Sanitari (PO BARU - BELUM DITERIMA SAMA SEKALI / 0% PROGRESS)
+      orderCode: "PO-2026-0006",
       orderDate: "2026-04-05",
       projectName: p1,
       vendorName: "CV. Elektrika Mandiri",
@@ -135,6 +142,7 @@ export async function seedOrders(): Promise<void> {
     // ═════════════════════════════════════════════════════════════════════════
     {
       // PO 1: Finishing Cat & Lantai (Lengkap & Unplanned)
+      orderCode: "PO-2026-0007",
       orderDate: "2026-04-01",
       projectName: p2,
       vendorName: "Toko Cat Mitra Abadi",
@@ -151,6 +159,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 2: Elektrikal (Ada Over-Delivered Lampu & Parsial Unplanned Pipa)
+      orderCode: "PO-2026-0008",
       orderDate: "2026-04-15",
       projectName: p2,
       vendorName: "CV. Elektrika Mandiri",
@@ -165,6 +174,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 3: Multiplek & Kayu (Ada Parsial Triplek 12mm)
+      orderCode: "PO-2026-0009",
       orderDate: "2026-04-20",
       projectName: p2,
       vendorName: "CV. Sumber Pasir",
@@ -179,6 +189,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 4: Semen & Mortar (PO BARU - BELUM DITERIMA / 0%)
+      orderCode: "PO-2026-0010",
       orderDate: "2026-04-25",
       projectName: p2,
       vendorName: "TB. Sinar Bangunan",
@@ -195,6 +206,7 @@ export async function seedOrders(): Promise<void> {
     // ═════════════════════════════════════════════════════════════════════════
     {
       // PO 1: Alat Berat (Lengkap)
+      orderCode: "PO-2026-0011",
       orderDate: "2026-04-25",
       projectName: p3,
       vendorName: "Sewa Alat Berat Nusantara",
@@ -207,6 +219,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 2: Besi Struktur (Ada Over-Delivered Besi 13mm & Parsial Besi 16mm)
+      orderCode: "PO-2026-0012",
       orderDate: "2026-05-10",
       projectName: p3,
       vendorName: "PT. Baja Jaya Nusantara",
@@ -223,6 +236,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 3: Semen & Material Pasir (Ada Over-Delivered Pasir Beton, Parsial Semen, Unplanned Batu Kali)
+      orderCode: "PO-2026-0013",
       orderDate: "2026-05-18",
       projectName: p3,
       vendorName: "TB. Sinar Bangunan",
@@ -239,6 +253,7 @@ export async function seedOrders(): Promise<void> {
     },
     {
       // PO 4: Cat & Waterproofing (PO BARU - BELUM DITERIMA / 0%)
+      orderCode: "PO-2026-0014",
       orderDate: "2026-05-28",
       projectName: p3,
       vendorName: "Toko Cat Mitra Abadi",
@@ -308,7 +323,7 @@ export async function seedOrders(): Promise<void> {
     if (existingOrders.length === 0) {
       await orderRepo.createWithItems(
         {
-          order_code: "",
+          order_code: ord.orderCode,
           order_date: ord.orderDate,
           project_id: project.project_id,
         },

@@ -7,6 +7,7 @@ interface SeedReceiptItemRaw {
 }
 
 interface SeedReceipt {
+  receiptCode: string;
   projectName: string;
   orderDate: string;
   receiptDate: string;
@@ -44,6 +45,7 @@ export async function seedReceipts(): Promise<void> {
     // ═════════════════════════════════════════════════════════════════════════
     // Order 1 (2026-03-01): Sewa Alat & Tenaga Kerja (Penerimaan Bertahap & Lengkap 100%)
     {
+      receiptCode: "NP-2026-0001",
       projectName: p1,
       orderDate: "2026-03-01",
       receiptDate: "2026-03-03",
@@ -55,6 +57,7 @@ export async function seedReceipts(): Promise<void> {
       ],
     },
     {
+      receiptCode: "NP-2026-0002",
       projectName: p1,
       orderDate: "2026-03-01",
       receiptDate: "2026-03-08",
@@ -65,6 +68,7 @@ export async function seedReceipts(): Promise<void> {
 
     // Order 2 (2026-03-05): Semen & Pasir (Penerimaan Bertahap - Semen Masih Parsial 250/300)
     {
+      receiptCode: "NP-2026-0003",
       projectName: p1,
       orderDate: "2026-03-05",
       receiptDate: "2026-03-07",
@@ -76,6 +80,7 @@ export async function seedReceipts(): Promise<void> {
       ],
     },
     {
+      receiptCode: "NP-2026-0004",
       projectName: p1,
       orderDate: "2026-03-05",
       receiptDate: "2026-03-14",
@@ -86,6 +91,7 @@ export async function seedReceipts(): Promise<void> {
       ],
     },
     {
+      receiptCode: "NP-2026-0005",
       projectName: p1,
       orderDate: "2026-03-05",
       receiptDate: "2026-03-20",
@@ -96,6 +102,7 @@ export async function seedReceipts(): Promise<void> {
 
     // Order 3 (2026-03-10): Kayu & Batu (Batu Pecah OVER 120%, Kaso Parsial 200/220, Unplanned Batu Kali 100%)
     {
+      receiptCode: "NP-2026-0006",
       projectName: p1,
       orderDate: "2026-03-10",
       receiptDate: "2026-03-12",
@@ -106,6 +113,7 @@ export async function seedReceipts(): Promise<void> {
       ],
     },
     {
+      receiptCode: "NP-2026-0007",
       projectName: p1,
       orderDate: "2026-03-10",
       receiptDate: "2026-03-18",
@@ -118,6 +126,7 @@ export async function seedReceipts(): Promise<void> {
 
     // Order 4 (2026-03-12): Besi Beton (Besi Ulir 13mm PARSIAL 100/150, Unplanned Besi 16mm 100%)
     {
+      receiptCode: "NP-2026-0008",
       projectName: p1,
       orderDate: "2026-03-12",
       receiptDate: "2026-03-15",
@@ -132,6 +141,7 @@ export async function seedReceipts(): Promise<void> {
 
     // Order 5 (2026-03-25): Finishing (Waterproofing OVER 6/5, Cat Interior PARSIAL 8/15, Cat Eksterior & Triplek 12mm 0%)
     {
+      receiptCode: "NP-2026-0009",
       projectName: p1,
       orderDate: "2026-03-25",
       receiptDate: "2026-03-28",
@@ -150,6 +160,7 @@ export async function seedReceipts(): Promise<void> {
     // ═════════════════════════════════════════════════════════════════════════
     // Order 1 (2026-04-01): Finishing (Bertahap & Lengkap)
     {
+      receiptCode: "NP-2026-0010",
       projectName: p2,
       orderDate: "2026-04-01",
       receiptDate: "2026-04-10",
@@ -161,6 +172,7 @@ export async function seedReceipts(): Promise<void> {
       ],
     },
     {
+      receiptCode: "NP-2026-0011",
       projectName: p2,
       orderDate: "2026-04-01",
       receiptDate: "2026-04-12",
@@ -172,6 +184,7 @@ export async function seedReceipts(): Promise<void> {
 
     // Order 2 (2026-04-15): Elektrikal (Lampu OVER 60/50, Unplanned Pipa PARSIAL 10/20)
     {
+      receiptCode: "NP-2026-0012",
       projectName: p2,
       orderDate: "2026-04-15",
       receiptDate: "2026-04-18",
@@ -184,6 +197,7 @@ export async function seedReceipts(): Promise<void> {
 
     // Order 3 (2026-04-20): Multiplek & Kayu (Triplek 12mm PARSIAL 15/30)
     {
+      receiptCode: "NP-2026-0013",
       projectName: p2,
       orderDate: "2026-04-20",
       receiptDate: "2026-04-22",
@@ -193,6 +207,7 @@ export async function seedReceipts(): Promise<void> {
       ],
     },
     {
+      receiptCode: "NP-2026-0014",
       projectName: p2,
       orderDate: "2026-04-20",
       receiptDate: "2026-05-02",
@@ -208,6 +223,7 @@ export async function seedReceipts(): Promise<void> {
     // ═════════════════════════════════════════════════════════════════════════
     // Order 1 (2026-04-25): Alat Berat (Bertahap & Lengkap)
     {
+      receiptCode: "NP-2026-0015",
       projectName: p3,
       orderDate: "2026-04-25",
       receiptDate: "2026-04-28",
@@ -217,6 +233,7 @@ export async function seedReceipts(): Promise<void> {
       ],
     },
     {
+      receiptCode: "NP-2026-0016",
       projectName: p3,
       orderDate: "2026-04-25",
       receiptDate: "2026-05-05",
@@ -227,6 +244,7 @@ export async function seedReceipts(): Promise<void> {
 
     // Order 2 (2026-05-10): Besi Struktur (Besi Ulir 13mm OVER 275/250, Besi Ulir 16mm PARSIAL 250/300)
     {
+      receiptCode: "NP-2026-0017",
       projectName: p3,
       orderDate: "2026-05-10",
       receiptDate: "2026-05-15",
@@ -238,6 +256,7 @@ export async function seedReceipts(): Promise<void> {
       ],
     },
     {
+      receiptCode: "NP-2026-0018",
       projectName: p3,
       orderDate: "2026-05-10",
       receiptDate: "2026-05-22",
@@ -248,6 +267,7 @@ export async function seedReceipts(): Promise<void> {
 
     // Order 3 (2026-05-18): Semen & Pasir (Pasir Beton OVER 55/50, Semen PARSIAL 400/500, Unplanned Batu Kali 100%)
     {
+      receiptCode: "NP-2026-0019",
       projectName: p3,
       orderDate: "2026-05-18",
       receiptDate: "2026-05-20",
@@ -257,6 +277,7 @@ export async function seedReceipts(): Promise<void> {
       ],
     },
     {
+      receiptCode: "NP-2026-0020",
       projectName: p3,
       orderDate: "2026-05-18",
       receiptDate: "2026-05-25",
@@ -302,7 +323,7 @@ export async function seedReceipts(): Promise<void> {
       await receiptRepo.createWithItems(
         {
           order_id: orderId,
-          receipt_code: "",
+          receipt_code: rc.receiptCode,
           receipt_date: rc.receiptDate,
         },
         receiptItems,
