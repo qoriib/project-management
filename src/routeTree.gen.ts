@@ -8,431 +8,431 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as MasterRouteImport } from './routes/master'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as MasterItemRouteImport } from './routes/master/item'
-import { Route as MasterKategoriRouteImport } from './routes/master/kategori'
-import { Route as MasterProjectRouteImport } from './routes/master/project'
-import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
-import { Route as MasterVendorRouteImport } from './routes/master/vendor'
-import { Route as OrderIndexRouteImport } from './routes/order/index'
-import { Route as OrderNewRouteImport } from './routes/order/new'
-import { Route as ReceiptIndexRouteImport } from './routes/receipt/index'
-import { Route as ReceiptNewRouteImport } from './routes/receipt/new'
-import { Route as RequirementIndexRouteImport } from './routes/requirement/index'
-import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
-import { Route as SettingsDatabaseRouteImport } from './routes/settings/database'
-import { Route as SettingsSecurityRouteImport } from './routes/settings/security'
-import { Route as OrderIdIndexRouteImport } from './routes/order/$id/index'
-import { Route as OrderIdEditRouteImport } from './routes/order/$id/edit'
-import { Route as ReceiptIdEditRouteImport } from './routes/receipt/$id/edit'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as LoginRouteImport } from "./routes/login";
+import { Route as MasterRouteImport } from "./routes/master";
+import { Route as SettingsRouteImport } from "./routes/settings";
+import { Route as MasterItemRouteImport } from "./routes/master/item";
+import { Route as MasterKategoriRouteImport } from "./routes/master/kategori";
+import { Route as MasterProjectRouteImport } from "./routes/master/project";
+import { Route as MasterSatuanRouteImport } from "./routes/master/satuan";
+import { Route as MasterVendorRouteImport } from "./routes/master/vendor";
+import { Route as OrderIndexRouteImport } from "./routes/order/index";
+import { Route as OrderNewRouteImport } from "./routes/order/new";
+import { Route as ReceiptIndexRouteImport } from "./routes/receipt/index";
+import { Route as ReceiptNewRouteImport } from "./routes/receipt/new";
+import { Route as RequirementIndexRouteImport } from "./routes/requirement/index";
+import { Route as SettingsAppearanceRouteImport } from "./routes/settings/appearance";
+import { Route as SettingsDatabaseRouteImport } from "./routes/settings/database";
+import { Route as SettingsSecurityRouteImport } from "./routes/settings/security";
+import { Route as OrderIdIndexRouteImport } from "./routes/order/$id/index";
+import { Route as OrderIdEditRouteImport } from "./routes/order/$id/edit";
+import { Route as ReceiptIdEditRouteImport } from "./routes/receipt/$id/edit";
 
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+  id: "/login",
+  path: "/login",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const MasterRoute = MasterRouteImport.update({
-  id: '/master',
-  path: '/master',
+  id: "/master",
+  path: "/master",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+  id: "/settings",
+  path: "/settings",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const MasterItemRoute = MasterItemRouteImport.update({
-  id: '/item',
-  path: '/item',
+  id: "/item",
+  path: "/item",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const MasterKategoriRoute = MasterKategoriRouteImport.update({
-  id: '/kategori',
-  path: '/kategori',
+  id: "/kategori",
+  path: "/kategori",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const MasterProjectRoute = MasterProjectRouteImport.update({
-  id: '/project',
-  path: '/project',
+  id: "/project",
+  path: "/project",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const MasterSatuanRoute = MasterSatuanRouteImport.update({
-  id: '/satuan',
-  path: '/satuan',
+  id: "/satuan",
+  path: "/satuan",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const MasterVendorRoute = MasterVendorRouteImport.update({
-  id: '/vendor',
-  path: '/vendor',
+  id: "/vendor",
+  path: "/vendor",
   getParentRoute: () => MasterRoute,
-} as any)
+} as any);
 const OrderIndexRoute = OrderIndexRouteImport.update({
-  id: '/order/',
-  path: '/order/',
+  id: "/order/",
+  path: "/order/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const OrderNewRoute = OrderNewRouteImport.update({
-  id: '/order/new',
-  path: '/order/new',
+  id: "/order/new",
+  path: "/order/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ReceiptIndexRoute = ReceiptIndexRouteImport.update({
-  id: '/receipt/',
-  path: '/receipt/',
+  id: "/receipt/",
+  path: "/receipt/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ReceiptNewRoute = ReceiptNewRouteImport.update({
-  id: '/receipt/new',
-  path: '/receipt/new',
+  id: "/receipt/new",
+  path: "/receipt/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const RequirementIndexRoute = RequirementIndexRouteImport.update({
-  id: '/requirement/',
-  path: '/requirement/',
+  id: "/requirement/",
+  path: "/requirement/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
-  id: '/appearance',
-  path: '/appearance',
+  id: "/appearance",
+  path: "/appearance",
   getParentRoute: () => SettingsRoute,
-} as any)
+} as any);
 const SettingsDatabaseRoute = SettingsDatabaseRouteImport.update({
-  id: '/database',
-  path: '/database',
+  id: "/database",
+  path: "/database",
   getParentRoute: () => SettingsRoute,
-} as any)
+} as any);
 const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
-  id: '/security',
-  path: '/security',
+  id: "/security",
+  path: "/security",
   getParentRoute: () => SettingsRoute,
-} as any)
+} as any);
 const OrderIdIndexRoute = OrderIdIndexRouteImport.update({
-  id: '/order/$id/',
-  path: '/order/$id/',
+  id: "/order/$id/",
+  path: "/order/$id/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const OrderIdEditRoute = OrderIdEditRouteImport.update({
-  id: '/order/$id/edit',
-  path: '/order/$id/edit',
+  id: "/order/$id/edit",
+  path: "/order/$id/edit",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ReceiptIdEditRoute = ReceiptIdEditRouteImport.update({
-  id: '/receipt/$id/edit',
-  path: '/receipt/$id/edit',
+  id: "/receipt/$id/edit",
+  path: "/receipt/$id/edit",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/master': typeof MasterRouteWithChildren
-  '/settings': typeof SettingsRouteWithChildren
-  '/master/item': typeof MasterItemRoute
-  '/master/kategori': typeof MasterKategoriRoute
-  '/master/project': typeof MasterProjectRoute
-  '/master/satuan': typeof MasterSatuanRoute
-  '/master/vendor': typeof MasterVendorRoute
-  '/order/new': typeof OrderNewRoute
-  '/receipt/new': typeof ReceiptNewRoute
-  '/settings/appearance': typeof SettingsAppearanceRoute
-  '/settings/database': typeof SettingsDatabaseRoute
-  '/settings/security': typeof SettingsSecurityRoute
-  '/order/': typeof OrderIndexRoute
-  '/receipt/': typeof ReceiptIndexRoute
-  '/requirement/': typeof RequirementIndexRoute
-  '/order/$id/edit': typeof OrderIdEditRoute
-  '/receipt/$id/edit': typeof ReceiptIdEditRoute
-  '/order/$id/': typeof OrderIdIndexRoute
+  "/": typeof IndexRoute;
+  "/login": typeof LoginRoute;
+  "/master": typeof MasterRouteWithChildren;
+  "/settings": typeof SettingsRouteWithChildren;
+  "/master/item": typeof MasterItemRoute;
+  "/master/kategori": typeof MasterKategoriRoute;
+  "/master/project": typeof MasterProjectRoute;
+  "/master/satuan": typeof MasterSatuanRoute;
+  "/master/vendor": typeof MasterVendorRoute;
+  "/order/new": typeof OrderNewRoute;
+  "/receipt/new": typeof ReceiptNewRoute;
+  "/settings/appearance": typeof SettingsAppearanceRoute;
+  "/settings/database": typeof SettingsDatabaseRoute;
+  "/settings/security": typeof SettingsSecurityRoute;
+  "/order/": typeof OrderIndexRoute;
+  "/receipt/": typeof ReceiptIndexRoute;
+  "/requirement/": typeof RequirementIndexRoute;
+  "/order/$id/edit": typeof OrderIdEditRoute;
+  "/receipt/$id/edit": typeof ReceiptIdEditRoute;
+  "/order/$id/": typeof OrderIdIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/master': typeof MasterRouteWithChildren
-  '/settings': typeof SettingsRouteWithChildren
-  '/master/item': typeof MasterItemRoute
-  '/master/kategori': typeof MasterKategoriRoute
-  '/master/project': typeof MasterProjectRoute
-  '/master/satuan': typeof MasterSatuanRoute
-  '/master/vendor': typeof MasterVendorRoute
-  '/order/new': typeof OrderNewRoute
-  '/receipt/new': typeof ReceiptNewRoute
-  '/settings/appearance': typeof SettingsAppearanceRoute
-  '/settings/database': typeof SettingsDatabaseRoute
-  '/settings/security': typeof SettingsSecurityRoute
-  '/order': typeof OrderIndexRoute
-  '/receipt': typeof ReceiptIndexRoute
-  '/requirement': typeof RequirementIndexRoute
-  '/order/$id/edit': typeof OrderIdEditRoute
-  '/receipt/$id/edit': typeof ReceiptIdEditRoute
-  '/order/$id': typeof OrderIdIndexRoute
+  "/": typeof IndexRoute;
+  "/login": typeof LoginRoute;
+  "/master": typeof MasterRouteWithChildren;
+  "/settings": typeof SettingsRouteWithChildren;
+  "/master/item": typeof MasterItemRoute;
+  "/master/kategori": typeof MasterKategoriRoute;
+  "/master/project": typeof MasterProjectRoute;
+  "/master/satuan": typeof MasterSatuanRoute;
+  "/master/vendor": typeof MasterVendorRoute;
+  "/order/new": typeof OrderNewRoute;
+  "/receipt/new": typeof ReceiptNewRoute;
+  "/settings/appearance": typeof SettingsAppearanceRoute;
+  "/settings/database": typeof SettingsDatabaseRoute;
+  "/settings/security": typeof SettingsSecurityRoute;
+  "/order": typeof OrderIndexRoute;
+  "/receipt": typeof ReceiptIndexRoute;
+  "/requirement": typeof RequirementIndexRoute;
+  "/order/$id/edit": typeof OrderIdEditRoute;
+  "/receipt/$id/edit": typeof ReceiptIdEditRoute;
+  "/order/$id": typeof OrderIdIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/master': typeof MasterRouteWithChildren
-  '/settings': typeof SettingsRouteWithChildren
-  '/master/item': typeof MasterItemRoute
-  '/master/kategori': typeof MasterKategoriRoute
-  '/master/project': typeof MasterProjectRoute
-  '/master/satuan': typeof MasterSatuanRoute
-  '/master/vendor': typeof MasterVendorRoute
-  '/order/new': typeof OrderNewRoute
-  '/receipt/new': typeof ReceiptNewRoute
-  '/settings/appearance': typeof SettingsAppearanceRoute
-  '/settings/database': typeof SettingsDatabaseRoute
-  '/settings/security': typeof SettingsSecurityRoute
-  '/order/': typeof OrderIndexRoute
-  '/receipt/': typeof ReceiptIndexRoute
-  '/requirement/': typeof RequirementIndexRoute
-  '/order/$id/edit': typeof OrderIdEditRoute
-  '/receipt/$id/edit': typeof ReceiptIdEditRoute
-  '/order/$id/': typeof OrderIdIndexRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexRoute;
+  "/login": typeof LoginRoute;
+  "/master": typeof MasterRouteWithChildren;
+  "/settings": typeof SettingsRouteWithChildren;
+  "/master/item": typeof MasterItemRoute;
+  "/master/kategori": typeof MasterKategoriRoute;
+  "/master/project": typeof MasterProjectRoute;
+  "/master/satuan": typeof MasterSatuanRoute;
+  "/master/vendor": typeof MasterVendorRoute;
+  "/order/new": typeof OrderNewRoute;
+  "/receipt/new": typeof ReceiptNewRoute;
+  "/settings/appearance": typeof SettingsAppearanceRoute;
+  "/settings/database": typeof SettingsDatabaseRoute;
+  "/settings/security": typeof SettingsSecurityRoute;
+  "/order/": typeof OrderIndexRoute;
+  "/receipt/": typeof ReceiptIndexRoute;
+  "/requirement/": typeof RequirementIndexRoute;
+  "/order/$id/edit": typeof OrderIdEditRoute;
+  "/receipt/$id/edit": typeof ReceiptIdEditRoute;
+  "/order/$id/": typeof OrderIdIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/login'
-    | '/master'
-    | '/settings'
-    | '/master/item'
-    | '/master/kategori'
-    | '/master/project'
-    | '/master/satuan'
-    | '/master/vendor'
-    | '/order/new'
-    | '/receipt/new'
-    | '/settings/appearance'
-    | '/settings/database'
-    | '/settings/security'
-    | '/order/'
-    | '/receipt/'
-    | '/requirement/'
-    | '/order/$id/edit'
-    | '/receipt/$id/edit'
-    | '/order/$id/'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/login"
+    | "/master"
+    | "/settings"
+    | "/master/item"
+    | "/master/kategori"
+    | "/master/project"
+    | "/master/satuan"
+    | "/master/vendor"
+    | "/order/new"
+    | "/receipt/new"
+    | "/settings/appearance"
+    | "/settings/database"
+    | "/settings/security"
+    | "/order/"
+    | "/receipt/"
+    | "/requirement/"
+    | "/order/$id/edit"
+    | "/receipt/$id/edit"
+    | "/order/$id/";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/'
-    | '/login'
-    | '/master'
-    | '/settings'
-    | '/master/item'
-    | '/master/kategori'
-    | '/master/project'
-    | '/master/satuan'
-    | '/master/vendor'
-    | '/order/new'
-    | '/receipt/new'
-    | '/settings/appearance'
-    | '/settings/database'
-    | '/settings/security'
-    | '/order'
-    | '/receipt'
-    | '/requirement'
-    | '/order/$id/edit'
-    | '/receipt/$id/edit'
-    | '/order/$id'
+    | "/"
+    | "/login"
+    | "/master"
+    | "/settings"
+    | "/master/item"
+    | "/master/kategori"
+    | "/master/project"
+    | "/master/satuan"
+    | "/master/vendor"
+    | "/order/new"
+    | "/receipt/new"
+    | "/settings/appearance"
+    | "/settings/database"
+    | "/settings/security"
+    | "/order"
+    | "/receipt"
+    | "/requirement"
+    | "/order/$id/edit"
+    | "/receipt/$id/edit"
+    | "/order/$id";
   id:
-    | '__root__'
-    | '/'
-    | '/login'
-    | '/master'
-    | '/settings'
-    | '/master/item'
-    | '/master/kategori'
-    | '/master/project'
-    | '/master/satuan'
-    | '/master/vendor'
-    | '/order/new'
-    | '/receipt/new'
-    | '/settings/appearance'
-    | '/settings/database'
-    | '/settings/security'
-    | '/order/'
-    | '/receipt/'
-    | '/requirement/'
-    | '/order/$id/edit'
-    | '/receipt/$id/edit'
-    | '/order/$id/'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/"
+    | "/login"
+    | "/master"
+    | "/settings"
+    | "/master/item"
+    | "/master/kategori"
+    | "/master/project"
+    | "/master/satuan"
+    | "/master/vendor"
+    | "/order/new"
+    | "/receipt/new"
+    | "/settings/appearance"
+    | "/settings/database"
+    | "/settings/security"
+    | "/order/"
+    | "/receipt/"
+    | "/requirement/"
+    | "/order/$id/edit"
+    | "/receipt/$id/edit"
+    | "/order/$id/";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  LoginRoute: typeof LoginRoute
-  MasterRoute: typeof MasterRouteWithChildren
-  SettingsRoute: typeof SettingsRouteWithChildren
-  OrderNewRoute: typeof OrderNewRoute
-  ReceiptNewRoute: typeof ReceiptNewRoute
-  OrderIndexRoute: typeof OrderIndexRoute
-  ReceiptIndexRoute: typeof ReceiptIndexRoute
-  RequirementIndexRoute: typeof RequirementIndexRoute
-  OrderIdEditRoute: typeof OrderIdEditRoute
-  ReceiptIdEditRoute: typeof ReceiptIdEditRoute
-  OrderIdIndexRoute: typeof OrderIdIndexRoute
+  IndexRoute: typeof IndexRoute;
+  LoginRoute: typeof LoginRoute;
+  MasterRoute: typeof MasterRouteWithChildren;
+  SettingsRoute: typeof SettingsRouteWithChildren;
+  OrderNewRoute: typeof OrderNewRoute;
+  ReceiptNewRoute: typeof ReceiptNewRoute;
+  OrderIndexRoute: typeof OrderIndexRoute;
+  ReceiptIndexRoute: typeof ReceiptIndexRoute;
+  RequirementIndexRoute: typeof RequirementIndexRoute;
+  OrderIdEditRoute: typeof OrderIdEditRoute;
+  ReceiptIdEditRoute: typeof ReceiptIdEditRoute;
+  OrderIdIndexRoute: typeof OrderIdIndexRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/master': {
-      id: '/master'
-      path: '/master'
-      fullPath: '/master'
-      preLoaderRoute: typeof MasterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/master/item': {
-      id: '/master/item'
-      path: '/item'
-      fullPath: '/master/item'
-      preLoaderRoute: typeof MasterItemRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/kategori': {
-      id: '/master/kategori'
-      path: '/kategori'
-      fullPath: '/master/kategori'
-      preLoaderRoute: typeof MasterKategoriRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/project': {
-      id: '/master/project'
-      path: '/project'
-      fullPath: '/master/project'
-      preLoaderRoute: typeof MasterProjectRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/satuan': {
-      id: '/master/satuan'
-      path: '/satuan'
-      fullPath: '/master/satuan'
-      preLoaderRoute: typeof MasterSatuanRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/vendor': {
-      id: '/master/vendor'
-      path: '/vendor'
-      fullPath: '/master/vendor'
-      preLoaderRoute: typeof MasterVendorRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/order/': {
-      id: '/order/'
-      path: '/order'
-      fullPath: '/order/'
-      preLoaderRoute: typeof OrderIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/order/new': {
-      id: '/order/new'
-      path: '/order/new'
-      fullPath: '/order/new'
-      preLoaderRoute: typeof OrderNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/receipt/': {
-      id: '/receipt/'
-      path: '/receipt'
-      fullPath: '/receipt/'
-      preLoaderRoute: typeof ReceiptIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/receipt/new': {
-      id: '/receipt/new'
-      path: '/receipt/new'
-      fullPath: '/receipt/new'
-      preLoaderRoute: typeof ReceiptNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/requirement/': {
-      id: '/requirement/'
-      path: '/requirement'
-      fullPath: '/requirement/'
-      preLoaderRoute: typeof RequirementIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/appearance': {
-      id: '/settings/appearance'
-      path: '/appearance'
-      fullPath: '/settings/appearance'
-      preLoaderRoute: typeof SettingsAppearanceRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/database': {
-      id: '/settings/database'
-      path: '/database'
-      fullPath: '/settings/database'
-      preLoaderRoute: typeof SettingsDatabaseRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/security': {
-      id: '/settings/security'
-      path: '/security'
-      fullPath: '/settings/security'
-      preLoaderRoute: typeof SettingsSecurityRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/order/$id/': {
-      id: '/order/$id/'
-      path: '/order/$id'
-      fullPath: '/order/$id/'
-      preLoaderRoute: typeof OrderIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/order/$id/edit': {
-      id: '/order/$id/edit'
-      path: '/order/$id/edit'
-      fullPath: '/order/$id/edit'
-      preLoaderRoute: typeof OrderIdEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/receipt/$id/edit': {
-      id: '/receipt/$id/edit'
-      path: '/receipt/$id/edit'
-      fullPath: '/receipt/$id/edit'
-      preLoaderRoute: typeof ReceiptIdEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/login": {
+      id: "/login";
+      path: "/login";
+      fullPath: "/login";
+      preLoaderRoute: typeof LoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/master": {
+      id: "/master";
+      path: "/master";
+      fullPath: "/master";
+      preLoaderRoute: typeof MasterRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings": {
+      id: "/settings";
+      path: "/settings";
+      fullPath: "/settings";
+      preLoaderRoute: typeof SettingsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/master/item": {
+      id: "/master/item";
+      path: "/item";
+      fullPath: "/master/item";
+      preLoaderRoute: typeof MasterItemRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/master/kategori": {
+      id: "/master/kategori";
+      path: "/kategori";
+      fullPath: "/master/kategori";
+      preLoaderRoute: typeof MasterKategoriRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/master/project": {
+      id: "/master/project";
+      path: "/project";
+      fullPath: "/master/project";
+      preLoaderRoute: typeof MasterProjectRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/master/satuan": {
+      id: "/master/satuan";
+      path: "/satuan";
+      fullPath: "/master/satuan";
+      preLoaderRoute: typeof MasterSatuanRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/master/vendor": {
+      id: "/master/vendor";
+      path: "/vendor";
+      fullPath: "/master/vendor";
+      preLoaderRoute: typeof MasterVendorRouteImport;
+      parentRoute: typeof MasterRoute;
+    };
+    "/order/": {
+      id: "/order/";
+      path: "/order";
+      fullPath: "/order/";
+      preLoaderRoute: typeof OrderIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/order/new": {
+      id: "/order/new";
+      path: "/order/new";
+      fullPath: "/order/new";
+      preLoaderRoute: typeof OrderNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/receipt/": {
+      id: "/receipt/";
+      path: "/receipt";
+      fullPath: "/receipt/";
+      preLoaderRoute: typeof ReceiptIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/receipt/new": {
+      id: "/receipt/new";
+      path: "/receipt/new";
+      fullPath: "/receipt/new";
+      preLoaderRoute: typeof ReceiptNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/requirement/": {
+      id: "/requirement/";
+      path: "/requirement";
+      fullPath: "/requirement/";
+      preLoaderRoute: typeof RequirementIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings/appearance": {
+      id: "/settings/appearance";
+      path: "/appearance";
+      fullPath: "/settings/appearance";
+      preLoaderRoute: typeof SettingsAppearanceRouteImport;
+      parentRoute: typeof SettingsRoute;
+    };
+    "/settings/database": {
+      id: "/settings/database";
+      path: "/database";
+      fullPath: "/settings/database";
+      preLoaderRoute: typeof SettingsDatabaseRouteImport;
+      parentRoute: typeof SettingsRoute;
+    };
+    "/settings/security": {
+      id: "/settings/security";
+      path: "/security";
+      fullPath: "/settings/security";
+      preLoaderRoute: typeof SettingsSecurityRouteImport;
+      parentRoute: typeof SettingsRoute;
+    };
+    "/order/$id/": {
+      id: "/order/$id/";
+      path: "/order/$id";
+      fullPath: "/order/$id/";
+      preLoaderRoute: typeof OrderIdIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/order/$id/edit": {
+      id: "/order/$id/edit";
+      path: "/order/$id/edit";
+      fullPath: "/order/$id/edit";
+      preLoaderRoute: typeof OrderIdEditRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/receipt/$id/edit": {
+      id: "/receipt/$id/edit";
+      path: "/receipt/$id/edit";
+      fullPath: "/receipt/$id/edit";
+      preLoaderRoute: typeof ReceiptIdEditRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
 interface MasterRouteChildren {
-  MasterItemRoute: typeof MasterItemRoute
-  MasterKategoriRoute: typeof MasterKategoriRoute
-  MasterProjectRoute: typeof MasterProjectRoute
-  MasterSatuanRoute: typeof MasterSatuanRoute
-  MasterVendorRoute: typeof MasterVendorRoute
+  MasterItemRoute: typeof MasterItemRoute;
+  MasterKategoriRoute: typeof MasterKategoriRoute;
+  MasterProjectRoute: typeof MasterProjectRoute;
+  MasterSatuanRoute: typeof MasterSatuanRoute;
+  MasterVendorRoute: typeof MasterVendorRoute;
 }
 
 const MasterRouteChildren: MasterRouteChildren = {
@@ -441,26 +441,23 @@ const MasterRouteChildren: MasterRouteChildren = {
   MasterProjectRoute: MasterProjectRoute,
   MasterSatuanRoute: MasterSatuanRoute,
   MasterVendorRoute: MasterVendorRoute,
-}
+};
 
-const MasterRouteWithChildren =
-  MasterRoute._addFileChildren(MasterRouteChildren)
+const MasterRouteWithChildren = MasterRoute._addFileChildren(MasterRouteChildren);
 
 interface SettingsRouteChildren {
-  SettingsAppearanceRoute: typeof SettingsAppearanceRoute
-  SettingsDatabaseRoute: typeof SettingsDatabaseRoute
-  SettingsSecurityRoute: typeof SettingsSecurityRoute
+  SettingsAppearanceRoute: typeof SettingsAppearanceRoute;
+  SettingsDatabaseRoute: typeof SettingsDatabaseRoute;
+  SettingsSecurityRoute: typeof SettingsSecurityRoute;
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsDatabaseRoute: SettingsDatabaseRoute,
   SettingsSecurityRoute: SettingsSecurityRoute,
-}
+};
 
-const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
-  SettingsRouteChildren,
-)
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(SettingsRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -475,7 +472,5 @@ const rootRouteChildren: RootRouteChildren = {
   OrderIdEditRoute: OrderIdEditRoute,
   ReceiptIdEditRoute: ReceiptIdEditRoute,
   OrderIdIndexRoute: OrderIdIndexRoute,
-}
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+};
+export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>();

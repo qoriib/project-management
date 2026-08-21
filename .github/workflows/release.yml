@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build-tauri:
@@ -18,16 +19,16 @@ jobs:
           - platform: "windows-latest"
             args: "--target x86_64-pc-windows-msvc"
             target: "x86_64-pc-windows-msvc"
-            role: "staff_logistics"
+            role: "staff"
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
       - name: setup node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
           cache: "npm"
 
       - name: install Rust stable
@@ -42,7 +43,7 @@ jobs:
         run: npm run build:${{ matrix.role }} -- ${{ matrix.args }}
 
       - name: upload installer artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: Manajemen-Proyek-Windows-${{ matrix.role }}
           path: |
