@@ -82,6 +82,12 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       },
     },
     {
+      header: "Satuan",
+      key: "unit",
+      width: pixel(75),
+      renderCell: (r) => r.unit || "-",
+    },
+    {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
@@ -112,12 +118,6 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
           </VStack>
         );
       },
-    },
-    {
-      header: "Satuan",
-      key: "unit",
-      width: pixel(75),
-      renderCell: (r) => r.unit || "-",
     },
     {
       align: "end",
@@ -221,12 +221,12 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       align: "end",
       header: "Dipesan (PO)",
       key: "ordered",
-      width: proportional(1),
+      width: proportional(2),
       renderCell: (r) => {
         if (r.is_unplanned) {
           return (
-            <Text size="sm" color="secondary">
-              -
+            <Text type="code" color="secondary" weight="medium">
+              {formatNumber(r.total_ordered)}
             </Text>
           );
         }
@@ -253,12 +253,12 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       align: "end",
       header: "Diterima (NP)",
       key: "delivered",
-      width: proportional(1),
+      width: proportional(2),
       renderCell: (r) => {
         if (r.is_unplanned) {
           return (
-            <Text size="sm" color="secondary">
-              -
+            <Text type="code" color="secondary" weight="medium">
+              {formatNumber(r.total_delivered)}
             </Text>
           );
         }

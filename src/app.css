@@ -7,3 +7,9 @@
 .astryx-field-label > span:has(> span[aria-hidden="true"]) > span[aria-hidden="true"] {
   display: none;
 }
+
+*,
+html,
+body {
+  overscroll-behavior: none;
+}
