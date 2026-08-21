@@ -5,6 +5,7 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { orderItemSchema, buildDefaultValues } from "./orderItem.schema";
 import type { OrderItemDetail } from "@/db/repositories";
 import { handleFormError } from "@/utils/form";
+import { parseDecimalInput } from "@/utils/formatters";
 
 export interface OrderItemFormProps {
   initialData?: OrderItemDetail;
@@ -23,7 +24,7 @@ export function useOrderItemForm({ initialData, onSuccess, onSubmitItem }: Order
             item_id: value.item_id,
             vendor_id: value.vendor_id,
             item_price_id: value.item_price_id,
-            qty: value.qty,
+            qty: parseDecimalInput(value.qty),
             has_tax: value.has_tax ? 1 : 0,
           };
 

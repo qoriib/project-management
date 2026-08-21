@@ -74,7 +74,7 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
                 <TextInput
                   isRequired
                   label="Nama Satuan"
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}

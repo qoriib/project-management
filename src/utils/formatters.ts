@@ -1,6 +1,4 @@
-// ── Currency ──────────────────────────────────────────────────────────────────
-
-export function formatNumber(value: number | undefined | null, decimals = 2): string {
+export function formatNumber(value: number | undefined | null, decimals = 5): string {
   if (value === undefined || value === null || isNaN(value)) {
     return "0";
   }
@@ -9,11 +7,27 @@ export function formatNumber(value: number | undefined | null, decimals = 2): st
     minimumFractionDigits: 0,
   }).format(value);
 }
-// ── PIN ───────────────────────────────────────────────────────────────────────
 
 export const sanitizePin = (val?: string) => (val || "").replaceAll(/\D/g, "").slice(0, 6);
 
-// ── Date ─────────────────────────────────────────────────────────────────────
+export function sanitizeDecimalInput(val?: string | null): string {
+  if (!val) return "";
+  const normalized = val.replace(/\./g, ",");
+  const cleaned = normalized.replace(/[^0-9,]/g, "");
+  const parts = cleaned.split(",");
+  if (parts.length > 1) {
+    return parts[0] + "," + parts.slice(1).join("");
+  }
+  return cleaned;
+}
+
+export function parseDecimalInput(val?: string | number | null): number {
+  if (val === undefined || val === null || val === "") return 0;
+  if (typeof val === "number") return isNaN(val) ? 0 : val;
+  const normalized = String(val).replace(",", ".");
+  const num = parseFloat(normalized);
+  return isNaN(num) ? 0 : num;
+}
 
 export function toISODate(date: Date = new Date()): string {
   return date.toISOString().slice(0, 10);
@@ -27,8 +41,6 @@ export function getTimestampString(date: Date = new Date()): string {
   return `${date.getFullYear().toString()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}_${date.getHours().toString().padStart(2, "0")}-${date.getMinutes().toString().padStart(2, "0")}-${date.getSeconds().toString().padStart(2, "0")}`;
 }
 
-// ── Item Code ─────────────────────────────────────────────────────────────────
-
 export interface ItemCodeParts {
   category_prefix?: string | null;
   category_code?: string | null;
@@ -39,8 +51,6 @@ export function formatItemCode(parts?: ItemCodeParts | null): string {
   if (!parts) return "";
   return `${parts.category_prefix ?? ""} ${parts.category_code ?? ""} ${parts.item_code ?? ""}`.trim();
 }
-
-// ── Code / ID Generators ──────────────────────────────────────────────────────
 
 /**
  * Menghasilkan nomor urut kode berikutnya dari daftar kode yang ada dengan default padding 5 digit.
@@ -71,8 +81,6 @@ export function generateNextCode(
   return `${prefix}${nextNum.toString().padStart(digits, "0")}`;
 }
 
-// ── PPN ───────────────────────────────────────────────────────────────────────
-
 export function calcPPN(subtotal: number, persen: number = 12): number {
   return subtotal * (persen / 100);
 }
@@ -80,49 +88,3 @@ export function calcPPN(subtotal: number, persen: number = 12): number {
 export function calcTotal(subtotal: number, ppnPersen: number = 12): number {
   return subtotal + calcPPN(subtotal, ppnPersen);
 }
-
-// ── Category Labels ───────────────────────────────────────────────────────────
-
-export const KATEGORI_LABELS: Record<string, string> = {
-  ALAT: "Sewa Alat",
-  "ATK/K3": "ATK / Peralatan K3",
-  BETON: "Beton Ready Mix",
-  MATERIAL: "Material Umum",
-  SOLAR: "Solar",
-};
-
-export const KATEGORI_OPTIONS = Object.entries(KATEGORI_LABELS).map(([value, label]) => ({
-  label,
-  value,
-}));
-
-export const SATUAN_OPTIONS = ["m3", "Kg", "Batang", "Liter", "Rol", "Pcs", "Sak", "Unit", "Hari", "Ls", "Jam", "Rit"];
-
-export const VENDOR_TIPE_LABELS: Record<string, string> = {
-  EQUIPMENT_RENTAL: "Equipment Rental",
-  MATERIAL_SUPPLIER: "Material Supplier",
-  STORE: "Toko Umum",
-};
-
-export const VENDOR_TIPE_OPTIONS = Object.entries(VENDOR_TIPE_LABELS).map(([value, label]) => ({
-  label,
-  value,
-}));
-
-export const STATUS_PO_LABELS: Record<string, string> = {
-  aktif: "Aktif",
-  dibatalkan: "Dibatalkan",
-  selesai: "Selesai",
-};
-
-export const STATUS_INVOICE_LABELS: Record<string, string> = {
-  PAID: "Lunas",
-  PARTIAL: "Sebagian",
-  UNPAID: "Belum Bayar",
-};
-
-export const STATUS_INVOICE_COLORS = {
-  PAID: "success",
-  PARTIAL: "warning",
-  UNPAID: "error",
-} as const;

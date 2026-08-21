@@ -31,7 +31,7 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
         .from("item_prices")
         .where("item_id", "=", itemId)
         .withSoftDelete()
-        .orderBy("item_price_id", "ASC");
+        .orderBy("item_price_id", "DESC");
 
       const { sql, params } = query.build();
       return await this.rawSelect<ItemPrice>(sql, params);
@@ -55,7 +55,7 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
           ) THEN 1 ELSE 0 END AS has_relation
         FROM item_prices
         WHERE item_id = $1 AND deleted_at IS NULL
-        ORDER BY item_price_id ASC
+        ORDER BY item_price_id DESC
       `;
 
       const rows = await this.rawSelect<RawItemPriceRow>(sql, [itemId]);

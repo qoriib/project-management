@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useRequirementStore } from "@/store/useRequirementStore";
 import { handleFormError } from "@/utils/form";
+import { parseDecimalInput } from "@/utils/formatters";
 import { type RequirementFormProps, requirementSchema, buildDefaultValues } from "./requirement.schema";
 
 /**
@@ -29,7 +30,7 @@ export function useRequirementForm({ initialData, onSuccess }: RequirementFormPr
         const payload = {
           project_id: selectedProjectId,
           item_id: value.item_id,
-          qty: value.qty,
+          qty: parseDecimalInput(value.qty),
           item_price_id: value.item_price_id,
           has_tax: value.has_tax ? 1 : 0,
         };

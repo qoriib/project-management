@@ -46,7 +46,7 @@ export function OrderReceiptLogTable() {
       header: "Volume Diterima",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => <Text type="code">{formatNumber(row.qty, 2)}</Text>,
+      renderCell: (row) => <Text type="code">{formatNumber(row.qty)}</Text>,
     },
     {
       align: "end",

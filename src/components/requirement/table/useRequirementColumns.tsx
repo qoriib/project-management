@@ -54,7 +54,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
         if (row.isFooter) return null;
         return (
           <Text type="code" weight="medium">
-            {formatNumber(row.qty, 2)}
+            {formatNumber(row.qty)}
           </Text>
         );
       },

@@ -1,4 +1,5 @@
 import * as v from "valibot";
+import { parseDecimalInput } from "@/utils/formatters";
 
 const itemRowSchema = v.object({
   delivered: v.number(),
@@ -6,14 +7,14 @@ const itemRowSchema = v.object({
   item_name: v.string(),
   ordered: v.number(),
   order_item_id: v.string(),
-  qty: v.number(),
+  qty: v.union([v.string(), v.number()]),
   remaining: v.number(),
   unit: v.string(),
 });
 
 function atLeastOneItemReceived(items: unknown): boolean {
-  const rows = items as { qty: number }[];
-  return rows.some((it) => it.qty > 0);
+  const rows = items as { qty: string | number }[];
+  return rows.some((it) => parseDecimalInput(it.qty) > 0);
 }
 
 export const receiptSchema = v.object({
@@ -35,7 +36,7 @@ export interface ReceiptItemRow extends Record<string, unknown> {
   item_price_id?: string | null;
   unit: string;
   remaining: number;
-  qty: number;
+  qty: string | number;
   ordered: number;
   delivered: number;
 }

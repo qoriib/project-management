@@ -97,7 +97,7 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
                   onChange={(val) => field.handleChange(val.toUpperCase().slice(0, 1))}
                   onBlur={field.handleBlur}
                   isRequired
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
@@ -111,7 +111,7 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   isRequired
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
@@ -125,7 +125,7 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   isRequired
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}

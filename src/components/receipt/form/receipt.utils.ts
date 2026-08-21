@@ -91,14 +91,16 @@ export async function loadReceiptEditData(receiptId: string): Promise<{
   };
 }
 
+import { parseDecimalInput } from "@/utils/formatters";
+
 // ── Payload Builder ────────────────────────────────────────────────────────────
 
 /** Filter hanya item dengan qty > 0 sebagai payload simpan */
 export function buildReceiptItemPayload(items: ReceiptItemRow[]): { order_item_id: string; qty: number }[] {
-  const receivedItems = items.filter((it) => it.qty > 0);
+  const receivedItems = items.filter((it) => parseDecimalInput(it.qty) > 0);
 
   return receivedItems.map((it) => ({
     order_item_id: it.order_item_id,
-    qty: it.qty,
+    qty: parseDecimalInput(it.qty),
   }));
 }

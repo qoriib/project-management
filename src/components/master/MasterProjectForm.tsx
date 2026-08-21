@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { Button, Dialog, HStack, Heading, TextInput, VStack } from "@astryxdesign/core";
-import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -88,7 +87,7 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   isRequired
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
@@ -102,7 +101,7 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   isRequired
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
@@ -110,14 +109,16 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
             <form.Field
               name="fiscal_year"
               children={(field) => (
-                <NumberInput
+                <TextInput
                   label="Tahun Fiskal"
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val || 0)}
+                  value={String(field.state.value || "")}
+                  onChange={(val) => {
+                    const digits = val.replaceAll(/\D/g, "").slice(0, 4);
+                    field.handleChange(digits ? Number(digits) : (0 as unknown as number));
+                  }}
                   onBlur={field.handleBlur}
                   isRequired
-                  isIntegerOnly
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}

@@ -1,6 +1,5 @@
-import { VStack } from "@astryxdesign/core";
-import { NumberInput } from "@astryxdesign/core/NumberInput";
-import { formatNumber } from "@/utils/formatters";
+import { VStack, TextInput } from "@astryxdesign/core";
+import { formatNumber, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import type { ReceiptItemRow } from "./receipt.schema";
 import type { useReceiptForm } from "./useReceiptForm";
@@ -26,9 +25,9 @@ export function ReceiptQtyCell({ form, row, idx }: ReceiptQtyCellProps) {
               name={`items[${idx}].qty`}
               validators={{
                 onChange: ({ value }) => {
-                  const val = value as number;
+                  const val = parseDecimalInput(value as string | number);
                   if (val > (row.remaining || 0)) {
-                    return `Melebihi sisa Order (${formatNumber(row.remaining, 2)}).`;
+                    return `Melebihi sisa Order (${formatNumber(row.remaining)}).`;
                   }
                   return;
                 },
@@ -38,12 +37,12 @@ export function ReceiptQtyCell({ form, row, idx }: ReceiptQtyCellProps) {
                 const qtyErr = getFieldError(qtyField.state.meta.errors, qtyField.state.meta.isTouched);
 
                 return (
-                  <NumberInput
+                  <TextInput
                     label="Volume"
                     isLabelHidden
                     statusVariant="tooltip"
-                    value={qtyField.state.value as number}
-                    onChange={(v) => qtyField.handleChange(v || 0)}
+                    value={String(qtyField.state.value ?? "")}
+                    onChange={(v) => qtyField.handleChange(sanitizeDecimalInput(v))}
                     onBlur={qtyField.handleBlur}
                     status={rowErr || qtyErr}
                   />

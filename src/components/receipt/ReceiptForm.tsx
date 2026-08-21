@@ -116,7 +116,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
                   value={field.state.value}
                   onChange={(v) => handlePOChange(v as string)}
                   onBlur={field.handleBlur}
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   isRequired
                   isDisabled={isEdit}
@@ -131,7 +131,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
                   value={field.state.value}
                   onChange={(v) => field.handleChange(v)}
                   onBlur={field.handleBlur}
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   isRequired
                 />
@@ -142,7 +142,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
                 <DateInput
                   format="system_date"
                   label="Tanggal Terima"
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   value={field.state.value as DateInputProps["value"]}
                   onChange={(v) => field.handleChange(v ?? "")}
                   onBlur={field.handleBlur}

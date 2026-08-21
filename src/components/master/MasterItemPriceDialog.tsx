@@ -1,18 +1,17 @@
 import { Trash2, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Button, Card, Dialog, HStack, IconButton, Table, Text, VStack } from "@astryxdesign/core";
-import { NumberInput } from "@astryxdesign/core/NumberInput";
+import { useEffect, useMemo, useState } from "react";
+import { Button, Card, Dialog, HStack, IconButton, Table, Text, TextInput, VStack } from "@astryxdesign/core";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { formatNumber } from "@/utils/formatters";
+import { formatNumber, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError, handleFormError } from "@/utils/form";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTablePagination, paginateData } from "@astryxdesign/core/Table";
 import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
@@ -21,7 +20,11 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 interface PriceRow extends ItemPriceWithRelation, Record<string, unknown> {}
 
 const priceSchema = v.object({
-  price: v.pipe(v.number("Harga harus berupa angka"), v.minValue(0, "Harga tidak valid.")),
+  price: v.pipe(
+    v.string("Harga harus diisi."),
+    v.nonEmpty("Harga harus diisi."),
+    v.check((val) => parseDecimalInput(val) > 0, "Harga harus lebih dari 0."),
+  ),
 });
 
 interface MasterItemPriceDialogProps {
@@ -36,44 +39,52 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
   const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [prices, setPrices] = useState<ItemPriceWithRelation[]>([]);
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
 
   const form = useForm({
     defaultValues: {
-      price: null as unknown as number,
-    },
-    onSubmit: async ({ value }) => {
-      if (!item) return;
-
-      const isDuplicate = prices.some((p) => Number(p.price) === Number(value.price));
-      if (isDuplicate) {
-        showToast({
-          body: "Harga tersebut sudah ada untuk item ini.",
-          type: "error",
-        });
-        return;
-      }
-
-      try {
-        await createItemPrice({ item_id: item.item_id, price: Number(value.price) });
-
-        form.reset();
-        await loadPrices();
-      } catch (err: any) {
-        handleFormError(err, showToast);
-      }
+      price: "",
     },
     validators: {
       onChange: priceSchema,
+      onSubmitAsync: async ({ value }) => {
+        if (!item) return null;
+
+        const numPrice = parseDecimalInput(value.price);
+        if (numPrice <= 0) return null;
+
+        const isDuplicate = prices.some((p) => Math.abs(Number(p.price) - numPrice) < 0.00001);
+
+        if (isDuplicate) {
+          return {
+            fields: {
+              price: "Harga tersebut sudah ada untuk item ini.",
+            },
+          };
+        }
+
+        try {
+          await createItemPrice({ item_id: item.item_id, price: numPrice });
+          return null;
+        } catch (error: any) {
+          handleFormError(error, showToast);
+          return null;
+        }
+      },
+    },
+    onSubmit: async () => {
+      form.reset({ price: "" });
+      await loadPrices();
     },
   });
 
   async function loadPrices() {
-    if (!item) {
-      return;
-    }
+    if (!item) return;
 
     try {
       const data = await itemPriceRepo.findByItemWithRelation(item.item_id);
+      form.reset({ price: "" });
       setPrices(data);
     } catch {
       setPrices([]);
@@ -82,15 +93,14 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   useEffect(() => {
     if (isOpen && item) {
-      form.reset();
+      setPage(1);
+      form.reset({ price: "" });
       loadPrices();
     }
   }, [isOpen, item]);
 
   async function handleDelete() {
-    if (!deleteTarget || !item) {
-      return;
-    }
+    if (!deleteTarget || !item) return;
 
     setDeleting(true);
 
@@ -153,10 +163,24 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     },
   ];
 
+  const paginatedPrices = useMemo(() => {
+    return paginateData(prices, page, pageSize);
+  }, [prices, page, pageSize]);
+
+  const paginationPlugin = useTablePagination<PriceRow>({
+    page,
+    onPageChange: setPage,
+    totalItems: prices.length,
+    pageSize,
+    variant: "pages",
+    size: "sm",
+  });
+
   const rowIndexPlugin = useTableRowIndex({
-    data: prices as PriceRow[],
+    data: paginatedPrices as PriceRow[],
     getRowKey: (item) => item.item_price_id,
     label: "#",
+    startFrom: (page - 1) * pageSize + 1,
   });
 
   return (
@@ -169,10 +193,10 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
           />
           <Table
             idKey="item_price_id"
-            plugins={{ rowIndex: rowIndexPlugin }}
+            plugins={{ rowIndex: rowIndexPlugin, pagination: paginationPlugin }}
             textOverflow="truncate"
             columns={columns}
-            data={prices as PriceRow[]}
+            data={paginatedPrices as PriceRow[]}
             emptyState={<TableEmptyState message="Belum ada harga. Tambahkan di bawah." />}
           />
           <form
@@ -188,15 +212,13 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                   <form.Field
                     name="price"
                     children={(field) => (
-                      <NumberInput
+                      <TextInput
                         label="Harga (Rp)"
                         value={field.state.value}
-                        onChange={(val) => field.handleChange(val ?? (null as unknown as number))}
+                        onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
                         onBlur={field.handleBlur}
                         isRequired
-                        min={0}
-                        step={0.01}
-                        statusVariant="attached"
+                        statusVariant="tooltip"
                         status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       />
                     )}

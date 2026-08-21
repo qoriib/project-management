@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { IconButton, Section, VStack } from "@astryxdesign/core";
+import { HStack, IconButton, Section, VStack } from "@astryxdesign/core";
 import { Download } from "lucide-react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
@@ -78,7 +78,7 @@ function DashboardPage() {
           subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
           actions={
             selectedProjectId ? (
-              <>
+              <HStack gap={3} align="end">
                 <ReportFilterForm
                   startDate={startDate}
                   endDate={endDate}
@@ -90,11 +90,11 @@ function DashboardPage() {
                 <IconButton
                   variant="secondary"
                   label="Export Excel"
-                  icon={<Download size={16} />}
+                  icon={<Download />}
                   onClick={handleExport}
                   isDisabled={exporting}
                 />
-              </>
+              </HStack>
             ) : undefined
           }
         />

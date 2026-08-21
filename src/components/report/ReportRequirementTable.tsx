@@ -128,14 +128,14 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
         <VStack gap={0.5} align="end">
           <HStack gap={1} justify="end">
             <Text weight="medium">Realisasi:</Text>
-            <Text type="code">{formatNumber(r.total_ordered, 2)}</Text>
+            <Text type="code">{formatNumber(r.total_ordered)}</Text>
           </HStack>
           <HStack gap={1} justify="end">
             <Text size="sm" color="secondary">
               Rencana:
             </Text>
             <Text type="code" size="sm" color="secondary">
-              {r.is_unplanned ? "-" : formatNumber(r.planned_volume, 2)}
+              {r.is_unplanned ? "-" : formatNumber(r.planned_volume)}
             </Text>
           </HStack>
         </VStack>
@@ -196,7 +196,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
           <VStack gap={0.5}>
             <HStack justify="between">
               <Text type="code" color="secondary" weight="medium">
-                {`${formatNumber(r.total_ordered, 2)} / ${formatNumber(r.planned_volume, 2)}`}
+                {`${formatNumber(r.total_ordered)} / ${formatNumber(r.planned_volume)}`}
               </Text>
               <Badge variant={isOver ? "red" : isComplete ? "green" : undefined} label={`${percent.toFixed(0)}%`} />
             </HStack>
@@ -227,7 +227,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
           <VStack gap={0.5}>
             <HStack justify="between">
               <Text type="code" color="secondary" weight="medium">
-                {`${formatNumber(r.total_delivered, 2)} / ${formatNumber(r.total_ordered, 2)}`}
+                {`${formatNumber(r.total_delivered)} / ${formatNumber(r.total_ordered)}`}
               </Text>
               <Badge variant={isOver ? "red" : isComplete ? "green" : undefined} label={`${percent.toFixed(0)}%`} />
             </HStack>

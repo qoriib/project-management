@@ -1,13 +1,28 @@
-import { useState } from "react";
-import { Button, Card, Dialog, HStack, Heading, NumberInput, Selector, Switch, Text, VStack } from "@astryxdesign/core";
+import { useEffect, useState } from "react";
+import {
+  Button,
+  Card,
+  Dialog,
+  HStack,
+  Heading,
+  IconButton,
+  InputGroup,
+  InputGroupText,
+  Selector,
+  Switch,
+  Text,
+  TextInput,
+  VStack,
+} from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { Plus } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { useMasterStore } from "@/store/useMasterStore";
-import { formatNumber, formatItemCode } from "@/utils/formatters";
+import { formatNumber, formatItemCode, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import { useRequirementForm } from "./form/useRequirementForm";
+import { useStore } from "@tanstack/react-form";
 import type { RequirementDetail } from "@/db/repositories";
 
 interface RequirementItemDialogProps {
@@ -20,7 +35,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
   const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
 
-  const { items, itemPricesMap } = useMasterStore();
+  const { items, itemPricesMap, loadItemPrices } = useMasterStore();
 
   const { form, handleItemChange } = useRequirementForm({
     initialData,
@@ -29,24 +44,29 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
     },
   });
 
-  const selectedItemId = form.getFieldValue("item_id");
+  const selectedItemId = useStore(form.store, (s) => s.values.item_id);
+
+  useEffect(() => {
+    if (selectedItemId) {
+      loadItemPrices(selectedItemId);
+    }
+  }, [selectedItemId, loadItemPrices]);
+
   const selectedItem = items.find((i) => i.item_id === selectedItemId);
+  const selectedItemCode = selectedItem ? formatItemCode(selectedItem) : "";
   const priceOptions = (itemPricesMap.get(selectedItemId) ?? []).map((p) => ({
     label: `Rp ${formatNumber(p.price)}`,
     value: String(p.item_price_id),
   }));
 
-  const itemOptions = items.map((item) => {
-    const code = formatItemCode(item);
-    return {
-      label: `${code ? `[${code}] ` : ""}${item.item_name}`,
-      value: String(item.item_id),
-    };
-  });
+  const itemOptions = items.map((item) => ({
+    label: item.item_name,
+    value: String(item.item_id),
+  }));
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -57,134 +77,109 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
           <VStack gap={4}>
             <Heading level={3}>{initialData ? "Edit Kebutuhan Material" : "Tambah Kebutuhan Material"}</Heading>
             <FormLayout>
-              <form.Field
-                name="item_id"
-                children={(field) => (
-                  <VStack gap={1}>
-                    <HStack justify="between" align="center">
-                      <Text size="sm" weight="medium">
-                        Material <span style={{ color: "var(--color-error)" }}>*</span>
-                      </Text>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        icon={<Plus size={14} />}
-                        label="Item Baru"
-                        onClick={() => setIsItemFormOpen(true)}
-                        type="button"
-                      />
-                    </HStack>
-                    <Selector
-                      label="Material"
-                      isLabelHidden
-                      options={itemOptions}
-                      value={field.state.value}
-                      onChange={async (val) => {
-                        await handleItemChange(val as string);
-                      }}
-                      onBlur={field.handleBlur}
-                      isRequired
-                      statusVariant="attached"
-                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                    />
-                  </VStack>
-                )}
-              />
-
-              <HStack gap={3}>
-                <VStack gap={1} style={{ flex: 1 }}>
-                  <HStack justify="between" align="center">
-                    <Text size="sm" weight="medium">
-                      Harga Satuan <span style={{ color: "var(--color-error)" }}>*</span>
-                    </Text>
-                    {selectedItemId && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        icon={<Plus size={14} />}
-                        label="Tambah Harga"
-                        onClick={() => setIsPriceFormOpen(true)}
-                        type="button"
+              {/* Material */}
+              <HStack gap={2} align="end" width="100%">
+                <VStack style={{ flex: 1 }}>
+                  <form.Field
+                    name="item_id"
+                    children={(field) => (
+                      <Selector
+                        label="Material"
+                        description={selectedItemCode ? `Kode: ${selectedItemCode}` : undefined}
+                        options={itemOptions}
+                        value={field.state.value}
+                        onChange={async (val) => {
+                          await handleItemChange(val as string);
+                        }}
+                        onBlur={field.handleBlur}
+                        isRequired
+                        statusVariant="tooltip"
+                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       />
                     )}
-                  </HStack>
+                  />
+                </VStack>
+                <IconButton
+                  variant="secondary"
+                  icon={<Plus size={16} />}
+                  label="Tambah Item Baru"
+                  onClick={() => setIsItemFormOpen(true)}
+                  type="button"
+                />
+              </HStack>
+
+              {/* Harga Satuan */}
+              <HStack gap={2} align="end" width="100%">
+                <VStack style={{ flex: 1 }}>
                   <form.Field
                     name="item_price_id"
                     children={(field) => (
                       <Selector
-                        label="Harga"
-                        isLabelHidden
+                        label="Harga Satuan"
                         options={priceOptions}
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val as string)}
                         onBlur={field.handleBlur}
                         isDisabled={!selectedItemId}
                         isRequired
-                        statusVariant="attached"
+                        statusVariant="tooltip"
                         status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       />
                     )}
                   />
                 </VStack>
+                <IconButton
+                  variant="secondary"
+                  icon={<MoreHorizontal size={16} />}
+                  label="Kelola Harga"
+                  onClick={() => setIsPriceFormOpen(true)}
+                  type="button"
+                  isDisabled={!selectedItemId}
+                />
+              </HStack>
 
-                <VStack gap={1} style={{ width: 120 }}>
-                  <Text size="sm" weight="medium">
-                    Satuan
-                  </Text>
-                  <Text
-                    style={{
-                      height: 38,
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "0 var(--spacing-3)",
-                      backgroundColor: "var(--color-surface-subtle)",
-                      borderRadius: "var(--radius-md)",
-                    }}
+              {/* Volume / Qty dengan InputGroup Satuan */}
+              <form.Field
+                name="qty"
+                children={(field) => (
+                  <InputGroup
+                    label="Volume / Qty"
+                    isRequired
+                    status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   >
-                    {selectedItem?.unit_name || "-"}
-                  </Text>
-                </VStack>
-              </HStack>
-
-              <HStack gap={3} align="end">
-                <form.Field
-                  name="qty"
-                  children={(field) => (
-                    <NumberInput
+                    <TextInput
                       label="Volume / Qty"
-                      value={field.state.value}
-                      onChange={(val) => field.handleChange(val ?? 0)}
+                      isLabelHidden
+                      value={String(field.state.value ?? "")}
+                      onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
                       onBlur={field.handleBlur}
-                      min={0}
-                      step={0.01}
-                      isRequired
-                      statusVariant="attached"
-                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                     />
-                  )}
-                />
+                    <InputGroupText>{selectedItem?.unit_name || "-"}</InputGroupText>
+                  </InputGroup>
+                )}
+              />
 
-                <form.Field
-                  name="has_tax"
-                  children={(field) => (
-                    <VStack gap={1} style={{ paddingBottom: 4 }}>
-                      <Text size="sm" weight="medium">
-                        PPn (12%)
-                      </Text>
-                      <HStack gap={2} align="center" style={{ height: 38 }}>
-                        <Switch
-                          label="Kena PPn (12%)"
-                          isLabelHidden
-                          value={field.state.value}
-                          onChange={(checked) => field.handleChange(checked)}
-                          onBlur={field.handleBlur}
-                        />
-                        <Text size="sm">{field.state.value ? "PPn 12%" : "Tanpa PPn"}</Text>
-                      </HStack>
-                    </VStack>
-                  )}
-                />
-              </HStack>
+              {/* Kena PPn */}
+              <form.Field
+                name="has_tax"
+                children={(field) => (
+                  <VStack gap={1} style={{ paddingBottom: 4 }}>
+                    <Text size="sm" weight="medium">
+                      PPn (12%)
+                    </Text>
+                    <HStack gap={2} align="center" style={{ height: 38 }}>
+                      <Switch
+                        label="Kena PPn (12%)"
+                        isLabelHidden
+                        value={field.state.value}
+                        onChange={(checked) => field.handleChange(checked)}
+                        onBlur={field.handleBlur}
+                      />
+                      <Text size="sm">{field.state.value ? "PPn 12%" : "Tanpa PPn"}</Text>
+                    </HStack>
+                  </VStack>
+                )}
+              />
             </FormLayout>
 
             {/* Realtime calculation summary card */}
@@ -203,7 +198,8 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                   const pObj = prices.find((p) => String(p.item_price_id) === String(priceId));
                   if (pObj) priceNum = pObj.price;
                 }
-                const subtotal = (qty || 0) * priceNum;
+                const numQty = parseDecimalInput(qty);
+                const subtotal = numQty * priceNum;
                 const taxAmount = hasTax ? subtotal * 0.12 : 0;
                 const total = subtotal + taxAmount;
 
@@ -260,7 +256,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
         onClose={async () => {
           setIsPriceFormOpen(false);
           if (selectedItemId) {
-            await handleItemChange(selectedItemId);
+            await loadItemPrices(selectedItemId);
           }
         }}
       />

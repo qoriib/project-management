@@ -1,20 +1,19 @@
-import { NumberInput } from "@astryxdesign/core/NumberInput";
+import { TextInput } from "@astryxdesign/core";
 import { getFieldError } from "@/utils/form";
+import { sanitizeDecimalInput } from "@/utils/formatters";
 import type { BaseCellProps } from "./types";
 
 export function QtyInputCell({ form }: BaseCellProps) {
   return (
     <form.Field name="qty">
       {(field) => (
-        <NumberInput
+        <TextInput
           isLabelHidden
           label="Volume"
           statusVariant="tooltip"
-          value={field.state.value}
-          onChange={(v) => field.handleChange(v ?? 0)}
+          value={String(field.state.value ?? "")}
+          onChange={(v) => field.handleChange(sanitizeDecimalInput(v))}
           onBlur={field.handleBlur}
-          min={0}
-          step={0.000001}
           status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
         />
       )}

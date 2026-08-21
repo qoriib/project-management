@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Code, Dialog, HStack, Heading, IconButton, Table, Text, Timestamp, VStack } from "@astryxdesign/core";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTablePagination, paginateData } from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
 import { type ItemLogEntry, getItemLog } from "@/db/services";
 import { X } from "lucide-react";
@@ -27,9 +27,12 @@ export function ReportItemLogDialog({
 }: DashboardItemLogDialogProps) {
   const [logs, setLogs] = useState<ItemLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
 
   useEffect(() => {
     if (isOpen) {
+      setPage(1);
       setLoading(true);
       getItemLog(projectId, itemId, itemPriceId)
         .then(setLogs)
@@ -55,7 +58,7 @@ export function ReportItemLogDialog({
       header: "Volume",
       key: "qty",
       width: pixel(100),
-      renderCell: (r: LogRow) => <Text type="code">{formatNumber(r.qty, 2)}</Text>,
+      renderCell: (r: LogRow) => <Text type="code">{formatNumber(r.qty)}</Text>,
     },
     {
       header: "Vendor",
@@ -65,10 +68,24 @@ export function ReportItemLogDialog({
     },
   ];
 
+  const paginatedLogs = useMemo(() => {
+    return paginateData(logs, page, pageSize);
+  }, [logs, page, pageSize]);
+
+  const paginationPlugin = useTablePagination<LogRow>({
+    page,
+    onPageChange: setPage,
+    totalItems: logs.length,
+    pageSize,
+    variant: "pages",
+    size: "sm",
+  });
+
   const rowIndexPlugin = useTableRowIndex({
-    data: logs as LogRow[],
+    data: paginatedLogs as LogRow[],
     getRowKey: (item) => item.reference,
     label: "#",
+    startFrom: (page - 1) * pageSize + 1,
   });
 
   return (
@@ -87,9 +104,9 @@ export function ReportItemLogDialog({
         <Table
           textOverflow="truncate"
           columns={columns}
-          data={logs as LogRow[]}
+          data={paginatedLogs as LogRow[]}
           idKey="reference"
-          plugins={{ rowIndex: rowIndexPlugin }}
+          plugins={{ rowIndex: rowIndexPlugin, pagination: paginationPlugin }}
         />
         {logs.length === 0 && !loading && (
           <VStack align="center" style={{ marginTop: 16 }}>

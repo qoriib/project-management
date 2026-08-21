@@ -1,4 +1,4 @@
-import { formatNumber } from "@/utils/formatters";
+import { formatNumber, parseDecimalInput } from "@/utils/formatters";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { BaseCellProps } from "./types";
 
@@ -25,7 +25,8 @@ export function SubtotalCell({ form }: BaseCellProps) {
           }
         }
 
-        return <>{formatNumber(qty * priceNum)}</>;
+        const numQty = parseDecimalInput(qty);
+        return <>{formatNumber(numQty * priceNum)}</>;
       }}
     </form.Subscribe>
   );

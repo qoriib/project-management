@@ -77,7 +77,7 @@ function LoginPage() {
                       label="PIN"
                       type="text"
                       size="lg"
-                      statusVariant="attached"
+                      statusVariant="tooltip"
                       value={field.state.value}
                       status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       onBlur={field.handleBlur}

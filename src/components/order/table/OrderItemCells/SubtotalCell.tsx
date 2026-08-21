@@ -1,5 +1,5 @@
 import { Text } from "@astryxdesign/core";
-import { formatNumber } from "@/utils/formatters";
+import { formatNumber, parseDecimalInput } from "@/utils/formatters";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { CellFormProps } from "./types";
 
@@ -25,7 +25,8 @@ export function SubtotalCell({ form }: CellFormProps) {
           }
         }
 
-        return <Text type="code">{formatNumber((qty || 0) * priceNum)}</Text>;
+        const numQty = parseDecimalInput(qty);
+        return <Text type="code">{formatNumber(numQty * priceNum)}</Text>;
       }}
     </form.Subscribe>
   );

@@ -113,7 +113,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   isRequired
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
@@ -127,7 +127,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
                   isRequired
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
@@ -141,7 +141,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
@@ -155,7 +155,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
-                  statusVariant="attached"
+                  statusVariant="tooltip"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
               )}
