@@ -8,7 +8,7 @@ Direktori `src/utils` berisi fungsi-fungsi pembantu (_helper utilities_) murni u
 
 Menyediakan pemformatan standar lokal Indonesia (`id-ID`):
 
-- `formatNumber(value: number, decimals?: number)`: Memformat angka dengan pemisah ribuan lokal Indonesia (`id-ID`). Default 2 desimal maksimum dan 0 desimal minimum.
+- `formatNumber(value: number, decimals?: number)`: Memformat angka dengan pemisah ribuan lokal Indonesia (`id-ID`). Default 5 desimal maksimum dan 0 desimal minimum.
 - `formatItemCode(parts)`: Memformat kode barang gabungan (`prefix`, `kategori`, `kode`).
 - `generateNextCode(existingCodes, prefix, digits)`: Membuat nomor urut kode berikutnya dengan padding otomatis.
 

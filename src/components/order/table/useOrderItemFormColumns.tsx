@@ -72,7 +72,7 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
         if (row.isFooter) return null;
         return (
           <Text type="code" weight="medium">
-            {formatNumber(row.qty, 2)}
+            {formatNumber(row.qty)}
           </Text>
         );
       },

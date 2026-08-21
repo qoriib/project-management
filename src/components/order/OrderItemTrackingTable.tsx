@@ -48,7 +48,7 @@ export function OrderItemTrackingTable() {
       width: pixel(140),
       renderCell: (row) => (
         <Text type="code" weight="medium">
-          {formatNumber(row.qty, 2)}
+          {formatNumber(row.qty)}
         </Text>
       ),
     },
@@ -106,7 +106,7 @@ export function OrderItemTrackingTable() {
           <VStack gap={0.5}>
             <HStack justify="between">
               <Text type="code" color="secondary" weight="medium">
-                {`${formatNumber(row.total_delivered ?? 0, 2)} / ${formatNumber(row.qty ?? 0, 2)}`}
+                {`${formatNumber(row.total_delivered ?? 0)} / ${formatNumber(row.qty ?? 0)}`}
               </Text>
               <Badge variant={isOver ? "red" : isComplete ? "green" : undefined} label={`${pct.toFixed(0)}%`} />
             </HStack>
