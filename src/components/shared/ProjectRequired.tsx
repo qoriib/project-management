@@ -19,21 +19,21 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
 
   if (!selectedProjectId || !isValidProject) {
     return (
-      <Card padding={6}>
-        <VStack gap={6} align="center">
-          <VStack gap={2} align="center">
-            <Heading level={2}>Pilih Proyek Aktif</Heading>
+      <Card padding={3}>
+        <VStack gap={4} align="center">
+          <VStack gap={1} align="center">
+            <Heading level={3}>Pilih Proyek Aktif</Heading>
             <Text color="secondary" size="sm">
               Silakan pilih proyek di bawah ini untuk melihat data dan mengelola transaksi.
             </Text>
           </VStack>
           {projects.length > 0 ? (
-            <Grid width="100%" gap={3} columns={{ max: 2, minWidth: 280 }}>
+            <Grid width="100%" gap={2} columns={{ max: 2, minWidth: 260 }}>
               {projects.map((project) => (
                 <GridSpan key={project.project_id} columns={1}>
-                  <Card padding={4}>
-                    <HStack justify="between" align="center" gap={4}>
-                      <VStack gap={1}>
+                  <Card padding={3}>
+                    <HStack justify="between" align="center" gap={3}>
+                      <VStack gap={0.5}>
                         <Text weight="bold">{project.project_name}</Text>
                         <Text size="sm" color="secondary">
                           {project.company_name} - {project.fiscal_year}

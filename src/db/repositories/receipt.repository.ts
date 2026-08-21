@@ -79,8 +79,7 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
         .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
         .withSoftDelete("receipts")
         .groupBy("receipts.receipt_id")
-        .orderBy("receipts.receipt_date", "DESC")
-        .orderBy("receipts.receipt_id", "DESC");
+        .orderBy("receipts.receipt_id", "ASC");
 
       if (filters?.vendor_id) {
         query.where("order_items.vendor_id", "=", filters.vendor_id);

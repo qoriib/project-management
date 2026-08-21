@@ -47,7 +47,7 @@ export function ReceiptTable() {
         columns={columns}
         data={receipts as ReceiptRow[]}
         plugins={{ rowIndex: rowIndexPlugin }}
-        emptyState={<TableEmptyState message="Tidak ada data Penerimaan yang cocok." />}
+        emptyState={<TableEmptyState message="Belum ada Penerimaan." />}
       />
       <ConfirmDialog
         title="Hapus Log Penerimaan"

@@ -37,13 +37,16 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
       header: "Vendor Pemasok",
       key: "vendor_names",
       width: proportional(3),
-      renderCell: (row) => (
-        <HStack gap={1} wrap="wrap">
-          {row?.vendor_names?.map((v, idx) => (
-            <Token key={idx} label={v} />
-          ))}
-        </HStack>
-      ),
+      renderCell: (row: ReceiptRow) =>
+        row?.vendor_names && row.vendor_names.length > 0 ? (
+          <HStack gap={1} wrap="wrap">
+            {row.vendor_names.map((v, idx) => (
+              <Token key={idx} label={v} />
+            ))}
+          </HStack>
+        ) : (
+          "-"
+        ),
     },
     {
       align: "end",

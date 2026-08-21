@@ -62,7 +62,7 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
         .leftJoin("units", "units", "items.unit_id = units.unit_id")
         .leftJoin("projects", "projects", "projects.project_id = requirements.project_id")
         .withSoftDelete("requirements")
-        .orderBy("items.item_name", "ASC");
+        .orderBy("requirements.requirement_id", "ASC");
 
       if (filters?.project_id) {
         query.where("requirements.project_id", "=", filters.project_id);

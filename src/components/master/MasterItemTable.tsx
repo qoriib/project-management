@@ -62,18 +62,19 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       header: "Nama Item",
       key: "item_name",
       width: proportional(1),
+      renderCell: (row: ItemRow) => row.item_name || "-",
     },
     {
       header: "Satuan",
       key: "unit",
       width: pixel(120),
-      renderCell: (row: ItemRow) => row.unit_name,
+      renderCell: (row: ItemRow) => row.unit_name || "-",
     },
     {
       header: "Kategori",
       key: "category",
       width: pixel(150),
-      renderCell: (row: ItemRow) => <Badge variant="neutral" label={row.category_name || "—"} />,
+      renderCell: (row: ItemRow) => (row.category_name ? <Badge variant="neutral" label={row.category_name} /> : "-"),
     },
     {
       align: "end",

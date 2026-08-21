@@ -79,6 +79,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
               children={(field) => (
                 <TextInput
                   label="Nama Vendor"
+                  placeholder="Contoh: Toko Bangunan Sejahtera"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
@@ -93,6 +94,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
               children={(field) => (
                 <TextInput
                   label="Telepon"
+                  placeholder="Contoh: 08123456789"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
@@ -106,6 +108,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
               children={(field) => (
                 <TextArea
                   label="Alamat"
+                  placeholder="Masukkan alamat lengkap vendor"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}

@@ -20,7 +20,7 @@ class VendorRepository extends BaseRepository<Vendor, CreateVendor, UpdateVendor
         .selectRaw("(EXISTS(SELECT 1 FROM order_items WHERE vendor_id = vendors.vendor_id)) as has_relation")
         .from("vendors", "vendors")
         .where("vendors.deleted_at", "IS NULL")
-        .orderBy("vendors.vendor_name", "ASC");
+        .orderBy("vendors.vendor_id", "ASC");
 
       const { sql, params } = query.build();
       const rows = await this.rawSelect<VendorWithRelation & { has_relation: number | boolean }>(sql, params);

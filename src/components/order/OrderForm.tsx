@@ -11,9 +11,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useMasterStore } from "@/store/useMasterStore";
-import { useOrderItemForm } from "./form/useOrderItemForm";
-import { MasterVendorForm } from "@/components/master/MasterVendorForm";
-import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
+import { OrderItemDialog } from "@/components/order/OrderItemDialog";
 import { OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
 import { useOrderItemTableState } from "@/components/order/table/useOrderItemTableState";
 import { poSchema, buildDefaultValues } from "@/components/order/form/order.schema";
@@ -30,14 +28,11 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const showToast = useToast();
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const masterItems = useMasterStore((s) => s.items);
 
   const [items, setItems] = useState<OrderItemDetail[]>(initialItems);
-  const [isVendorFormOpen, setIsVendorFormOpen] = useState(false);
-  const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingData, setEditingData] = useState<OrderItemDetail | undefined>();
+  const [editingItem, setEditingItem] = useState<OrderItemDetail | undefined>(undefined);
+  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
 
   const { createOrder, updateOrder } = useOrderStore();
 
@@ -84,64 +79,56 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
     },
   });
 
-  const { form: tableForm, handleItemChange } = useOrderItemForm({
-    initialData: editingData,
-    onSubmitItem: (payload) => {
-      const { items: globalItems, itemPricesMap, vendors } = useMasterStore.getState();
-      const itemDef = globalItems.find((i) => i.item_id === payload.item_id);
-      const priceDef = (itemPricesMap.get(payload.item_id) ?? []).find(
-        (p) => p.item_price_id === payload.item_price_id,
-      );
-      const vendorDef = vendors.find((v) => v.vendor_id === payload.vendor_id);
+  function handleOpenAdd() {
+    setEditingItem(undefined);
+    setIsItemDialogOpen(true);
+  }
 
-      const newDetail: OrderItemDetail = {
-        category_code: itemDef?.category_code ?? "",
-        category_prefix: itemDef?.category_prefix ?? "",
-        item_code: itemDef?.item_code ?? "",
-        item_id: payload.item_id,
-        item_name: itemDef?.item_name ?? "",
-        item_price_id: payload.item_price_id,
-        order_id: "",
-        order_item_id: editingData ? editingData.order_item_id : `draft-${Date.now()}`,
-        price: priceDef?.price ?? 0,
-        qty: payload.qty,
-        has_tax: payload.has_tax ? 1 : 0,
-        remaining: payload.qty,
-        total_delivered: 0,
-        unit: itemDef?.unit_name ?? "",
-        vendor_id: payload.vendor_id,
-        vendor_name: vendorDef?.vendor_name ?? "",
-      };
+  function handleOpenEdit(item: OrderItemDetail) {
+    setEditingItem(item);
+    setIsItemDialogOpen(true);
+  }
 
-      if (editingData) {
-        setItems(items.map((i) => (i.order_item_id === editingData.order_item_id ? newDetail : i)));
-      } else {
-        setItems([...items, newDetail]);
-      }
-    },
-    onSuccess: () => {
-      setEditingId(null);
-      setEditingData(undefined);
-    },
-  });
+  function handleSaveItem(payload: any) {
+    const { items: globalItems, itemPricesMap, vendors } = useMasterStore.getState();
+    const itemDef = globalItems.find((i) => i.item_id === payload.item_id);
+    const priceDef = (itemPricesMap.get(payload.item_id) ?? []).find((p) => p.item_price_id === payload.item_price_id);
+    const vendorDef = vendors.find((v) => v.vendor_id === payload.vendor_id);
+
+    const newDetail: OrderItemDetail = {
+      category_code: itemDef?.category_code ?? "",
+      category_prefix: itemDef?.category_prefix ?? "",
+      item_code: itemDef?.item_code ?? "",
+      item_id: payload.item_id,
+      item_name: itemDef?.item_name ?? "",
+      item_price_id: payload.item_price_id,
+      order_id: "",
+      order_item_id: editingItem ? editingItem.order_item_id : `draft-${Date.now()}`,
+      price: priceDef?.price ?? 0,
+      qty: payload.qty,
+      has_tax: payload.has_tax ? 1 : 0,
+      remaining: payload.qty,
+      total_delivered: 0,
+      unit: itemDef?.unit_name ?? "",
+      vendor_id: payload.vendor_id,
+      vendor_name: vendorDef?.vendor_name ?? "",
+    };
+
+    if (editingItem) {
+      setItems(items.map((i) => (i.order_item_id === editingItem.order_item_id ? newDetail : i)));
+    } else {
+      setItems([...items, newDetail]);
+    }
+  }
 
   const columns = useOrderItemFormColumns({
-    editingId,
-    form: tableForm,
-    handleItemChange,
-    items,
+    onEdit: handleOpenEdit,
     setDeleteTarget: setDeletingId,
-    setEditingData,
-    setEditingId,
-    setIsPriceFormOpen,
-    setIsVendorFormOpen,
   });
 
   const { dataWithFooters, footerPlugin } = useOrderItemTableState({
     items: items as OrderItemRow[],
-    editingId,
-    setEditingId: (id) => setEditingId(id === null ? null : "new-item"),
-    setEditingData,
+    onAdd: handleOpenAdd,
   });
 
   const rowIndexPlugin = useTableRowIndex<OrderItemRow>({
@@ -166,6 +153,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
                 <TextInput
                   isRequired
                   label="Nomor Order"
+                  placeholder="Contoh: PO-2026-001"
                   statusVariant="tooltip"
                   value={field.state.value}
                   onChange={(v) => field.handleChange(v ?? "")}
@@ -180,6 +168,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
               {(field) => (
                 <DateInput
                   isRequired
+                  format="system_date"
                   label="Tanggal Order"
                   statusVariant="tooltip"
                   value={field.state.value as DateInputProps["value"]}
@@ -199,19 +188,20 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
             data={dataWithFooters}
             idKey="order_item_id"
             plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin }}
-            emptyState={<TableEmptyState message="Belum ada item. Klik 'Tambah Item'." />}
+            emptyState={<TableEmptyState message="Belum ada item. Klik 'Tambah Item' di bawah." />}
           />
         </Card>
         <HStack justify="end" gap={2}>
           <Button variant="secondary" type="button" label="Batal" onClick={() => navigate({ to: "/order" })} />
-          <form.Subscribe selector={(s) => s.canSubmit}>
-            {(canSubmit) => (
+          <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting] as const}>
+            {([canSubmit, isSubmitting]) => (
               <Button
                 variant="primary"
                 type="button"
                 onClick={() => form.handleSubmit()}
                 label={order ? "Simpan Perubahan" : "Buat Baru"}
-                isDisabled={!canSubmit}
+                isLoading={isSubmitting}
+                isDisabled={isItemDialogOpen || !canSubmit}
               />
             )}
           </form.Subscribe>
@@ -224,11 +214,14 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         title="Hapus Item Order"
         message="Apakah Anda yakin ingin menghapus item ini dari Order?"
       />
-      <MasterVendorForm isOpen={isVendorFormOpen} onClose={() => setIsVendorFormOpen(false)} initialData={null} />
-      <MasterItemPriceDialog
-        isOpen={isPriceFormOpen}
-        onClose={() => setIsPriceFormOpen(false)}
-        item={masterItems.find((i) => i.item_id === tableForm.getFieldValue("item_id")) ?? null}
+      <OrderItemDialog
+        isOpen={isItemDialogOpen}
+        onClose={() => {
+          setIsItemDialogOpen(false);
+          setEditingItem(undefined);
+        }}
+        initialData={editingItem}
+        onSubmitItem={handleSaveItem}
       />
     </>
   );

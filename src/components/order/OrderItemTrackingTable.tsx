@@ -22,8 +22,8 @@ export function OrderItemTrackingTable() {
         const code = formatItemCode(row);
         return (
           <VStack gap={0.5} align="start">
-            <Text weight="medium">{row.item_name}</Text>
-            <EntityCode id={code} />
+            <Text weight="medium">{row.item_name || "-"}</Text>
+            {code ? <EntityCode id={code} /> : "-"}
           </VStack>
         );
       },
@@ -32,6 +32,7 @@ export function OrderItemTrackingTable() {
       header: "Satuan",
       key: "unit",
       width: pixel(80),
+      renderCell: (row) => row.unit || "-",
     },
     {
       align: "end",

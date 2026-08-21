@@ -23,7 +23,7 @@ class ProjectRepository extends BaseRepository<Project, CreateProject, UpdatePro
         )
         .from("projects", "projects")
         .where("projects.deleted_at", "IS NULL")
-        .orderBy("projects.created_at", "DESC");
+        .orderBy("projects.project_id", "ASC");
 
       const { sql, params } = query.build();
       const rows = await this.rawSelect<ProjectWithRelations & { has_relation: number | boolean }>(sql, params);

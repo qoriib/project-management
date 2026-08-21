@@ -33,12 +33,13 @@ export function OrderReceiptLogTable() {
       header: "Item",
       key: "item_name",
       width: proportional(4),
-      renderCell: (row) => row.item_name,
+      renderCell: (row) => row.item_name || "-",
     },
     {
       header: "Satuan",
       key: "unit",
       width: pixel(80),
+      renderCell: (row) => row.unit || "-",
     },
     {
       align: "end",

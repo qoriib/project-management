@@ -15,6 +15,77 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 export type { ReceiptFormProps };
 
+interface ReceiptItemsTableProps {
+  items: ReceiptItemRow[];
+  form: ReturnType<typeof useReceiptForm>["form"];
+}
+
+function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
+  const columns: TableColumn<ReceiptItemRow>[] = [
+    {
+      header: "Item",
+      key: "item",
+      width: proportional(2),
+      renderCell: (row) => {
+        const code = formatItemCode(row);
+        return (
+          <VStack gap={0.5} align="start">
+            <Text weight="medium">{row.item_name}</Text>
+            {code ? (
+              <EntityCode id={code} />
+            ) : (
+              <Text size="sm" color="secondary">
+                -
+              </Text>
+            )}
+          </VStack>
+        );
+      },
+    },
+    {
+      align: "end",
+      header: "Harga (Rp)",
+      key: "price",
+      width: pixel(180),
+      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0)}</Text>,
+    },
+    {
+      align: "end",
+      header: "Volume Diterima",
+      key: "qty",
+      width: pixel(180),
+      renderCell: (row) => {
+        const idx = items.indexOf(row);
+        return <ReceiptQtyCell form={form as any} row={row} idx={idx} />;
+      },
+    },
+    {
+      header: "Satuan",
+      key: "unit",
+      width: pixel(100),
+      renderCell: (row) => row.unit || "-",
+    },
+  ];
+
+  const rowIndexPlugin = useTableRowIndex({
+    data: items,
+    getRowKey: (item) => item.order_item_id,
+    label: "#",
+  });
+
+  return (
+    <Card padding={4}>
+      <Table
+        textOverflow="truncate"
+        columns={columns}
+        data={items}
+        idKey="order_item_id"
+        plugins={{ rowIndex: rowIndexPlugin }}
+      />
+    </Card>
+  );
+}
+
 export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }: ReceiptFormProps) {
   const { form, orders, isEdit, handlePOChange } = useReceiptForm({
     initialEditId,
@@ -58,6 +129,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
               {(field) => (
                 <TextInput
                   label="Kode Penerimaan"
+                  placeholder="Contoh: NP-2026-001"
                   value={field.state.value}
                   onChange={(v) => field.handleChange(v)}
                   onBlur={field.handleBlur}
@@ -87,69 +159,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
         <form.Subscribe selector={(state) => [state.values.order_id, state.values.items] as const}>
           {([poId, items]) => {
             if (!poId || items.length === 0) return null;
-
-            const columns: TableColumn<ReceiptItemRow>[] = [
-              {
-                header: "Item",
-                key: "item",
-                width: proportional(2),
-                renderCell: (row) => {
-                  const code = formatItemCode(row);
-                  return (
-                    <VStack gap={0.5} align="start">
-                      <Text weight="medium">{row.item_name}</Text>
-                      {code ? (
-                        <EntityCode id={code} />
-                      ) : (
-                        <Text size="sm" color="secondary">
-                          -
-                        </Text>
-                      )}
-                    </VStack>
-                  );
-                },
-              },
-              {
-                align: "end",
-                header: "Harga (Rp)",
-                key: "price",
-                width: pixel(180),
-                renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0)}</Text>,
-              },
-              {
-                align: "end",
-                header: "Volume Diterima",
-                key: "qty",
-                width: pixel(180),
-                renderCell: (row) => {
-                  const idx = items.indexOf(row);
-                  return <ReceiptQtyCell form={form as any} row={row} idx={idx} />;
-                },
-              },
-              {
-                header: "Satuan",
-                key: "unit",
-                width: pixel(100),
-              },
-            ];
-
-            const rowIndexPlugin = useTableRowIndex({
-              data: items,
-              getRowKey: (item) => item.order_item_id,
-              label: "#",
-            });
-
-            return (
-              <Card padding={4}>
-                <Table
-                  textOverflow="truncate"
-                  columns={columns}
-                  data={items}
-                  idKey="order_item_id"
-                  plugins={{ rowIndex: rowIndexPlugin }}
-                />
-              </Card>
-            );
+            return <ReceiptItemsTable items={items} form={form} />;
           }}
         </form.Subscribe>
 

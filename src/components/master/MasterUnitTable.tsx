@@ -55,6 +55,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
       header: "Nama Satuan",
       key: "unit_name",
       width: proportional(1),
+      renderCell: (row: UnitRow) => row.unit_name || "-",
     },
     {
       align: "end",

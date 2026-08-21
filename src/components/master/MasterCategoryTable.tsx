@@ -56,19 +56,19 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       header: "Prefix",
       key: "prefix",
       width: pixel(80),
-      renderCell: (row: CategoryRow) => <EntityCode id={row.prefix} />,
+      renderCell: (row: CategoryRow) => (row.prefix ? <EntityCode id={row.prefix} /> : "-"),
     },
-
     {
       header: "Kode Kategori",
       key: "category_code",
       width: pixel(150),
-      renderCell: (row: CategoryRow) => <EntityCode id={row.category_code} />,
+      renderCell: (row: CategoryRow) => (row.category_code ? <EntityCode id={row.category_code} /> : "-"),
     },
     {
       header: "Nama Kategori",
       key: "category_name",
       width: proportional(1),
+      renderCell: (row: CategoryRow) => row.category_name || "-",
     },
     {
       align: "end",

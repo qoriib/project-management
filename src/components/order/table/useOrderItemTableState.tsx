@@ -1,59 +1,58 @@
 import { useMemo } from "react";
-import { Button } from "@astryxdesign/core";
+import { Button, HStack, Text } from "@astryxdesign/core";
 import { Plus } from "lucide-react";
 import { type TablePlugin, TableCell } from "@astryxdesign/core/Table";
+import { formatNumber } from "@/utils/formatters";
 import type { OrderItemRow } from "./useOrderItemFormColumns";
-import type { OrderItemDetail } from "@/db/repositories";
 
 interface UseOrderItemTableStateProps {
   items: OrderItemRow[];
-  editingId: string | null;
-  setEditingId: (id: string | null) => void;
-  setEditingData: (data: OrderItemDetail | undefined) => void;
+  onAdd: () => void;
 }
 
-export function useOrderItemTableState({
-  items,
-  editingId,
-  setEditingId,
-  setEditingData,
-}: UseOrderItemTableStateProps) {
+export function useOrderItemTableState({ items, onAdd }: UseOrderItemTableStateProps) {
+  const grandTotal = useMemo(() => {
+    let grand = 0;
+    for (const item of items) {
+      const sub = (item.qty ?? 0) * (item.price ?? 0);
+      grand += item.has_tax ? sub * 1.12 : sub;
+    }
+    return grand;
+  }, [items]);
+
   const dataWithFooters = useMemo(() => {
     const list = [...items] as OrderItemRow[];
-
-    if (editingId === "new-item") {
-      list.push({
-        isDraft: true,
-        order_item_id: "new-item",
-      } as unknown as OrderItemRow);
-    }
-
     list.push({ isFooter: true, order_item_id: "footer" } as unknown as OrderItemRow);
     return list;
-  }, [items, editingId]);
+  }, [items]);
 
   const footerPlugin = useMemo(
     (): TablePlugin<OrderItemRow> => ({
       transformBodyRow(props, item) {
         if (item.isFooter) {
-          const hideButton = Boolean(editingId);
-
           return {
             ...props,
             children: (
               <TableCell colSpan={999} style={{ padding: "var(--spacing-3)" }}>
-                {!hideButton && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={<Plus size={16} />}
-                    label="Tambah Item"
-                    onClick={() => {
-                      setEditingData(undefined);
-                      setEditingId("new-item");
-                    }}
-                  />
-                )}
+                <HStack justify="between" align="center" width="100%">
+                  <div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      icon={<Plus size={16} />}
+                      label="Tambah Item"
+                      onClick={onAdd}
+                    />
+                  </div>
+                  <HStack gap={2} align="center">
+                    <Text weight="bold" size="sm" color="secondary">
+                      Total Biaya:
+                    </Text>
+                    <Text type="code" weight="bold" size="base" color="primary">
+                      Rp {formatNumber(grandTotal)}
+                    </Text>
+                  </HStack>
+                </HStack>
               </TableCell>
             ),
           };
@@ -62,11 +61,12 @@ export function useOrderItemTableState({
         return props;
       },
     }),
-    [editingId, setEditingId, setEditingData],
+    [onAdd, grandTotal],
   );
 
   return {
     dataWithFooters,
     footerPlugin,
+    grandTotal,
   };
 }

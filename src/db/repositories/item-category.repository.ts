@@ -11,7 +11,7 @@ class ItemCategoryRepository extends BaseRepository<ItemCategory, CreateItemCate
    */
   async findAllSorted(): Promise<ItemCategory[]> {
     return this.findAll({
-      orderBy: { column: "category_name", direction: "ASC" },
+      orderBy: { column: "category_id", direction: "ASC" },
     });
   }
 

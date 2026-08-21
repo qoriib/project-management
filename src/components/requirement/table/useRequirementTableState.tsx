@@ -1,24 +1,19 @@
 import { useMemo } from "react";
-import { Button } from "@astryxdesign/core";
+import { Button, HStack, Text } from "@astryxdesign/core";
 import { Plus } from "lucide-react";
 import { type TablePlugin, TableCell } from "@astryxdesign/core/Table";
+import { formatNumber } from "@/utils/formatters";
 import type { RequirementRow } from "./useRequirementColumns";
 import type { RequirementDetail } from "@/db/repositories";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface UseRequirementTableStateProps {
   requirements: RequirementDetail[];
-  editingId: string | null;
   isApproved: boolean;
-  setEditingId: (id: string | null) => void;
+  onAdd: () => void;
 }
 
-export function useRequirementTableState({
-  requirements,
-  editingId,
-  isApproved,
-  setEditingId,
-}: UseRequirementTableStateProps) {
+export function useRequirementTableState({ requirements, isApproved, onAdd }: UseRequirementTableStateProps) {
   const grandTotal = useMemo(() => {
     let grand = 0;
 
@@ -37,40 +32,43 @@ export function useRequirementTableState({
   const dataWithFooters = useMemo(() => {
     const list = [...requirements] as RequirementRow[];
 
-    if (editingId === "new") {
-      list.push({
-        requirement_id: "new",
-        isDraft: true,
-      } as RequirementRow);
-    }
-
     list.push({
       requirement_id: "footer",
       isFooter: true,
     } as RequirementRow);
 
     return list;
-  }, [requirements, editingId, isApproved]);
+  }, [requirements]);
 
   const footerPlugin = useMemo(
     (): TablePlugin<RequirementRow> => ({
       transformBodyRow(props, item) {
         if (item.isFooter) {
-          const hideButton = Boolean(editingId);
-
           return {
             ...props,
             children: (
               <TableCell colSpan={999} style={{ padding: "var(--spacing-3)" }}>
-                {!hideButton && !isApproved && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={<Plus size={16} />}
-                    label="Tambah Kebutuhan"
-                    onClick={() => setEditingId("new")}
-                  />
-                )}
+                <HStack justify="between" align="center" width="100%">
+                  <div>
+                    {!isApproved && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        icon={<Plus size={16} />}
+                        label="Tambah Kebutuhan"
+                        onClick={onAdd}
+                      />
+                    )}
+                  </div>
+                  <HStack gap={2} align="center">
+                    <Text weight="bold" size="sm" color="secondary">
+                      Total Kebutuhan:
+                    </Text>
+                    <Text type="code" weight="bold" size="base" color="primary">
+                      Rp {formatNumber(grandTotal)}
+                    </Text>
+                  </HStack>
+                </HStack>
               </TableCell>
             ),
           };
@@ -78,7 +76,7 @@ export function useRequirementTableState({
         return props;
       },
     }),
-    [editingId, isApproved, setEditingId],
+    [isApproved, grandTotal, onAdd],
   );
 
   const rowIndexPlugin = useTableRowIndex<RequirementRow>({

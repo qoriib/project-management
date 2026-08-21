@@ -10,7 +10,7 @@ import * as v from "valibot";
 
 const itemSchema = v.object({
   category_id: v.pipe(v.string(), v.nonEmpty("Pilih kategori terlebih dahulu.")),
-  item_code: v.string(),
+  item_code: v.pipe(v.string(), v.nonEmpty("Kode item harus diisi.")),
   item_name: v.pipe(v.string(), v.nonEmpty("Nama item harus diisi.")),
   unit_id: v.pipe(v.string(), v.nonEmpty("Pilih satuan terlebih dahulu.")),
 });
@@ -103,10 +103,11 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               children={(field) => (
                 <TextInput
                   label="Kode Item"
-                  description="Kosongkan untuk membuat kode item otomatis"
+                  placeholder="Contoh: 001"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
+                  isRequired
                   statusVariant="attached"
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 />
@@ -117,6 +118,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               children={(field) => (
                 <TextInput
                   label="Nama Item"
+                  placeholder="Masukkan nama item"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}

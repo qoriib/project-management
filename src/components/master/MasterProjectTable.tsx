@@ -53,18 +53,20 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       header: "Nama Proyek",
       key: "project_name",
       width: proportional(2),
+      renderCell: (row: ProjectRow) => row.project_name || "-",
     },
     {
       header: "Nama Perusahaan",
       key: "company_name",
       width: proportional(1.5),
+      renderCell: (row: ProjectRow) => row.company_name || "-",
     },
     {
       align: "end",
       header: "Tahun",
       key: "fiscal_year",
       width: pixel(100),
-      renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year}</Text>,
+      renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year ? String(row.fiscal_year) : "-"}</Text>,
     },
     {
       align: "end",

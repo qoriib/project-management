@@ -25,7 +25,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
     () =>
       report.map((r) => ({
         ...r,
-        unique_id: r.item_id,
+        unique_id: `${r.item_id}_${r.item_price_id}`,
       })),
     [report],
   );
@@ -85,6 +85,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       header: "Satuan",
       key: "unit",
       width: pixel(80),
+      renderCell: (r) => r.unit || "-",
     },
     {
       align: "end",

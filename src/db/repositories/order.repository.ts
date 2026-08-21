@@ -87,8 +87,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
         .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
         .withSoftDelete("orders")
         .groupBy("orders.order_id")
-        .orderBy("orders.order_date", "DESC")
-        .orderBy("orders.order_id", "DESC");
+        .orderBy("orders.order_id", "ASC");
 
       if (filters?.project_id) {
         query.where("orders.project_id", "=", filters.project_id);

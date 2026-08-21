@@ -59,7 +59,7 @@ export function OrderTable({ onEdit }: OrderTableProps) {
         columns={columns}
         data={orders as PORow[]}
         plugins={{ rowIndex: rowIndexPlugin }}
-        emptyState={<TableEmptyState message="Belum ada Order. Klik 'Buat Baru' untuk memulai." />}
+        emptyState={<TableEmptyState message="Belum ada Order." />}
       />
       <ConfirmDialog
         title="Hapus Order"

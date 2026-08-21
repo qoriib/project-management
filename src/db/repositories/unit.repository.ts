@@ -11,7 +11,7 @@ class UnitRepository extends BaseRepository<Unit, CreateUnit, UpdateUnit> {
    */
   async findAllSorted(): Promise<Unit[]> {
     return this.findAll({
-      orderBy: { column: "unit_name", direction: "ASC" },
+      orderBy: { column: "unit_id", direction: "ASC" },
     });
   }
 }

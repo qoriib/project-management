@@ -61,7 +61,7 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
         query.offset(options.offset);
       }
 
-      query.orderBy("items.item_name", "ASC");
+      query.orderBy("items.item_id", "ASC");
 
       const { sql, params } = query.build();
       const rows = await this.rawSelect<ItemWithDetails & { has_relation: number | boolean }>(sql, params);

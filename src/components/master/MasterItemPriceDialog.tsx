@@ -44,8 +44,17 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     onSubmit: async ({ value }) => {
       if (!item) return;
 
+      const isDuplicate = prices.some((p) => Number(p.price) === Number(value.price));
+      if (isDuplicate) {
+        showToast({
+          body: "Harga tersebut sudah ada untuk item ini.",
+          type: "error",
+        });
+        return;
+      }
+
       try {
-        await createItemPrice({ item_id: item.item_id, price: value.price });
+        await createItemPrice({ item_id: item.item_id, price: Number(value.price) });
 
         form.reset();
         await loadPrices();

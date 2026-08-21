@@ -50,16 +50,19 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
       header: "Nama Vendor",
       key: "vendor_name",
       width: proportional(1.5),
+      renderCell: (row: VendorRow) => row.vendor_name || "-",
     },
     {
       header: "Telepon",
       key: "phone",
       width: pixel(150),
+      renderCell: (row: VendorRow) => row.phone || "-",
     },
     {
       header: "Alamat",
       key: "address",
       width: proportional(2),
+      renderCell: (row: VendorRow) => row.address || "-",
     },
     {
       align: "end",
