@@ -19,7 +19,7 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
 
   if (!selectedProjectId || !isValidProject) {
     return (
-      <Card padding={3}>
+      <Card padding={4}>
         <VStack gap={4} align="center">
           <VStack gap={1} align="center">
             <Heading level={3}>Pilih Proyek Aktif</Heading>

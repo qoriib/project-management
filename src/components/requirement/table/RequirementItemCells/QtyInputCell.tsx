@@ -9,7 +9,6 @@ export function QtyInputCell({ form }: BaseCellProps) {
         <NumberInput
           isLabelHidden
           label="Volume"
-          placeholder="Contoh: 100"
           statusVariant="tooltip"
           value={field.state.value}
           onChange={(v) => field.handleChange(v ?? 0)}

@@ -84,7 +84,6 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
               children={(field) => (
                 <TextInput
                   label="Nama Project"
-                  placeholder="Contoh: Pembangunan Gedung A"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
@@ -99,7 +98,6 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
               children={(field) => (
                 <TextInput
                   label="Nama Perusahaan"
-                  placeholder="Contoh: PT Bangun Persada"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
@@ -114,7 +112,6 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
               children={(field) => (
                 <NumberInput
                   label="Tahun Fiskal"
-                  placeholder="Contoh: 2026"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val || 0)}
                   onBlur={field.handleBlur}

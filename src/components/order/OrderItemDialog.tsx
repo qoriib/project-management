@@ -86,7 +86,6 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                     <Selector
                       label="Item"
                       isLabelHidden
-                      placeholder="Pilih item..."
                       options={itemOptions}
                       value={field.state.value}
                       onChange={async (val) => {
@@ -124,7 +123,6 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                       <Selector
                         label="Harga"
                         isLabelHidden
-                        placeholder={selectedItemId ? "Pilih harga..." : "Pilih item dahulu"}
                         options={priceOptions}
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val as string)}
@@ -177,7 +175,6 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                     <Selector
                       label="Vendor"
                       isLabelHidden
-                      placeholder="Pilih vendor..."
                       options={vendorOptions}
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val as string)}
@@ -196,7 +193,6 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                   children={(field) => (
                     <NumberInput
                       label="Volume / Qty"
-                      placeholder="Contoh: 10"
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val ?? 0)}
                       onBlur={field.handleBlur}

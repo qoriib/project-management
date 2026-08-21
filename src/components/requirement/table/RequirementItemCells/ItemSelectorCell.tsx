@@ -20,7 +20,6 @@ export function ItemSelectorCell({ form, items, handleItemChange, onAddNewItem }
               hasSearch
               isLabelHidden
               label="Item"
-              placeholder="Pilih item..."
               statusVariant="tooltip"
               value={field.state.value}
               onChange={(v) => handleItemChange(v)}

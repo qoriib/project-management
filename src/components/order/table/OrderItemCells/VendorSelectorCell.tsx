@@ -24,7 +24,6 @@ export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSele
               <Selector
                 label="Vendor"
                 isLabelHidden
-                placeholder="Pilih vendor..."
                 options={options}
                 value={field.state.value}
                 onChange={(v) => field.handleChange(v)}

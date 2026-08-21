@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { Button, Card, HStack, VStack, Table } from "@astryxdesign/core";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { getFieldError, handleFormError } from "@/utils/form";
+import { generateNextCode, todayISO } from "@/utils/formatters";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
 import { useNavigate } from "@tanstack/react-router";
@@ -14,7 +15,7 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { OrderItemDialog } from "@/components/order/OrderItemDialog";
 import { OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
 import { useOrderItemTableState } from "@/components/order/table/useOrderItemTableState";
-import { poSchema, buildDefaultValues } from "@/components/order/form/order.schema";
+import { poSchema } from "@/components/order/form/order.schema";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { OrderItemDetail, OrderItemInput, OrderWithSummary } from "@/db/repositories";
 
@@ -34,10 +35,21 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const [editingItem, setEditingItem] = useState<OrderItemDetail | undefined>(undefined);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
 
-  const { createOrder, updateOrder } = useOrderStore();
+  const { orders, createOrder, updateOrder } = useOrderStore();
+
+  const nextOrderCode = useMemo(() => {
+    if (order) return order.order_code || "";
+    return generateNextCode(
+      orders.map((o) => o.order_code),
+      "PO-",
+    );
+  }, [orders, order]);
 
   const form = useForm({
-    defaultValues: buildDefaultValues(order),
+    defaultValues: {
+      order_code: order?.order_code ?? nextOrderCode,
+      order_date: order?.order_date ?? todayISO(),
+    },
     validators: { onChange: poSchema },
     onSubmit: async ({ value }) => {
       if (!selectedProjectId) return;
@@ -78,6 +90,20 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
       }
     },
   });
+
+  useEffect(() => {
+    if (order) {
+      form.reset({
+        order_code: order.order_code,
+        order_date: order.order_date,
+      });
+    } else {
+      form.reset({
+        order_code: nextOrderCode,
+        order_date: todayISO(),
+      });
+    }
+  }, [order, nextOrderCode]);
 
   function handleOpenAdd() {
     setEditingItem(undefined);
@@ -153,7 +179,6 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
                 <TextInput
                   isRequired
                   label="Nomor Order"
-                  placeholder="Contoh: PO-2026-001"
                   statusVariant="tooltip"
                   value={field.state.value}
                   onChange={(v) => field.handleChange(v ?? "")}

@@ -190,7 +190,6 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                     children={(field) => (
                       <NumberInput
                         label="Harga (Rp)"
-                        placeholder="Contoh: 50000"
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val ?? (null as unknown as number))}
                         onBlur={field.handleBlur}

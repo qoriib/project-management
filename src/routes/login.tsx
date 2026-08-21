@@ -78,7 +78,6 @@ function LoginPage() {
                       type="text"
                       size="lg"
                       statusVariant="attached"
-                      placeholder="• • • • • •"
                       value={field.state.value}
                       status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       onBlur={field.handleBlur}

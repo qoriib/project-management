@@ -33,7 +33,6 @@ export function ItemSelectorCell({ form, onChangeItem }: ItemSelectorCellProps) 
             label="Item"
             isLabelHidden
             hasSearch
-            placeholder="Pilih Item..."
             statusVariant="tooltip"
             value={field.state.value}
             options={options}

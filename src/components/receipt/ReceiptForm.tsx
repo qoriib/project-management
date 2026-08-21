@@ -113,7 +113,6 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
               {(field) => (
                 <Selector
                   label="Pilih Order"
-                  placeholder="Pilih nomor Order..."
                   value={field.state.value}
                   onChange={(v) => handlePOChange(v as string)}
                   onBlur={field.handleBlur}
@@ -129,7 +128,6 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
               {(field) => (
                 <TextInput
                   label="Kode Penerimaan"
-                  placeholder="Contoh: NP-2026-001"
                   value={field.state.value}
                   onChange={(v) => field.handleChange(v)}
                   onBlur={field.handleBlur}

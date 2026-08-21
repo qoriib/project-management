@@ -31,7 +31,6 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId: _ }: PriceSe
                     isLabelHidden
                     label="Harga"
                     statusVariant="tooltip"
-                    placeholder="Pilih harga..."
                     value={field.state.value}
                     onChange={(v) => field.handleChange(v as string)}
                     onBlur={field.handleBlur}

@@ -77,7 +77,6 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                     <Selector
                       label="Material"
                       isLabelHidden
-                      placeholder="Pilih material / barang..."
                       options={itemOptions}
                       value={field.state.value}
                       onChange={async (val) => {
@@ -115,7 +114,6 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                       <Selector
                         label="Harga"
                         isLabelHidden
-                        placeholder={selectedItemId ? "Pilih harga..." : "Pilih item dahulu"}
                         options={priceOptions}
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val as string)}
@@ -154,7 +152,6 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                   children={(field) => (
                     <NumberInput
                       label="Volume / Qty"
-                      placeholder="Contoh: 10"
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val ?? 0)}
                       onBlur={field.handleBlur}

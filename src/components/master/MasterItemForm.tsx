@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Button, Dialog, HStack, Heading, Selector, TextInput, VStack } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError, handleFormError } from "@/utils/form";
+import { generateNextCode } from "@/utils/formatters";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
 
@@ -23,14 +24,19 @@ interface MasterItemFormProps {
 
 export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormProps) {
   const showToast = useToast();
-  const { categories, units, createItem, updateItem } = useMasterStore();
+  const { items, categories, units, createItem, updateItem } = useMasterStore();
+
+  const nextItemCode = useMemo(() => {
+    if (initialData) return initialData.item_code || "";
+    return generateNextCode(items.map((i) => i.item_code));
+  }, [items, initialData]);
 
   const form = useForm({
     defaultValues: {
-      category_id: "",
-      item_code: "",
-      item_name: "",
-      unit_id: "",
+      category_id: initialData?.category_id ? String(initialData.category_id) : "",
+      item_code: initialData?.item_code ?? nextItemCode,
+      item_name: initialData?.item_name ?? "",
+      unit_id: initialData?.unit_id ? String(initialData.unit_id) : "",
     },
     onSubmit: async ({ value }) => {
       try {
@@ -69,13 +75,13 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
       } else {
         form.reset({
           category_id: categories.length > 0 ? String(categories[0].category_id) : "",
-          item_code: "",
+          item_code: nextItemCode,
           item_name: "",
           unit_id: units.length > 0 ? String(units[0].unit_id) : "",
         });
       }
     }
-  }, [isOpen, initialData, categories, units]);
+  }, [isOpen, initialData, nextItemCode, categories, units]);
 
   const categoryOptions = categories.map((category) => ({
       label: category.category_name,
@@ -103,7 +109,6 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               children={(field) => (
                 <TextInput
                   label="Kode Item"
-                  placeholder="Contoh: 001"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
@@ -118,7 +123,6 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               children={(field) => (
                 <TextInput
                   label="Nama Item"
-                  placeholder="Masukkan nama item"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
@@ -133,7 +137,6 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               children={(field) => (
                 <Selector
                   label="Kategori"
-                  placeholder="Pilih kategori..."
                   options={categoryOptions}
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
@@ -148,7 +151,6 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
               children={(field) => (
                 <Selector
                   label="Satuan"
-                  placeholder="Pilih satuan..."
                   options={unitOptions}
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}

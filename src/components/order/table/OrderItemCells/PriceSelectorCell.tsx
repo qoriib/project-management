@@ -33,13 +33,6 @@ export function PriceSelectorCell({ form, onAddNewPrice }: PriceSelectorCellProp
                   <Selector
                     label="Harga"
                     isLabelHidden
-                    placeholder={
-                      itemId
-                        ? priceOptions.length === 0
-                          ? "Belum ada harga"
-                          : "Pilih harga..."
-                        : "Pilih item dahulu..."
-                    }
                     options={priceOptions}
                     value={field.state.value}
                     onChange={(v) => field.handleChange(v)}

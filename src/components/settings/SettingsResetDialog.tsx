@@ -43,7 +43,6 @@ export function SettingsResetDialog({ isOpen, onClose, onConfirm, isLoading = fa
         </Text>
         <TextInput
           label="Ketik 'RESET' untuk melanjutkan:"
-          placeholder="RESET"
           value={resetConfirmText}
           onChange={(val) => setResetConfirmText(val || "")}
         />

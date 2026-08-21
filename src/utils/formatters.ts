@@ -40,6 +40,37 @@ export function formatItemCode(parts?: ItemCodeParts | null): string {
   return `${parts.category_prefix ?? ""} ${parts.category_code ?? ""} ${parts.item_code ?? ""}`.trim();
 }
 
+// ── Code / ID Generators ──────────────────────────────────────────────────────
+
+/**
+ * Menghasilkan nomor urut kode berikutnya dari daftar kode yang ada dengan default padding 5 digit.
+ * Contoh:
+ * - generateNextCode(["00001", "00002"]) => "00003"
+ * - generateNextCode(["PO-00001", "PO-00002"], "PO-") => "PO-00003"
+ * - generateNextCode(["NP-00001"], "NP-") => "NP-00002"
+ */
+export function generateNextCode(
+  existingCodes: (string | null | undefined)[],
+  prefix: string = "",
+  digits: number = 5,
+): string {
+  let maxNum = 0;
+
+  for (const code of existingCodes) {
+    if (!code) continue;
+    const match = code.match(/(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (!isNaN(num) && num > maxNum) {
+        maxNum = num;
+      }
+    }
+  }
+
+  const nextNum = maxNum + 1;
+  return `${prefix}${nextNum.toString().padStart(digits, "0")}`;
+}
+
 // ── PPN ───────────────────────────────────────────────────────────────────────
 
 export function calcPPN(subtotal: number, persen: number = 12): number {

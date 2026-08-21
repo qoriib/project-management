@@ -74,7 +74,6 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
                 <TextInput
                   isRequired
                   label="Nama Satuan"
-                  placeholder="Contoh: Kg, Pcs, m3"
                   statusVariant="attached"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}

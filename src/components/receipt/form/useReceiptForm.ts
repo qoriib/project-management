@@ -1,15 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import { todayISO } from "@/utils/formatters";
+import { generateNextCode, todayISO } from "@/utils/formatters";
 import { buildReceiptItemPayload, loadReceiptEditData, loadOrderItemsAsReceiptRows } from "./receipt.utils";
 import { type ReceiptFormProps, type ReceiptItemRow, receiptSchema } from "./receipt.schema";
 
 /**
  * Custom hook yang mengorkestrasikan seluruh logic form Receipt:
  * - Inisialisasi & load data (create / edit)
+ * - Auto-generate receipt_code saat buka form baru (5 digit)
  * - Load items saat Order berubah
  * - Submit handler (create / update)
  */
@@ -22,11 +23,18 @@ export function useReceiptForm({
 
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const { orders, loadAllOrders } = useOrderStore();
-  const { createReceipt, updateReceipt } = useReceiptStore();
+  const { receipts, loadAllReceipts, createReceipt, updateReceipt } = useReceiptStore();
+
+  const nextReceiptCode = useMemo(() => {
+    return generateNextCode(
+      receipts.map((r) => r.receipt_code),
+      "NP-",
+    );
+  }, [receipts]);
 
   const form = useForm({
     defaultValues: {
-      receipt_code: "",
+      receipt_code: nextReceiptCode,
       receipt_date: todayISO(),
       items: [] as ReceiptItemRow[],
       order_id: initialPoId ?? "",
@@ -68,7 +76,7 @@ export function useReceiptForm({
   useEffect(() => {
     async function loadData() {
       const projectId = selectedProjectId ?? undefined;
-      await loadAllOrders(projectId);
+      await Promise.all([loadAllOrders(projectId), loadAllReceipts(projectId)]);
 
       const hasEditId = isEdit && initialEditId !== undefined;
 
@@ -83,14 +91,19 @@ export function useReceiptForm({
             items: editData!.items,
           });
         }
-      } else if (initialPoId) {
-        const rows = await loadOrderItemsAsReceiptRows(initialPoId);
-        form.setFieldValue("items", rows);
+      } else {
+        if (!form.getFieldValue("receipt_code")) {
+          form.setFieldValue("receipt_code", nextReceiptCode);
+        }
+        if (initialPoId) {
+          const rows = await loadOrderItemsAsReceiptRows(initialPoId);
+          form.setFieldValue("items", rows);
+        }
       }
     }
 
     loadData();
-  }, [initialPoId, initialEditId, isEdit, selectedProjectId]);
+  }, [initialPoId, initialEditId, isEdit, selectedProjectId, nextReceiptCode]);
 
   return { form, handlePOChange, isEdit, orders };
 }

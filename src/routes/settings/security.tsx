@@ -61,7 +61,7 @@ function SettingsSecurity() {
                 <TextInput
                   label="PIN Baru"
                   type="text"
-                  placeholder="6 digit PIN baru"
+                  description="Masukkan 6 digit angka"
                   value={field.state.value}
                   status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   onBlur={field.handleBlur}
