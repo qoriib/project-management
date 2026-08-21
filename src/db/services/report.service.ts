@@ -6,7 +6,16 @@ import { getDB } from "@/db/index";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { DbError, wrapDbError } from "@/db/core/errors";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+export interface RequirementReportVariant {
+  item_price_id: string;
+  price: number;
+  qty: number;
+  has_tax: number;
+  dpp: number;
+  tax_amount: number;
+  subtotal: number;
+  vendor_name?: string | null;
+}
 
 export interface RequirementReportItem {
   item_id: string;
@@ -16,14 +25,19 @@ export interface RequirementReportItem {
   item_name: string;
   category: string;
   unit: string;
-  /** Price resolved from the linked item_price variant */
-  price: number;
-  item_price_id: string;
+  /** Primary / reference price */
+  price?: number;
+  planned_variants: RequirementReportVariant[];
+  order_variants: RequirementReportVariant[];
   planned_volume: number;
+  planned_dpp: number;
+  planned_tax: number;
   planned_budget: number;
   total_ordered: number;
-  total_delivered: number;
+  total_order_dpp: number;
+  total_order_tax: number;
   total_order_price: number;
+  total_delivered: number;
   is_unplanned?: boolean;
 }
 
@@ -65,36 +79,88 @@ export interface ReceiptReportItem {
   qty: number;
 }
 
-interface RawOrderAggregateRow {
-  item_id: string;
-  item_price_id: string;
+export interface RequirementReportDetailItem {
+  item_code: string;
+  category_prefix?: string;
+  category_code?: string;
+  item_name: string;
+  category_name: string | null;
+  unit_name: string | null;
+  qty: number;
   price: number;
-  total_ordered: number;
-  total_order_price: number;
+  has_tax: number;
+  dpp: number;
+  tax_amount: number;
+  total_price: number;
 }
 
-interface RawReceiptAggregateRow {
+// ── Helper Types ─────────────────────────────────────────────────────────────
+
+interface RawRequirementRow {
   item_id: string;
   item_price_id: string;
-  total_delivered: number;
-}
-
-interface RawUnplannedItemRow {
-  item_id: string;
   item_code: string;
   category_prefix?: string;
   category_code?: string;
   item_name: string;
   category: string;
   unit: string;
+  price: number;
+  qty: number;
+  has_tax: number;
+}
+
+interface RawOrderRow {
+  item_id: string;
+  item_price_id: string;
+  price: number;
+  qty: number;
+  has_tax: number;
+  item_code: string;
+  category_prefix?: string;
+  category_code?: string;
+  item_name: string;
+  category: string;
+  unit: string;
+  vendor_name: string | null;
+}
+
+interface RawReceiptRow {
+  item_id: string;
+  total_delivered: number;
+}
+
+function createDefaultReportItem(row: RawRequirementRow | RawOrderRow, isUnplanned: boolean): RequirementReportItem {
+  return {
+    category: row.category || "LAINNYA",
+    category_code: row.category_code,
+    category_prefix: row.category_prefix,
+    is_unplanned: isUnplanned,
+    item_code: row.item_code,
+    item_id: row.item_id,
+    item_name: row.item_name,
+    order_variants: [],
+    planned_budget: 0,
+    planned_dpp: 0,
+    planned_tax: 0,
+    planned_variants: [],
+    planned_volume: 0,
+    price: row.price,
+    total_delivered: 0,
+    total_order_dpp: 0,
+    total_order_price: 0,
+    total_order_tax: 0,
+    total_ordered: 0,
+    unit: row.unit || "-",
+  };
 }
 
 // ── Service Functions ────────────────────────────────────────────────────────
 
 /**
  * Generates the full Requirement fulfillment report for a project.
- * Items in Requirements and Orders are grouped and matched strictly by (item_id, item_price_id).
- * If the same item has multiple prices in PO or BOM, each variation appears as a separate row.
+ * Items in Requirements and Orders are grouped strictly by item_id (one row per item).
+ * If an item has multiple prices/variants in BOM or PO, all variants are preserved in planned_variants / order_variants.
  */
 export async function getRequirementReport(
   projectId: string,
@@ -104,7 +170,7 @@ export async function getRequirementReport(
   try {
     const db = await getDB();
 
-    // 1. Fetch Requirements grouped by (item_id, item_price_id)
+    // 1. Build Requirements (BOM) Query
     const requirementQuery = new QueryBuilder()
       .select(
         "requirements.item_id",
@@ -116,10 +182,8 @@ export async function getRequirementReport(
         "categories.category_name as category",
         "units.unit_name as unit",
         "item_prices.price as price",
-      )
-      .selectRaw("SUM(requirements.qty) as planned_volume")
-      .selectRaw(
-        "SUM(requirements.qty * item_prices.price * (CASE WHEN requirements.has_tax = 1 THEN 1.12 ELSE 1.0 END)) as planned_budget",
+        "requirements.qty",
+        "requirements.has_tax",
       )
       .from("requirements", "requirements")
       .join("items", "items", "items.item_id = requirements.item_id")
@@ -128,32 +192,31 @@ export async function getRequirementReport(
       .leftJoin("units", "units", "items.unit_id = units.unit_id")
       .where("requirements.project_id", "=", projectId)
       .withSoftDelete("requirements")
-      .groupBy(
-        "requirements.item_id",
-        "requirements.item_price_id",
-        "items.item_code",
-        "categories.prefix",
-        "categories.category_code",
-        "items.item_name",
-        "categories.category_name",
-        "units.unit_name",
-        "item_prices.price",
-      )
       .orderBy("items.item_id", "ASC");
 
-    const { sql: reqSql, params: reqParams } = requirementQuery.build();
-    const requirements = await db.select<RequirementReportItem[]>(reqSql, reqParams);
-
-    // 2. Fetch Order Aggregates grouped by (item_id, item_price_id)
+    // 2. Build Orders (PO) Query
     const orderQuery = new QueryBuilder()
-      .select("order_items.item_id", "order_items.item_price_id", "item_prices.price")
-      .selectRaw("SUM(order_items.qty) as total_ordered")
-      .selectRaw(
-        "SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)) as total_order_price",
+      .select(
+        "order_items.item_id",
+        "order_items.item_price_id",
+        "item_prices.price",
+        "order_items.qty",
+        "order_items.has_tax",
+        "items.item_code",
+        "categories.prefix as category_prefix",
+        "categories.category_code",
+        "items.item_name",
+        "categories.category_name as category",
+        "units.unit_name as unit",
+        "vendors.vendor_name",
       )
       .from("order_items", "order_items")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
+      .join("items", "items", "items.item_id = order_items.item_id")
       .join("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
+      .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
+      .leftJoin("units", "units", "items.unit_id = units.unit_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
       .where("orders.project_id", "=", projectId)
       .withSoftDelete("orders");
 
@@ -164,14 +227,9 @@ export async function getRequirementReport(
       orderQuery.where("orders.order_date", "<=", endDate);
     }
 
-    orderQuery.groupBy("order_items.item_id", "order_items.item_price_id", "item_prices.price");
-
-    const { sql: orderSql, params: orderParams } = orderQuery.build();
-    const orderAggregates = await db.select<RawOrderAggregateRow[]>(orderSql, orderParams);
-
-    // 3. Fetch Receipt Aggregates grouped by (item_id, item_price_id)
+    // 3. Build Receipts (NP) Query grouped by item_id
     const receiptQuery = new QueryBuilder()
-      .select("order_items.item_id", "order_items.item_price_id")
+      .select("order_items.item_id")
       .selectRaw("SUM(receipt_items.qty) as total_delivered")
       .from("receipt_items", "receipt_items")
       .join("receipts", "receipts", "receipts.receipt_id = receipt_items.receipt_id")
@@ -188,118 +246,103 @@ export async function getRequirementReport(
       receiptQuery.where("receipts.receipt_date", "<=", endDate);
     }
 
-    receiptQuery.groupBy("order_items.item_id", "order_items.item_price_id");
+    receiptQuery.groupBy("order_items.item_id");
 
+    const { sql: reqSql, params: reqParams } = requirementQuery.build();
+    const { sql: orderSql, params: orderParams } = orderQuery.build();
     const { sql: recSql, params: recParams } = receiptQuery.build();
-    const receiptAggregates = await db.select<RawReceiptAggregateRow[]>(recSql, recParams);
 
-    // 4. Build Lookups by `${item_id}:::${item_price_id}`
-    const orderMap = new Map<
-      string,
-      { itemId: string; itemPriceId: string; price: number; total_order_price: number; total_ordered: number }
-    >();
-    for (const row of orderAggregates) {
-      const key = `${row.item_id}:::${row.item_price_id}`;
-      orderMap.set(key, {
-        itemId: row.item_id,
-        itemPriceId: row.item_price_id,
-        price: row.price || 0,
-        total_order_price: row.total_order_price || 0,
-        total_ordered: row.total_ordered || 0,
-      });
-    }
+    // Execute all 3 queries in parallel
+    const [rawRequirements, rawOrders, rawReceipts] = await Promise.all([
+      db.select<RawRequirementRow[]>(reqSql, reqParams),
+      db.select<RawOrderRow[]>(orderSql, orderParams),
+      db.select<RawReceiptRow[]>(recSql, recParams),
+    ]);
 
     const receiptMap = new Map<string, number>();
-    for (const row of receiptAggregates) {
-      const key = `${row.item_id}:::${row.item_price_id}`;
-      receiptMap.set(key, row.total_delivered || 0);
+    for (const r of rawReceipts) {
+      receiptMap.set(r.item_id, r.total_delivered || 0);
     }
 
-    // 5. Populate Planned Items (Requirements)
-    const matchedKeys = new Set<string>();
-    const plannedList: RequirementReportItem[] = [];
+    // 4. Group strictly by item_id
+    const itemMap = new Map<string, RequirementReportItem>();
 
-    for (const req of requirements) {
-      const key = `${req.item_id}:::${req.item_price_id}`;
-      matchedKeys.add(key);
-      const orderInfo = orderMap.get(key);
-      const delivered = receiptMap.get(key) || 0;
+    // Process Requirements (BOM)
+    for (const req of rawRequirements) {
+      let item = itemMap.get(req.item_id);
+      if (!item) {
+        item = createDefaultReportItem(req, false);
+        itemMap.set(req.item_id, item);
+      }
 
-      plannedList.push({
-        ...req,
-        is_unplanned: false,
-        total_delivered: delivered,
-        total_order_price: orderInfo?.total_order_price || 0,
-        total_ordered: orderInfo?.total_ordered || 0,
+      const dpp = req.qty * req.price;
+      const taxAmount = req.has_tax === 1 ? dpp * 0.12 : 0;
+      const subtotal = dpp + taxAmount;
+
+      item.planned_variants.push({
+        dpp,
+        has_tax: req.has_tax,
+        item_price_id: req.item_price_id,
+        price: req.price,
+        qty: req.qty,
+        subtotal,
+        tax_amount: taxAmount,
+        vendor_name: null,
       });
+      item.planned_volume += req.qty;
+      item.planned_dpp += dpp;
+      item.planned_tax += taxAmount;
+      item.planned_budget += subtotal;
     }
 
-    // 6. Populate Unplanned Items (ordered in project, but not in Requirements)
-    const unplannedEntries: { key: string; itemId: string; priceId: string }[] = [];
-    for (const [key, orderInfo] of orderMap) {
-      if (!matchedKeys.has(key)) {
-        unplannedEntries.push({ itemId: orderInfo.itemId, key, priceId: orderInfo.itemPriceId });
+    // Process Orders (PO)
+    for (const ord of rawOrders) {
+      let item = itemMap.get(ord.item_id);
+      if (!item) {
+        item = createDefaultReportItem(ord, true);
+        itemMap.set(ord.item_id, item);
       }
+
+      const dpp = ord.qty * ord.price;
+      const taxAmount = ord.has_tax === 1 ? dpp * 0.12 : 0;
+      const subtotal = dpp + taxAmount;
+
+      item.order_variants.push({
+        dpp,
+        has_tax: ord.has_tax,
+        item_price_id: ord.item_price_id,
+        price: ord.price,
+        qty: ord.qty,
+        subtotal,
+        tax_amount: taxAmount,
+        vendor_name: ord.vendor_name,
+      });
+      item.total_ordered += ord.qty;
+      item.total_order_dpp += dpp;
+      item.total_order_tax += taxAmount;
+      item.total_order_price += subtotal;
     }
 
+    // 5. Populate delivery & sort
+    const plannedList: RequirementReportItem[] = [];
     const unplannedList: RequirementReportItem[] = [];
-    const uniqueUnplannedItemIds = Array.from(new Set(unplannedEntries.map((e) => e.itemId)));
 
-    if (uniqueUnplannedItemIds.length > 0) {
-      const unplannedQuery = new QueryBuilder()
-        .select(
-          "items.item_id",
-          "items.item_code",
-          "categories.prefix as category_prefix",
-          "categories.category_code",
-          "items.item_name",
-          "categories.category_name as category",
-          "units.unit_name as unit",
-        )
-        .from("items", "items")
-        .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
-        .leftJoin("units", "units", "items.unit_id = units.unit_id")
-        .where("items.item_id", "IN" as any, uniqueUnplannedItemIds);
-
-      const { sql: unplannedSql, params: unplannedParams } = unplannedQuery.build();
-      const unplannedItemRows = await db.select<RawUnplannedItemRow[]>(unplannedSql, unplannedParams);
-      const itemRowMap = new Map<string, RawUnplannedItemRow>();
-      for (const row of unplannedItemRows) {
-        itemRowMap.set(row.item_id, row);
+    for (const item of itemMap.values()) {
+      item.total_delivered = receiptMap.get(item.item_id) || 0;
+      if (!item.price && item.order_variants.length > 0) {
+        item.price = item.order_variants[0].price;
       }
 
-      for (const entry of unplannedEntries) {
-        const itemInfo = itemRowMap.get(entry.itemId);
-        const orderInfo = orderMap.get(entry.key);
-        const delivered = receiptMap.get(entry.key) || 0;
-
-        unplannedList.push({
-          category: itemInfo?.category ?? "LAINNYA",
-          category_code: itemInfo?.category_code,
-          category_prefix: itemInfo?.category_prefix,
-          is_unplanned: true,
-          item_code: itemInfo?.item_code ?? "",
-          item_id: entry.itemId,
-          item_name: itemInfo?.item_name ?? "Item Non-Rencana",
-          item_price_id: entry.priceId,
-          planned_budget: 0,
-          planned_volume: 0,
-          price: orderInfo?.price || 0,
-          total_delivered: delivered,
-          total_order_price: orderInfo?.total_order_price || 0,
-          total_ordered: orderInfo?.total_ordered || 0,
-          unit: itemInfo?.unit ?? "-",
-        });
+      if (item.is_unplanned) {
+        unplannedList.push(item);
+      } else {
+        plannedList.push(item);
       }
     }
 
-    // 7. Sort Planned Items by item_id (UUID)
-    plannedList.sort((a, b) => (a.item_id || "").localeCompare(b.item_id || ""));
+    plannedList.sort((a, b) => (a.item_name || "").localeCompare(b.item_name || ""));
+    unplannedList.sort((a, b) => (a.item_name || "").localeCompare(b.item_name || ""));
 
-    // 8. Sort Unplanned Items by item_id (UUID)
-    unplannedList.sort((a, b) => (a.item_id || "").localeCompare(b.item_id || ""));
-
-    // Return Planned items first, followed by Unplanned items!
     return [...plannedList, ...unplannedList];
   } catch (error) {
     if (error instanceof DbError) {
@@ -310,7 +353,7 @@ export async function getRequirementReport(
 }
 
 /**
- * Gets chronological log of Orders and Receipts for a specific item & item_price in a project.
+ * Gets chronological log of Orders and Receipts for a specific item in a project.
  */
 export async function getItemLog(projectId: string, itemId: string, itemPriceId?: string): Promise<ItemLogEntry[]> {
   try {
@@ -333,9 +376,6 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
       orderQuery.where("order_items.item_price_id", "=", itemPriceId);
     }
 
-    const { sql: orderSql, params: orderParams } = orderQuery.build();
-    const orderLogs = await db.select<ItemLogEntry[]>(orderSql, orderParams);
-
     // 2. Get Receipts
     const receiptQuery = new QueryBuilder()
       .select("receipts.receipt_date as date")
@@ -357,8 +397,14 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
       receiptQuery.where("order_items.item_price_id", "=", itemPriceId);
     }
 
+    const { sql: orderSql, params: orderParams } = orderQuery.build();
     const { sql: recSql, params: recParams } = receiptQuery.build();
-    const receiptLogs = await db.select<ItemLogEntry[]>(recSql, recParams);
+
+    // Execute queries in parallel
+    const [orderLogs, receiptLogs] = await Promise.all([
+      db.select<ItemLogEntry[]>(orderSql, orderParams),
+      db.select<ItemLogEntry[]>(recSql, recParams),
+    ]);
 
     // 3. Combine and sort by date
     const combinedLogs = [...orderLogs, ...receiptLogs];
@@ -475,5 +521,63 @@ export async function getProjectReceiptReport(
     return await db.select<ReceiptReportItem[]>(sql, params);
   } catch (error) {
     throw wrapDbError(error, "receipt_report");
+  }
+}
+
+/**
+ * Gets all BOM (requirement) items for a project formatted for export.
+ */
+export async function getProjectRequirementReport(projectId: string): Promise<RequirementReportDetailItem[]> {
+  try {
+    const db = await getDB();
+    const query = new QueryBuilder()
+      .select(
+        "items.item_code",
+        "categories.prefix as category_prefix",
+        "categories.category_code",
+        "items.item_name",
+        "categories.category_name",
+        "units.unit_name",
+        "requirements.qty",
+        "item_prices.price",
+        "requirements.has_tax",
+      )
+      .from("requirements", "requirements")
+      .join("items", "items", "items.item_id = requirements.item_id")
+      .join("item_prices", "item_prices", "item_prices.item_price_id = requirements.item_price_id")
+      .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
+      .leftJoin("units", "units", "units.unit_id = items.unit_id")
+      .where("requirements.project_id", "=", projectId)
+      .withSoftDelete("requirements")
+      .orderBy("categories.category_name", "ASC")
+      .orderBy("items.item_name", "ASC");
+
+    const { sql, params } = query.build();
+    const raw = await db.select<
+      {
+        item_code: string;
+        category_prefix?: string;
+        category_code?: string;
+        item_name: string;
+        category_name: string | null;
+        unit_name: string | null;
+        qty: number;
+        price: number;
+        has_tax: number;
+      }[]
+    >(sql, params);
+
+    return raw.map((r) => {
+      const dpp = (r.qty || 0) * (r.price || 0);
+      const taxAmount = r.has_tax === 1 ? dpp * 0.12 : 0;
+      return {
+        ...r,
+        dpp,
+        tax_amount: taxAmount,
+        total_price: dpp + taxAmount,
+      };
+    });
+  } catch (error) {
+    throw wrapDbError(error, "requirement_report");
   }
 }

@@ -19,11 +19,7 @@ function DashboardPage() {
 
   const [report, setReport] = useState<RequirementReportItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [logItem, setLogItem] = useState<{
-    itemId: string;
-    itemPriceId: string;
-    itemName: string;
-  } | null>(null);
+  const [selectedItem, setSelectedItem] = useState<RequirementReportItem | null>(null);
   const [startDate, setStartDate] = useState<ISODateString | undefined>(undefined);
   const [endDate, setEndDate] = useState<ISODateString | undefined>(undefined);
   const [exporting, setExporting] = useState(false);
@@ -78,7 +74,7 @@ function DashboardPage() {
           subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
           actions={
             selectedProjectId ? (
-              <HStack gap={3} align="end">
+              <HStack gap={4} align="end">
                 <ReportFilterForm
                   startDate={startDate}
                   endDate={endDate}
@@ -100,21 +96,15 @@ function DashboardPage() {
         />
         <ProjectRequired>
           <ReportSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
-          <ReportRequirementTable
-            report={report}
-            loading={loading}
-            onLogClick={(id, priceId, name) => setLogItem({ itemId: id, itemName: name, itemPriceId: priceId })}
-          />
+          <ReportRequirementTable report={report} loading={loading} onLogClick={(item) => setSelectedItem(item)} />
         </ProjectRequired>
       </VStack>
-      {logItem && selectedProjectId && (
+      {selectedItem && selectedProjectId && (
         <ReportItemLogDialog
           isOpen={true}
-          onClose={() => setLogItem(null)}
+          onClose={() => setSelectedItem(null)}
           projectId={selectedProjectId}
-          itemId={logItem.itemId}
-          itemPriceId={logItem.itemPriceId}
-          itemName={logItem.itemName}
+          item={selectedItem}
         />
       )}
     </Section>

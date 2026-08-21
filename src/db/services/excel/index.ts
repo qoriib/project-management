@@ -1,8 +1,14 @@
 import * as ExcelJS from "exceljs";
-import { getRequirementReport, getProjectOrderReport, getProjectReceiptReport } from "../report.service";
+import {
+  getRequirementReport,
+  getProjectRequirementReport,
+  getProjectOrderReport,
+  getProjectReceiptReport,
+} from "../report.service";
 import { projectRepo } from "@/db/repositories";
 import { createExecutiveSummarySheet } from "./summary-sheet";
 import { createFulfillmentSheet } from "./fulfillment-sheet";
+import { createRequirementSheet } from "./requirement-sheet";
 import { createOrderSheet } from "./order-sheet";
 import { createReceiptSheet } from "./receipt-sheet";
 
@@ -10,6 +16,7 @@ export * from "./types";
 export * from "./styles";
 export { createExecutiveSummarySheet } from "./summary-sheet";
 export { createFulfillmentSheet } from "./fulfillment-sheet";
+export { createRequirementSheet } from "./requirement-sheet";
 export { createOrderSheet } from "./order-sheet";
 export { createReceiptSheet } from "./receipt-sheet";
 
@@ -21,9 +28,10 @@ export async function generateRequirementReportExcel(
   startDate?: string,
   endDate?: string,
 ): Promise<Uint8Array> {
-  const [project, data, orderData, receiptData] = await Promise.all([
+  const [project, data, requirementData, orderData, receiptData] = await Promise.all([
     projectRepo.findById(projectId),
     getRequirementReport(projectId, startDate, endDate),
+    getProjectRequirementReport(projectId),
     getProjectOrderReport(projectId, startDate, endDate),
     getProjectReceiptReport(projectId, startDate, endDate),
   ]);
@@ -55,7 +63,7 @@ export async function generateRequirementReportExcel(
     receiptData,
   });
 
-  // 2. Sheet: Kebutuhan & Realisasi (BOM Fulfillment)
+  // 2. Sheet: Kebutuhan & Realisasi (BOM & PO Fulfillment)
   createFulfillmentSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
@@ -64,7 +72,16 @@ export async function generateRequirementReportExcel(
     data,
   });
 
-  // 3. Sheet: Rincian Pesanan (Purchase Orders)
+  // 3. Sheet: Rincian Kebutuhan (Bill of Materials / BOM)
+  createRequirementSheet(workbook, {
+    project_name: projectName,
+    company_name: companyName,
+    fiscal_year: fiscalYear,
+    period: periodStr,
+    requirementData,
+  });
+
+  // 4. Sheet: Rincian Pesanan (Purchase Orders / PO)
   createOrderSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
@@ -73,7 +90,7 @@ export async function generateRequirementReportExcel(
     orderData,
   });
 
-  // 4. Sheet: Rincian Penerimaan (Goods Receipts)
+  // 5. Sheet: Rincian Penerimaan (Goods Receipts / NP)
   createReceiptSheet(workbook, {
     project_name: projectName,
     company_name: companyName,

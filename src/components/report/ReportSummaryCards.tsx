@@ -14,7 +14,7 @@ export function ReportSummaryCards({ totalBudget, totalPO, loading }: DashboardS
         <Card padding={4}>
           <VStack gap={2}>
             <Text size="sm" color="secondary">
-              Nilai Rencana Requirement (Rp)
+              Nilai BOM (Rp)
             </Text>
             <Heading level={2}>{loading ? "…" : formatNumber(totalBudget)}</Heading>
           </VStack>
@@ -24,7 +24,7 @@ export function ReportSummaryCards({ totalBudget, totalPO, loading }: DashboardS
         <Card padding={4}>
           <VStack gap={2}>
             <Text size="sm" color="secondary">
-              Nilai Realisasi Order (Rp)
+              Nilai PO (Rp)
             </Text>
             <Heading level={2}>{loading ? "…" : formatNumber(totalPO)}</Heading>
           </VStack>

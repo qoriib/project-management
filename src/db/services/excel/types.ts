@@ -1,4 +1,9 @@
-import type { RequirementReportItem, OrderReportItem, ReceiptReportItem } from "../report.service";
+import type {
+  RequirementReportItem,
+  RequirementReportDetailItem,
+  OrderReportItem,
+  ReceiptReportItem,
+} from "../report.service";
 
 export interface ExcelProjectMeta {
   project_name: string;
@@ -15,6 +20,10 @@ export interface ExecutiveSummaryContext extends ExcelProjectMeta {
 
 export interface FulfillmentSheetContext extends ExcelProjectMeta {
   data: RequirementReportItem[];
+}
+
+export interface RequirementSheetContext extends ExcelProjectMeta {
+  requirementData: RequirementReportDetailItem[];
 }
 
 export interface OrderSheetContext extends ExcelProjectMeta {

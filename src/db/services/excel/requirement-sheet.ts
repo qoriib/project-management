@@ -1,22 +1,19 @@
 import type * as ExcelJS from "exceljs";
-import type { OrderSheetContext } from "./types";
+import type { RequirementSheetContext } from "./types";
 import { FORMAL_STYLE, BORDER_ALL_LIGHT, BORDER_ALL_THIN, BORDER_ACCOUNTING_TOTAL, createFormalKop } from "./styles";
 import { formatItemCode } from "@/utils/formatters";
 
 /**
- * Creates the Purchase Orders registry sheet (Rincian Pesanan).
+ * Creates the Requirements registry sheet (Rincian Kebutuhan / BOM).
  */
-export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheetContext): void {
-  const { project_name, company_name, fiscal_year, period, orderData } = context;
-  const ws = workbook.addWorksheet("RINCIAN PESANAN", {
+export function createRequirementSheet(workbook: ExcelJS.Workbook, context: RequirementSheetContext): void {
+  const { project_name, company_name, fiscal_year, period, requirementData } = context;
+  const ws = workbook.addWorksheet("RINCIAN KEBUTUHAN", {
     views: [{ state: "frozen", xSplit: 0, ySplit: 5, showGridLines: true }],
   });
 
   const COLUMNS = [
     { header: "NO", key: "no", width: 6 },
-    { header: "TANGGAL PESANAN", key: "order_date", width: 16 },
-    { header: "NOMOR ORDER (PO)", key: "order_code", width: 18 },
-    { header: "NAMA PENYEDIA / VENDOR", key: "vendor_name", width: 28 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
     { header: "URAIAN BARANG / MATERIAL", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category_name", width: 16 },
@@ -25,7 +22,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     { header: "HARGA SATUAN (RP)", key: "price", width: 18 },
     { header: "SUBTOTAL (RP)", key: "dpp", width: 18 },
     { header: "PPN 12% (RP)", key: "tax_amount", width: 16 },
-    { header: "TOTAL HARGA (RP)", key: "total_price", width: 20 },
+    { header: "TOTAL ANGGARAN (RP)", key: "total_price", width: 22 },
   ];
 
   // Set column keys and widths
@@ -34,12 +31,12 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   // Kop Formal
   createFormalKop(ws, {
     company_name,
-    endCol: "M",
-    endColIdx: 13,
+    endCol: "J",
+    endColIdx: 10,
     startCol: "A",
     startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
-    title: "BUKU REGISTER PEMESANAN BARANG (PURCHASE ORDERS)",
+    title: "BUKU REGISTER KEBUTUHAN MATERIAL (BILL OF MATERIALS / BOM)",
   });
 
   // Table Headers at Row 5
@@ -58,13 +55,13 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   let sumTax = 0;
   let sumTotalPrice = 0;
 
-  orderData.forEach((item, index) => {
+  requirementData.forEach((item, index) => {
     const rowIdx = index + 6;
     const row = ws.getRow(rowIdx);
 
     const code = formatItemCode(item) || item.item_code || "-";
-    const dpp = (item.qty || 0) * (item.price || 0);
-    const taxAmount = item.has_tax === 1 ? dpp * 0.12 : 0;
+    const dpp = item.dpp || (item.qty || 0) * (item.price || 0);
+    const taxAmount = item.tax_amount || (item.has_tax === 1 ? dpp * 0.12 : 0);
     const totalPrice = item.total_price || dpp + taxAmount;
 
     sumQty += item.qty || 0;
@@ -74,9 +71,6 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
 
     row.values = [
       index + 1,
-      item.order_date,
-      item.order_code,
-      item.vendor_name || "-",
       code,
       item.item_name,
       item.category_name || "-",
@@ -96,29 +90,29 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
         cell.fill = { fgColor: { argb: FORMAL_STYLE.zebraBg }, pattern: "solid", type: "pattern" };
       }
 
-      if (colNumber === 1 || colNumber === 2 || colNumber === 5 || colNumber === 7 || colNumber === 8) {
+      if (colNumber === 1 || colNumber === 2 || colNumber === 4 || colNumber === 5) {
         cell.alignment = { horizontal: "center", vertical: "middle" };
-      } else if (colNumber === 3 || colNumber === 4 || colNumber === 6) {
+      } else if (colNumber === 3) {
         cell.alignment = { horizontal: "left", vertical: "middle" };
       } else {
         cell.alignment = { horizontal: "right", vertical: "middle" };
       }
 
-      if (colNumber === 9) {
+      if (colNumber === 6) {
         cell.numFmt = "#,##0.00;(#,##0.00);-";
       }
-      if (colNumber === 10 || colNumber === 11 || colNumber === 12 || colNumber === 13) {
+      if (colNumber === 7 || colNumber === 8 || colNumber === 9 || colNumber === 10) {
         cell.numFmt = "#,##0;(#,##0);-";
       }
     });
   });
 
   // Total Row
-  const totalRowIdx = orderData.length + 6;
+  const totalRowIdx = requirementData.length + 6;
   const totalRow = ws.getRow(totalRowIdx);
-  totalRow.values = ["", "TOTAL PEMESANAN", "", "", "", "", "", "", sumQty, "", sumDpp, sumTax, sumTotalPrice];
+  totalRow.values = ["", "TOTAL KEBUTUHAN (BOM)", "", "", "", sumQty, "", sumDpp, sumTax, sumTotalPrice];
 
-  ws.mergeCells(`B${totalRowIdx}:H${totalRowIdx}`);
+  ws.mergeCells(`B${totalRowIdx}:E${totalRowIdx}`);
 
   totalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
     cell.font = { bold: true, color: { argb: FORMAL_STYLE.totalRowText }, name: FORMAL_STYLE.fontFamily, size: 9 };
@@ -127,14 +121,14 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
 
     if (colNumber === 2) {
       cell.alignment = { horizontal: "center", vertical: "middle" };
-    } else if (colNumber === 9) {
+    } else if (colNumber === 6) {
       cell.numFmt = "#,##0.00;(#,##0.00);-";
       cell.alignment = { horizontal: "right", vertical: "middle" };
-    } else if (colNumber === 11 || colNumber === 12 || colNumber === 13) {
+    } else if (colNumber === 8 || colNumber === 9 || colNumber === 10) {
       cell.numFmt = "#,##0;(#,##0);-";
       cell.alignment = { horizontal: "right", vertical: "middle" };
     }
   });
 
-  ws.autoFilter = "A5:M5";
+  ws.autoFilter = "A5:J5";
 }

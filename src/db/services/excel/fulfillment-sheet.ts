@@ -4,7 +4,7 @@ import { FORMAL_STYLE, BORDER_ALL_LIGHT, BORDER_ALL_THIN, BORDER_ACCOUNTING_TOTA
 import { formatItemCode } from "@/utils/formatters";
 
 /**
- * Creates the BOM fulfillment sheet (Kebutuhan & Realisasi).
+ * Creates the BOM & PO fulfillment sheet (Kebutuhan & Realisasi).
  */
 export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: FulfillmentSheetContext): void {
   const { project_name, company_name, fiscal_year, period, data } = context;
@@ -18,30 +18,39 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     { header: "URAIAN MATERIAL / BARANG", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category", width: 16 },
     { header: "SATUAN", key: "unit", width: 10 },
-    { header: "HARGA SATUAN (RP)", key: "price", width: 18 },
-    { header: "VOL. RENCANA", key: "planned_vol", width: 15 },
-    { header: "TOTAL ANGGARAN (RP)", key: "planned_budget", width: 22 },
-    { header: "VOL. DIPESAN", key: "total_ordered", width: 15 },
-    { header: "TOTAL REALISASI (RP)", key: "total_order_price", width: 22 },
-    { header: "DEVIASI BIAYA (RP)", key: "variance", width: 20 },
-    { header: "STATUS ANGGARAN", key: "status", width: 20 },
-    { header: "VOL. DITERIMA", key: "total_delivered", width: 15 },
-    { header: "SISA BELUM TERIMA", key: "remaining", width: 18 },
-    { header: "% REALISASI FISIK", key: "delivery_pct", width: 16 },
+    // BOM Section
+    { header: "HARGA BOM (RP)", key: "price_bom", width: 16 },
+    { header: "VOL. BOM", key: "planned_vol", width: 14 },
+    { header: "SUBTOTAL BOM (RP)", key: "planned_dpp", width: 18 },
+    { header: "PPN BOM (RP)", key: "planned_tax", width: 16 },
+    { header: "TOTAL BOM (RP)", key: "planned_budget", width: 20 },
+    // PO Section
+    { header: "HARGA PO (RP)", key: "price_po", width: 16 },
+    { header: "VOL. PO", key: "total_ordered", width: 14 },
+    { header: "SUBTOTAL PO (RP)", key: "total_order_dpp", width: 18 },
+    { header: "PPN PO (RP)", key: "total_order_tax", width: 16 },
+    { header: "TOTAL PO (RP)", key: "total_order_price", width: 20 },
+    // Variance & Status
+    { header: "DEVIASI BIAYA (RP)", key: "variance", width: 18 },
+    { header: "STATUS ANGGARAN", key: "status", width: 18 },
+    // Delivery Section
+    { header: "VOL. DITERIMA (NP)", key: "total_delivered", width: 16 },
+    { header: "SISA BELUM TERIMA", key: "remaining", width: 16 },
+    { header: "% REALISASI FISIK", key: "delivery_pct", width: 15 },
   ];
 
-  // Set column keys and widths without automatically placing headers at Row 1
+  // Set column keys and widths
   ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }));
 
   // Kop Formal
   createFormalKop(ws, {
     company_name,
-    endCol: "O",
-    endColIdx: 15,
+    endCol: "T",
+    endColIdx: 20,
     startCol: "A",
     startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
-    title: "REKAPITULASI KEBUTUHAN MATERIAL & REALISASI PENGADAAN (BOM)",
+    title: "REKAPITULASI KEBUTUHAN MATERIAL (BOM) & REALISASI PENGADAAN (PO)",
   });
 
   // Table Headers at Row 5
@@ -55,12 +64,18 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     cell.border = BORDER_ALL_THIN;
   });
 
-  // Data Rows
-  let sumPlannedBudget = 0;
-  let sumTotalOrderPrice = 0;
-  let sumVariance = 0;
+  // Data Aggregates
   let sumPlannedVol = 0;
+  let sumPlannedDpp = 0;
+  let sumPlannedTax = 0;
+  let sumPlannedBudget = 0;
+
   let sumOrderedVol = 0;
+  let sumOrderedDpp = 0;
+  let sumOrderedTax = 0;
+  let sumTotalOrderPrice = 0;
+
+  let sumVariance = 0;
   let sumDeliveredVol = 0;
 
   data.forEach((item, index) => {
@@ -68,13 +83,16 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     const row = ws.getRow(rowIdx);
 
     const code = formatItemCode(item) || item.item_code || "-";
+    const poPrice = item.total_ordered > 0 ? item.total_order_dpp / item.total_ordered : 0;
+    const plannedPrice = item.planned_volume > 0 ? item.planned_dpp / item.planned_volume : (item.price ?? 0);
+
     const variance = (item.total_order_price || 0) - (item.planned_budget || 0);
     const remaining = Math.max(0, (item.total_ordered || 0) - (item.total_delivered || 0));
     const deliveryPct = item.total_ordered > 0 ? item.total_delivered / item.total_ordered : 0;
 
     let status = "Sesuai";
     if (item.is_unplanned) {
-      status = "Item Non-Rencana";
+      status = "Item Non-BOM";
     } else if ((item.total_ordered || 0) === 0) {
       status = "Belum Dipesan";
     } else if (variance > 0) {
@@ -83,11 +101,17 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       status = "Efisiensi (Hemat)";
     }
 
-    sumPlannedBudget += item.planned_budget || 0;
-    sumTotalOrderPrice += item.total_order_price || 0;
-    sumVariance += variance;
     sumPlannedVol += item.planned_volume || 0;
+    sumPlannedDpp += item.planned_dpp || 0;
+    sumPlannedTax += item.planned_tax || 0;
+    sumPlannedBudget += item.planned_budget || 0;
+
     sumOrderedVol += item.total_ordered || 0;
+    sumOrderedDpp += item.total_order_dpp || 0;
+    sumOrderedTax += item.total_order_tax || 0;
+    sumTotalOrderPrice += item.total_order_price || 0;
+
+    sumVariance += variance;
     sumDeliveredVol += item.total_delivered || 0;
 
     const isEven = index % 2 === 1;
@@ -98,13 +122,22 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       item.item_name,
       item.category || "-",
       item.unit || "-",
-      item.price || 0,
+      // BOM
+      plannedPrice,
       item.planned_volume || 0,
+      item.planned_dpp || 0,
+      item.planned_tax || 0,
       item.planned_budget || 0,
+      // PO
+      poPrice,
       item.total_ordered || 0,
+      item.total_order_dpp || 0,
+      item.total_order_tax || 0,
       item.total_order_price || 0,
+      // Variance & Status
       variance,
       status,
+      // Delivery
       item.total_delivered || 0,
       remaining,
       deliveryPct,
@@ -118,8 +151,8 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
         cell.fill = { fgColor: { argb: FORMAL_STYLE.zebraBg }, pattern: "solid", type: "pattern" };
       }
 
-      // Column Alignment & Formats
-      if (colNumber === 1 || colNumber === 2 || colNumber === 4 || colNumber === 5 || colNumber === 12) {
+      // Column Alignment
+      if (colNumber === 1 || colNumber === 2 || colNumber === 4 || colNumber === 5 || colNumber === 17) {
         cell.alignment = { horizontal: "center", vertical: "middle" };
       } else if (colNumber === 3) {
         cell.alignment = { horizontal: "left", vertical: "middle" };
@@ -127,21 +160,33 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
         cell.alignment = { horizontal: "right", vertical: "middle" };
       }
 
-      // Currency format
-      if (colNumber === 6 || colNumber === 8 || colNumber === 10 || colNumber === 11) {
+      // Currency format (Prices, DPP, Tax, Totals, Variance)
+      if (
+        colNumber === 6 ||
+        colNumber === 8 ||
+        colNumber === 9 ||
+        colNumber === 10 ||
+        colNumber === 11 ||
+        colNumber === 13 ||
+        colNumber === 14 ||
+        colNumber === 15 ||
+        colNumber === 16
+      ) {
         cell.numFmt = "#,##0;(#,##0);-";
       }
-      // Quantity format
-      if (colNumber === 7 || colNumber === 9 || colNumber === 13 || colNumber === 14) {
+
+      // Quantity format (Volumes)
+      if (colNumber === 7 || colNumber === 12 || colNumber === 18 || colNumber === 19) {
         cell.numFmt = "#,##0.00;(#,##0.00);-";
       }
+
       // Percentage format
-      if (colNumber === 15) {
+      if (colNumber === 20) {
         cell.numFmt = "0.0%";
       }
 
-      // Neutral grayscale styling for status
-      if (colNumber === 12) {
+      // Status column font
+      if (colNumber === 17) {
         cell.font = {
           bold: true,
           color: { argb: FORMAL_STYLE.statusNeutralText },
@@ -166,8 +211,13 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     "",
     "",
     sumPlannedVol,
+    sumPlannedDpp,
+    sumPlannedTax,
     sumPlannedBudget,
+    "",
     sumOrderedVol,
+    sumOrderedDpp,
+    sumOrderedTax,
     sumTotalOrderPrice,
     sumVariance,
     sumVariance > 0 ? "Defisit Anggaran" : sumVariance < 0 ? "Surplus Anggaran" : "Seimbang",
@@ -176,7 +226,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     totalFulfillmentPct,
   ];
 
-  ws.mergeCells(`B${totalRowIdx}:F${totalRowIdx}`);
+  ws.mergeCells(`B${totalRowIdx}:E${totalRowIdx}`);
 
   totalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
     cell.font = { bold: true, color: { argb: FORMAL_STYLE.totalRowText }, name: FORMAL_STYLE.fontFamily, size: 9 };
@@ -185,20 +235,28 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
 
     if (colNumber === 2) {
       cell.alignment = { horizontal: "center", vertical: "middle" };
-    } else if (colNumber === 8 || colNumber === 10 || colNumber === 11) {
+    } else if (
+      colNumber === 8 ||
+      colNumber === 9 ||
+      colNumber === 10 ||
+      colNumber === 13 ||
+      colNumber === 14 ||
+      colNumber === 15 ||
+      colNumber === 16
+    ) {
       cell.numFmt = "#,##0;(#,##0);-";
       cell.alignment = { horizontal: "right", vertical: "middle" };
-    } else if (colNumber === 7 || colNumber === 9 || colNumber === 13 || colNumber === 14) {
+    } else if (colNumber === 7 || colNumber === 12 || colNumber === 18 || colNumber === 19) {
       cell.numFmt = "#,##0.00;(#,##0.00);-";
       cell.alignment = { horizontal: "right", vertical: "middle" };
-    } else if (colNumber === 15) {
+    } else if (colNumber === 20) {
       cell.numFmt = "0.0%";
       cell.alignment = { horizontal: "right", vertical: "middle" };
-    } else if (colNumber === 12) {
+    } else if (colNumber === 17) {
       cell.alignment = { horizontal: "center", vertical: "middle" };
     }
   });
 
   // Enable AutoFilter on header row
-  ws.autoFilter = "A5:O5";
+  ws.autoFilter = "A5:T5";
 }

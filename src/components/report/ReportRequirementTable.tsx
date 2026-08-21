@@ -11,7 +11,7 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 interface ReportRequirementTableProps {
   report: RequirementReportItem[];
   loading: boolean;
-  onLogClick: (itemId: string, itemPriceId: string, itemName: string) => void;
+  onLogClick: (item: RequirementReportItem) => void;
 }
 
 interface EnrichedReportItem extends RequirementReportItem, Record<string, unknown> {
@@ -25,7 +25,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
     () =>
       report.map((r) => ({
         ...r,
-        unique_id: `${r.item_id}_${r.item_price_id}`,
+        unique_id: r.item_id,
       })),
     [report],
   );
@@ -82,37 +82,31 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       },
     },
     {
-      header: "Satuan",
-      key: "unit",
-      width: pixel(80),
-      renderCell: (r) => r.unit || "-",
-    },
-    {
       align: "end",
-      header: "Harga Satuan (Rp)",
+      header: "Harga (Rp)",
       key: "price",
-      width: pixel(240),
+      width: pixel(180),
       renderCell: (r) => {
-        const poPrice = r.total_ordered > 0 ? r.total_order_price / r.total_ordered : 0;
-        const plannedPrice = r.price ?? 0;
-        const isOver = !r.is_unplanned && poPrice > plannedPrice;
+        const poPrice = r.total_ordered > 0 ? r.total_order_dpp / r.total_ordered : 0;
+        const plannedPrice = r.planned_volume > 0 ? r.planned_dpp / r.planned_volume : (r.price ?? 0);
+        const isOver = !r.is_unplanned && poPrice > plannedPrice && r.total_ordered > 0;
         const isUnder = !r.is_unplanned && poPrice > 0 && poPrice < plannedPrice;
         const color = isOver ? "var(--color-error)" : isUnder ? "var(--color-success)" : undefined;
 
         return (
           <VStack gap={0.5} align="end">
             <HStack gap={1} justify="end">
-              <Text weight="medium">Realisasi:</Text>
+              <Text weight="medium">PO:</Text>
               <Text type="code" style={color ? { color } : undefined}>
-                {formatNumber(poPrice)}
+                {r.total_ordered > 0 ? formatNumber(poPrice) : "-"}
               </Text>
             </HStack>
             <HStack gap={1} justify="end">
               <Text size="sm" color="secondary">
-                Rencana:
+                BOM:
               </Text>
               <Text type="code" size="sm" color="secondary">
-                {r.is_unplanned ? "-" : formatNumber(r.price ?? 0)}
+                {r.is_unplanned ? "-" : formatNumber(plannedPrice)}
               </Text>
             </HStack>
           </VStack>
@@ -120,19 +114,25 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       },
     },
     {
+      header: "Satuan",
+      key: "unit",
+      width: pixel(75),
+      renderCell: (r) => r.unit || "-",
+    },
+    {
       align: "end",
       header: "Volume",
       key: "qty",
-      width: pixel(120),
+      width: pixel(140),
       renderCell: (r) => (
         <VStack gap={0.5} align="end">
           <HStack gap={1} justify="end">
-            <Text weight="medium">Realisasi:</Text>
+            <Text weight="medium">PO:</Text>
             <Text type="code">{formatNumber(r.total_ordered)}</Text>
           </HStack>
           <HStack gap={1} justify="end">
             <Text size="sm" color="secondary">
-              Rencana:
+              BOM:
             </Text>
             <Text type="code" size="sm" color="secondary">
               {r.is_unplanned ? "-" : formatNumber(r.planned_volume)}
@@ -145,28 +145,72 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       align: "end",
       header: "Subtotal (Rp)",
       key: "subtotal",
-      width: pixel(240),
+      width: pixel(180),
+      renderCell: (r) => (
+        <VStack gap={0.5} align="end">
+          <HStack gap={1} justify="end">
+            <Text weight="medium">PO:</Text>
+            <Text type="code">{formatNumber(r.total_order_dpp)}</Text>
+          </HStack>
+          <HStack gap={1} justify="end">
+            <Text size="sm" color="secondary">
+              BOM:
+            </Text>
+            <Text type="code" size="sm" color="secondary">
+              {r.is_unplanned ? "-" : formatNumber(r.planned_dpp)}
+            </Text>
+          </HStack>
+        </VStack>
+      ),
+    },
+    {
+      align: "end",
+      header: "PPn (12%)",
+      key: "has_tax",
+      width: pixel(150),
+      renderCell: (r) => (
+        <VStack gap={0.5} align="end">
+          <HStack gap={1} justify="end">
+            <Text weight="medium">PO:</Text>
+            <Text type="code">{formatNumber(r.total_order_tax)}</Text>
+          </HStack>
+          <HStack gap={1} justify="end">
+            <Text size="sm" color="secondary">
+              BOM:
+            </Text>
+            <Text type="code" size="sm" color="secondary">
+              {r.is_unplanned ? "-" : formatNumber(r.planned_tax)}
+            </Text>
+          </HStack>
+        </VStack>
+      ),
+    },
+    {
+      align: "end",
+      header: "Total (Rp)",
+      key: "total",
+      width: pixel(180),
       renderCell: (r) => {
         const poTotal = r.total_order_price ?? 0;
         const plannedTotal = r.planned_budget ?? 0;
-        const isOver = !r.is_unplanned && poTotal > plannedTotal;
+        const isOver = !r.is_unplanned && poTotal > plannedTotal && r.total_ordered > 0;
         const isUnder = !r.is_unplanned && poTotal > 0 && poTotal < plannedTotal;
-        const color = isOver ? "var(--color-error, #d32f2f)" : isUnder ? "var(--color-success, #2e7d32)" : undefined;
+        const color = isOver ? "var(--color-error)" : isUnder ? "var(--color-success)" : undefined;
 
         return (
           <VStack gap={0.5} align="end">
             <HStack gap={1} justify="end">
-              <Text weight="medium">Realisasi:</Text>
+              <Text weight="medium">PO:</Text>
               <Text type="code" style={color ? { color } : undefined}>
                 {formatNumber(poTotal)}
               </Text>
             </HStack>
             <HStack gap={1} justify="end">
               <Text size="sm" color="secondary">
-                Rencana:
+                BOM:
               </Text>
               <Text type="code" size="sm" color="secondary">
-                {r.is_unplanned ? "-" : formatNumber(r.planned_budget ?? 0)}
+                {r.is_unplanned ? "-" : formatNumber(plannedTotal)}
               </Text>
             </HStack>
           </VStack>
@@ -239,13 +283,13 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
     {
       header: "Aksi",
       key: "actions",
-      width: pixel(80),
+      width: pixel(70),
       renderCell: (r) => (
         <IconButton
           icon={<Eye size={16} />}
           variant="secondary"
-          onClick={() => onLogClick(r.item_id, r.item_price_id, r.item_name)}
-          label="Lihat Log"
+          onClick={() => onLogClick(r)}
+          label="Lihat Rincian & Log"
         />
       ),
     },
