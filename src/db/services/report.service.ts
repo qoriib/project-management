@@ -93,8 +93,8 @@ interface RawUnplannedItemRow {
 
 /**
  * Generates the full Requirement fulfillment report for a project.
- * Items in Requirements and Orders are grouped by (item_id, item_price_id).
- * If the same item has multiple prices in PO or BOM, each appears as a separate row.
+ * Items in Requirements and Orders are grouped and matched strictly by (item_id, item_price_id).
+ * If the same item has multiple prices in PO or BOM, each variation appears as a separate row.
  */
 export async function getRequirementReport(
   projectId: string,
@@ -155,7 +155,7 @@ export async function getRequirementReport(
       .join("orders", "orders", "orders.order_id = order_items.order_id")
       .join("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
       .where("orders.project_id", "=", projectId)
-      .where("orders.deleted_at", "IS NULL");
+      .withSoftDelete("orders");
 
     if (startDate) {
       orderQuery.where("orders.order_date", ">=", startDate);
@@ -178,7 +178,8 @@ export async function getRequirementReport(
       .join("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
       .where("orders.project_id", "=", projectId)
-      .where("receipts.deleted_at", "IS NULL");
+      .withSoftDelete("receipts")
+      .withSoftDelete("orders");
 
     if (startDate) {
       receiptQuery.where("receipts.receipt_date", ">=", startDate);
@@ -192,11 +193,16 @@ export async function getRequirementReport(
     const { sql: recSql, params: recParams } = receiptQuery.build();
     const receiptAggregates = await db.select<RawReceiptAggregateRow[]>(recSql, recParams);
 
-    // 4. Build Lookups by `${item_id}_${item_price_id}`
-    const orderMap = new Map<string, { total_ordered: number; total_order_price: number; price: number }>();
+    // 4. Build Lookups by `${item_id}:::${item_price_id}`
+    const orderMap = new Map<
+      string,
+      { itemId: string; itemPriceId: string; price: number; total_order_price: number; total_ordered: number }
+    >();
     for (const row of orderAggregates) {
-      const key = `${row.item_id}_${row.item_price_id}`;
+      const key = `${row.item_id}:::${row.item_price_id}`;
       orderMap.set(key, {
+        itemId: row.item_id,
+        itemPriceId: row.item_price_id,
         price: row.price || 0,
         total_order_price: row.total_order_price || 0,
         total_ordered: row.total_ordered || 0,
@@ -205,7 +211,7 @@ export async function getRequirementReport(
 
     const receiptMap = new Map<string, number>();
     for (const row of receiptAggregates) {
-      const key = `${row.item_id}_${row.item_price_id}`;
+      const key = `${row.item_id}:::${row.item_price_id}`;
       receiptMap.set(key, row.total_delivered || 0);
     }
 
@@ -214,7 +220,7 @@ export async function getRequirementReport(
     const plannedList: RequirementReportItem[] = [];
 
     for (const req of requirements) {
-      const key = `${req.item_id}_${req.item_price_id}`;
+      const key = `${req.item_id}:::${req.item_price_id}`;
       matchedKeys.add(key);
       const orderInfo = orderMap.get(key);
       const delivered = receiptMap.get(key) || 0;
@@ -230,10 +236,9 @@ export async function getRequirementReport(
 
     // 6. Populate Unplanned Items (ordered in project, but not in Requirements)
     const unplannedEntries: { key: string; itemId: string; priceId: string }[] = [];
-    for (const [key] of orderMap) {
+    for (const [key, orderInfo] of orderMap) {
       if (!matchedKeys.has(key)) {
-        const [itemId, priceId] = key.split("_");
-        unplannedEntries.push({ itemId, key, priceId });
+        unplannedEntries.push({ itemId: orderInfo.itemId, key, priceId: orderInfo.itemPriceId });
       }
     }
 
@@ -305,7 +310,7 @@ export async function getRequirementReport(
 }
 
 /**
- * Gets chronological log of Orders and Receipts for a specific item in a project.
+ * Gets chronological log of Orders and Receipts for a specific item & item_price in a project.
  */
 export async function getItemLog(projectId: string, itemId: string, itemPriceId?: string): Promise<ItemLogEntry[]> {
   try {
@@ -345,7 +350,8 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
       .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
       .where("orders.project_id", "=", projectId)
       .where("order_items.item_id", "=", itemId)
-      .withSoftDelete("receipts");
+      .withSoftDelete("receipts")
+      .withSoftDelete("orders");
 
     if (itemPriceId && itemPriceId.trim() !== "") {
       receiptQuery.where("order_items.item_price_id", "=", itemPriceId);

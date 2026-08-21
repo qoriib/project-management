@@ -138,17 +138,17 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                 />
               </HStack>
 
-              {/* Volume / Qty dengan InputGroup Satuan */}
+              {/* Volume dengan InputGroup Satuan */}
               <form.Field
                 name="qty"
                 children={(field) => (
                   <InputGroup
-                    label="Volume / Qty"
+                    label="Volume"
                     isRequired
                     status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   >
                     <TextInput
-                      label="Volume / Qty"
+                      label="Volume"
                       isLabelHidden
                       value={String(field.state.value ?? "")}
                       onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}

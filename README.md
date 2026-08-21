@@ -10,7 +10,7 @@ Aplikasi desktop cross-platform untuk manajemen logistik proyek, pengadaan mater
 - **Master Data**:
   - Kategori Barang (otomatisasi kode & prefix 1 karakter).
   - Satuan Material.
-  - Item / Material Proyek dengan relasi multi-harga (_price variants_).
+  - Item Proyek dengan relasi multi-harga (_price variants_).
   - Vendor & Rekanan Supplier.
   - Proyek & Tahun Fiskal beserta status approval kebutuhan.
 - **Transaksi Logistik**:

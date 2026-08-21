@@ -86,14 +86,14 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
           <VStack gap={4}>
             <Heading level={3}>{initialData ? "Edit Item Order" : "Tambah Item Order"}</Heading>
             <FormLayout>
-              {/* Item / Material */}
+              {/* Item */}
               <HStack gap={2} align="end" width="100%">
                 <VStack style={{ flex: 1 }}>
                   <form.Field
                     name="item_id"
                     children={(field) => (
                       <Selector
-                        label="Item / Material"
+                        label="Item"
                         description={selectedItemCode ? `Kode: ${selectedItemCode}` : undefined}
                         options={itemOptions}
                         value={field.state.value}
@@ -147,14 +147,14 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                 />
               </HStack>
 
-              {/* Vendor Supplier */}
+              {/* Vendor */}
               <HStack gap={2} align="end" width="100%">
                 <VStack style={{ flex: 1 }}>
                   <form.Field
                     name="vendor_id"
                     children={(field) => (
                       <Selector
-                        label="Vendor Supplier"
+                        label="Vendor"
                         options={vendorOptions}
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val as string)}
@@ -175,17 +175,17 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                 />
               </HStack>
 
-              {/* Volume / Qty dengan InputGroup Satuan */}
+              {/* Volume dengan InputGroup Satuan */}
               <form.Field
                 name="qty"
                 children={(field) => (
                   <InputGroup
-                    label="Volume / Qty"
+                    label="Volume"
                     isRequired
                     status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   >
                     <TextInput
-                      label="Volume / Qty"
+                      label="Volume"
                       isLabelHidden
                       value={String(field.state.value ?? "")}
                       onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
@@ -236,18 +236,18 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                     <VStack gap={1.5}>
                       <HStack justify="between">
                         <Text size="sm" color="secondary">
-                          Subtotal:
+                          Subtotal
                         </Text>
                         <Text type="code">Rp {formatNumber(subtotal)}</Text>
                       </HStack>
                       <HStack justify="between">
                         <Text size="sm" color="secondary">
-                          PPn (12%):
+                          PPn (12%)
                         </Text>
                         <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount)}` : "-"}</Text>
                       </HStack>
                       <HStack justify="between" style={{ borderTop: "1px solid var(--color-border)", paddingTop: 4 }}>
-                        <Text weight="bold">Total Biaya:</Text>
+                        <Text weight="bold">Total</Text>
                         <Text type="code" weight="bold" color="primary">
                           Rp {formatNumber(total)}
                         </Text>

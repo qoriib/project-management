@@ -44,11 +44,11 @@ export function useOrderItemTableState({ items, onAdd }: UseOrderItemTableStateP
                       onClick={onAdd}
                     />
                   </div>
-                  <HStack gap={2} align="center">
-                    <Text weight="bold" size="sm" color="secondary">
-                      Total Biaya:
+                  <HStack gap={2} align="end">
+                    <Text weight="medium" size="base" color="secondary">
+                      Total:
                     </Text>
-                    <Text type="code" weight="bold" size="base" color="primary">
+                    <Text type="code" weight="bold" size="lg" color="primary">
                       Rp {formatNumber(grandTotal)}
                     </Text>
                   </HStack>
