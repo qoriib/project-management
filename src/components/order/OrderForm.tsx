@@ -94,7 +94,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   useEffect(() => {
     if (order) {
       form.reset({
-        order_code: order.order_code,
+        order_code: order.order_code ?? "",
         order_date: order.order_date,
       });
     } else {

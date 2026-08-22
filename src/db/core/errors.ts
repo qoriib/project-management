@@ -3,8 +3,6 @@
  * Provides semantic error types that consumers can catch and handle gracefully.
  */
 
-// ── Base Database Error ──────────────────────────────────────────────────────
-
 export class DbError extends Error {
   public readonly code: string;
 
@@ -14,8 +12,6 @@ export class DbError extends Error {
     this.code = code;
   }
 }
-
-// ── Specific Error Types ─────────────────────────────────────────────────────
 
 /** Thrown when a record is not found by ID or unique constraint. */
 export class NotFoundError extends DbError {
@@ -67,8 +63,6 @@ export class ValidationError extends DbError {
     this.field = field;
   }
 }
-
-// ── Error Translator ─────────────────────────────────────────────────────────
 
 /**
  * Wraps a raw database error into a semantic DbError subtype.

@@ -1,6 +1,14 @@
 import type * as ExcelJS from "exceljs";
 import type { FulfillmentSheetContext } from "./types";
-import { FORMAL_STYLE, BORDER_ALL_LIGHT, BORDER_ALL_THIN, BORDER_ACCOUNTING_TOTAL, createFormalKop } from "./styles";
+import {
+  BORDER_ACCOUNTING_TOTAL,
+  BORDER_ALL_LIGHT,
+  createFormalKop,
+  EXCEL_NUM_FMT,
+  FORMAL_STYLE,
+  renderTableHeaderRow,
+  type SheetColumnConfig,
+} from "./styles";
 import { formatItemCode } from "@/utils/formatters";
 
 /**
@@ -12,10 +20,10 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     views: [{ state: "frozen", xSplit: 0, ySplit: 5, showGridLines: true }],
   });
 
-  const COLUMNS = [
+  const COLUMNS: SheetColumnConfig[] = [
     { header: "NO", key: "no", width: 6 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN Item / BARANG", key: "item_name", width: 36 },
+    { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category", width: 16 },
     { header: "SATUAN", key: "unit", width: 10 },
     // BOM Section
@@ -39,10 +47,8 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     { header: "% REALISASI FISIK", key: "delivery_pct", width: 15 },
   ];
 
-  // Set column keys and widths
   ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }));
 
-  // Kop Formal
   createFormalKop(ws, {
     company_name,
     endCol: "T",
@@ -50,71 +56,66 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     startCol: "A",
     startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
-    title: "REKAPITULASI KEBUTUHAN Item (BOM) & REALISASI PENGADAAN (PO)",
+    title: "REKAPITULASI KEBUTUHAN ITEM (BOM) & REALISASI PENGADAAN (PO)",
   });
 
-  // Table Headers at Row 5
-  const headerRow = ws.getRow(5);
-  COLUMNS.forEach((col, colIdx) => {
-    const cell = headerRow.getCell(colIdx + 1);
-    cell.value = col.header;
-    cell.font = { bold: true, color: { argb: FORMAL_STYLE.tableHeaderText }, name: FORMAL_STYLE.fontFamily, size: 9 };
-    cell.fill = { fgColor: { argb: FORMAL_STYLE.tableHeaderBg }, pattern: "solid", type: "pattern" };
-    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-    cell.border = BORDER_ALL_THIN;
-  });
+  renderTableHeaderRow(ws, COLUMNS, 5);
 
-  // Data Aggregates
   let sumPlannedVol = 0;
   let sumPlannedDpp = 0;
   let sumPlannedTax = 0;
   let sumPlannedBudget = 0;
-
   let sumOrderedVol = 0;
-  let sumOrderedDpp = 0;
-  let sumOrderedTax = 0;
-  let sumTotalOrderPrice = 0;
-
+  let sumOrderDpp = 0;
+  let sumOrderTax = 0;
+  let sumOrderPrice = 0;
   let sumVariance = 0;
-  let sumDeliveredVol = 0;
+  let sumDelivered = 0;
 
   data.forEach((item, index) => {
     const rowIdx = index + 6;
     const row = ws.getRow(rowIdx);
 
-    const code = formatItemCode(item) || item.item_code || "-";
-    const poPrice = item.total_ordered > 0 ? item.total_order_dpp / item.total_ordered : 0;
-    const plannedPrice = item.planned_volume > 0 ? item.planned_dpp / item.planned_volume : (item.price ?? 0);
+    const priceBom = item.planned_variants.length > 0 ? item.planned_variants[0].price : item.price || 0;
+    const pricePo = item.order_variants.length > 0 ? item.order_variants[0].price : 0;
+    const plannedVol = item.planned_volume || 0;
+    const plannedDpp = item.planned_dpp || 0;
+    const plannedTax = item.planned_tax || 0;
+    const plannedBudget = item.planned_budget || 0;
 
-    const variance = (item.total_order_price || 0) - (item.planned_budget || 0);
-    const remaining = Math.max(0, (item.total_ordered || 0) - (item.total_delivered || 0));
-    const deliveryPct = item.total_ordered > 0 ? item.total_delivered / item.total_ordered : 0;
+    const orderedVol = item.total_ordered || 0;
+    const orderDpp = item.total_order_dpp || 0;
+    const orderTax = item.total_order_tax || 0;
+    const orderPrice = item.total_order_price || 0;
 
-    let status = "Sesuai";
+    const variance = plannedBudget > 0 ? plannedBudget - orderPrice : -orderPrice;
+    let statusText = "SESUAI";
     if (item.is_unplanned) {
-      status = "Item Non-BOM";
-    } else if ((item.total_ordered || 0) === 0) {
-      status = "Belum Dipesan";
-    } else if (variance > 0) {
-      status = "Melebihi Anggaran";
+      statusText = "NON-RENCANA";
     } else if (variance < 0) {
-      status = "Efisiensi (Hemat)";
+      statusText = "OVER BUDGET";
+    } else if (variance > 0 && orderPrice > 0) {
+      statusText = "EFISIENSI";
+    } else if (orderPrice === 0) {
+      statusText = "BELUM PESAN";
     }
 
-    sumPlannedVol += item.planned_volume || 0;
-    sumPlannedDpp += item.planned_dpp || 0;
-    sumPlannedTax += item.planned_tax || 0;
-    sumPlannedBudget += item.planned_budget || 0;
+    const delivered = item.total_delivered || 0;
+    const remaining = orderedVol - delivered;
+    const deliveryPct = orderedVol > 0 ? delivered / orderedVol : 0;
 
-    sumOrderedVol += item.total_ordered || 0;
-    sumOrderedDpp += item.total_order_dpp || 0;
-    sumOrderedTax += item.total_order_tax || 0;
-    sumTotalOrderPrice += item.total_order_price || 0;
-
+    sumPlannedVol += plannedVol;
+    sumPlannedDpp += plannedDpp;
+    sumPlannedTax += plannedTax;
+    sumPlannedBudget += plannedBudget;
+    sumOrderedVol += orderedVol;
+    sumOrderDpp += orderDpp;
+    sumOrderTax += orderTax;
+    sumOrderPrice += orderPrice;
     sumVariance += variance;
-    sumDeliveredVol += item.total_delivered || 0;
+    sumDelivered += delivered;
 
-    const isEven = index % 2 === 1;
+    const code = formatItemCode(item) || item.item_code || "-";
 
     row.values = [
       index + 1,
@@ -122,36 +123,33 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       item.item_name,
       item.category || "-",
       item.unit || "-",
-      // BOM
-      plannedPrice,
-      item.planned_volume || 0,
-      item.planned_dpp || 0,
-      item.planned_tax || 0,
-      item.planned_budget || 0,
-      // PO
-      poPrice,
-      item.total_ordered || 0,
-      item.total_order_dpp || 0,
-      item.total_order_tax || 0,
-      item.total_order_price || 0,
-      // Variance & Status
-      variance,
-      status,
-      // Delivery
-      item.total_delivered || 0,
-      remaining,
-      deliveryPct,
+      priceBom > 0 ? priceBom : "-",
+      plannedVol > 0 ? plannedVol : "-",
+      plannedDpp > 0 ? plannedDpp : "-",
+      plannedTax > 0 ? plannedTax : "-",
+      plannedBudget > 0 ? plannedBudget : "-",
+      pricePo > 0 ? pricePo : "-",
+      orderedVol > 0 ? orderedVol : "-",
+      orderDpp > 0 ? orderDpp : "-",
+      orderTax > 0 ? orderTax : "-",
+      orderPrice > 0 ? orderPrice : "-",
+      variance !== 0 ? variance : "-",
+      statusText,
+      delivered > 0 ? delivered : "-",
+      remaining > 0 ? remaining : "-",
+      deliveryPct > 0 ? deliveryPct : "-",
     ];
 
+    const isEven = index % 2 === 1;
     row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
       cell.border = BORDER_ALL_LIGHT;
       cell.font = { name: FORMAL_STYLE.fontFamily, size: 9 };
-
-      if (isEven) {
+      if (item.is_unplanned) {
+        cell.fill = { fgColor: { argb: FORMAL_STYLE.unplannedRowBg }, pattern: "solid", type: "pattern" };
+      } else if (isEven) {
         cell.fill = { fgColor: { argb: FORMAL_STYLE.zebraBg }, pattern: "solid", type: "pattern" };
       }
 
-      // Column Alignment
       if (colNumber === 1 || colNumber === 2 || colNumber === 4 || colNumber === 5 || colNumber === 17) {
         cell.alignment = { horizontal: "center", vertical: "middle" };
       } else if (colNumber === 3) {
@@ -160,7 +158,6 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
         cell.alignment = { horizontal: "right", vertical: "middle" };
       }
 
-      // Currency format (Prices, DPP, Tax, Totals, Variance)
       if (
         colNumber === 6 ||
         colNumber === 8 ||
@@ -172,37 +169,24 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
         colNumber === 15 ||
         colNumber === 16
       ) {
-        cell.numFmt = "#,##0;(#,##0);-";
+        if (typeof cell.value === "number") {
+          cell.numFmt = EXCEL_NUM_FMT.currency;
+        }
       }
-
-      // Quantity format (Volumes)
       if (colNumber === 7 || colNumber === 12 || colNumber === 18 || colNumber === 19) {
-        cell.numFmt = "#,##0.00;(#,##0.00);-";
+        if (typeof cell.value === "number") {
+          cell.numFmt = EXCEL_NUM_FMT.quantity;
+        }
       }
-
-      // Percentage format
-      if (colNumber === 20) {
-        cell.numFmt = "0.0%";
-      }
-
-      // Status column font
-      if (colNumber === 17) {
-        cell.font = {
-          bold: true,
-          color: { argb: FORMAL_STYLE.statusNeutralText },
-          name: FORMAL_STYLE.fontFamily,
-          size: 9,
-        };
+      if (colNumber === 20 && typeof cell.value === "number") {
+        cell.numFmt = EXCEL_NUM_FMT.percentage;
       }
     });
   });
 
-  // Total Summary Row
+  // Total Row
   const totalRowIdx = data.length + 6;
   const totalRow = ws.getRow(totalRowIdx);
-  const totalFulfillmentPct = sumOrderedVol > 0 ? sumDeliveredVol / sumOrderedVol : 0;
-  const totalRemaining = Math.max(0, sumOrderedVol - sumDeliveredVol);
-
   totalRow.values = [
     "",
     "TOTAL",
@@ -216,14 +200,14 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     sumPlannedBudget,
     "",
     sumOrderedVol,
-    sumOrderedDpp,
-    sumOrderedTax,
-    sumTotalOrderPrice,
+    sumOrderDpp,
+    sumOrderTax,
+    sumOrderPrice,
     sumVariance,
-    sumVariance > 0 ? "Defisit Anggaran" : sumVariance < 0 ? "Surplus Anggaran" : "Seimbang",
-    sumDeliveredVol,
-    totalRemaining,
-    totalFulfillmentPct,
+    "",
+    sumDelivered,
+    sumOrderedVol - sumDelivered,
+    sumOrderedVol > 0 ? sumDelivered / sumOrderedVol : "-",
   ];
 
   ws.mergeCells(`B${totalRowIdx}:E${totalRowIdx}`);
@@ -244,19 +228,16 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       colNumber === 15 ||
       colNumber === 16
     ) {
-      cell.numFmt = "#,##0;(#,##0);-";
+      cell.numFmt = EXCEL_NUM_FMT.currency;
       cell.alignment = { horizontal: "right", vertical: "middle" };
     } else if (colNumber === 7 || colNumber === 12 || colNumber === 18 || colNumber === 19) {
-      cell.numFmt = "#,##0.00;(#,##0.00);-";
+      cell.numFmt = EXCEL_NUM_FMT.quantity;
       cell.alignment = { horizontal: "right", vertical: "middle" };
-    } else if (colNumber === 20) {
-      cell.numFmt = "0.0%";
+    } else if (colNumber === 20 && typeof cell.value === "number") {
+      cell.numFmt = EXCEL_NUM_FMT.percentage;
       cell.alignment = { horizontal: "right", vertical: "middle" };
-    } else if (colNumber === 17) {
-      cell.alignment = { horizontal: "center", vertical: "middle" };
     }
   });
 
-  // Enable AutoFilter on header row
   ws.autoFilter = "A5:T5";
 }

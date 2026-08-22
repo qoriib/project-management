@@ -1,6 +1,14 @@
 import type * as ExcelJS from "exceljs";
 import type { RequirementSheetContext } from "./types";
-import { FORMAL_STYLE, BORDER_ALL_LIGHT, BORDER_ALL_THIN, BORDER_ACCOUNTING_TOTAL, createFormalKop } from "./styles";
+import {
+  BORDER_ACCOUNTING_TOTAL,
+  BORDER_ALL_LIGHT,
+  createFormalKop,
+  EXCEL_NUM_FMT,
+  FORMAL_STYLE,
+  renderTableHeaderRow,
+  type SheetColumnConfig,
+} from "./styles";
 import { formatItemCode } from "@/utils/formatters";
 
 /**
@@ -12,10 +20,10 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
     views: [{ state: "frozen", xSplit: 0, ySplit: 5, showGridLines: true }],
   });
 
-  const COLUMNS = [
+  const COLUMNS: SheetColumnConfig[] = [
     { header: "NO", key: "no", width: 6 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN BARANG / Item", key: "item_name", width: 36 },
+    { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category_name", width: 16 },
     { header: "SATUAN", key: "unit_name", width: 10 },
     { header: "VOLUME", key: "qty", width: 14 },
@@ -25,10 +33,8 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
     { header: "TOTAL ANGGARAN (RP)", key: "total_price", width: 22 },
   ];
 
-  // Set column keys and widths
   ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }));
 
-  // Kop Formal
   createFormalKop(ws, {
     company_name,
     endCol: "J",
@@ -36,19 +42,10 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
     startCol: "A",
     startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
-    title: "BUKU REGISTER KEBUTUHAN Item (BILL OF ItemS / BOM)",
+    title: "BUKU REGISTER KEBUTUHAN ITEM (BILL OF QUANTITIES / BOM)",
   });
 
-  // Table Headers at Row 5
-  const headerRow = ws.getRow(5);
-  COLUMNS.forEach((col, colIdx) => {
-    const cell = headerRow.getCell(colIdx + 1);
-    cell.value = col.header;
-    cell.font = { bold: true, color: { argb: FORMAL_STYLE.tableHeaderText }, name: FORMAL_STYLE.fontFamily, size: 9 };
-    cell.fill = { fgColor: { argb: FORMAL_STYLE.tableHeaderBg }, pattern: "solid", type: "pattern" };
-    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-    cell.border = BORDER_ALL_THIN;
-  });
+  renderTableHeaderRow(ws, COLUMNS, 5);
 
   let sumQty = 0;
   let sumDpp = 0;
@@ -99,10 +96,10 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
       }
 
       if (colNumber === 6) {
-        cell.numFmt = "#,##0.00;(#,##0.00);-";
+        cell.numFmt = EXCEL_NUM_FMT.quantity;
       }
       if (colNumber === 7 || colNumber === 8 || colNumber === 9 || colNumber === 10) {
-        cell.numFmt = "#,##0;(#,##0);-";
+        cell.numFmt = EXCEL_NUM_FMT.currency;
       }
     });
   });
@@ -122,10 +119,10 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
     if (colNumber === 2) {
       cell.alignment = { horizontal: "center", vertical: "middle" };
     } else if (colNumber === 6) {
-      cell.numFmt = "#,##0.00;(#,##0.00);-";
+      cell.numFmt = EXCEL_NUM_FMT.quantity;
       cell.alignment = { horizontal: "right", vertical: "middle" };
     } else if (colNumber === 8 || colNumber === 9 || colNumber === 10) {
-      cell.numFmt = "#,##0;(#,##0);-";
+      cell.numFmt = EXCEL_NUM_FMT.currency;
       cell.alignment = { horizontal: "right", vertical: "middle" };
     }
   });

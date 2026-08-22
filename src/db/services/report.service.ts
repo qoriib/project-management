@@ -1,8 +1,7 @@
 /**
- * Report Service — Requirement fulfillment and project reporting logic.
+ * Report Service — Requirement fulfillment, item timeline log, and project export logic.
  */
 
-import { getDB } from "@/db/index";
 import { QueryBuilder } from "@/db/core/query-builder";
 import { DbError, wrapDbError } from "@/db/core/errors";
 
@@ -94,8 +93,6 @@ export interface RequirementReportDetailItem {
   total_price: number;
 }
 
-// ── Helper Types ─────────────────────────────────────────────────────────────
-
 interface RawRequirementRow {
   item_id: string;
   item_price_id: string;
@@ -155,8 +152,6 @@ function createDefaultReportItem(row: RawRequirementRow | RawOrderRow, isUnplann
   };
 }
 
-// ── Service Functions ────────────────────────────────────────────────────────
-
 /**
  * Generates the full Requirement fulfillment report for a project.
  * Items in Requirements and Orders are grouped strictly by item_id (one row per item).
@@ -168,8 +163,6 @@ export async function getRequirementReport(
   endDate?: string,
 ): Promise<RequirementReportItem[]> {
   try {
-    const db = await getDB();
-
     // 1. Build Requirements (BOM) Query
     const requirementQuery = new QueryBuilder()
       .select(
@@ -216,47 +209,32 @@ export async function getRequirementReport(
       .join("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
       .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
       .leftJoin("units", "units", "items.unit_id = units.unit_id")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
-      .withSoftDelete("orders");
+      .withSoftDelete("orders")
+      .when(Boolean(startDate), (q) => q.where("orders.order_date", ">=", startDate!))
+      .when(Boolean(endDate), (q) => q.where("orders.order_date", "<=", endDate!));
 
-    if (startDate) {
-      orderQuery.where("orders.order_date", ">=", startDate);
-    }
-    if (endDate) {
-      orderQuery.where("orders.order_date", "<=", endDate);
-    }
-
-    // 3. Build Receipts (NP) Query grouped by item_id
+    // 3. Build Receipts (NP) Query grouped by item_id (only counting active non-deleted receipts and orders)
     const receiptQuery = new QueryBuilder()
       .select("order_items.item_id")
-      .selectRaw("SUM(receipt_items.qty) as total_delivered")
+      .selectSum("receipt_items.qty", "total_delivered", 0)
       .from("receipt_items", "receipt_items")
       .join("receipts", "receipts", "receipts.receipt_id = receipt_items.receipt_id")
       .join("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
       .where("orders.project_id", "=", projectId)
       .withSoftDelete("receipts")
-      .withSoftDelete("orders");
+      .withSoftDelete("orders")
+      .when(Boolean(startDate), (q) => q.where("receipts.receipt_date", ">=", startDate!))
+      .when(Boolean(endDate), (q) => q.where("receipts.receipt_date", "<=", endDate!))
+      .groupBy("order_items.item_id");
 
-    if (startDate) {
-      receiptQuery.where("receipts.receipt_date", ">=", startDate);
-    }
-    if (endDate) {
-      receiptQuery.where("receipts.receipt_date", "<=", endDate);
-    }
-
-    receiptQuery.groupBy("order_items.item_id");
-
-    const { sql: reqSql, params: reqParams } = requirementQuery.build();
-    const { sql: orderSql, params: orderParams } = orderQuery.build();
-    const { sql: recSql, params: recParams } = receiptQuery.build();
-
-    // Execute all 3 queries in parallel
+    // Execute all 3 queries in parallel via QueryBuilder getMany
     const [rawRequirements, rawOrders, rawReceipts] = await Promise.all([
-      db.select<RawRequirementRow[]>(reqSql, reqParams),
-      db.select<RawOrderRow[]>(orderSql, orderParams),
-      db.select<RawReceiptRow[]>(recSql, recParams),
+      requirementQuery.getMany<RawRequirementRow>(),
+      orderQuery.getMany<RawOrderRow>(),
+      receiptQuery.getMany<RawReceiptRow>(),
     ]);
 
     const receiptMap = new Map<string, number>();
@@ -357,8 +335,6 @@ export async function getRequirementReport(
  */
 export async function getItemLog(projectId: string, itemId: string, itemPriceId?: string): Promise<ItemLogEntry[]> {
   try {
-    const db = await getDB();
-
     // 1. Get Orders
     const orderQuery = new QueryBuilder()
       .select("orders.order_date as date")
@@ -367,16 +343,15 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
       .select("order_items.qty", "vendors.vendor_name")
       .from("order_items", "order_items")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
       .where("order_items.item_id", "=", itemId)
-      .withSoftDelete("orders");
+      .withSoftDelete("orders")
+      .when(Boolean(itemPriceId && itemPriceId.trim() !== ""), (q) =>
+        q.where("order_items.item_price_id", "=", itemPriceId!),
+      );
 
-    if (itemPriceId && itemPriceId.trim() !== "") {
-      orderQuery.where("order_items.item_price_id", "=", itemPriceId);
-    }
-
-    // 2. Get Receipts
+    // 2. Get Receipts (active receipts only)
     const receiptQuery = new QueryBuilder()
       .select("receipts.receipt_date as date")
       .selectRaw("'Receipt' as type")
@@ -387,23 +362,19 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
       .join("receipts", "receipts", "receipts.receipt_id = receipt_items.receipt_id")
       .join("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
       .where("order_items.item_id", "=", itemId)
       .withSoftDelete("receipts")
-      .withSoftDelete("orders");
-
-    if (itemPriceId && itemPriceId.trim() !== "") {
-      receiptQuery.where("order_items.item_price_id", "=", itemPriceId);
-    }
-
-    const { sql: orderSql, params: orderParams } = orderQuery.build();
-    const { sql: recSql, params: recParams } = receiptQuery.build();
+      .withSoftDelete("orders")
+      .when(Boolean(itemPriceId && itemPriceId.trim() !== ""), (q) =>
+        q.where("order_items.item_price_id", "=", itemPriceId!),
+      );
 
     // Execute queries in parallel
     const [orderLogs, receiptLogs] = await Promise.all([
-      db.select<ItemLogEntry[]>(orderSql, orderParams),
-      db.select<ItemLogEntry[]>(recSql, recParams),
+      orderQuery.getMany<ItemLogEntry>(),
+      receiptQuery.getMany<ItemLogEntry>(),
     ]);
 
     // 3. Combine and sort by date
@@ -428,7 +399,6 @@ export async function getProjectOrderReport(
   endDate?: string,
 ): Promise<OrderReportItem[]> {
   try {
-    const db = await getDB();
     const query = new QueryBuilder()
       .select(
         "orders.order_code",
@@ -453,21 +423,14 @@ export async function getProjectOrderReport(
       .join("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
       .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
       .leftJoin("units", "units", "units.unit_id = items.unit_id")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
-      .withSoftDelete("orders");
+      .withSoftDelete("orders")
+      .when(Boolean(startDate), (q) => q.where("orders.order_date", ">=", startDate!))
+      .when(Boolean(endDate), (q) => q.where("orders.order_date", "<=", endDate!))
+      .orderBy("orders.order_id", "ASC");
 
-    if (startDate) {
-      query.where("orders.order_date", ">=", startDate);
-    }
-    if (endDate) {
-      query.where("orders.order_date", "<=", endDate);
-    }
-
-    query.orderBy("orders.order_id", "ASC");
-
-    const { sql, params } = query.build();
-    return await db.select<OrderReportItem[]>(sql, params);
+    return await query.getMany<OrderReportItem>();
   } catch (error) {
     throw wrapDbError(error, "order_report");
   }
@@ -482,7 +445,6 @@ export async function getProjectReceiptReport(
   endDate?: string,
 ): Promise<ReceiptReportItem[]> {
   try {
-    const db = await getDB();
     const query = new QueryBuilder()
       .select(
         "receipts.receipt_code",
@@ -504,21 +466,15 @@ export async function getProjectReceiptReport(
       .join("items", "items", "items.item_id = order_items.item_id")
       .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
       .leftJoin("units", "units", "units.unit_id = items.unit_id")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
-      .withSoftDelete("receipts");
+      .withSoftDelete("receipts")
+      .withSoftDelete("orders")
+      .when(Boolean(startDate), (q) => q.where("receipts.receipt_date", ">=", startDate!))
+      .when(Boolean(endDate), (q) => q.where("receipts.receipt_date", "<=", endDate!))
+      .orderBy("receipts.receipt_id", "ASC");
 
-    if (startDate) {
-      query.where("receipts.receipt_date", ">=", startDate);
-    }
-    if (endDate) {
-      query.where("receipts.receipt_date", "<=", endDate);
-    }
-
-    query.orderBy("receipts.receipt_id", "ASC");
-
-    const { sql, params } = query.build();
-    return await db.select<ReceiptReportItem[]>(sql, params);
+    return await query.getMany<ReceiptReportItem>();
   } catch (error) {
     throw wrapDbError(error, "receipt_report");
   }
@@ -529,7 +485,6 @@ export async function getProjectReceiptReport(
  */
 export async function getProjectRequirementReport(projectId: string): Promise<RequirementReportDetailItem[]> {
   try {
-    const db = await getDB();
     const query = new QueryBuilder()
       .select(
         "items.item_code",
@@ -552,20 +507,17 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
       .orderBy("categories.category_name", "ASC")
       .orderBy("items.item_name", "ASC");
 
-    const { sql, params } = query.build();
-    const raw = await db.select<
-      {
-        item_code: string;
-        category_prefix?: string;
-        category_code?: string;
-        item_name: string;
-        category_name: string | null;
-        unit_name: string | null;
-        qty: number;
-        price: number;
-        has_tax: number;
-      }[]
-    >(sql, params);
+    const raw = await query.getMany<{
+      item_code: string;
+      category_prefix?: string;
+      category_code?: string;
+      item_name: string;
+      category_name: string | null;
+      unit_name: string | null;
+      qty: number;
+      price: number;
+      has_tax: number;
+    }>();
 
     return raw.map((r) => {
       const dpp = (r.qty || 0) * (r.price || 0);

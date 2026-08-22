@@ -1,23 +1,19 @@
 import type * as ExcelJS from "exceljs";
 import type { ExecutiveSummaryContext } from "./types";
-import { FORMAL_STYLE, BORDER_ALL_LIGHT, BORDER_ALL_THIN, BORDER_ACCOUNTING_TOTAL, createFormalKop } from "./styles";
+import {
+  BORDER_ACCOUNTING_TOTAL,
+  BORDER_ALL_LIGHT,
+  createFormalKop,
+  EXCEL_NUM_FMT,
+  FORMAL_STYLE,
+  formatToDDMMYYYY,
+  renderTableHeaderRow,
+  type SheetColumnConfig,
+} from "./styles";
 import { formatItemCode } from "@/utils/formatters";
 
 /**
- * Format ISO date string (YYYY-MM-DD) to DD/MM/YYYY.
- */
-function formatToDDMMYYYY(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  const parts = dateStr.split("-");
-  if (parts.length === 3) {
-    const [year, month, day] = parts;
-    return `${day}/${month}/${year}`;
-  }
-  return dateStr;
-}
-
-/**
- * Creates the Executive Summary Sheet formatted as a Item Monitoring & Contract Realization Table.
+ * Creates the Executive Summary Sheet formatted as an Item Monitoring & Contract Realization Table.
  */
 export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context: ExecutiveSummaryContext): void {
   const { project_name, company_name, fiscal_year, period, data, orderData, receiptData } = context;
@@ -25,10 +21,10 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
     views: [{ state: "frozen", xSplit: 0, ySplit: 5, showGridLines: true }],
   });
 
-  const COLUMNS = [
+  const COLUMNS: SheetColumnConfig[] = [
     { header: "NO", key: "no", width: 6 },
     { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN Item / BARANG", key: "item_name", width: 36 },
+    { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 36 },
     { header: "SATUAN", key: "unit", width: 10 },
     { header: "VOL. KONTRAK / PLAFOND", key: "contract_vol", width: 22 },
     { header: "TGL. PERMINTAAN", key: "order_date", width: 18 },
@@ -40,10 +36,8 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
     { header: "% SISA KONTRAK", key: "sisa_kontrak_pct", width: 16 },
   ];
 
-  // Set column keys and widths
   ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }));
 
-  // Kop Formal
   createFormalKop(ws, {
     company_name,
     endCol: "L",
@@ -51,19 +45,10 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
     startCol: "A",
     startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
-    title: "REKAPITULASI VOLUME Item & REALISASI PENERIMAAN (SUMMARY MONITORING)",
+    title: "REKAPITULASI VOLUME ITEM & REALISASI PENERIMAAN (SUMMARY MONITORING)",
   });
 
-  // Table Headers at Row 5
-  const headerRow = ws.getRow(5);
-  COLUMNS.forEach((col, colIdx) => {
-    const cell = headerRow.getCell(colIdx + 1);
-    cell.value = col.header;
-    cell.font = { bold: true, color: { argb: FORMAL_STYLE.tableHeaderText }, name: FORMAL_STYLE.fontFamily, size: 9 };
-    cell.fill = { fgColor: { argb: FORMAL_STYLE.tableHeaderBg }, pattern: "solid", type: "pattern" };
-    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-    cell.border = BORDER_ALL_THIN;
-  });
+  renderTableHeaderRow(ws, COLUMNS, 5);
 
   let sumContractVol = 0;
   let sumOrderVol = 0;
@@ -134,17 +119,13 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
         cell.alignment = { horizontal: "right", vertical: "middle" };
       }
 
-      // Quantity number formatting
-      if (
-        (colNumber === 5 || colNumber === 7 || colNumber === 9 || colNumber === 10 || colNumber === 11) &&
-        typeof cell.value === "number"
-      ) {
-        cell.numFmt = "#,##0.00;(#,##0.00);-";
+      if (colNumber === 5 || colNumber === 7 || colNumber === 9 || colNumber === 10 || colNumber === 11) {
+        if (typeof cell.value === "number") {
+          cell.numFmt = EXCEL_NUM_FMT.quantity;
+        }
       }
-
-      // Percentage formatting
       if (colNumber === 12 && typeof cell.value === "number") {
-        cell.numFmt = "0.00%;(0.00%);-";
+        cell.numFmt = EXCEL_NUM_FMT.percentage;
       }
     });
   });
@@ -152,21 +133,19 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
   // Total Row
   const totalRowIdx = data.length + 6;
   const totalRow = ws.getRow(totalRowIdx);
-  const totalSisaKontrakPct = sumContractVol > 0 ? (sumContractVol - sumCumulativeDelivered) / sumContractVol : null;
-
   totalRow.values = [
     "",
     "TOTAL",
     "",
     "",
-    sumContractVol > 0 ? sumContractVol : "-",
+    sumContractVol,
     "",
-    sumOrderVol > 0 ? sumOrderVol : "-",
+    sumOrderVol,
     "",
-    sumLatestReceiptVol > 0 ? sumLatestReceiptVol : "-",
-    sumCumulativeDelivered > 0 ? sumCumulativeDelivered : "-",
+    sumLatestReceiptVol,
+    sumCumulativeDelivered,
     sumSisaPlafond,
-    totalSisaKontrakPct !== null ? totalSisaKontrakPct : "-",
+    sumContractVol > 0 ? sumSisaPlafond / sumContractVol : "-",
   ];
 
   ws.mergeCells(`B${totalRowIdx}:D${totalRowIdx}`);
@@ -178,47 +157,36 @@ export function createExecutiveSummarySheet(workbook: ExcelJS.Workbook, context:
 
     if (colNumber === 2) {
       cell.alignment = { horizontal: "center", vertical: "middle" };
-    } else if (
-      (colNumber === 5 || colNumber === 7 || colNumber === 9 || colNumber === 10 || colNumber === 11) &&
-      typeof cell.value === "number"
-    ) {
-      cell.numFmt = "#,##0.00;(#,##0.00);-";
+    } else if (colNumber === 5 || colNumber === 7 || colNumber === 9 || colNumber === 10 || colNumber === 11) {
+      cell.numFmt = EXCEL_NUM_FMT.quantity;
       cell.alignment = { horizontal: "right", vertical: "middle" };
     } else if (colNumber === 12 && typeof cell.value === "number") {
-      cell.numFmt = "0.00%;(0.00%);-";
+      cell.numFmt = EXCEL_NUM_FMT.percentage;
       cell.alignment = { horizontal: "right", vertical: "middle" };
     }
   });
 
-  // AutoFilter
   ws.autoFilter = "A5:L5";
 
-  // ── LEMBAR PENGESAHAN / TANDA TANGAN (STANDAR FORMAL INSTANSI) ───────────────
-  let curRow = totalRowIdx + 3;
+  // Lembar Pengesahan / Tanda Tangan (Standar Formal Instansi)
+  const curRow = totalRowIdx + 3;
   ws.getCell(`B${curRow}`).value = "Mengetahui / Menyetujui,";
   ws.getCell(`B${curRow}`).font = { bold: true, name: FORMAL_STYLE.fontFamily, size: 10 };
 
   ws.getCell(`I${curRow}`).value = "Dibuat Oleh,";
   ws.getCell(`I${curRow}`).font = { bold: true, name: FORMAL_STYLE.fontFamily, size: 10 };
 
-  curRow++;
-  ws.getCell(`B${curRow}`).value = "Pejabat Pembuat Komitmen / Manajer Proyek";
-  ws.getCell(`B${curRow}`).font = { italic: true, name: FORMAL_STYLE.fontFamily, size: 9.5 };
+  const titleRow = curRow + 1;
+  ws.getCell(`B${titleRow}`).value = "Pejabat Pembuat Komitmen / Manajer Proyek";
+  ws.getCell(`B${titleRow}`).font = { name: FORMAL_STYLE.fontFamily, size: 9 };
 
-  ws.getCell(`I${curRow}`).value = "Tim Pengadaan / Logistik Proyek";
-  ws.getCell(`I${curRow}`).font = { italic: true, name: FORMAL_STYLE.fontFamily, size: 9.5 };
+  ws.getCell(`I${titleRow}`).value = "Bagian Logistik & Pengadaan";
+  ws.getCell(`I${titleRow}`).font = { name: FORMAL_STYLE.fontFamily, size: 9 };
 
-  curRow += 4;
-  ws.getCell(`B${curRow}`).value = "( ........................................................... )";
-  ws.getCell(`B${curRow}`).font = { bold: true, name: FORMAL_STYLE.fontFamily, size: 10 };
+  const signRow = curRow + 5;
+  ws.getCell(`B${signRow}`).value = "( .................................................... )";
+  ws.getCell(`B${signRow}`).font = { bold: true, name: FORMAL_STYLE.fontFamily, size: 10 };
 
-  ws.getCell(`I${curRow}`).value = "( ........................................................... )";
-  ws.getCell(`I${curRow}`).font = { bold: true, name: FORMAL_STYLE.fontFamily, size: 10 };
-
-  curRow++;
-  ws.getCell(`B${curRow}`).value = "NIP/NIK. ";
-  ws.getCell(`B${curRow}`).font = { name: FORMAL_STYLE.fontFamily, size: 9 };
-
-  ws.getCell(`I${curRow}`).value = "NIP/NIK. ";
-  ws.getCell(`I${curRow}`).font = { name: FORMAL_STYLE.fontFamily, size: 9 };
+  ws.getCell(`I${signRow}`).value = "( .................................................... )";
+  ws.getCell(`I${signRow}`).font = { bold: true, name: FORMAL_STYLE.fontFamily, size: 10 };
 }

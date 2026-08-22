@@ -1,6 +1,5 @@
 import { BaseRepository } from "@/db/core/base-repository";
 import { type CreateItem, type Item, ItemModel, type UpdateItem } from "@/db/models";
-import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
 import type { FindOptions } from "@/db/core/types";
 
@@ -19,10 +18,11 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
 
   /**
    * Get all items with category, unit, and relation status.
+   * Only active (non-soft-deleted) relations are considered.
    */
   async findAll(options?: FindOptions): Promise<ItemWithDetails[]> {
     try {
-      const query = new QueryBuilder()
+      const query = this.query("items")
         .select(
           "items.*",
           "categories.category_name",
@@ -33,24 +33,20 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
         .selectRaw(
           `(EXISTS(SELECT 1 FROM item_prices WHERE item_id = items.item_id AND deleted_at IS NULL) 
             OR EXISTS(SELECT 1 FROM requirements WHERE item_id = items.item_id AND deleted_at IS NULL) 
-            OR EXISTS(SELECT 1 FROM order_items WHERE item_id = items.item_id)) as has_relation`,
+            OR EXISTS(SELECT 1 FROM order_items oi JOIN orders o ON o.order_id = oi.order_id WHERE oi.item_id = items.item_id AND o.deleted_at IS NULL)) as has_relation`,
         )
-        .from("items", "items")
         .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
-        .leftJoin("units", "units", "items.unit_id = units.unit_id");
+        .leftJoin("units", "units", "items.unit_id = units.unit_id")
+        .orderBy("items.item_id", "ASC");
 
-      if (!options?.includeDeleted) {
-        query.where("items.deleted_at", "IS NULL");
+      if (options?.includeDeleted) {
+        query.includeDeleted();
       }
 
       if (options?.where) {
         for (const [column, value] of Object.entries(options.where)) {
           const colName = column.includes(".") ? column : `items.${column}`;
-          if (value === null) {
-            query.where(colName, "IS NULL");
-          } else {
-            query.where(colName, "=", value);
-          }
+          query.applyWhere(colName, value);
         }
       }
 
@@ -61,8 +57,6 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
         query.offset(options.offset);
       }
 
-      query.orderBy("items.item_id", "ASC");
-
       const { sql, params } = query.build();
       const rows = await this.rawSelect<ItemWithDetails & { has_relation: number | boolean }>(sql, params);
 
@@ -71,26 +65,8 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
         has_relation: Boolean(row.has_relation),
       }));
     } catch (error) {
-      throw wrapDbError(error, "Failed to get items with details");
+      throw wrapDbError(error, this.model.tableName);
     }
-  }
-
-  /**
-   * Create an item with auto-generated 5-digit item_code if omitted.
-   */
-  async create(data: CreateItem): Promise<string> {
-    const payload = { ...data };
-
-    if (!payload.item_code || payload.item_code.trim() === "") {
-      const db = await this.db();
-      const rows = await db.select<{ max_code: string | null }[]>(
-        "SELECT MAX(CAST(item_code AS INTEGER)) as max_code FROM items",
-      );
-      const maxCodeNumber = parseInt(rows[0]?.max_code || "0", 10);
-      payload.item_code = (maxCodeNumber + 1).toString().padStart(5, "0");
-    }
-
-    return super.create(payload);
   }
 }
 

@@ -1,6 +1,15 @@
 import type * as ExcelJS from "exceljs";
 import type { ReceiptSheetContext } from "./types";
-import { FORMAL_STYLE, BORDER_ALL_LIGHT, BORDER_ALL_THIN, BORDER_ACCOUNTING_TOTAL, createFormalKop } from "./styles";
+import {
+  BORDER_ACCOUNTING_TOTAL,
+  BORDER_ALL_LIGHT,
+  createFormalKop,
+  EXCEL_NUM_FMT,
+  FORMAL_STYLE,
+  formatToDDMMYYYY,
+  renderTableHeaderRow,
+  type SheetColumnConfig,
+} from "./styles";
 import { formatItemCode } from "@/utils/formatters";
 
 /**
@@ -12,7 +21,7 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
     views: [{ state: "frozen", xSplit: 0, ySplit: 5, showGridLines: true }],
   });
 
-  const COLUMNS = [
+  const COLUMNS: SheetColumnConfig[] = [
     { header: "NO", key: "no", width: 6 },
     { header: "TANGGAL TERIMA", key: "receipt_date", width: 16 },
     { header: "NOMOR PENERIMAAN (NP)", key: "receipt_code", width: 22 },
@@ -22,13 +31,11 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
     { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 36 },
     { header: "KATEGORI", key: "category_name", width: 16 },
     { header: "SATUAN", key: "unit_name", width: 10 },
-    { header: "Volume", key: "qty", width: 18 },
+    { header: "VOLUME", key: "qty", width: 18 },
   ];
 
-  // Set column keys and widths
   ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }));
 
-  // Kop Formal
   createFormalKop(ws, {
     company_name,
     endCol: "J",
@@ -39,16 +46,7 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
     title: "BUKU REGISTER PENERIMAAN BARANG (GOODS RECEIPTS / SURAT JALAN)",
   });
 
-  // Table Headers at Row 5
-  const headerRow = ws.getRow(5);
-  COLUMNS.forEach((col, colIdx) => {
-    const cell = headerRow.getCell(colIdx + 1);
-    cell.value = col.header;
-    cell.font = { bold: true, color: { argb: FORMAL_STYLE.tableHeaderText }, name: FORMAL_STYLE.fontFamily, size: 9 };
-    cell.fill = { fgColor: { argb: FORMAL_STYLE.tableHeaderBg }, pattern: "solid", type: "pattern" };
-    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-    cell.border = BORDER_ALL_THIN;
-  });
+  renderTableHeaderRow(ws, COLUMNS, 5);
 
   let sumQty = 0;
 
@@ -61,9 +59,9 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
 
     row.values = [
       index + 1,
-      item.receipt_date,
-      item.receipt_code,
-      item.order_code,
+      formatToDDMMYYYY(item.receipt_date),
+      item.receipt_code || "-",
+      item.order_code || "-",
       item.vendor_name || "-",
       code,
       item.item_name,
@@ -89,7 +87,7 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
       }
 
       if (colNumber === 10) {
-        cell.numFmt = "#,##0.00;(#,##0.00);-";
+        cell.numFmt = EXCEL_NUM_FMT.quantity;
       }
     });
   });
@@ -109,7 +107,7 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
     if (colNumber === 2) {
       cell.alignment = { horizontal: "center", vertical: "middle" };
     } else if (colNumber === 10) {
-      cell.numFmt = "#,##0.00;(#,##0.00);-";
+      cell.numFmt = EXCEL_NUM_FMT.quantity;
       cell.alignment = { horizontal: "right", vertical: "middle" };
     }
   });

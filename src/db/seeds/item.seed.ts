@@ -80,7 +80,8 @@ export async function seedItems(): Promise<void> {
   const catMap = new Map<string, string>(categories.map((c) => [c.category_name, c.category_id]));
   const unitMap = new Map<string, string>(units.map((u) => [u.unit_name, u.unit_id]));
 
-  for (const it of items) {
+  for (let idx = 0; idx < items.length; idx++) {
+    const it = items[idx];
     const exists = await itemRepo.exists({ item_name: it.itemName }, true);
 
     if (!exists) {
@@ -88,7 +89,7 @@ export async function seedItems(): Promise<void> {
 
       if (!catId) {
         catId = await itemCategoryRepo.create({
-          category_code: "",
+          category_code: (catMap.size + 1).toString().padStart(5, "0"),
           category_name: it.category,
           prefix: it.category.charAt(0).toUpperCase(),
         });
@@ -104,7 +105,7 @@ export async function seedItems(): Promise<void> {
 
       await itemRepo.create({
         category_id: catId,
-        item_code: "",
+        item_code: (idx + 1).toString().padStart(5, "0"),
         item_name: it.itemName,
         unit_id: unitId,
       });

@@ -1,7 +1,7 @@
 /**
- * Base Repository — Generic CRUD with soft-delete support.
+ * Base Repository — Generic CRUD with soft-delete support, fluent aggregation, and atomic transactions.
  *
- * Provides standard find/create/update/delete operations
+ * Provides standard find/create/update/delete/aggregate operations
  * that all entity repositories inherit and can extend.
  *
  * @template TEntity   The full entity type returned from queries
@@ -12,9 +12,9 @@
 import { getDB } from "@/db/index";
 import { QueryBuilder } from "./query-builder";
 import { DbError, NotFoundError, wrapDbError } from "./errors";
-import type { FindOptions, ModelDefinition, OrderByClause } from "./types";
 import { v7 as uuidv7 } from "uuid";
 import { dbLog } from "./db-logger";
+import type { FindOptions, ModelDefinition, OrderByClause, SimpleWhere } from "./types";
 
 export abstract class BaseRepository<TEntity extends object, TCreate extends object, TUpdate extends object> {
   protected readonly model: ModelDefinition;
@@ -28,33 +28,22 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
     return getDB();
   }
 
-  // ── READ ─────────────────────────────────────────────────────────────────
-
   /**
    * Find all records, optionally filtered, sorted, and paginated.
    */
   async findAll(options?: FindOptions): Promise<TEntity[]> {
     dbLog.debug(`[${this.model.tableName}] findAll options=${JSON.stringify(options ?? {})}`);
     try {
-      const qb = new QueryBuilder().select("*").from(this.model.tableName);
+      const qb = this.query();
 
-      // Apply soft delete filter
-      if (this.model.softDelete && !options?.includeDeleted) {
-        qb.withSoftDelete();
+      if (options?.includeDeleted) {
+        qb.includeDeleted();
       }
 
-      // Apply simple where conditions
       if (options?.where) {
-        for (const [column, value] of Object.entries(options.where)) {
-          if (value === null) {
-            qb.where(column, "IS NULL");
-          } else {
-            qb.where(column, "=", value);
-          }
-        }
+        qb.applySimpleWhere(options.where);
       }
 
-      // Apply order by
       if (options?.orderBy) {
         const orders: OrderByClause[] = Array.isArray(options.orderBy) ? options.orderBy : [options.orderBy];
         for (const order of orders) {
@@ -62,7 +51,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
         }
       }
 
-      // Apply pagination
       if (options?.limit !== undefined) {
         qb.limit(options.limit);
       }
@@ -88,10 +76,10 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   async findById(id: string, includeDeleted = false): Promise<TEntity | null> {
     dbLog.debug(`[${this.model.tableName}] findById id=${id}`);
     try {
-      const qb = new QueryBuilder().select("*").from(this.model.tableName).where(this.model.primaryKey, "=", id);
+      const qb = this.query().where(this.model.primaryKey, "=", id);
 
-      if (this.model.softDelete && !includeDeleted) {
-        qb.withSoftDelete();
+      if (includeDeleted) {
+        qb.includeDeleted();
       }
 
       const { sql, params } = qb.build(),
@@ -121,7 +109,7 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   /**
    * Find the first record matching the given where conditions.
    */
-  async findOne(where: Record<string, unknown>, includeDeleted = false): Promise<TEntity | null> {
+  async findOne(where: SimpleWhere, includeDeleted = false): Promise<TEntity | null> {
     const results = await this.findAll({
       includeDeleted,
       limit: 1,
@@ -133,23 +121,17 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   /**
    * Count records matching optional where conditions.
    */
-  async count(where?: Record<string, unknown>, includeDeleted = false): Promise<number> {
+  async count(where?: SimpleWhere, includeDeleted = false): Promise<number> {
     dbLog.debug(`[${this.model.tableName}] count where=${JSON.stringify(where ?? {})}`);
     try {
-      const qb = new QueryBuilder().selectRaw("COUNT(*) as count").from(this.model.tableName);
+      const qb = this.query().selectRaw("COUNT(*) as count");
 
-      if (this.model.softDelete && !includeDeleted) {
-        qb.withSoftDelete();
+      if (includeDeleted) {
+        qb.includeDeleted();
       }
 
       if (where) {
-        for (const [column, value] of Object.entries(where)) {
-          if (value === null) {
-            qb.where(column, "IS NULL");
-          } else {
-            qb.where(column, "=", value);
-          }
-        }
+        qb.applySimpleWhere(where);
       }
 
       const { sql, params } = qb.build(),
@@ -167,12 +149,64 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   /**
    * Check if a record exists matching the given conditions.
    */
-  async exists(where: Record<string, unknown>, includeDeleted = false): Promise<boolean> {
+  async exists(where: SimpleWhere, includeDeleted = false): Promise<boolean> {
     const c = await this.count(where, includeDeleted);
     return c > 0;
   }
 
-  // ── WRITE ────────────────────────────────────────────────────────────────
+  /**
+   * Calculate MAX value of a column or expression.
+   */
+  async max(columnOrExpr: string, where?: SimpleWhere, includeDeleted = false): Promise<number | string | null> {
+    try {
+      const qb = this.query().selectRaw(`MAX(${columnOrExpr}) as max_val`);
+      if (includeDeleted) qb.includeDeleted();
+      if (where) qb.applySimpleWhere(where);
+
+      const { sql, params } = qb.build();
+      const db = await this.db();
+      const rows = await db.select<{ max_val: number | string | null }[]>(sql, params);
+      return rows[0]?.max_val ?? null;
+    } catch (error) {
+      throw wrapDbError(error, this.model.tableName);
+    }
+  }
+
+  /**
+   * Calculate MIN value of a column or expression.
+   */
+  async min(columnOrExpr: string, where?: SimpleWhere, includeDeleted = false): Promise<number | string | null> {
+    try {
+      const qb = this.query().selectRaw(`MIN(${columnOrExpr}) as min_val`);
+      if (includeDeleted) qb.includeDeleted();
+      if (where) qb.applySimpleWhere(where);
+
+      const { sql, params } = qb.build();
+      const db = await this.db();
+      const rows = await db.select<{ min_val: number | string | null }[]>(sql, params);
+      return rows[0]?.min_val ?? null;
+    } catch (error) {
+      throw wrapDbError(error, this.model.tableName);
+    }
+  }
+
+  /**
+   * Calculate SUM value of a column or expression.
+   */
+  async sum(columnOrExpr: string, where?: SimpleWhere, includeDeleted = false): Promise<number> {
+    try {
+      const qb = this.query().selectRaw(`COALESCE(SUM(${columnOrExpr}), 0) as sum_val`);
+      if (includeDeleted) qb.includeDeleted();
+      if (where) qb.applySimpleWhere(where);
+
+      const { sql, params } = qb.build();
+      const db = await this.db();
+      const rows = await db.select<{ sum_val: number }[]>(sql, params);
+      return rows[0]?.sum_val ?? 0;
+    } catch (error) {
+      throw wrapDbError(error, this.model.tableName);
+    }
+  }
 
   /**
    * Insert a new record with a generated UUID v7 as primary key.
@@ -208,10 +242,38 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   }
 
   /**
+   * Insert multiple records in batch with generated UUIDs inside an atomic transaction.
+   * Returns an array of generated primary keys.
+   */
+  async createMany(dataList: TCreate[]): Promise<string[]> {
+    if (dataList.length === 0) return [];
+
+    return this.transaction(async () => {
+      const columns: string[] = [this.model.primaryKey, ...this.model.createColumns];
+      const ids: string[] = [];
+      const rows: unknown[][] = [];
+
+      for (const data of dataList) {
+        const id = this.generateId();
+        ids.push(id);
+        const row: unknown[] = [id];
+        for (const col of this.model.createColumns) {
+          const val = (data as Record<string, unknown>)[col];
+          row.push(val ?? null);
+        }
+        rows.push(row);
+      }
+
+      await this.bulkInsert(this.model.tableName, columns, rows);
+      return ids;
+    });
+  }
+
+  /**
    * Update an existing record by its primary key (UUID string).
    * Only updates columns that are present in the data object and allowed by the model.
    */
-  async update(id: string, data: TUpdate): Promise<void> {
+  async update(id: string, data: Partial<TUpdate>): Promise<void> {
     dbLog.debug(`[${this.model.tableName}] update id=${id} data=${JSON.stringify(data)}`);
     try {
       const setClauses: string[] = [],
@@ -245,6 +307,52 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   }
 
   /**
+   * Update multiple records matching a where condition.
+   */
+  async updateWhere(where: SimpleWhere, data: Partial<TUpdate>): Promise<number> {
+    try {
+      const setClauses: string[] = [];
+      const params: unknown[] = [];
+      let paramIdx = 1;
+
+      for (const col of this.model.updateColumns) {
+        const value = (data as Record<string, unknown>)[col];
+        if (value !== undefined) {
+          setClauses.push(`${col} = $${paramIdx++}`);
+          params.push(value ?? null);
+        }
+      }
+
+      if (setClauses.length === 0) {
+        return 0;
+      }
+
+      setClauses.push(`updated_at = datetime('now', 'localtime')`);
+
+      const qb = new QueryBuilder().from(this.model.tableName).applySimpleWhere(where);
+      const built = qb.build();
+
+      const whereMatch = built.sql.match(/WHERE\s+([\s\S]+)$/);
+      let whereClause = "";
+      if (whereMatch) {
+        let adjustedWhere = whereMatch[1];
+        for (const wp of built.params) {
+          adjustedWhere = adjustedWhere.replace(/\$\d+/, `$${paramIdx++}`);
+          params.push(wp);
+        }
+        whereClause = `WHERE ${adjustedWhere}`;
+      }
+
+      const sql = `UPDATE ${this.model.tableName} SET ${setClauses.join(", ")} ${whereClause}`;
+      const db = await this.db();
+      const res = await db.execute(sql, params);
+      return res.rowsAffected ?? 0;
+    } catch (error) {
+      throw wrapDbError(error, this.model.tableName);
+    }
+  }
+
+  /**
    * Soft-delete a record by setting `deleted_at` to current timestamp.
    * Falls back to hard delete if the model doesn't support soft delete.
    */
@@ -267,6 +375,40 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       dbLog.error(`[${this.model.tableName}] delete ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
+  }
+
+  /**
+   * Delete records matching a where condition (soft or hard).
+   */
+  async deleteWhere(where: SimpleWhere, soft = true): Promise<number> {
+    try {
+      const db = await this.db();
+      const qb = new QueryBuilder().from(this.model.tableName).applySimpleWhere(where);
+      const built = qb.build();
+
+      const whereMatch = built.sql.match(/WHERE\s+([\s\S]+)$/);
+      const whereClause = whereMatch ? `WHERE ${whereMatch[1]}` : "";
+
+      let sql: string;
+      if (this.model.softDelete && soft) {
+        sql = `UPDATE ${this.model.tableName} SET deleted_at = datetime('now', 'localtime'), updated_at = datetime('now', 'localtime') ${whereClause}`;
+      } else {
+        sql = `DELETE FROM ${this.model.tableName} ${whereClause}`;
+      }
+
+      const res = await db.execute(sql, built.params);
+      return res.rowsAffected ?? 0;
+    } catch (error) {
+      throw wrapDbError(error, this.model.tableName);
+    }
+  }
+
+  /**
+   * Delete multiple records by an array of primary keys.
+   */
+  async deleteByIds(ids: string[], soft = true): Promise<void> {
+    if (ids.length === 0) return;
+    await this.deleteWhere({ [this.model.primaryKey]: { in: ids } }, soft);
   }
 
   /**
@@ -308,13 +450,41 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
     }
   }
 
-  // ── QUERY BUILDER ACCESS ─────────────────────────────────────────────────
+  /**
+   * Execute operations within a database transaction using SQLite SAVEPOINT.
+   * Supports nesting, automatic commit, and automatic rollback on failure.
+   */
+  public async transaction<T>(operation: () => Promise<T>): Promise<T> {
+    const db = await this.db();
+    const savepoint = `sp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    dbLog.debug(`[${this.model.tableName}] Transaction START (savepoint: ${savepoint})`);
+
+    try {
+      await db.execute(`SAVEPOINT ${savepoint}`);
+      const result = await operation();
+      await db.execute(`RELEASE SAVEPOINT ${savepoint}`);
+      dbLog.debug(`[${this.model.tableName}] Transaction COMMIT (savepoint: ${savepoint})`);
+      return result;
+    } catch (error) {
+      dbLog.error(
+        `[${this.model.tableName}] Transaction ROLLBACK (savepoint: ${savepoint}): ${(error as Error)?.message ?? String(error)}`,
+      );
+      try {
+        await db.execute(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+        await db.execute(`RELEASE SAVEPOINT ${savepoint}`);
+      } catch (rollbackErr) {
+        dbLog.warn(
+          `[${this.model.tableName}] Rollback failed: ${(rollbackErr as Error)?.message ?? String(rollbackErr)}`,
+        );
+      }
+      throw wrapDbError(error, this.model.tableName);
+    }
+  }
 
   /**
    * Create a new QueryBuilder pre-configured for this model's table.
-   * Used by subclasses for custom/complex queries.
    */
-  protected query(alias?: string): QueryBuilder {
+  public query(alias?: string): QueryBuilder {
     const qb = new QueryBuilder().from(this.model.tableName, alias);
     if (this.model.softDelete) {
       qb.withSoftDelete(alias);
@@ -324,7 +494,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
 
   /**
    * Execute a raw SELECT query and return typed results.
-   * Used by subclasses for complex joins and aggregations.
    */
   protected async rawSelect<T>(sql: string, params?: unknown[]): Promise<T[]> {
     dbLog.debug(`[${this.model.tableName}] rawSelect sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
@@ -341,7 +510,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
 
   /**
    * Execute a raw SQL statement (INSERT/UPDATE/DELETE).
-   * Used by subclasses for batch operations.
    */
   protected async rawExecute(
     sql: string,
@@ -363,19 +531,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       throw wrapDbError(error, this.model.tableName);
     }
   }
-  /**
-   * Execute operations within a database transaction.
-   * Note: Explicit BEGIN/COMMIT via IPC in Tauri causes "no transaction is active" errors
-   * because the plugin-sql uses a connection pool (sqlx) under the hood.
-   * For a local SQLite desktop app, we can bypass this wrapper safely.
-   */
-  protected async transaction<T>(operation: () => Promise<T>): Promise<T> {
-    try {
-      return await operation();
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
-  }
 
   /**
    * Bulk insert multiple rows in a single query.
@@ -389,7 +544,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       return;
     }
 
-    // SQLite has a limit on bind parameters. Process in chunks.
     const chunkSize = 200,
       db = await this.db();
     let totalAffected = 0;
@@ -421,9 +575,8 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
 
   /**
    * Generate a UUID v7 string.
-   * Convenience helper for subclasses that need to create UUIDs for bulk inserts.
    */
-  protected generateId(): string {
+  public generateId(): string {
     return uuidv7();
   }
 }

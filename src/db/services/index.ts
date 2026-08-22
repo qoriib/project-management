@@ -2,10 +2,8 @@
  * Services Barrel Export.
  */
 
-// ── Auth Service ─────────────────────────────────────────────────────────────
 export { login, logout, checkIsAuthenticated, changePin } from "./auth.service";
 
-// ── Report Service ───────────────────────────────────────────────────────────
 export {
   getRequirementReport,
   getItemLog,
@@ -17,7 +15,6 @@ export {
   type ReceiptReportItem,
 } from "./report.service";
 
-// ── Excel Export Service ─────────────────────────────────────────────────────
 export {
   generateRequirementReportExcel,
   createExecutiveSummarySheet,

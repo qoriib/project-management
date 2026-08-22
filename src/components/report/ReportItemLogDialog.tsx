@@ -1,10 +1,9 @@
-import { Button } from "@astryxdesign/core/Button";
 import { Dialog, DialogHeader } from "@astryxdesign/core/Dialog";
-import { HStack, Layout, LayoutContent, LayoutFooter, VStack } from "@astryxdesign/core/Layout";
-import type { RequirementReportItem } from "@/db/services";
+import { Layout, LayoutContent, VStack } from "@astryxdesign/core/Layout";
 import { RequirementVariantCard } from "./dialog/RequirementVariantCard";
 import { OrderVariantCard } from "./dialog/OrderVariantCard";
 import { TransactionHistoryCard } from "./dialog/TransactionHistoryCard";
+import type { RequirementReportItem } from "@/db/services";
 
 interface ReportItemLogDialogProps {
   isOpen: boolean;

@@ -1,5 +1,8 @@
 /**
  * Centralized Model Definitions & Entity Types (Barrel Export).
+ *
+ * Provides typed domain entity interfaces, insertion/update payloads,
+ * and ModelDefinition schemas for all tables in the SQLite database.
  */
 
 export * from "./project.model";

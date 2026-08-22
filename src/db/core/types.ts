@@ -3,14 +3,27 @@
  * Provides shared types used by QueryBuilder, BaseRepository, and all repositories.
  */
 
-// ── SQL Operators ────────────────────────────────────────────────────────────
-
-export type WhereOperator = "=" | "!=" | ">" | "<" | ">=" | "<=" | "LIKE" | "IN" | "IS NULL" | "IS NOT NULL";
+export type WhereOperator =
+  | "="
+  | "!="
+  | "<>"
+  | ">"
+  | "<"
+  | ">="
+  | "<="
+  | "LIKE"
+  | "NOT LIKE"
+  | "IN"
+  | "NOT IN"
+  | "BETWEEN"
+  | "NOT BETWEEN"
+  | "IS NULL"
+  | "IS NOT NULL"
+  | "EXISTS"
+  | "NOT EXISTS";
 
 export type OrderDirection = "ASC" | "DESC";
-export type JoinType = "INNER" | "LEFT" | "RIGHT";
-
-// ── Where Clause ─────────────────────────────────────────────────────────────
+export type JoinType = "INNER" | "LEFT" | "RIGHT" | "CROSS";
 
 export interface WhereCondition {
   column: string;
@@ -20,12 +33,36 @@ export interface WhereCondition {
 }
 
 /**
- * Simple where clause shorthand: { column_name: value }
- * Maps to `column_name = value` conditions joined with AND.
+ * Filter object supporting operators for a column.
+ * @example
+ * { gte: "2026-01-01", lte: "2026-12-31" }
+ * { in: ["id1", "id2"] }
+ * { like: "%term%" }
  */
-export type SimpleWhere = Record<string, unknown>;
+export interface WhereFilterObject {
+  eq?: unknown;
+  neq?: unknown;
+  gt?: unknown;
+  gte?: unknown;
+  lt?: unknown;
+  lte?: unknown;
+  like?: string;
+  notLike?: string;
+  in?: unknown[];
+  notIn?: unknown[];
+  between?: [unknown, unknown];
+  isNull?: boolean;
+  isNotNull?: boolean;
+}
 
-// ── Find Options ─────────────────────────────────────────────────────────────
+export type WhereValue = unknown | WhereFilterObject;
+
+/**
+ * Flexible where clause supporting primitive values and operator objects:
+ * @example
+ * { project_id: "123", order_date: { gte: "2026-01-01" }, status: { in: ["A", "B"] } }
+ */
+export type SimpleWhere = Record<string, WhereValue>;
 
 export interface OrderByClause {
   column: string;
@@ -40,8 +77,6 @@ export interface FindOptions {
   includeDeleted?: boolean;
 }
 
-// ── Model Definition ─────────────────────────────────────────────────────────
-
 export interface ModelDefinition {
   /** SQL table name */
   tableName: string;
@@ -55,18 +90,19 @@ export interface ModelDefinition {
   softDelete: boolean;
 }
 
-// ── Query Result ─────────────────────────────────────────────────────────────
-
 export interface ExecuteResult {
   lastInsertId: string | number;
   rowsAffected: number;
 }
-
-// ── Join Definition ──────────────────────────────────────────────────────────
 
 export interface JoinClause {
   type: JoinType;
   table: string;
   alias?: string;
   on: string;
+}
+
+export interface AggregateOptions {
+  where?: SimpleWhere;
+  includeDeleted?: boolean;
 }

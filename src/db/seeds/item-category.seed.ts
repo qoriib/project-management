@@ -2,9 +2,9 @@ import { itemCategoryRepo } from "@/db/repositories";
 
 export async function seedItemCategories(): Promise<void> {
   const categories = [
-    { name: "Bahan", prefix: "B" },
-    { name: "Alat", prefix: "A" },
-    { name: "Operasional", prefix: "O" },
+    { code: "00001", name: "Bahan", prefix: "B" },
+    { code: "00002", name: "Alat", prefix: "A" },
+    { code: "00003", name: "Operasional", prefix: "O" },
   ];
 
   for (const cat of categories) {
@@ -12,7 +12,7 @@ export async function seedItemCategories(): Promise<void> {
 
     if (!exists) {
       await itemCategoryRepo.create({
-        category_code: "",
+        category_code: cat.code,
         category_name: cat.name,
         prefix: cat.prefix,
       });

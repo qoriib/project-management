@@ -1,9 +1,6 @@
 import { BaseRepository } from "@/db/core/base-repository";
-import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
 import { RequirementModel, type Requirement, type CreateRequirement, type UpdateRequirement } from "@/db/models";
-
-// ── Extended Types ───────────────────────────────────────────────────────────
 
 export type RequirementDetail = Requirement & {
   item_name?: string;
@@ -22,8 +19,6 @@ export interface RequirementFilters {
   project_id?: string;
 }
 
-// ── Repository ───────────────────────────────────────────────────────────────
-
 class RequirementRepository extends BaseRepository<Requirement, CreateRequirement, UpdateRequirement> {
   constructor() {
     super(RequirementModel);
@@ -34,7 +29,7 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
    */
   async findAllWithDetails(filters?: RequirementFilters): Promise<RequirementDetail[]> {
     try {
-      const query = new QueryBuilder()
+      const query = this.query("requirements")
         .select(
           "requirements.requirement_id",
           "requirements.project_id",
@@ -55,18 +50,13 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
         .selectRaw(
           "(requirements.qty * item_prices.price * (CASE WHEN requirements.has_tax = 1 THEN 1.12 ELSE 1.0 END)) as estimated_total",
         )
-        .from("requirements", "requirements")
         .leftJoin("item_prices", "item_prices", "item_prices.item_price_id = requirements.item_price_id")
         .leftJoin("items", "items", "items.item_id = requirements.item_id")
         .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
         .leftJoin("units", "units", "items.unit_id = units.unit_id")
         .leftJoin("projects", "projects", "projects.project_id = requirements.project_id")
-        .withSoftDelete("requirements")
+        .when(Boolean(filters?.project_id), (q) => q.where("requirements.project_id", "=", filters!.project_id))
         .orderBy("requirements.requirement_id", "ASC");
-
-      if (filters?.project_id) {
-        query.where("requirements.project_id", "=", filters.project_id);
-      }
 
       const { sql, params } = query.build();
       return await this.rawSelect<RequirementDetail>(sql, params);

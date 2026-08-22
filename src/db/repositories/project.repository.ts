@@ -1,5 +1,4 @@
 import { BaseRepository } from "@/db/core/base-repository";
-import { QueryBuilder } from "@/db/core/query-builder";
 import { wrapDbError } from "@/db/core/errors";
 import { type CreateProject, type Project, ProjectModel, type UpdateProject } from "@/db/models";
 
@@ -15,14 +14,12 @@ class ProjectRepository extends BaseRepository<Project, CreateProject, UpdatePro
    */
   async findAllWithRelations(): Promise<ProjectWithRelations[]> {
     try {
-      const query = new QueryBuilder()
+      const query = this.query("projects")
         .select("projects.*")
         .selectRaw(
           `(EXISTS(SELECT 1 FROM requirements WHERE project_id = projects.project_id AND deleted_at IS NULL) 
             OR EXISTS(SELECT 1 FROM orders WHERE project_id = projects.project_id AND deleted_at IS NULL)) as has_relation`,
         )
-        .from("projects", "projects")
-        .where("projects.deleted_at", "IS NULL")
         .orderBy("projects.project_id", "ASC");
 
       const { sql, params } = query.build();

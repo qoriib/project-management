@@ -86,7 +86,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
   });
 
   const poOptions = orders.map((p) => ({
-    label: p.order_code,
+    label: p.order_code ?? "-",
     value: String(p.order_id),
   }));
 
