@@ -6,9 +6,9 @@ import { formatNumber } from "@/utils/formatters";
 import { useOrderStore } from "@/store/useOrderStore";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { ReceiptItemByOrder } from "@/db/repositories";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 type LogRow = ReceiptItemByOrder & Record<string, unknown>;
 

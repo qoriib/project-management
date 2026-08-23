@@ -11,8 +11,8 @@ export const Route = createFileRoute("/master/kategori")({
 });
 
 function MasterKategoriPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false),
-    [editTarget, setEditTarget] = useState<ItemCategory | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<ItemCategory | null>(null);
 
   useEffect(() => {
     const handleOpen = () => openCreate();

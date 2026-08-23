@@ -11,8 +11,8 @@ export const Route = createFileRoute("/master/vendor")({
 });
 
 function MasterVendorPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false),
-    [editTarget, setEditTarget] = useState<Vendor | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<Vendor | null>(null);
 
   useEffect(() => {
     const handleOpen = () => openCreate();

@@ -12,9 +12,9 @@ export interface OrderFormValues {
   order_date: string;
 }
 
-export function buildDefaultValues(order?: OrderWithSummary): OrderFormValues {
+export function buildDefaultValues(order?: OrderWithSummary | null, nextOrderCode = ""): OrderFormValues {
   return {
-    order_code: order?.order_code ?? "",
+    order_code: order?.order_code ?? nextOrderCode,
     order_date: order?.order_date ?? todayISO(),
   };
 }

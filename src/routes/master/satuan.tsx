@@ -11,8 +11,8 @@ export const Route = createFileRoute("/master/satuan")({
 });
 
 function MasterSatuanPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false),
-    [editTarget, setEditTarget] = useState<Unit | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<Unit | null>(null);
 
   useEffect(() => {
     const handleOpen = () => openCreate();

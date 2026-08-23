@@ -225,7 +225,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                       </HStack>
                       <Divider />
                       <HStack justify="between">
-                        <Text weight="bold">Total Estimasi:</Text>
+                        <Text weight="bold">Total:</Text>
                         <Text type="code" weight="bold" color="primary">
                           Rp {formatNumber(total)}
                         </Text>

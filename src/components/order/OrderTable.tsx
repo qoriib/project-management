@@ -4,8 +4,8 @@ import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
-import { type PORow, useOrderTableColumns } from "./table/useOrderTableColumns";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { type PORow, useOrderTableColumns } from "./table/useOrderTableColumns";
 
 interface OrderTableProps {
   onEdit: (id: string) => void;

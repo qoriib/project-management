@@ -1,37 +1,40 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@tanstack/react-form";
-import { Button, HStack, VStack, Table } from "@astryxdesign/core";
-import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { TextInput } from "@astryxdesign/core/TextInput";
+import { useNavigate } from "@tanstack/react-router";
+import { AlertDialog, Button, HStack, Table, TextInput, VStack } from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { useToast } from "@astryxdesign/core/Toast";
-import { getFieldError, handleFormError } from "@/utils/form";
-import { generateNextCode, todayISO } from "@/utils/formatters";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
-import { useNavigate } from "@tanstack/react-router";
-import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useMasterStore } from "@/store/useMasterStore";
-import { OrderItemDialog } from "@/components/order/OrderItemDialog";
-import { OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
-import { useOrderItemTableState } from "@/components/order/table/useOrderItemTableState";
-import { poSchema } from "@/components/order/form/order.schema";
+import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { OrderItemDialog } from "@/components/order/OrderItemDialog";
+import { useOrderItemTableState } from "@/components/order/table/useOrderItemTableState";
+import { buildDefaultValues, poSchema } from "@/components/order/form/order.schema";
+import { getFieldError, handleFormError } from "@/utils/form";
+import { generateNextCode, parseDecimalInput } from "@/utils/formatters";
+import { type OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
+import type { OrderItemFormValues } from "@/components/order/form/orderItem.schema";
 import type { OrderItemDetail, OrderItemInput, OrderWithSummary } from "@/db/repositories";
+
 export interface OrderFormProps {
   order?: OrderWithSummary;
   initialItems?: OrderItemDetail[];
 }
+
 export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const navigate = useNavigate();
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+
   const [items, setItems] = useState<OrderItemDetail[]>(initialItems);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<OrderItemDetail | undefined>(undefined);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+
   const { orders, createOrder, updateOrder } = useOrderStore();
+
   const nextOrderCode = useMemo(() => {
     if (order) return order.order_code || "";
     return generateNextCode(
@@ -39,11 +42,13 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
       "PO-",
     );
   }, [orders, order]);
+
   const form = useForm({
-    defaultValues: { order_code: order?.order_code ?? nextOrderCode, order_date: order?.order_date ?? todayISO() },
+    defaultValues: buildDefaultValues(order, nextOrderCode),
     validators: { onChange: poSchema },
     onSubmit: async ({ value }) => {
       if (!selectedProjectId) return;
+
       const itemInputs: OrderItemInput[] = items.map((i) => ({
         order_item_id: i.order_item_id.startsWith("draft-") ? undefined : i.order_item_id,
         item_id: i.item_id,
@@ -52,16 +57,25 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         qty: i.qty,
         has_tax: i.has_tax ? 1 : 0,
       }));
+
       try {
         if (order) {
           await updateOrder(
             order.order_id,
-            { order_date: value.order_date, project_id: selectedProjectId, order_code: value.order_code },
+            {
+              order_date: value.order_date,
+              project_id: selectedProjectId,
+              order_code: value.order_code,
+            },
             itemInputs,
           );
         } else {
           await createOrder(
-            { order_date: value.order_date, project_id: selectedProjectId, order_code: value.order_code },
+            {
+              order_date: value.order_date,
+              project_id: selectedProjectId,
+              order_code: value.order_code,
+            },
             itemInputs,
           );
         }
@@ -71,69 +85,62 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
       }
     },
   });
+
   useEffect(() => {
-    if (order) form.reset({ order_code: order.order_code ?? "", order_date: order.order_date });
-    else form.reset({ order_code: nextOrderCode, order_date: todayISO() });
+    form.reset(buildDefaultValues(order, nextOrderCode));
   }, [order, nextOrderCode]);
+
   function handleOpenAdd() {
     setEditingItem(undefined);
     setIsItemDialogOpen(true);
   }
+
   function handleOpenEdit(item: OrderItemDetail) {
     setEditingItem(item);
     setIsItemDialogOpen(true);
   }
-  function handleSaveItem(payload: any) {
-    const { items: globalItems, itemPricesMap, vendors } = useMasterStore.getState();
-    const itemDef = globalItems.find((i) => i.item_id === payload.item_id);
-    const priceDef = (itemPricesMap.get(payload.item_id) ?? []).find((p) => p.item_price_id === payload.item_price_id);
-    const vendorDef = vendors.find((v) => v.vendor_id === payload.vendor_id);
-    const newDetail: OrderItemDetail = {
-      category_code: itemDef?.category_code ?? "",
-      category_prefix: itemDef?.category_prefix ?? "",
-      item_code: itemDef?.item_code ?? "",
-      item_id: payload.item_id,
-      item_name: itemDef?.item_name ?? "",
-      item_price_id: payload.item_price_id,
-      order_id: "",
-      order_item_id: editingItem ? editingItem.order_item_id : `draft-${Date.now()}`,
-      price: priceDef?.price ?? 0,
-      qty: payload.qty,
-      has_tax: payload.has_tax ? 1 : 0,
-      remaining: payload.qty,
-      total_delivered: 0,
-      unit: itemDef?.unit_name ?? "",
-      vendor_id: payload.vendor_id,
-      vendor_name: vendorDef?.vendor_name ?? "",
-    };
-    if (editingItem) setItems(items.map((i) => (i.order_item_id === editingItem.order_item_id ? newDetail : i)));
-    else setItems([...items, newDetail]);
+
+  function handleSaveItem(payload: OrderItemFormValues) {
+    const newDetail = buildOrderItemDetail(payload, editingItem, order?.order_id);
+    if (editingItem) {
+      setItems((prev) => prev.map((i) => (i.order_item_id === editingItem.order_item_id ? newDetail : i)));
+    } else {
+      setItems((prev) => [...prev, newDetail]);
+    }
   }
-  const columns = useOrderItemFormColumns({ onEdit: handleOpenEdit, setDeleteTarget: setDeletingId });
+
+  function handleDelete() {
+    if (!deletingId) return;
+    setItems((prev) => prev.filter((i) => i.order_item_id !== deletingId));
+    setDeletingId(null);
+  }
+
+  const columns = useOrderItemFormColumns({
+    onEdit: handleOpenEdit,
+    setDeleteTarget: setDeletingId,
+  });
+
   const { dataWithFooters, footerPlugin } = useOrderItemTableState({
     items: items as OrderItemRow[],
     onAdd: handleOpenAdd,
   });
+
   const rowIndexPlugin = useTableRowIndex<OrderItemRow>({
     data: items as OrderItemRow[],
     getRowKey: (item) => item.order_item_id,
     label: "#",
   });
-  async function handleDelete() {
-    if (!deletingId) return;
-    setItems(items.filter((i) => i.order_item_id !== deletingId));
-    setDeletingId(null);
-  }
+
   return (
     <>
       <VStack gap={4}>
-        <FormLayout direction="horizontal">
+        <HStack gap={3}>
           <form.Field name="order_code">
             {(field) => (
               <TextInput
                 isRequired
+                width={240}
                 label="Nomor Order"
-                description="Otomatis terisi : dapat diubah"
                 statusVariant="tooltip"
                 value={field.state.value}
                 onChange={(v) => field.handleChange(v ?? "")}
@@ -146,6 +153,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
             {(field) => (
               <DateInput
                 isRequired
+                width={240}
                 format="system_date"
                 label="Tanggal Order"
                 statusVariant="tooltip"
@@ -156,15 +164,14 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
               />
             )}
           </form.Field>
-        </FormLayout>
-        <VStack gap={0} className="pm-table-wrap">
+        </HStack>
+        <VStack paddingBlock={6}>
           <Table
             hasHover
-            density="compact"
+            idKey="order_item"
             textOverflow="truncate"
             columns={columns}
             data={dataWithFooters}
-            idKey="order_item_id"
             plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin }}
             emptyState={<TableEmptyState message="Belum ada item. Tambah item untuk melanjutkan." />}
           />
@@ -194,6 +201,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         actionLabel="Hapus"
         cancelLabel="Batal"
       />
+
       <OrderItemDialog
         isOpen={isItemDialogOpen}
         onClose={() => {
@@ -205,4 +213,35 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
       />
     </>
   );
+}
+
+export function buildOrderItemDetail(
+  payload: OrderItemFormValues,
+  editingItem?: OrderItemDetail,
+  orderId = "",
+): OrderItemDetail {
+  const { items: globalItems, itemPricesMap, vendors } = useMasterStore.getState();
+  const itemDef = globalItems.find((i) => i.item_id === payload.item_id);
+  const priceDef = (itemPricesMap.get(payload.item_id) ?? []).find((p) => p.item_price_id === payload.item_price_id);
+  const vendorDef = vendors.find((v) => v.vendor_id === payload.vendor_id);
+  const numQty = parseDecimalInput(payload.qty);
+
+  return {
+    category_code: itemDef?.category_code ?? "",
+    category_prefix: itemDef?.category_prefix ?? "",
+    item_code: itemDef?.item_code ?? "",
+    item_id: payload.item_id,
+    item_name: itemDef?.item_name ?? "",
+    item_price_id: payload.item_price_id,
+    order_id: orderId,
+    order_item_id: editingItem ? editingItem.order_item_id : `draft-${Date.now()}`,
+    price: priceDef?.price ?? 0,
+    qty: numQty,
+    has_tax: payload.has_tax ? 1 : 0,
+    remaining: numQty,
+    total_delivered: 0,
+    unit: itemDef?.unit_name ?? "",
+    vendor_id: payload.vendor_id,
+    vendor_name: vendorDef?.vendor_name ?? "",
+  };
 }

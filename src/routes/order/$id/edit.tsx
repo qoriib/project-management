@@ -10,6 +10,7 @@ function POEditPage() {
   const { id } = useParams({ strict: false });
   const { currentOrder: order, currentItems, loadOrderDetail, clearOrderDetail } = useOrderStore();
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (!id) return;
     async function load() {
@@ -20,16 +21,19 @@ function POEditPage() {
     load();
     return () => clearOrderDetail();
   }, [id, loadOrderDetail, clearOrderDetail]);
+
   if (loading) return <LoadingState message="Memuat data Order…" />;
+
   if (!order)
     return (
-      <Section padding={4}>
+      <Section padding={6}>
         <Text color="secondary">Pemesanan tidak ditemukan.</Text>
       </Section>
     );
+
   return (
-    <Section padding={4} maxWidth="100%">
-      <VStack gap={3}>
+    <Section padding={6}>
+      <VStack gap={4}>
         <PageHeader title="Edit Pemesanan" subtitle={`Mengubah ${order.order_code} : sesuaikan item & vendor`} />
         <OrderForm order={order} initialItems={currentItems} />
       </VStack>

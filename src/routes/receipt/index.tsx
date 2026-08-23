@@ -21,7 +21,6 @@ function ReceiptPage() {
             ) : null
           }
         />
-
         <ProjectRequired>
           <ReceiptTable />
         </ProjectRequired>

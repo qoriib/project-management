@@ -5,9 +5,9 @@ import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useOrderStore } from "@/store/useOrderStore";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 type TrackingRow = OrderItemDetail & Record<string, unknown>;
 

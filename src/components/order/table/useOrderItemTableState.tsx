@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { Button, HStack, Text } from "@astryxdesign/core";
 import { Plus } from "lucide-react";
-import { type TablePlugin, TableCell } from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
+import { type TablePlugin, TableCell } from "@astryxdesign/core/Table";
 import type { OrderItemRow } from "./useOrderItemFormColumns";
 
 interface UseOrderItemTableStateProps {

@@ -12,6 +12,7 @@ function PODetailPage() {
   const { id } = useParams({ strict: false });
   const { currentOrder: order, loadOrderDetail, clearOrderDetail } = useOrderStore();
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (!id) return;
     async function load() {
@@ -22,16 +23,19 @@ function PODetailPage() {
     load();
     return () => clearOrderDetail();
   }, [id, loadOrderDetail, clearOrderDetail]);
+
   if (loading) return <LoadingState message="Memuat data Order…" />;
+
   if (!order)
     return (
-      <Section padding={4}>
+      <Section padding={6}>
         <Text color="secondary">Pemesanan tidak ditemukan.</Text>
       </Section>
     );
+
   return (
-    <Section padding={4} maxWidth="100%">
-      <VStack gap={3}>
+    <Section padding={6}>
+      <VStack gap={4}>
         <PageHeader
           title="Detail Pemesanan"
           subtitle={`Tracking PO ${order.order_code} : status per item & log NP`}

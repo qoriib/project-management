@@ -7,9 +7,10 @@ import { ReceiptForm } from "@/components/receipt/ReceiptForm";
 function EditReceiptPage() {
   const navigate = useNavigate();
   const { id } = Route.useParams();
+
   return (
-    <Section padding={4} maxWidth="100%">
-      <VStack gap={3}>
+    <Section padding={6}>
+      <VStack gap={4}>
         <PageHeader title="Edit Penerimaan" subtitle="Ubah volume diterima : sistem jaga batas sisa PO" />
         <ProjectRequired>
           <ReceiptForm

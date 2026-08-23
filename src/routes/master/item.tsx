@@ -11,8 +11,8 @@ export const Route = createFileRoute("/master/item")({
 });
 
 function MasterItemPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false),
-    [editTarget, setEditTarget] = useState<ItemWithDetails | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<ItemWithDetails | null>(null);
 
   useEffect(() => {
     const handleOpen = () => openCreate();

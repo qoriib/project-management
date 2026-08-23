@@ -11,8 +11,8 @@ export const Route = createFileRoute("/master/project")({
 });
 
 function MasterProjectPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false),
-    [editTarget, setEditTarget] = useState<Project | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<Project | null>(null);
 
   useEffect(() => {
     const handleOpen = () => openCreate();

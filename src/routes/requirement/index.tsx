@@ -8,7 +8,7 @@ import { RequirementApprovalActions } from "@/components/requirement/Requirement
 function BOMPage() {
   return (
     <Section padding={6}>
-      <VStack gap={4} minHeight="calc(100vh - 48px)">
+      <VStack gap={4}>
         <PageHeader
           title="Rencana Kebutuhan (BOM)"
           subtitle="Rincian item yang dibutuhkan untuk proyek ini"

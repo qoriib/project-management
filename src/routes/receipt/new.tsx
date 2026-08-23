@@ -12,9 +12,10 @@ const searchSchema = z.object({
 function NewReceiptPage() {
   const navigate = useNavigate();
   const { order: initialPoId } = Route.useSearch();
+
   return (
-    <Section padding={4} maxWidth="100%">
-      <VStack gap={3}>
+    <Section padding={6}>
+      <VStack gap={4}>
         <PageHeader title="Penerimaan Baru" subtitle="Catat volume diterima per item : tidak boleh melebihi sisa PO" />
         <ProjectRequired>
           <ReceiptForm

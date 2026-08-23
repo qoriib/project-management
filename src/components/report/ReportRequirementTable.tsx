@@ -1,14 +1,15 @@
 import { useMemo, useState } from "react";
-import { HStack, IconButton, Table, Text, VStack } from "@astryxdesign/core";
+import { HStack, IconButton, Table, Text } from "@astryxdesign/core";
 import { Item } from "@astryxdesign/core/Item";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
-import { type TableColumn, pixel, proportional, useTableGroupedRows } from "@astryxdesign/core/Table";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { Eye } from "lucide-react";
 import { EntityCode } from "@/components/shared/EntityCode";
-import type { RequirementReportItem } from "@/db/services";
+import { ReportComparisonCell } from "@/components/shared/ReportComparisonCell";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { type TableColumn, pixel, proportional, useTableGroupedRows } from "@astryxdesign/core/Table";
+import type { RequirementReportItem } from "@/db/services";
 
 interface ReportRequirementTableProps {
   report: RequirementReportItem[];
@@ -90,22 +91,12 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
         const isUnder = !r.is_unplanned && poPrice > 0 && poPrice < plannedPrice;
 
         return (
-          <VStack gap={0.5} align="end">
-            <HStack gap={1} justify="end">
-              <Text weight="medium">PO:</Text>
-              <Text type="code" color={isUnder ? "accent" : undefined} className={isOver ? "pm-error-text" : undefined}>
-                {r.total_ordered > 0 ? formatNumber(poPrice) : "-"}
-              </Text>
-            </HStack>
-            <HStack gap={1} justify="end">
-              <Text size="sm" color="secondary">
-                BOM:
-              </Text>
-              <Text type="code" size="sm" color="secondary">
-                {r.is_unplanned ? "-" : formatNumber(plannedPrice)}
-              </Text>
-            </HStack>
-          </VStack>
+          <ReportComparisonCell
+            poValue={r.total_ordered > 0 ? formatNumber(poPrice) : "-"}
+            bomValue={r.is_unplanned ? "-" : formatNumber(plannedPrice)}
+            poColor={isUnder ? "accent" : undefined}
+            poClassName={isOver ? "pm-error-text" : undefined}
+          />
         );
       },
     },
@@ -115,20 +106,10 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       key: "qty",
       width: pixel(140),
       renderCell: (r) => (
-        <VStack gap={0.5} align="end">
-          <HStack gap={1} justify="end">
-            <Text weight="medium">PO:</Text>
-            <Text type="code">{formatNumber(r.total_ordered)}</Text>
-          </HStack>
-          <HStack gap={1} justify="end">
-            <Text size="sm" color="secondary">
-              BOM:
-            </Text>
-            <Text type="code" size="sm" color="secondary">
-              {r.is_unplanned ? "-" : formatNumber(r.planned_volume)}
-            </Text>
-          </HStack>
-        </VStack>
+        <ReportComparisonCell
+          poValue={formatNumber(r.total_ordered)}
+          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_volume)}
+        />
       ),
     },
     {
@@ -137,20 +118,10 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       key: "subtotal",
       width: pixel(180),
       renderCell: (r) => (
-        <VStack gap={0.5} align="end">
-          <HStack gap={1} justify="end">
-            <Text weight="medium">PO:</Text>
-            <Text type="code">{formatNumber(r.total_order_dpp)}</Text>
-          </HStack>
-          <HStack gap={1} justify="end">
-            <Text size="sm" color="secondary">
-              BOM:
-            </Text>
-            <Text type="code" size="sm" color="secondary">
-              {r.is_unplanned ? "-" : formatNumber(r.planned_dpp)}
-            </Text>
-          </HStack>
-        </VStack>
+        <ReportComparisonCell
+          poValue={formatNumber(r.total_order_dpp)}
+          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_dpp)}
+        />
       ),
     },
     {
@@ -159,20 +130,10 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       key: "has_tax",
       width: pixel(150),
       renderCell: (r) => (
-        <VStack gap={0.5} align="end">
-          <HStack gap={1} justify="end">
-            <Text weight="medium">PO:</Text>
-            <Text type="code">{formatNumber(r.total_order_tax)}</Text>
-          </HStack>
-          <HStack gap={1} justify="end">
-            <Text size="sm" color="secondary">
-              BOM:
-            </Text>
-            <Text type="code" size="sm" color="secondary">
-              {r.is_unplanned ? "-" : formatNumber(r.planned_tax)}
-            </Text>
-          </HStack>
-        </VStack>
+        <ReportComparisonCell
+          poValue={formatNumber(r.total_order_tax)}
+          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_tax)}
+        />
       ),
     },
     {
@@ -187,22 +148,12 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
         const isUnder = !r.is_unplanned && poTotal > 0 && poTotal < plannedTotal;
 
         return (
-          <VStack gap={0.5} align="end">
-            <HStack gap={1} justify="end">
-              <Text weight="medium">PO:</Text>
-              <Text type="code" color={isUnder ? "accent" : undefined} className={isOver ? "pm-error-text" : undefined}>
-                {formatNumber(poTotal)}
-              </Text>
-            </HStack>
-            <HStack gap={1} justify="end">
-              <Text size="sm" color="secondary">
-                BOM:
-              </Text>
-              <Text type="code" size="sm" color="secondary">
-                {r.is_unplanned ? "-" : formatNumber(plannedTotal)}
-              </Text>
-            </HStack>
-          </VStack>
+          <ReportComparisonCell
+            poValue={formatNumber(poTotal)}
+            bomValue={r.is_unplanned ? "-" : formatNumber(plannedTotal)}
+            poColor={isUnder ? "accent" : undefined}
+            poClassName={isOver ? "pm-error-text" : undefined}
+          />
         );
       },
     },
