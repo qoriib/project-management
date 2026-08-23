@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Button, Card, HStack, Heading, Section, Text, Timestamp, VStack } from "@astryxdesign/core";
+import { Button, Card, Grid, GridSpan, HStack, Heading, Section, Text, Timestamp, VStack } from "@astryxdesign/core";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { useOrderStore } from "@/store/useOrderStore";
@@ -12,89 +12,33 @@ function PODetailPage() {
   const { id } = useParams({ strict: false });
   const { currentOrder: order, loadOrderDetail, clearOrderDetail } = useOrderStore();
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     if (!id) return;
-
     async function load() {
       setLoading(true);
       await loadOrderDetail(id as string);
       setLoading(false);
     }
-
     load();
-
     return () => clearOrderDetail();
   }, [id, loadOrderDetail, clearOrderDetail]);
-
-  if (loading) {
-    return <LoadingState message="Memuat data Order…" />;
-  }
-
-  if (!order) {
-    return (
-      <Section padding={6}>
-        <Text color="secondary">Pemesanan tidak ditemukan.</Text>
-      </Section>
-    );
-  }
-
+  if (loading) return <LoadingState message="Memuat data Order…" />;
+  if (!order) return (<Section padding={4}><Text color="secondary">Pemesanan tidak ditemukan.</Text></Section>);
   return (
-    <Section padding={6}>
-      <VStack gap={6}>
+    <Section padding={4} style={{ maxWidth: "100%" }}>
+      <VStack gap={3}>
         <PageHeader
           title="Detail Pemesanan"
-          subtitle="Lihat rincian pesanan dan pantau progres penerimaan barang"
-          actions={
-            <HStack gap={2}>
-              <Button variant="secondary" label="Kembali" onClick={() => navigate({ to: "/order" })} />
-              <Button
-                variant="primary"
-                label="Edit"
-                onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
-              />
-            </HStack>
-          }
+          subtitle={`Tracking PO ${order.order_code} : status per item & log NP`}
+          actions={<HStack gap={2} style={{ flexWrap: "wrap" }}><Button variant="secondary" size="sm" label="Kembali" onClick={() => navigate({ to: "/order" })} /><Button variant="primary" size="sm" label="Edit PO" onClick={() => navigate({ to: `/order/${order.order_id}/edit` })} /></HStack>}
         />
-        <HStack gap={8}>
-          <VStack gap={1}>
-            <Text color="secondary" size="sm">
-              Nomor Order
-            </Text>
-            <Text weight="medium" type="code">
-              {order.order_code || "-"}
-            </Text>
-          </VStack>
-          <VStack gap={1}>
-            <Text color="secondary" size="sm">
-              Tanggal Order
-            </Text>
-            <Text weight="medium">
-              {order.order_date ? <Timestamp value={order.order_date} format="system_date" size="base" /> : "-"}
-            </Text>
-          </VStack>
-        </HStack>
-        <Card>
-          <OrderItemTrackingTable />
-        </Card>
-        <Card>
-          <VStack gap={3}>
-            <HStack gap={2} justify="between" align="center">
-              <Heading level={3}>Log Penerimaan</Heading>
-              <Button
-                variant="secondary"
-                label="Buat Baru"
-                onClick={() =>
-                  navigate({
-                    search: { order: String(order.order_id) },
-                    to: "/receipt/new",
-                  })
-                }
-              />
-            </HStack>
-            <OrderReceiptLogTable />
-          </VStack>
-        </Card>
+        <Grid gap={3} columns={{ max: 3, minWidth: 220 }}>
+          <GridSpan columns={1}><Card padding={3} style={{ borderLeft: "var(--spacing-0-5) solid var(--pm-primary)" }}><VStack gap={1}><Text size="sm" color="secondary" style={{ textTransform: "uppercase", letterSpacing: "0.03em" }}>Nomor Order</Text><Text weight="semibold" type="code" className="pm-tabular">{order.order_code || "-"}</Text></VStack></Card></GridSpan>
+          <GridSpan columns={1}><Card padding={3}><VStack gap={1}><Text size="sm" color="secondary" style={{ textTransform: "uppercase", letterSpacing: "0.03em" }}>Tanggal Order</Text><Text weight="medium">{order.order_date ? <Timestamp value={order.order_date} format="system_date" size="base" /> : "-"}</Text></VStack></Card></GridSpan>
+          <GridSpan columns={1}><Card padding={3}><VStack gap={1}><Text size="sm" color="secondary" style={{ textTransform: "uppercase", letterSpacing: "0.03em" }}>Ringkas</Text><Text size="sm" color="secondary">Buat Penerimaan untuk catat NP terkait PO ini</Text></VStack></Card></GridSpan>
+        </Grid>
+        <VStack gap={2}><Heading level={4}>Rincian Item & Pemenuhan</Heading><VStack gap={0} className="pm-table-wrap"><OrderItemTrackingTable /></VStack></VStack>
+        <Card padding={3} style={{ border: "1px solid var(--pm-border)", background: "var(--pm-surface)" }}><VStack gap={2}><HStack gap={2} justify="between" align="center" style={{ flexWrap: "wrap" }}><Heading level={4}>Log Penerimaan Terkait</Heading><Button variant="secondary" size="sm" label="Buat Penerimaan" onClick={() => navigate({ search: { order: String(order.order_id) }, to: "/receipt/new" })} /></HStack><VStack gap={0} className="pm-table-wrap"><OrderReceiptLogTable /></VStack></VStack></Card>
       </VStack>
     </Section>
   );

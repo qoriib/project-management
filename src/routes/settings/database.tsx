@@ -29,11 +29,11 @@ function SettingsDatabase() {
       setIsExportDialogOpen(false);
 
       const timestamp = getTimestampString();
-      const filename = `${timestamp}_ProjectBackup_${projectId}.project`;
+      const filename = `${timestamp}_ProjectBackup_${projectId}.sbr`;
 
       const targetPath = await save({
         defaultPath: filename,
-        filters: [{ name: "Project Data Archive", extensions: ["project"] }],
+        filters: [{ name: "Project Data Archive", extensions: ["sbr"] }],
         title: "Simpan Backup Project",
       });
 
@@ -55,7 +55,7 @@ function SettingsDatabase() {
   const handleImportSelect = async () => {
     try {
       const sourcePath = await open({
-        filters: [{ name: "Project Data Archive", extensions: ["project"] }],
+        filters: [{ name: "Project Data Archive", extensions: ["sbr"] }],
         multiple: false,
         title: "Pilih File Backup Project",
       });

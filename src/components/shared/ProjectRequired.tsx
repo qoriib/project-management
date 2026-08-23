@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Button, Card, Grid, GridSpan, Heading, Text, VStack } from "@astryxdesign/core";
+import { Button, Card, Grid, GridSpan, Heading, HStack, Text, VStack, Badge } from "@astryxdesign/core";
 import { Item } from "@astryxdesign/core/Item";
-import { Plus } from "lucide-react";
+import { Plus, FolderOpen } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { ReactNode } from "react";
@@ -12,38 +12,47 @@ interface ProjectRequiredProps {
 
 export function ProjectRequired({ children }: ProjectRequiredProps) {
   const navigate = useNavigate();
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
-  const setSelectedProjectId = useAppStore((state) => state.setSelectedProjectId);
-  const projects = useMasterStore((state) => state.projects);
-
-  const isValidProject = projects.some((project) => project.project_id === selectedProjectId);
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const setSelectedProjectId = useAppStore((s) => s.setSelectedProjectId);
+  const projects = useMasterStore((s) => s.projects);
+  const isValidProject = projects.some((p) => p.project_id === selectedProjectId);
 
   if (!selectedProjectId || !isValidProject) {
     return (
       <Card padding={4}>
         <VStack gap={4} align="center">
           <VStack gap={1} align="center">
-            <Heading level={3}>Pilih Proyek Aktif</Heading>
-            <Text color="secondary" size="sm">
-              Silakan pilih proyek di bawah ini untuk melihat data dan mengelola transaksi.
+            <HStack gap={2} align="center">
+              <FolderOpen size={18} />
+              <Heading level={3}>Pilih Proyek Aktif</Heading>
+            </HStack>
+            <Text color="secondary" size="sm" style={{ textAlign: "center", maxWidth: "520px" }}>
+              Proyek adalah konteks tunggal untuk semua transaksi. Pilih satu proyek untuk melanjutkan.
             </Text>
           </VStack>
           {projects.length > 0 ? (
-            <Grid width="100%" gap={2} columns={{ max: 2, minWidth: 260 }}>
+            <Grid width="100%" gap={3} columns={{ max: 2, minWidth: 280 }}>
               {projects.map((project) => (
                 <GridSpan key={project.project_id} columns={1}>
-                  <Card padding={3}>
+                  <Card padding={3} style={{ border: "1px solid var(--pm-border)" }}>
                     <Item
                       density="compact"
                       label={project.project_name}
-                      description={`${project.company_name} - ${project.fiscal_year}`}
+                      description={`${project.company_name} · TA ${project.fiscal_year}`}
                       endContent={
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          label="Pilih"
-                          onClick={() => setSelectedProjectId(project.project_id)}
-                        />
+                        <HStack gap={2} align="center">
+                          {project.requirements_is_approved === 1 ? (
+                            <Badge variant="green" label="ACC" />
+                          ) : (
+                            <Badge variant="yellow" label="Draft" />
+                          )}
+                          <Button
+                            size="sm"
+                            variant="primary"
+                            label="Pilih"
+                            onClick={() => setSelectedProjectId(project.project_id)}
+                          />
+                        </HStack>
                       }
                     />
                   </Card>

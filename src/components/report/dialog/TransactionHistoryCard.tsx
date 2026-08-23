@@ -97,7 +97,8 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
         <Heading level={4}>Riwayat Transaksi (PO & NP)</Heading>
         <Table
           hasHover
-          textOverflow="truncate"
+        density="compact"
+        textOverflow="truncate"
           columns={columns}
           data={paginatedLogs as LogRow[]}
           idKey="reference"
