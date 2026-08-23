@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { HStack, IconButton, Section, VStack } from "@astryxdesign/core";
+import { HStack, IconButton, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { Download } from "lucide-react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
@@ -67,38 +68,49 @@ function DashboardPage() {
   const totalPO = report.reduce((sum, r) => sum + r.total_order_price, 0);
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader
-          title="Laporan Kebutuhan & Realisasi"
-          subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
-          actions={
-            selectedProjectId ? (
-              <HStack gap={4} align="end">
-                <ReportFilterForm
-                  startDate={startDate}
-                  endDate={endDate}
-                  onFilterChange={(start, end) => {
-                    setStartDate(start);
-                    setEndDate(end);
-                  }}
+    <>
+      <Layout
+        height="fill"
+        content={
+          <LayoutContent padding={6}>
+            <VStack gap={4}>
+              <PageHeader
+                title="Laporan Kebutuhan & Realisasi"
+                subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
+                actions={
+                  selectedProjectId ? (
+                    <HStack gap={4} align="end">
+                      <ReportFilterForm
+                        startDate={startDate}
+                        endDate={endDate}
+                        onFilterChange={(start, end) => {
+                          setStartDate(start);
+                          setEndDate(end);
+                        }}
+                      />
+                      <IconButton
+                        variant="secondary"
+                        label="Export Excel"
+                        icon={<Download />}
+                        onClick={handleExport}
+                        isDisabled={exporting}
+                      />
+                    </HStack>
+                  ) : undefined
+                }
+              />
+              <ProjectRequired>
+                <ReportSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
+                <ReportRequirementTable
+                  report={report}
+                  loading={loading}
+                  onLogClick={(item) => setSelectedItem(item)}
                 />
-                <IconButton
-                  variant="secondary"
-                  label="Export Excel"
-                  icon={<Download />}
-                  onClick={handleExport}
-                  isDisabled={exporting}
-                />
-              </HStack>
-            ) : undefined
-          }
-        />
-        <ProjectRequired>
-          <ReportSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
-          <ReportRequirementTable report={report} loading={loading} onLogClick={(item) => setSelectedItem(item)} />
-        </ProjectRequired>
-      </VStack>
+              </ProjectRequired>
+            </VStack>
+          </LayoutContent>
+        }
+      />
       {selectedItem && selectedProjectId && (
         <ReportItemLogDialog
           isOpen={true}
@@ -107,7 +119,7 @@ function DashboardPage() {
           item={selectedItem}
         />
       )}
-    </Section>
+    </>
   );
 }
 

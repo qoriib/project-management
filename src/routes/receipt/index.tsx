@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Button, Section, VStack } from "@astryxdesign/core";
+import { Button, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { ReceiptTable } from "@/components/receipt/ReceiptTable";
@@ -10,22 +11,27 @@ function ReceiptPage() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader
-          title="Daftar Penerimaan (NP)"
-          subtitle="Log kronologis penerimaan item di lapangan"
-          actions={
-            selectedProjectId ? (
-              <Button variant="primary" label="Buat Baru" onClick={() => navigate({ to: "/receipt/new" })} />
-            ) : null
-          }
-        />
-        <ProjectRequired>
-          <ReceiptTable />
-        </ProjectRequired>
-      </VStack>
-    </Section>
+    <Layout
+      height="fill"
+      content={
+        <LayoutContent padding={6}>
+          <VStack gap={4}>
+            <PageHeader
+              title="Daftar Penerimaan (NP)"
+              subtitle="Log kronologis penerimaan item di lapangan"
+              actions={
+                selectedProjectId ? (
+                  <Button variant="primary" label="Buat Baru" onClick={() => navigate({ to: "/receipt/new" })} />
+                ) : null
+              }
+            />
+            <ProjectRequired>
+              <ReceiptTable />
+            </ProjectRequired>
+          </VStack>
+        </LayoutContent>
+      }
+    />
   );
 }
 

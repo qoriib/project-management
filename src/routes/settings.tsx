@@ -13,7 +13,7 @@ function SettingsLayout() {
     <Layout
       height="fill"
       content={
-        <LayoutContent padding={4}>
+        <LayoutContent padding={6}>
           <VStack gap={4}>
             <PageHeader title="Pengaturan" subtitle="Kelola database, keamanan PIN, dan tampilan" compact />
             <TabList

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Section, VStack } from "@astryxdesign/core";
+import { Button, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterCategoryTable } from "@/components/master/MasterCategoryTable";
 import { MasterCategoryForm } from "@/components/master/MasterCategoryForm";
@@ -31,16 +32,21 @@ function MasterKategoriPage() {
   }
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader
-          title="Master Data Kategori"
-          subtitle="Kelola data kategori item"
-          actions={<Button variant="primary" label="Tambah Kategori" onClick={openCreate} />}
-        />
-        <MasterCategoryTable onEdit={openEdit} />
-        <MasterCategoryForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
-      </VStack>
-    </Section>
+    <Layout
+      height="fill"
+      content={
+        <LayoutContent padding={6}>
+          <VStack gap={4}>
+            <PageHeader
+              title="Master Data Kategori"
+              subtitle="Kelola data kategori item"
+              actions={<Button variant="primary" label="Tambah Kategori" onClick={openCreate} />}
+            />
+            <MasterCategoryTable onEdit={openEdit} />
+            <MasterCategoryForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
+          </VStack>
+        </LayoutContent>
+      }
+    />
   );
 }

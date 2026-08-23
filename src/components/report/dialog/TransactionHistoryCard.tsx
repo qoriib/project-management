@@ -94,10 +94,9 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
   return (
     <Card>
       <VStack gap={3}>
-        <Heading level={4}>Riwayat Transaksi (PO & NP)</Heading>
+        <Heading level={4}>Riwayat Transaksi</Heading>
         <Table
           hasHover
-          density="compact"
           textOverflow="truncate"
           columns={columns}
           data={paginatedLogs as LogRow[]}
@@ -108,7 +107,6 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
           <EmptyState
             title="Belum ada transaksi"
             description="Belum ada log Pemesanan atau Penerimaan untuk item ini."
-            isCompact
           />
         )}
       </VStack>

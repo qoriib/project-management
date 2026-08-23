@@ -60,7 +60,7 @@ export function useRequirementTableState({ requirements, isApproved, onAdd }: Us
                       />
                     )}
                   </div>
-                  <HStack gap={2} align="end">
+                  <HStack gap={2} align="center">
                     <Text weight="medium" size="base" color="secondary">
                       Total:
                     </Text>

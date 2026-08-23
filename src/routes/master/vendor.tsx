@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Section, VStack } from "@astryxdesign/core";
+import { Button, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterVendorTable } from "@/components/master/MasterVendorTable";
 import { MasterVendorForm } from "@/components/master/MasterVendorForm";
@@ -31,16 +32,21 @@ function MasterVendorPage() {
   }
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader
-          title="Master Data Vendor"
-          subtitle="Kelola data vendor pemasok kebutuhan"
-          actions={<Button variant="primary" label="Tambah Vendor" onClick={openCreate} />}
-        />
-        <MasterVendorTable onEdit={openEdit} />
-        <MasterVendorForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
-      </VStack>
-    </Section>
+    <Layout
+      height="fill"
+      content={
+        <LayoutContent padding={6}>
+          <VStack gap={4}>
+            <PageHeader
+              title="Master Data Vendor"
+              subtitle="Kelola data vendor pemasok kebutuhan"
+              actions={<Button variant="primary" label="Tambah Vendor" onClick={openCreate} />}
+            />
+            <MasterVendorTable onEdit={openEdit} />
+            <MasterVendorForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
+          </VStack>
+        </LayoutContent>
+      }
+    />
   );
 }

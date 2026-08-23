@@ -102,7 +102,6 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
         {plannedRows.length > 0 ? (
           <Table
             hasHover
-            density="compact"
             textOverflow="truncate"
             columns={columns}
             data={paginatedRows as VariantRow[]}
@@ -120,7 +119,7 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
                           <TableCell colSpan={5}>
                             <HStack justify="end">
                               <Text weight="bold" color="secondary">
-                                TOTAL BUDGET
+                                Total
                               </Text>
                             </HStack>
                           </TableCell>
@@ -144,7 +143,6 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
           <EmptyState
             title="Tidak ada data kebutuhan (BOM)"
             description="Tidak ada rincian kebutuhan Item untuk item ini."
-            isCompact
           />
         )}
       </VStack>

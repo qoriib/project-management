@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Section, VStack } from "@astryxdesign/core";
+import { VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { RequirementTable } from "@/components/requirement/RequirementTable";
@@ -7,18 +8,23 @@ import { RequirementApprovalActions } from "@/components/requirement/Requirement
 
 function BOMPage() {
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader
-          title="Rencana Kebutuhan (BOM)"
-          subtitle="Rincian item yang dibutuhkan untuk proyek ini"
-          actions={<RequirementApprovalActions />}
-        />
-        <ProjectRequired>
-          <RequirementTable />
-        </ProjectRequired>
-      </VStack>
-    </Section>
+    <Layout
+      height="fill"
+      content={
+        <LayoutContent padding={6}>
+          <VStack gap={4}>
+            <PageHeader
+              title="Rencana Kebutuhan (BOM)"
+              subtitle="Rincian item yang dibutuhkan untuk proyek ini"
+              actions={<RequirementApprovalActions />}
+            />
+            <ProjectRequired>
+              <RequirementTable />
+            </ProjectRequired>
+          </VStack>
+        </LayoutContent>
+      }
+    />
   );
 }
 

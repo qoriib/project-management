@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Section, VStack } from "@astryxdesign/core";
+import { Button, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterUnitTable } from "@/components/master/MasterUnitTable";
 import { MasterUnitForm } from "@/components/master/MasterUnitForm";
@@ -31,16 +32,21 @@ function MasterSatuanPage() {
   }
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader
-          title="Master Data Satuan"
-          subtitle="Kelola data satuan item"
-          actions={<Button variant="primary" label="Tambah Satuan" onClick={openCreate} />}
-        />
-        <MasterUnitTable onEdit={openEdit} />
-        <MasterUnitForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
-      </VStack>
-    </Section>
+    <Layout
+      height="fill"
+      content={
+        <LayoutContent padding={6}>
+          <VStack gap={4}>
+            <PageHeader
+              title="Master Data Satuan"
+              subtitle="Kelola data satuan item"
+              actions={<Button variant="primary" label="Tambah Satuan" onClick={openCreate} />}
+            />
+            <MasterUnitTable onEdit={openEdit} />
+            <MasterUnitForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
+          </VStack>
+        </LayoutContent>
+      }
+    />
   );
 }

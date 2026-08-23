@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Section, VStack } from "@astryxdesign/core";
+import { Button, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterProjectTable } from "@/components/master/MasterProjectTable";
 import { MasterProjectForm } from "@/components/master/MasterProjectForm";
@@ -31,16 +32,21 @@ function MasterProjectPage() {
   }
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader
-          title="Master Data Proyek"
-          subtitle="Kelola data proyek dan tahapannya"
-          actions={<Button variant="primary" label="Tambah Proyek" onClick={openCreate} />}
-        />
-        <MasterProjectTable onEdit={openEdit} />
-        <MasterProjectForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
-      </VStack>
-    </Section>
+    <Layout
+      height="fill"
+      content={
+        <LayoutContent padding={6}>
+          <VStack gap={4}>
+            <PageHeader
+              title="Master Data Proyek"
+              subtitle="Kelola data proyek dan tahapannya"
+              actions={<Button variant="primary" label="Tambah Proyek" onClick={openCreate} />}
+            />
+            <MasterProjectTable onEdit={openEdit} />
+            <MasterProjectForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
+          </VStack>
+        </LayoutContent>
+      }
+    />
   );
 }

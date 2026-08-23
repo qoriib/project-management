@@ -1,6 +1,7 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Section, Text, VStack } from "@astryxdesign/core";
+import { Text, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { OrderForm } from "@/components/order/OrderForm";
@@ -26,18 +27,28 @@ function POEditPage() {
 
   if (!order)
     return (
-      <Section padding={6}>
-        <Text color="secondary">Pemesanan tidak ditemukan.</Text>
-      </Section>
+      <Layout
+        height="fill"
+        content={
+          <LayoutContent padding={6}>
+            <Text color="secondary">Pemesanan tidak ditemukan.</Text>
+          </LayoutContent>
+        }
+      />
     );
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader title="Edit Pemesanan" subtitle={`Mengubah ${order.order_code} : sesuaikan item & vendor`} />
-        <OrderForm order={order} initialItems={currentItems} />
-      </VStack>
-    </Section>
+    <Layout
+      height="fill"
+      content={
+        <LayoutContent padding={6}>
+          <VStack gap={4}>
+            <PageHeader title="Edit Pemesanan" subtitle={`Mengubah ${order.order_code} : sesuaikan item & vendor`} />
+            <OrderForm order={order} initialItems={currentItems} />
+          </VStack>
+        </LayoutContent>
+      }
+    />
   );
 }
 

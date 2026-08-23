@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Section, VStack } from "@astryxdesign/core";
+import { Button, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterItemTable } from "@/components/master/MasterItemTable";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
@@ -31,16 +32,21 @@ function MasterItemPage() {
   }
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader
-          title="Master Data Item"
-          subtitle="Kelola data item kebutuhan"
-          actions={<Button variant="primary" label="Tambah Item" onClick={openCreate} />}
-        />
-        <MasterItemTable onEdit={openEdit} />
-        <MasterItemForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
-      </VStack>
-    </Section>
+    <Layout
+      height="fill"
+      content={
+        <LayoutContent padding={6}>
+          <VStack gap={4}>
+            <PageHeader
+              title="Master Data Item"
+              subtitle="Kelola data item kebutuhan"
+              actions={<Button variant="primary" label="Tambah Item" onClick={openCreate} />}
+            />
+            <MasterItemTable onEdit={openEdit} />
+            <MasterItemForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
+          </VStack>
+        </LayoutContent>
+      }
+    />
   );
 }

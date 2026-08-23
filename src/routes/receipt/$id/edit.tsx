@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Section, VStack } from "@astryxdesign/core";
+import { VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { ReceiptForm } from "@/components/receipt/ReceiptForm";
@@ -9,18 +10,23 @@ function EditReceiptPage() {
   const { id } = Route.useParams();
 
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader title="Edit Penerimaan" subtitle="Ubah volume diterima : sistem jaga batas sisa PO" />
-        <ProjectRequired>
-          <ReceiptForm
-            initialEditId={id}
-            onSuccess={(poId) => navigate({ to: `/order/${poId}` })}
-            onCancel={() => navigate({ to: "/receipt" })}
-          />
-        </ProjectRequired>
-      </VStack>
-    </Section>
+    <Layout
+      height="fill"
+      content={
+        <LayoutContent padding={6}>
+          <VStack gap={4}>
+            <PageHeader title="Edit Penerimaan" subtitle="Ubah volume diterima : sistem jaga batas sisa PO" />
+            <ProjectRequired>
+              <ReceiptForm
+                initialEditId={id}
+                onSuccess={(poId) => navigate({ to: `/order/${poId}` })}
+                onCancel={() => navigate({ to: "/receipt" })}
+              />
+            </ProjectRequired>
+          </VStack>
+        </LayoutContent>
+      }
+    />
   );
 }
 

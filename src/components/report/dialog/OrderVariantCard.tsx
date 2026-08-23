@@ -109,7 +109,6 @@ export function OrderVariantCard({ item }: OrderVariantCardProps) {
         {orderRows.length > 0 ? (
           <Table
             hasHover
-            density="compact"
             textOverflow="truncate"
             columns={columns}
             data={paginatedRows as VariantRow[]}
@@ -127,7 +126,7 @@ export function OrderVariantCard({ item }: OrderVariantCardProps) {
                           <TableCell colSpan={6}>
                             <HStack justify="end">
                               <Text weight="bold" color="secondary">
-                                TOTAL PEMESANAN
+                                Total
                               </Text>
                             </HStack>
                           </TableCell>
