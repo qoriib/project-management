@@ -94,7 +94,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                     name="item_id"
                     children={(field) => (
                       <Selector
-                        label="Item Material"
+                        label="Item"
                         description={selectedItemCode ? `Kode: ${selectedItemCode}` : undefined}
                         options={itemOptions}
                         value={field.state.value}
@@ -103,7 +103,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                         }}
                         onBlur={field.handleBlur}
                         hasSearch
-                        searchPlaceholder="Cari item material..."
+                        searchPlaceholder="Cari item..."
                         isRequired
                         statusVariant="tooltip"
                         status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
