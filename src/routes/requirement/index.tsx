@@ -8,17 +8,15 @@ import { RequirementApprovalActions } from "@/components/requirement/Requirement
 function BOMPage() {
   return (
     <Section padding={6}>
-      <VStack style={{ minHeight: "calc(100vh - 48px)" }}>
-        <VStack gap={4} style={{ flex: 1 }}>
-          <PageHeader
-            title="Rencana Kebutuhan (BOM)"
-            subtitle="Rincian item yang dibutuhkan untuk proyek ini"
-            actions={<RequirementApprovalActions />}
-          />
-          <ProjectRequired>
-            <RequirementTable />
-          </ProjectRequired>
-        </VStack>
+      <VStack gap={4} minHeight="calc(100vh - 48px)">
+        <PageHeader
+          title="Rencana Kebutuhan (BOM)"
+          subtitle="Rincian item yang dibutuhkan untuk proyek ini"
+          actions={<RequirementApprovalActions />}
+        />
+        <ProjectRequired>
+          <RequirementTable />
+        </ProjectRequired>
       </VStack>
     </Section>
   );

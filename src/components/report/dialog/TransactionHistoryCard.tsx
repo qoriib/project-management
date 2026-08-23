@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Card, Code, Heading, Text, Timestamp, VStack } from "@astryxdesign/core";
+import { Badge, Card, Heading, Text, Timestamp, VStack } from "@astryxdesign/core";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
 import {
   Table,
@@ -74,7 +74,7 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
       header: "Referensi",
       key: "reference",
       width: pixel(120),
-      renderCell: (r) => <Code style={{ background: "transparent", padding: 0 }}>{r.reference}</Code>,
+      renderCell: (r) => <Text type="code">{r.reference}</Text>,
     },
     {
       align: "end",
@@ -97,8 +97,8 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
         <Heading level={4}>Riwayat Transaksi (PO & NP)</Heading>
         <Table
           hasHover
-        density="compact"
-        textOverflow="truncate"
+          density="compact"
+          textOverflow="truncate"
           columns={columns}
           data={paginatedLogs as LogRow[]}
           idKey="reference"

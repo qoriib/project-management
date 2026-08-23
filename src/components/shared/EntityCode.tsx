@@ -1,4 +1,4 @@
-import { Code } from "@astryxdesign/core";
+import { Text } from "@astryxdesign/core";
 
 export interface EntityCodeProps {
   id: string | number | null | undefined;
@@ -16,11 +16,11 @@ export function formatEntityCode(id: string | number | null | undefined): string
 }
 
 /**
- * Render a standardized entity code using Astryx's Code component.
+ * Render a standardized entity code using Astryx's Text component with code styling.
  */
 export function EntityCode({ id }: EntityCodeProps) {
   if (id === null || id === undefined || id === "") {
-    return <Code style={{ background: "transparent", padding: 0 }}>-</Code>;
+    return <Text type="code">-</Text>;
   }
-  return <Code style={{ background: "transparent", padding: 0 }}>{String(id)}</Code>;
+  return <Text type="code">{String(id)}</Text>;
 }

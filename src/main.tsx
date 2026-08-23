@@ -10,16 +10,16 @@ import "@astryxdesign/core/reset.css";
 import "@astryxdesign/core/astryx.css";
 import "./app.css";
 
-// Create a new router instance
-const hashHistory = createHashHistory();
-const router = createRouter({ history: hashHistory, routeTree });
-
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }
 }
+
+// Create a new router instance
+const hashHistory = createHashHistory();
+const router = createRouter({ history: hashHistory, routeTree });
 
 /** Inner component that reads themeMode from the store and passes it to <Theme>. */
 function ThemedApp() {

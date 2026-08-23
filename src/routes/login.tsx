@@ -41,8 +41,8 @@ function LoginPage() {
   });
 
   return (
-    <Center minHeight="100vh" style={{ background: "var(--color-background-body)", padding: "var(--spacing-4)" }}>
-      <Card padding={6} style={{ width: "100%", maxWidth: "400px", border: "1px solid var(--pm-border)" }}>
+    <Center minHeight="100vh" padding={4}>
+      <Card padding={6} width="100%" maxWidth={400}>
         <form
           autoComplete="off"
           onSubmit={(e) => {
@@ -52,12 +52,12 @@ function LoginPage() {
           }}
         >
           <VStack gap={5} align="center">
-            <img src={sbrLogo} alt="SBR" style={{ height: "76px", width: "auto", objectFit: "contain" }} />
+            <img src={sbrLogo} alt="SBR" className="pm-logo-login" />
             <VStack gap={1} align="center">
-              <Heading level={3} style={{ textAlign: "center" }}>
+              <Heading level={3} justify="center">
                 {APP.title}
               </Heading>
-              <Text size="sm" color="secondary" style={{ textAlign: "center" }}>
+              <Text size="sm" color="secondary" justify="center">
                 Masuk dengan PIN 6 digit · {APP.companyName}
               </Text>
             </VStack>
@@ -87,7 +87,10 @@ function LoginPage() {
                               const rawValue = event.target.value;
                               const sanitized = sanitizePin(rawValue);
                               const nextValue = sanitized.slice(-1);
-                              const currentDigits = Array.from({ length: PIN_LENGTH }, (_, pos) => field.state.value[pos] ?? "");
+                              const currentDigits = Array.from(
+                                { length: PIN_LENGTH },
+                                (_, pos) => field.state.value[pos] ?? "",
+                              );
 
                               if (nextValue) {
                                 currentDigits[index] = nextValue;
@@ -119,7 +122,10 @@ function LoginPage() {
                               const pasted = sanitizePin(event.clipboardData.getData("text"));
                               if (!pasted) return;
 
-                              const currentDigits = Array.from({ length: PIN_LENGTH }, (_, pos) => field.state.value[pos] ?? "");
+                              const currentDigits = Array.from(
+                                { length: PIN_LENGTH },
+                                (_, pos) => field.state.value[pos] ?? "",
+                              );
                               const nextDigits = pasted.slice(0, PIN_LENGTH).split("");
 
                               for (let i = 0; i < PIN_LENGTH; i += 1) {
@@ -132,24 +138,12 @@ function LoginPage() {
                                 inputRefs.current[Math.min(lastFilledIndex, PIN_LENGTH - 1)]?.focus();
                               }
                             }}
-                            style={{
-                              width: "46px",
-                              height: "54px",
-                              border: `1px solid ${errorText ? "var(--color-border-critical)" : "var(--color-border-primary)"}`,
-                              borderRadius: "12px",
-                              background: "var(--color-background-surface)",
-                              color: "var(--color-text-primary)",
-                              fontSize: "1.5rem",
-                              fontWeight: 700,
-                              textAlign: "center",
-                              outline: "none",
-                              boxShadow: digit ? "0 0 0 2px rgba(59,130,246,0.15)" : "none",
-                            }}
+                            className={`pm-pin-input${errorText ? " is-error" : ""}`}
                           />
                         ))}
                       </HStack>
                       {errorText ? (
-                        <Text size="sm" style={{ textAlign: "center", color: "var(--color-text-critical)" }}>
+                        <Text size="sm" justify="center" className="pm-error-text">
                           {errorText.message}
                         </Text>
                       ) : null}
@@ -159,7 +153,15 @@ function LoginPage() {
               </form.Field>
               <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting] as const}>
                 {([canSubmit, isSubmitting]) => (
-                  <Button width="100%" size="lg" type="submit" variant="primary" label="Buka Aplikasi" isLoading={isSubmitting} isDisabled={!canSubmit} />
+                  <Button
+                    width="100%"
+                    size="lg"
+                    type="submit"
+                    variant="primary"
+                    label="Buka Aplikasi"
+                    isLoading={isSubmitting}
+                    isDisabled={!canSubmit}
+                  />
                 )}
               </form.Subscribe>
             </VStack>

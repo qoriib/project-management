@@ -1,6 +1,6 @@
 import * as v from "valibot";
-import type { OrderItemDetail } from "@/db/repositories";
 import { parseDecimalInput } from "@/utils/formatters";
+import type { OrderItemDetail } from "@/db/repositories";
 
 export const orderItemSchema = v.object({
   item_id: v.pipe(v.string(), v.nonEmpty("Item harus dipilih.")),

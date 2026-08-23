@@ -16,12 +16,13 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
   });
 
   return (
-    <HStack gap={2} style={{ flexWrap: "wrap" }}>
+    <HStack gap={2} wrap="wrap">
       <form.Field name="startDate">
         {(field) => (
           <DateInput
             hasClear
-            label=""
+            label="Dari Tanggal"
+            isLabelHidden
             placeholder="Dari Tanggal"
             format="system_date"
             statusVariant="tooltip"
@@ -30,7 +31,7 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
               field.handleChange(v as ISODateString | undefined);
               setTimeout(() => form.handleSubmit(), 0);
             }}
-            style={{ minWidth: "160px" }}
+            width={180}
           />
         )}
       </form.Field>
@@ -38,7 +39,8 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
         {(field) => (
           <DateInput
             hasClear
-            label=""
+            label="Sampai Tanggal"
+            isLabelHidden
             placeholder="Sampai Tanggal"
             format="system_date"
             statusVariant="tooltip"
@@ -48,7 +50,7 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
               setTimeout(() => form.handleSubmit(), 0);
             }}
             min={form.getFieldValue("startDate") as ISODateString | undefined}
-            style={{ minWidth: "160px" }}
+            width={180}
           />
         )}
       </form.Field>

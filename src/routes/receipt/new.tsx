@@ -13,11 +13,15 @@ function NewReceiptPage() {
   const navigate = useNavigate();
   const { order: initialPoId } = Route.useSearch();
   return (
-    <Section padding={4} style={{ maxWidth: "100%" }}>
+    <Section padding={4} maxWidth="100%">
       <VStack gap={3}>
         <PageHeader title="Penerimaan Baru" subtitle="Catat volume diterima per item : tidak boleh melebihi sisa PO" />
         <ProjectRequired>
-          <ReceiptForm initialPoId={initialPoId} onSuccess={(poId) => navigate({ to: `/order/${poId}` })} onCancel={() => navigate({ to: "/receipt" })} />
+          <ReceiptForm
+            initialPoId={initialPoId}
+            onSuccess={(poId) => navigate({ to: `/order/${poId}` })}
+            onCancel={() => navigate({ to: "/receipt" })}
+          />
         </ProjectRequired>
       </VStack>
     </Section>

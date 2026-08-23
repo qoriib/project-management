@@ -21,9 +21,14 @@ function POEditPage() {
     return () => clearOrderDetail();
   }, [id, loadOrderDetail, clearOrderDetail]);
   if (loading) return <LoadingState message="Memuat data Order…" />;
-  if (!order) return (<Section padding={4}><Text color="secondary">Pemesanan tidak ditemukan.</Text></Section>);
+  if (!order)
+    return (
+      <Section padding={4}>
+        <Text color="secondary">Pemesanan tidak ditemukan.</Text>
+      </Section>
+    );
   return (
-    <Section padding={4} style={{ maxWidth: "100%" }}>
+    <Section padding={4} maxWidth="100%">
       <VStack gap={3}>
         <PageHeader title="Edit Pemesanan" subtitle={`Mengubah ${order.order_code} : sesuaikan item & vendor`} />
         <OrderForm order={order} initialItems={currentItems} />

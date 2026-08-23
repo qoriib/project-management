@@ -26,7 +26,7 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
               <FolderOpen size={18} />
               <Heading level={3}>Pilih Proyek Aktif</Heading>
             </HStack>
-            <Text color="secondary" size="sm" style={{ textAlign: "center", maxWidth: "520px" }}>
+            <Text color="secondary" size="sm" justify="center">
               Proyek adalah konteks tunggal untuk semua transaksi. Pilih satu proyek untuk melanjutkan.
             </Text>
           </VStack>
@@ -34,7 +34,7 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
             <Grid width="100%" gap={3} columns={{ max: 2, minWidth: 280 }}>
               {projects.map((project) => (
                 <GridSpan key={project.project_id} columns={1}>
-                  <Card padding={3} style={{ border: "1px solid var(--pm-border)" }}>
+                  <Card padding={3}>
                     <Item
                       density="compact"
                       label={project.project_name}

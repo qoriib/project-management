@@ -47,7 +47,7 @@ export function useRequirementTableState({ requirements, isApproved, onAdd }: Us
           return {
             ...props,
             children: (
-              <TableCell colSpan={999} style={{ padding: "var(--spacing-3)" }}>
+              <TableCell colSpan={999}>
                 <HStack justify="between" align="center" width="100%">
                   <div>
                     {!isApproved && (

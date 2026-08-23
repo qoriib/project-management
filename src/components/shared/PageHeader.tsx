@@ -10,19 +10,17 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, actions, compact = true }: PageHeaderProps) {
   return (
-    <HStack gap={3} align="start" justify="between" style={{ flexWrap: "wrap", rowGap: "var(--spacing-2)" }}>
-      <VStack gap={0.5} width="100%" style={{ flex: "1 1 280px", minWidth: "240px" }}>
-        <Heading level={compact ? 3 : 2} style={{ letterSpacing: "-0.015em", lineHeight: "1.2" }}>
-          {title}
-        </Heading>
+    <HStack gap={3} align="start" justify="between" wrap="wrap">
+      <VStack gap={0.5}>
+        <Heading level={compact ? 3 : 2}>{title}</Heading>
         {subtitle && (
-          <Text size="sm" color="secondary" style={{ lineHeight: "1.5", overflowWrap: "anywhere", wordBreak: "break-word", whiteSpace: "normal" }}>
+          <Text size="sm" color="secondary" wordBreak="break-word" textWrap="wrap">
             {subtitle}
           </Text>
         )}
       </VStack>
       {actions && (
-        <HStack gap={2} align="center" style={{ flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <HStack gap={2} align="center" justify="end" wrap="wrap">
           {actions}
         </HStack>
       )}

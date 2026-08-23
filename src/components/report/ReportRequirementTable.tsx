@@ -88,13 +88,12 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
         const plannedPrice = r.planned_volume > 0 ? r.planned_dpp / r.planned_volume : (r.price ?? 0);
         const isOver = !r.is_unplanned && poPrice > plannedPrice && r.total_ordered > 0;
         const isUnder = !r.is_unplanned && poPrice > 0 && poPrice < plannedPrice;
-        const color = isOver ? "var(--color-error)" : isUnder ? "var(--color-success)" : undefined;
 
         return (
           <VStack gap={0.5} align="end">
             <HStack gap={1} justify="end">
               <Text weight="medium">PO:</Text>
-              <Text type="code" style={color ? { color } : undefined}>
+              <Text type="code" color={isUnder ? "accent" : undefined} className={isOver ? "pm-error-text" : undefined}>
                 {r.total_ordered > 0 ? formatNumber(poPrice) : "-"}
               </Text>
             </HStack>
@@ -178,21 +177,20 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
     },
     {
       align: "end",
-      header: "Total (Rp)",
-      key: "total",
-      width: pixel(180),
+      header: "Harga Total",
+      key: "total_price",
+      width: proportional(2),
       renderCell: (r) => {
         const poTotal = r.total_order_price ?? 0;
         const plannedTotal = r.planned_budget ?? 0;
         const isOver = !r.is_unplanned && poTotal > plannedTotal && r.total_ordered > 0;
         const isUnder = !r.is_unplanned && poTotal > 0 && poTotal < plannedTotal;
-        const color = isOver ? "var(--color-error)" : isUnder ? "var(--color-success)" : undefined;
 
         return (
           <VStack gap={0.5} align="end">
             <HStack gap={1} justify="end">
               <Text weight="medium">PO:</Text>
-              <Text type="code" style={color ? { color } : undefined}>
+              <Text type="code" color={isUnder ? "accent" : undefined} className={isOver ? "pm-error-text" : undefined}>
                 {formatNumber(poTotal)}
               </Text>
             </HStack>

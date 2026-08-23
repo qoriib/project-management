@@ -16,6 +16,21 @@ const itemSchema = v.object({
   unit_id: v.pipe(v.string(), v.nonEmpty("Pilih satuan terlebih dahulu.")),
 });
 
+export type ItemFormValues = v.InferOutput<typeof itemSchema>;
+
+export function buildDefaultValues(
+  initialData?: ItemWithDetails | null,
+  fallback?: { nextItemCode?: string; defaultCategoryId?: string; defaultUnitId?: string },
+): ItemFormValues {
+  return {
+    category_id:
+      initialData?.category_id != null ? String(initialData.category_id) : (fallback?.defaultCategoryId ?? ""),
+    item_code: initialData?.item_code ?? fallback?.nextItemCode ?? "",
+    item_name: initialData?.item_name ?? "",
+    unit_id: initialData?.unit_id != null ? String(initialData.unit_id) : (fallback?.defaultUnitId ?? ""),
+  };
+}
+
 interface MasterItemFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,13 +46,17 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
     return generateNextCode(items.map((i) => i.item_code));
   }, [items, initialData]);
 
+  const fallbackDefaults = useMemo(
+    () => ({
+      nextItemCode,
+      defaultCategoryId: categories.length > 0 ? String(categories[0].category_id) : "",
+      defaultUnitId: units.length > 0 ? String(units[0].unit_id) : "",
+    }),
+    [nextItemCode, categories, units],
+  );
+
   const form = useForm({
-    defaultValues: {
-      category_id: initialData?.category_id ? String(initialData.category_id) : "",
-      item_code: initialData?.item_code ?? nextItemCode,
-      item_name: initialData?.item_name ?? "",
-      unit_id: initialData?.unit_id ? String(initialData.unit_id) : "",
-    },
+    defaultValues: buildDefaultValues(initialData, fallbackDefaults),
     onSubmit: async ({ value }) => {
       try {
         const data = {
@@ -65,23 +84,9 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
 
   useEffect(() => {
     if (isOpen) {
-      if (initialData) {
-        form.reset({
-          category_id: String(initialData.category_id),
-          item_code: initialData.item_code || "",
-          item_name: initialData.item_name,
-          unit_id: String(initialData.unit_id),
-        });
-      } else {
-        form.reset({
-          category_id: categories.length > 0 ? String(categories[0].category_id) : "",
-          item_code: nextItemCode,
-          item_name: "",
-          unit_id: units.length > 0 ? String(units[0].unit_id) : "",
-        });
-      }
+      form.reset(buildDefaultValues(initialData, fallbackDefaults));
     }
-  }, [isOpen, initialData, nextItemCode, categories, units]);
+  }, [isOpen, initialData, fallbackDefaults]);
 
   const categoryOptions = categories.map((category) => ({
     label: category.category_name,
@@ -165,22 +170,22 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
                 />
               )}
             />
+            <HStack gap={2} justify="end">
+              <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
+              <form.Subscribe
+                selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                children={([canSubmit, isSubmitting]) => (
+                  <Button
+                    variant="primary"
+                    label="Simpan"
+                    type="submit"
+                    isLoading={isSubmitting}
+                    isDisabled={!canSubmit}
+                  />
+                )}
+              />
+            </HStack>
           </FormLayout>
-          <HStack gap={2} justify="end">
-            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
-            <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-              children={([canSubmit, isSubmitting]) => (
-                <Button
-                  variant="primary"
-                  label="Simpan"
-                  type="submit"
-                  isLoading={isSubmitting}
-                  isDisabled={!canSubmit}
-                />
-              )}
-            />
-          </HStack>
         </VStack>
       </form>
     </Dialog>

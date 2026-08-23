@@ -12,6 +12,14 @@ const unitSchema = v.object({
   unit_name: v.pipe(v.string(), v.nonEmpty("Nama satuan harus diisi.")),
 });
 
+export type UnitFormValues = v.InferOutput<typeof unitSchema>;
+
+export function buildDefaultValues(initialData?: Unit | null): UnitFormValues {
+  return {
+    unit_name: initialData?.unit_name ?? "",
+  };
+}
+
 interface MasterUnitFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -23,9 +31,7 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
   const { createUnit, updateUnit } = useMasterStore();
 
   const form = useForm({
-    defaultValues: {
-      unit_name: "",
-    },
+    defaultValues: buildDefaultValues(initialData),
     onSubmit: async ({ value }) => {
       try {
         if (initialData) {
@@ -46,13 +52,7 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
 
   useEffect(() => {
     if (isOpen) {
-      if (initialData) {
-        form.reset({
-          unit_name: initialData.unit_name,
-        });
-      } else {
-        form.reset();
-      }
+      form.reset(buildDefaultValues(initialData));
     }
   }, [isOpen, initialData]);
 
@@ -82,22 +82,22 @@ export function MasterUnitForm({ isOpen, onClose, initialData }: MasterUnitFormP
                 />
               )}
             />
+            <HStack gap={2} justify="end">
+              <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
+              <form.Subscribe
+                selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                children={([canSubmit, isSubmitting]) => (
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    label="Simpan"
+                    isLoading={isSubmitting}
+                    isDisabled={!canSubmit}
+                  />
+                )}
+              />
+            </HStack>
           </FormLayout>
-          <HStack gap={2} justify="end">
-            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
-            <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-              children={([canSubmit, isSubmitting]) => (
-                <Button
-                  type="submit"
-                  variant="primary"
-                  label="Simpan"
-                  isLoading={isSubmitting}
-                  isDisabled={!canSubmit}
-                />
-              )}
-            />
-          </HStack>
         </VStack>
       </form>
     </Dialog>

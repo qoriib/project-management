@@ -14,6 +14,16 @@ const vendorSchema = v.object({
   vendor_name: v.pipe(v.string(), v.nonEmpty("Nama vendor harus diisi.")),
 });
 
+export type VendorFormValues = v.InferOutput<typeof vendorSchema>;
+
+export function buildDefaultValues(initialData?: Vendor | null): VendorFormValues {
+  return {
+    address: initialData?.address ?? "",
+    phone: initialData?.phone ?? "",
+    vendor_name: initialData?.vendor_name ?? "",
+  };
+}
+
 interface MasterVendorFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,11 +35,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
   const { createVendor, updateVendor } = useMasterStore();
 
   const form = useForm({
-    defaultValues: {
-      address: "",
-      phone: "",
-      vendor_name: "",
-    },
+    defaultValues: buildDefaultValues(initialData),
     onSubmit: async ({ value }) => {
       try {
         if (initialData) {
@@ -50,15 +56,7 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
 
   useEffect(() => {
     if (isOpen) {
-      if (initialData) {
-        form.reset({
-          address: initialData.address ?? "",
-          phone: initialData.phone ?? "",
-          vendor_name: initialData.vendor_name,
-        });
-      } else {
-        form.reset();
-      }
+      form.reset(buildDefaultValues(initialData));
     }
   }, [isOpen, initialData]);
 
@@ -114,22 +112,22 @@ export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorF
                 />
               )}
             />
+            <HStack gap={2} justify="end">
+              <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
+              <form.Subscribe
+                selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                children={([canSubmit, isSubmitting]) => (
+                  <Button
+                    variant="primary"
+                    label="Simpan"
+                    type="submit"
+                    isLoading={isSubmitting}
+                    isDisabled={!canSubmit}
+                  />
+                )}
+              />
+            </HStack>
           </FormLayout>
-          <HStack gap={2} justify="end">
-            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
-            <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-              children={([canSubmit, isSubmitting]) => (
-                <Button
-                  variant="primary"
-                  label="Simpan"
-                  type="submit"
-                  isLoading={isSubmitting}
-                  isDisabled={!canSubmit}
-                />
-              )}
-            />
-          </HStack>
         </VStack>
       </form>
     </Dialog>

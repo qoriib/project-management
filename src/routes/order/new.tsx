@@ -6,7 +6,7 @@ import { OrderForm } from "@/components/order/OrderForm";
 
 function NewOrderPage() {
   return (
-    <Section padding={4} style={{ maxWidth: "100%" }}>
+    <Section padding={4} maxWidth="100%">
       <VStack gap={3}>
         <PageHeader title="Pemesanan Baru" subtitle="Buat PO : pilih vendor & volume dengan cek sisa BOM" />
         <ProjectRequired>

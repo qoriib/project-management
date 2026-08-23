@@ -14,6 +14,16 @@ const projectSchema = v.object({
   project_name: v.pipe(v.string(), v.nonEmpty("Nama proyek harus diisi.")),
 });
 
+export type ProjectFormValues = v.InferOutput<typeof projectSchema>;
+
+export function buildDefaultValues(initialData?: Project | null): ProjectFormValues {
+  return {
+    company_name: initialData?.company_name ?? "",
+    fiscal_year: initialData?.fiscal_year ?? new Date().getFullYear(),
+    project_name: initialData?.project_name ?? "",
+  };
+}
+
 interface MasterProjectFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,11 +35,7 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
   const { createProject, updateProject } = useMasterStore();
 
   const form = useForm({
-    defaultValues: {
-      company_name: "",
-      fiscal_year: new Date().getFullYear(),
-      project_name: "",
-    },
+    defaultValues: buildDefaultValues(initialData),
     onSubmit: async ({ value }) => {
       try {
         if (initialData) {
@@ -50,19 +56,7 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
 
   useEffect(() => {
     if (isOpen) {
-      if (initialData) {
-        form.reset({
-          company_name: initialData.company_name,
-          fiscal_year: initialData.fiscal_year,
-          project_name: initialData.project_name,
-        });
-      } else {
-        form.reset({
-          company_name: "",
-          fiscal_year: new Date().getFullYear(),
-          project_name: "",
-        });
-      }
+      form.reset(buildDefaultValues(initialData));
     }
   }, [isOpen, initialData]);
 
@@ -123,22 +117,22 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
                 />
               )}
             />
+            <HStack gap={2} justify="end">
+              <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
+              <form.Subscribe
+                selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                children={([canSubmit, isSubmitting]) => (
+                  <Button
+                    variant="primary"
+                    label="Simpan"
+                    type="submit"
+                    isLoading={isSubmitting}
+                    isDisabled={!canSubmit}
+                  />
+                )}
+              />
+            </HStack>
           </FormLayout>
-          <HStack gap={2} justify="end">
-            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
-            <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-              children={([canSubmit, isSubmitting]) => (
-                <Button
-                  variant="primary"
-                  label="Simpan"
-                  type="submit"
-                  isLoading={isSubmitting}
-                  isDisabled={!canSubmit}
-                />
-              )}
-            />
-          </HStack>
         </VStack>
       </form>
     </Dialog>

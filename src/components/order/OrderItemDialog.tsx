@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Dialog,
+  Divider,
   HStack,
   Heading,
   IconButton,
@@ -88,7 +89,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
             <FormLayout>
               {/* Item */}
               <HStack gap={2} align="end" width="100%">
-                <VStack style={{ flex: 1 }}>
+                <VStack width="100%">
                   <form.Field
                     name="item_id"
                     children={(field) => (
@@ -121,7 +122,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
 
               {/* Harga Satuan */}
               <HStack gap={2} align="end" width="100%">
-                <VStack style={{ flex: 1 }}>
+                <VStack width="100%">
                   <form.Field
                     name="item_price_id"
                     children={(field) => (
@@ -153,7 +154,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
 
               {/* Vendor */}
               <HStack gap={2} align="end" width="100%">
-                <VStack style={{ flex: 1 }}>
+                <VStack width="100%">
                   <form.Field
                     name="vendor_id"
                     children={(field) => (
@@ -252,7 +253,8 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                         </Text>
                         <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount)}` : "-"}</Text>
                       </HStack>
-                      <HStack justify="between" style={{ borderTop: "1px solid var(--color-border)", paddingTop: 4 }}>
+                      <Divider />
+                      <HStack justify="between">
                         <Text weight="bold">Total</Text>
                         <Text type="code" weight="bold" color="primary">
                           Rp {formatNumber(total)}

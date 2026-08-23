@@ -1,7 +1,7 @@
 import { Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card, Dialog, HStack, Heading, IconButton, Table, Text, TextInput, VStack } from "@astryxdesign/core";
-import { Layout, LayoutHeader, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
+import { Button, Card, Dialog, HStack, IconButton, Table, Text, TextInput, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -12,11 +12,11 @@ import { formatNumber, sanitizeDecimalInput, parseDecimalInput } from "@/utils/f
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError, handleFormError } from "@/utils/form";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional, useTablePagination, paginateData } from "@astryxdesign/core/Table";
 import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface PriceRow extends ItemPriceWithRelation, Record<string, unknown> {}
 
@@ -209,11 +209,6 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
           >
             <Card>
               <Layout
-                header={
-                  <LayoutHeader hasDivider>
-                    <Heading level={4}>Tambah Harga</Heading>
-                  </LayoutHeader>
-                }
                 content={
                   <LayoutContent>
                     <FormLayout>
@@ -259,7 +254,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       </Dialog>
       <AlertDialog
         title="Hapus Harga"
-        description={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}?`}
+        description={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}? Tindakan ini tidak bisa dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isOpen={Boolean(deleteTarget)}

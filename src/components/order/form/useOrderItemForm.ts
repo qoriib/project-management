@@ -3,9 +3,9 @@ import { useForm } from "@tanstack/react-form";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { orderItemSchema, buildDefaultValues } from "./orderItem.schema";
-import type { OrderItemDetail } from "@/db/repositories";
 import { handleFormError } from "@/utils/form";
 import { parseDecimalInput } from "@/utils/formatters";
+import type { OrderItemDetail } from "@/db/repositories";
 
 export interface OrderItemFormProps {
   initialData?: OrderItemDetail;

@@ -9,9 +9,9 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
 import { formatItemCode } from "@/utils/formatters";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { ItemWithDetails } from "@/db/repositories";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface MasterItemTableProps {
   onEdit: (item: ItemWithDetails) => void;
@@ -126,7 +126,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onAction={handleDelete}
         title="Hapus Master Data"
-        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
+        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isActionLoading={deleting}

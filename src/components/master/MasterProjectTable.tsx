@@ -7,9 +7,9 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
 import { handleFormError } from "@/utils/form";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { Project, ProjectWithRelations } from "@/db/repositories";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface MasterProjectTableProps {
   onEdit: (project: Project) => void;
@@ -126,7 +126,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onAction={handleDelete}
         title="Hapus Master Data"
-        description={`Hapus proyek "${deleteTarget?.label}"? Semua data RAB dan Order terkait akan ikut terhapus.`}
+        description={`Hapus proyek "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isActionLoading={deleting}

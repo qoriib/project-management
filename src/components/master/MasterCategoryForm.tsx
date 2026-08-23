@@ -19,6 +19,16 @@ const categorySchema = v.object({
   ),
 });
 
+export type CategoryFormValues = v.InferOutput<typeof categorySchema>;
+
+export function buildDefaultValues(initialData?: ItemCategory | null, nextCategoryCode = ""): CategoryFormValues {
+  return {
+    category_code: initialData?.category_code ?? nextCategoryCode,
+    category_name: initialData?.category_name ?? "",
+    prefix: initialData?.prefix ?? "",
+  };
+}
+
 interface MasterCategoryFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,11 +45,7 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
   }, [categories, initialData]);
 
   const form = useForm({
-    defaultValues: {
-      category_code: initialData?.category_code ?? nextCategoryCode,
-      category_name: initialData?.category_name ?? "",
-      prefix: initialData?.prefix ?? "",
-    },
+    defaultValues: buildDefaultValues(initialData, nextCategoryCode),
     onSubmit: async ({ value }) => {
       try {
         if (initialData) {
@@ -60,19 +66,7 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
 
   useEffect(() => {
     if (isOpen) {
-      if (initialData) {
-        form.reset({
-          category_code: initialData.category_code || "",
-          category_name: initialData.category_name,
-          prefix: initialData.prefix || "",
-        });
-      } else {
-        form.reset({
-          category_code: nextCategoryCode,
-          category_name: "",
-          prefix: "",
-        });
-      }
+      form.reset(buildDefaultValues(initialData, nextCategoryCode));
     }
   }, [isOpen, initialData, nextCategoryCode]);
 
@@ -130,22 +124,22 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
                 />
               )}
             />
+            <HStack gap={2} justify="end">
+              <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
+              <form.Subscribe
+                selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                children={([canSubmit, isSubmitting]) => (
+                  <Button
+                    variant="primary"
+                    label="Simpan"
+                    type="submit"
+                    isLoading={isSubmitting}
+                    isDisabled={!canSubmit}
+                  />
+                )}
+              />
+            </HStack>
           </FormLayout>
-          <HStack gap={2} justify="end">
-            <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
-            <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-              children={([canSubmit, isSubmitting]) => (
-                <Button
-                  variant="primary"
-                  label="Simpan"
-                  type="submit"
-                  isLoading={isSubmitting}
-                  isDisabled={!canSubmit}
-                />
-              )}
-            />
-          </HStack>
         </VStack>
       </form>
     </Dialog>

@@ -66,7 +66,9 @@ function SettingsSecurity() {
 
                 return (
                   <VStack gap={2} width="100%">
-                    <Text size="sm" color="secondary">Masukkan 6 digit angka</Text>
+                    <Text size="sm" color="secondary">
+                      Masukkan 6 digit angka
+                    </Text>
                     <HStack gap={2} justify="center" width="100%">
                       {pinDigits.map((digit, index) => (
                         <input
@@ -83,7 +85,10 @@ function SettingsSecurity() {
                           onChange={(event) => {
                             const rawValue = event.target.value;
                             const nextValue = sanitizePin(rawValue).slice(-1);
-                            const currentDigits = Array.from({ length: PIN_LENGTH }, (_, pos) => field.state.value[pos] ?? "");
+                            const currentDigits = Array.from(
+                              { length: PIN_LENGTH },
+                              (_, pos) => field.state.value[pos] ?? "",
+                            );
 
                             if (nextValue) {
                               currentDigits[index] = nextValue;
@@ -115,7 +120,10 @@ function SettingsSecurity() {
                             const pasted = sanitizePin(event.clipboardData.getData("text"));
                             if (!pasted) return;
 
-                            const currentDigits = Array.from({ length: PIN_LENGTH }, (_, pos) => field.state.value[pos] ?? "");
+                            const currentDigits = Array.from(
+                              { length: PIN_LENGTH },
+                              (_, pos) => field.state.value[pos] ?? "",
+                            );
                             const nextDigits = pasted.slice(0, PIN_LENGTH).split("");
 
                             for (let i = 0; i < PIN_LENGTH; i += 1) {
@@ -129,24 +137,12 @@ function SettingsSecurity() {
                             }
                           }}
                           autoComplete="off"
-                          style={{
-                            width: "46px",
-                            height: "54px",
-                            border: `1px solid ${errorText ? "var(--color-border-critical)" : "var(--color-border-primary)"}`,
-                            borderRadius: "12px",
-                            background: "var(--color-background-surface)",
-                            color: "var(--color-text-primary)",
-                            fontSize: "1.5rem",
-                            fontWeight: 700,
-                            textAlign: "center",
-                            outline: "none",
-                            boxShadow: digit ? "0 0 0 2px rgba(59,130,246,0.15)" : "none",
-                          }}
+                          className={`pm-pin-input${errorText ? " is-error" : ""}`}
                         />
                       ))}
                     </HStack>
                     {errorText ? (
-                      <Text size="sm" style={{ textAlign: "center", color: "var(--color-text-critical)" }}>
+                      <Text size="sm" justify="center" className="pm-error-text">
                         {errorText.message}
                       </Text>
                     ) : null}

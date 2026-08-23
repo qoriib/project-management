@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Dialog,
+  Divider,
   HStack,
   Heading,
   IconButton,
@@ -79,7 +80,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
             <FormLayout>
               {/* Item */}
               <HStack gap={2} align="end" width="100%">
-                <VStack style={{ flex: 1 }}>
+                <VStack width="100%">
                   <form.Field
                     name="item_id"
                     children={(field) => (
@@ -112,7 +113,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
 
               {/* Harga Satuan */}
               <HStack gap={2} align="end" width="100%">
-                <VStack style={{ flex: 1 }}>
+                <VStack width="100%">
                   <form.Field
                     name="item_price_id"
                     children={(field) => (
@@ -167,11 +168,11 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
               <form.Field
                 name="has_tax"
                 children={(field) => (
-                  <VStack gap={1} style={{ paddingBottom: 4 }}>
+                  <VStack gap={1}>
                     <Text size="sm" weight="medium">
                       PPn (12%)
                     </Text>
-                    <HStack gap={2} align="center" style={{ height: 38 }}>
+                    <HStack gap={2} align="center">
                       <Switch
                         label="Kena PPn (12%)"
                         isLabelHidden
@@ -222,7 +223,8 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                         </Text>
                         <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount)}` : "-"}</Text>
                       </HStack>
-                      <HStack justify="between" style={{ borderTop: "1px solid var(--color-border)", paddingTop: 4 }}>
+                      <Divider />
+                      <HStack justify="between">
                         <Text weight="bold">Total Estimasi:</Text>
                         <Text type="code" weight="bold" color="primary">
                           Rp {formatNumber(total)}

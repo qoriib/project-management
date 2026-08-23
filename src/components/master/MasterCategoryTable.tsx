@@ -7,9 +7,9 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { ItemCategory } from "@/db/repositories";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface MasterCategoryTableProps {
   onEdit: (category: ItemCategory) => void;
@@ -126,7 +126,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onAction={handleDelete}
         title="Hapus Master Data"
-        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan jika sudah terikat transaksi.`}
+        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isActionLoading={deleting}

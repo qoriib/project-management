@@ -8,11 +8,15 @@ function EditReceiptPage() {
   const navigate = useNavigate();
   const { id } = Route.useParams();
   return (
-    <Section padding={4} style={{ maxWidth: "100%" }}>
+    <Section padding={4} maxWidth="100%">
       <VStack gap={3}>
         <PageHeader title="Edit Penerimaan" subtitle="Ubah volume diterima : sistem jaga batas sisa PO" />
         <ProjectRequired>
-          <ReceiptForm initialEditId={id} onSuccess={(poId) => navigate({ to: `/order/${poId}` })} onCancel={() => navigate({ to: "/receipt" })} />
+          <ReceiptForm
+            initialEditId={id}
+            onSuccess={(poId) => navigate({ to: `/order/${poId}` })}
+            onCancel={() => navigate({ to: "/receipt" })}
+          />
         </ProjectRequired>
       </VStack>
     </Section>

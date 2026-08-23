@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Card, Heading, Text, VStack } from "@astryxdesign/core";
+import { Card, HStack, Heading, Text, VStack } from "@astryxdesign/core";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
 import {
   Table,
@@ -109,8 +109,8 @@ export function OrderVariantCard({ item }: OrderVariantCardProps) {
         {orderRows.length > 0 ? (
           <Table
             hasHover
-        density="compact"
-        textOverflow="truncate"
+            density="compact"
+            textOverflow="truncate"
             columns={columns}
             data={paginatedRows as VariantRow[]}
             idKey="unique_id"
@@ -123,16 +123,20 @@ export function OrderVariantCard({ item }: OrderVariantCardProps) {
                     return {
                       ...props,
                       afterRow: (
-                        <TableRow style={{ background: "var(--color-surface-sunken)" }}>
-                          <TableCell colSpan={6} style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}>
-                            <Text weight="bold" color="secondary">
-                              TOTAL PEMESANAN
-                            </Text>
+                        <TableRow>
+                          <TableCell colSpan={6}>
+                            <HStack justify="end">
+                              <Text weight="bold" color="secondary">
+                                TOTAL PEMESANAN
+                              </Text>
+                            </HStack>
                           </TableCell>
-                          <TableCell style={{ textAlign: "right", paddingRight: "var(--spacing-4)" }}>
-                            <Text weight="bold" type="code" size="lg">
-                              {formatNumber(item.total_order_price)}
-                            </Text>
+                          <TableCell>
+                            <HStack justify="end">
+                              <Text weight="bold" type="code" size="lg">
+                                {formatNumber(item.total_order_price)}
+                              </Text>
+                            </HStack>
                           </TableCell>
                         </TableRow>
                       ),

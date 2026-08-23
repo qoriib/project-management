@@ -53,7 +53,7 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
           searchPlaceholder="Cari proyek..."
         />
 
-        <HStack gap={2} justify="end" style={{ marginTop: "var(--spacing-2)" }}>
+        <HStack gap={2} justify="end">
           <Button variant="secondary" onClick={onClose} isDisabled={isLoading} label="Batal" />
           <Button
             variant="primary"
