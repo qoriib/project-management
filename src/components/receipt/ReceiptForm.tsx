@@ -36,12 +36,12 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
               <Selector
                 isRequired
                 width={240}
-                label="Pilih Order"
+                label="Pilih Pesanan (PO)"
                 value={field.state.value}
                 onChange={(v) => handlePOChange(v as string)}
                 onBlur={field.handleBlur}
                 hasSearch
-                searchPlaceholder="Cari order..."
+                searchPlaceholder="Cari nomor pesanan..."
                 statusVariant="tooltip"
                 status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                 isDisabled={isEdit}
@@ -54,7 +54,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
               <TextInput
                 isRequired
                 width={240}
-                label="Kode Penerimaan"
+                label="Nomor Penerimaan"
                 statusVariant="tooltip"
                 value={field.state.value}
                 onChange={(v) => field.handleChange(v)}
@@ -69,7 +69,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
                 isRequired
                 width={240}
                 format="system_date"
-                label="Tanggal Terima"
+                label="Tanggal Penerimaan"
                 statusVariant="tooltip"
                 value={field.state.value as DateInputProps["value"]}
                 onChange={(v) => field.handleChange(v ?? "")}
@@ -108,7 +108,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess, onCancel }:
                 <Button variant="secondary" label="Batal" type="button" onClick={onCancel} />
                 <Button
                   variant="primary"
-                  label="Simpan Penerimaan"
+                  label={isEdit ? "Simpan Perubahan" : "Simpan Penerimaan"}
                   type="submit"
                   isLoading={isSubmitting}
                   isDisabled={!canSubmit}

@@ -65,7 +65,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
 
   const columns: TableColumn<EnrichedReportItem>[] = [
     {
-      header: "Item",
+      header: "Item Material",
       key: "item",
       width: proportional(2),
       renderCell: (r) => {
@@ -138,7 +138,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
     },
     {
       align: "end",
-      header: "Harga Total",
+      header: "Total (Rp)",
       key: "total_price",
       width: proportional(2),
       renderCell: (r) => {

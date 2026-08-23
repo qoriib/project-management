@@ -24,13 +24,13 @@ export function OrderReceiptLogTable() {
       renderCell: (row) => <EntityCode id={row.receipt_code} />,
     },
     {
-      header: "Tanggal Kirim",
+      header: "Tanggal Penerimaan",
       key: "receipt_date",
-      width: pixel(120),
+      width: pixel(140),
       renderCell: (row) => <Timestamp value={row.receipt_date} format="system_date" size="base" />,
     },
     {
-      header: "Item",
+      header: "Nama Item",
       key: "item_name",
       width: proportional(4),
       renderCell: (row) => row.item_name || "-",

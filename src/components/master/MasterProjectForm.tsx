@@ -70,13 +70,13 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
         }}
       >
         <VStack gap={3}>
-          <Heading level={3}>{initialData ? "Edit Project" : "Tambah Project"}</Heading>
+          <Heading level={3}>{initialData ? "Edit Proyek" : "Tambah Proyek"}</Heading>
           <FormLayout>
             <form.Field
               name="project_name"
               children={(field) => (
                 <TextInput
-                  label="Nama Project"
+                  label="Nama Proyek"
                   value={field.state.value}
                   onChange={(val) => field.handleChange(val)}
                   onBlur={field.handleBlur}
@@ -104,7 +104,7 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
               name="fiscal_year"
               children={(field) => (
                 <TextInput
-                  label="Tahun Fiskal"
+                  label="Tahun Anggaran"
                   value={String(field.state.value || "")}
                   onChange={(val) => {
                     const digits = val.replaceAll(/\D/g, "").slice(0, 4);

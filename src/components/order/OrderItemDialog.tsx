@@ -85,7 +85,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
           }}
         >
           <VStack gap={4}>
-            <Heading level={3}>{initialData ? "Edit Item Order" : "Tambah Item Order"}</Heading>
+            <Heading level={3}>{initialData ? "Edit Item Pesanan" : "Tambah Item Pesanan"}</Heading>
             <FormLayout>
               {/* Item */}
               <HStack gap={2} align="end" width="100%">
@@ -94,7 +94,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                     name="item_id"
                     children={(field) => (
                       <Selector
-                        label="Item"
+                        label="Item Material"
                         description={selectedItemCode ? `Kode: ${selectedItemCode}` : undefined}
                         options={itemOptions}
                         value={field.state.value}
@@ -103,7 +103,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                         }}
                         onBlur={field.handleBlur}
                         hasSearch
-                        searchPlaceholder="Cari item..."
+                        searchPlaceholder="Cari item material..."
                         isRequired
                         statusVariant="tooltip"
                         status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
@@ -127,13 +127,13 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                     name="item_price_id"
                     children={(field) => (
                       <Selector
-                        label="Harga Satuan"
+                        label="Harga Satuan (Rp)"
                         options={priceOptions}
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val as string)}
                         onBlur={field.handleBlur}
                         hasSearch
-                        searchPlaceholder="Cari harga..."
+                        searchPlaceholder="Cari riwayat harga..."
                         isDisabled={!selectedItemId}
                         isRequired
                         statusVariant="tooltip"
@@ -165,7 +165,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                         onChange={(val) => field.handleChange(val as string)}
                         onBlur={field.handleBlur}
                         hasSearch
-                        searchPlaceholder="Cari vendor..."
+                        searchPlaceholder="Cari vendor pemasok..."
                         isRequired
                         statusVariant="tooltip"
                         status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
@@ -187,12 +187,12 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                 name="qty"
                 children={(field) => (
                   <InputGroup
-                    label="Volume"
+                    label="Volume Pesanan"
                     isRequired
                     status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   >
                     <TextInput
-                      label="Volume"
+                      label="Volume Pesanan"
                       isLabelHidden
                       value={String(field.state.value ?? "")}
                       onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
@@ -208,7 +208,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                 name="has_tax"
                 children={(field) => (
                   <Switch
-                    label="PPn (12%)"
+                    label="Termasuk PPn (12%)"
                     value={field.state.value}
                     onChange={(checked) => field.handleChange(checked)}
                     onBlur={field.handleBlur}

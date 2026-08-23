@@ -184,7 +184,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
                 variant="primary"
                 type="button"
                 onClick={() => form.handleSubmit()}
-                label={order ? "Simpan Perubahan" : "Buat PO"}
+                label={order ? "Simpan Perubahan" : "Simpan Pemesanan"}
                 isLoading={isSubmitting}
                 isDisabled={isItemDialogOpen || !canSubmit}
               />
@@ -196,8 +196,8 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         isOpen={Boolean(deletingId)}
         onOpenChange={(open) => !open && setDeletingId(null)}
         onAction={handleDelete}
-        title="Hapus Item Order"
-        description="Apakah Anda yakin ingin menghapus item ini dari Order?"
+        title="Hapus Item Pesanan"
+        description="Apakah Anda yakin ingin menghapus item ini dari pesanan?"
         actionLabel="Hapus"
         cancelLabel="Batal"
       />

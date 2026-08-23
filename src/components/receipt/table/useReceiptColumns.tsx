@@ -28,13 +28,13 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
       renderCell: (row) => <Timestamp value={row.receipt_date} format="system_date" size="base" />,
     },
     {
-      header: "Ref. Order",
+      header: "No. PO",
       key: "order_code",
       width: pixel(180),
       renderCell: (row) => <EntityCode id={row.order_code} />,
     },
     {
-      header: "Vendor Pemasok",
+      header: "Vendor",
       key: "vendor_names",
       width: proportional(3),
       renderCell: (row: ReceiptRow) =>

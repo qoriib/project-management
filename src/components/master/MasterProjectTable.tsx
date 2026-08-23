@@ -63,9 +63,9 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
     },
     {
       align: "end",
-      header: "Tahun",
+      header: "Tahun Anggaran",
       key: "fiscal_year",
-      width: pixel(100),
+      width: pixel(140),
       renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year ? String(row.fiscal_year) : "-"}</Text>,
     },
     {

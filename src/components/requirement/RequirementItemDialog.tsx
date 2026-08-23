@@ -76,7 +76,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
           }}
         >
           <VStack gap={4}>
-            <Heading level={3}>{initialData ? "Edit Kebutuhan Item" : "Tambah Kebutuhan Item"}</Heading>
+            <Heading level={3}>{initialData ? "Edit Item BOM" : "Tambah Item BOM"}</Heading>
             <FormLayout>
               {/* Item */}
               <HStack gap={2} align="end" width="100%">
@@ -85,7 +85,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                     name="item_id"
                     children={(field) => (
                       <Selector
-                        label="Item"
+                        label="Item Material"
                         description={selectedItemCode ? `Kode: ${selectedItemCode}` : undefined}
                         options={itemOptions}
                         value={field.state.value}
@@ -94,7 +94,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                         }}
                         onBlur={field.handleBlur}
                         hasSearch
-                        searchPlaceholder="Cari item..."
+                        searchPlaceholder="Cari item material..."
                         isRequired
                         statusVariant="tooltip"
                         status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
@@ -118,13 +118,13 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                     name="item_price_id"
                     children={(field) => (
                       <Selector
-                        label="Harga Satuan"
+                        label="Harga Satuan (Rp)"
                         options={priceOptions}
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val as string)}
                         onBlur={field.handleBlur}
                         hasSearch
-                        searchPlaceholder="Cari harga..."
+                        searchPlaceholder="Cari riwayat harga..."
                         isDisabled={!selectedItemId}
                         isRequired
                         statusVariant="tooltip"
@@ -148,12 +148,12 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                 name="qty"
                 children={(field) => (
                   <InputGroup
-                    label="Volume"
+                    label="Volume Kebutuhan"
                     isRequired
                     status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                   >
                     <TextInput
-                      label="Volume"
+                      label="Volume Kebutuhan"
                       isLabelHidden
                       value={String(field.state.value ?? "")}
                       onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
@@ -174,13 +174,13 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                     </Text>
                     <HStack gap={2} align="center">
                       <Switch
-                        label="Kena PPn (12%)"
+                        label="Termasuk PPn (12%)"
                         isLabelHidden
                         value={field.state.value}
                         onChange={(checked) => field.handleChange(checked)}
                         onBlur={field.handleBlur}
                       />
-                      <Text size="sm">{field.state.value ? "PPn 12%" : "Tanpa PPn"}</Text>
+                      <Text size="sm">{field.state.value ? "Termasuk PPn (12%)" : "Tanpa PPn"}</Text>
                     </HStack>
                   </VStack>
                 )}
