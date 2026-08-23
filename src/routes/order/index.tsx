@@ -26,7 +26,7 @@ function POListPage() {
           <VStack gap={4}>
             <PageHeader
               title="Daftar Pemesanan (PO)"
-              subtitle="Manajemen dan pelacakan seluruh pemesanan"
+              subtitle="Kelola dan pantau seluruh pemesanan pembelian"
               actions={selectedProjectId ? <Button variant="primary" label="Buat Baru" onClick={openNew} /> : null}
             />
             <ProjectRequired>

@@ -15,7 +15,7 @@ function EditReceiptPage() {
       content={
         <LayoutContent padding={6}>
           <VStack gap={4}>
-            <PageHeader title="Edit Penerimaan" subtitle="Ubah volume diterima : sistem jaga batas sisa PO" />
+            <PageHeader title="Edit Penerimaan" subtitle="Perbarui data penerimaan barang" />
             <ProjectRequired>
               <ReceiptForm
                 initialEditId={id}

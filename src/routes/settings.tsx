@@ -15,7 +15,7 @@ function SettingsLayout() {
       content={
         <LayoutContent padding={6}>
           <VStack gap={4}>
-            <PageHeader title="Pengaturan" subtitle="Kelola database, keamanan PIN, dan tampilan" compact />
+            <PageHeader title="Pengaturan" subtitle="Kelola database, keamanan PIN, dan preferensi aplikasi" compact />
             <TabList
               value={activeNav}
               onChange={(val) => {

@@ -19,13 +19,13 @@ import { stoneIconRegistry } from "./icons";
  */
 const INPUT_STATUS_VARS = {
   "status:success": {
-    "--color-success": "light-dark(#7f977e, #99b298)", // Green T60 / T70
+    "--color-success": "light-dark(#2e7d32, #81c784)", // Soft Forest / Sage Green
   },
   "status:warning": {
-    "--color-warning": "light-dark(#9f8f68, #bbaa81)", // Yellow T60 / T70
+    "--color-warning": "light-dark(#b47818, #f6b244)", // Soft Warm Amber
   },
   "status:error": {
-    "--color-error": "light-dark(#a58b86, #c0a5a1)", // Red T60 / T70
+    "--color-error": "light-dark(#c2413a, #e57373)", // Soft Terracotta Red
   },
 } as const;
 
@@ -108,9 +108,9 @@ export const stoneTheme = defineTheme({
     "--color-on-light": ["#25252a", "#28282a"], // light: Stone Neutral T15
     "--color-on-accent": ["#ffffff", "#25252a"], // dark: Stone Neutral T15
     // Text on top of matching status surface (badge fill, banner content).
-    "--color-on-success": ["#374c36", "#d0e9ce"], // Green T30 / T90
-    "--color-on-error": ["#58413e", "#f9dcd7"], // Red T30 / T90
-    "--color-on-warning": ["#524622", "#f4e1b7"], // Yellow T30 / T90
+    "--color-on-success": ["#1b5e20", "#c8e6c9"], // Soft Forest Green
+    "--color-on-error": ["#84201c", "#ffcdd2"], // Soft Terracotta Red
+    "--color-on-warning": ["#784a08", "#ffecb3"], // Soft Warm Amber
 
     // Icon — H=291
     "--color-icon-accent": ["#25252a", "#f3f3f5"], // light: Stone Neutral T15
@@ -123,13 +123,13 @@ export const stoneTheme = defineTheme({
     "--color-background-popover": ["#ffffff", "#25252a"], // dark: Stone Neutral T15
     "--color-background-inverted": ["#25252a", "#f3f3f5"], // light: Stone Neutral T15
 
-    // Status / Sentiment — T50 from palette for icons/borders (visible color)
-    "--color-success": ["#374c36", "#b4cdb2"], // Green T30 / T80
-    "--color-success-muted": ["#d0e9ce", "#b4cdb2"], // Green T90 / T80
-    "--color-error": ["#58413e", "#dcc0bc"], // Red T30 / T80
-    "--color-error-muted": ["#f9dcd7", "#dcc0bc"], // Red T90 / T80
-    "--color-warning": ["#524622", "#d7c59c"], // Yellow T30 / T80
-    "--color-warning-muted": ["#f4e1b7", "#d7c59c"], // Yellow T90 / T80
+    // Status / Sentiment — Soft, warm & clear visible color
+    "--color-success": ["#2e7d32", "#81c784"], // Soft Forest / Sage Green
+    "--color-success-muted": ["#eaf5ec", "#1c3322"], // Soft Sage Surface
+    "--color-error": ["#c2413a", "#e57373"], // Soft Terracotta Red
+    "--color-error-muted": ["#fbeeed", "#3a1d1d"], // Soft Rose Surface
+    "--color-warning": ["#b47818", "#f6b244"], // Soft Warm Amber
+    "--color-warning-muted": ["#fdf6e7", "#382914"], // Soft Amber Surface
 
     // Border — H=291
     "--color-border": ["#e2e2e8", "#f3f3f51a"], // light: Stone Neutral T90 / dark: T96 · 10%
@@ -143,75 +143,66 @@ export const stoneTheme = defineTheme({
     // Typography override
     "--text-supporting-size": "12px",
 
-    // Categorical hues
-    //   Light: T90 solid bg + T30 text (pastel surface, dark text)
-    //   Dark:  T35 solid bg + T90 text — snaps to canonical palette stops
-    //          per theming-infra.mdc §7. T90 dark text is the SAME hex as
-    //          the light-mode bg pastel — clean palette symmetry, ~6–9:1
-    //          contrast on the T35 surface across all hues (passes AA Body).
-    // Borders: light T85 / dark T25 — one step inward from surface in both
-    //          modes, matching the light-mode T90/T85 spacing.
+    // Categorical hues — Soft, balanced & harmonious
+    // Categorical — Blue
+    "--color-background-blue": ["#e8f2fa", "#193347"],
+    "--color-border-blue": ["#cde2f3", "#254964"],
+    "--color-icon-blue": ["#36729e", "#7ab8e6"],
+    "--color-text-blue": ["#36729e", "#7ab8e6"],
 
-    // Categorical — Blue H=265 C=10
-    "--color-background-blue": ["#d7e4f5", "#485362"], // light T90 / dark T35
-    "--color-border-blue": ["#c9d6e7", "#313c4a"], // light T85 / dark T25
-    "--color-icon-blue": ["#3c4856", "#d7e4f5"], // light T30 / dark T90
-    "--color-text-blue": ["#3c4856", "#d7e4f5"],
+    // Categorical — Cyan
+    "--color-background-cyan": ["#e3f7f8", "#14373b"],
+    "--color-border-cyan": ["#beecef", "#1e5055"],
+    "--color-icon-cyan": ["#207e86", "#6cd0da"],
+    "--color-text-cyan": ["#207e86", "#6cd0da"],
 
-    // Categorical — Cyan H=190 C=10
-    "--color-background-cyan": ["#cce8e5", "#3e5755"],
-    "--color-border-cyan": ["#bedad7", "#28403e"],
-    "--color-icon-cyan": ["#334b49", "#cce8e5"],
-    "--color-text-cyan": ["#334b49", "#cce8e5"],
+    // Categorical — Gray
+    "--color-background-gray": ["#e2e2e8", "#525257"],
+    "--color-border-gray": ["#d4d4da", "#3b3b3f"],
+    "--color-icon-gray": ["#46464b", "#e2e2e8"],
+    "--color-text-gray": ["#46464b", "#e2e2e8"],
 
-    // Categorical — Gray (pure neutral, C=0). Same T35/T25/T90 pattern from
-    // the neutral H=291 C=3 ramp.
-    "--color-background-gray": ["#e2e2e8", "#525257"], // light: Stone Neutral T90
-    "--color-border-gray": ["#d4d4da", "#3b3b3f"], // light: Stone Neutral T85
-    "--color-icon-gray": ["#46464b", "#e2e2e8"], // light: Stone Neutral T30
-    "--color-text-gray": ["#46464b", "#e2e2e8"], // light: Stone Neutral T30
+    // Categorical — Green
+    "--color-background-green": ["#eaf5ec", "#1c3322"],
+    "--color-border-green": ["#cde8d1", "#274a30"],
+    "--color-icon-green": ["#2e7d32", "#81c784"],
+    "--color-text-green": ["#2e7d32", "#81c784"],
 
-    // Categorical — Green H=142 C=17
-    "--color-background-green": ["#d0e9ce", "#425841"],
-    "--color-border-green": ["#c2dbc0", "#2b402b"],
-    "--color-icon-green": ["#374c36", "#d0e9ce"],
-    "--color-text-green": ["#374c36", "#d0e9ce"],
+    // Categorical — Orange
+    "--color-background-orange": ["#fdf0e6", "#3d2214"],
+    "--color-border-orange": ["#f9d9bf", "#59331d"],
+    "--color-icon-orange": ["#c4591a", "#f39659"],
+    "--color-text-orange": ["#c4591a", "#f39659"],
 
-    // Categorical — Orange H=70 C=22
-    "--color-background-orange": ["#ffdcbb", "#684d32"],
-    "--color-border-orange": ["#f1ceae", "#4f361c"],
-    "--color-icon-orange": ["#5b4227", "#ffdcbb"],
-    "--color-text-orange": ["#5b4227", "#ffdcbb"],
+    // Categorical — Pink
+    "--color-background-pink": ["#fcecf4", "#3d1b2d"],
+    "--color-border-pink": ["#f7d0e3", "#592742"],
+    "--color-icon-pink": ["#b83d7a", "#e87bb1"],
+    "--color-text-pink": ["#b83d7a", "#e87bb1"],
 
-    // Categorical — Pink H=340 C=9
-    "--color-background-pink": ["#f0dde8", "#5e4e57"],
-    "--color-border-pink": ["#e2cfda", "#463740"],
-    "--color-icon-pink": ["#52424c", "#f0dde8"],
-    "--color-text-pink": ["#52424c", "#f0dde8"],
+    // Categorical — Purple
+    "--color-background-purple": ["#f4eefc", "#2d1c3e"],
+    "--color-border-purple": ["#e2d2f7", "#442a5e"],
+    "--color-icon-purple": ["#7948b8", "#b68ced"],
+    "--color-text-purple": ["#7948b8", "#b68ced"],
 
-    // Categorical — Purple H=307 C=11
-    "--color-background-purple": ["#e8dff3", "#564f60"],
-    "--color-border-purple": ["#d9d1e5", "#3f3949"],
-    "--color-icon-purple": ["#4b4454", "#e8dff3"],
-    "--color-text-purple": ["#4b4454", "#e8dff3"],
+    // Categorical — Red
+    "--color-background-red": ["#fbeeed", "#3a1d1d"],
+    "--color-border-red": ["#f6d4d1", "#542828"],
+    "--color-icon-red": ["#c2413a", "#e57373"],
+    "--color-text-red": ["#c2413a", "#e57373"],
 
-    // Categorical — Red H=33 C=11
-    "--color-background-red": ["#f9dcd7", "#644d49"],
-    "--color-border-red": ["#ebcec9", "#4c3633"],
-    "--color-icon-red": ["#58413e", "#f9dcd7"],
-    "--color-text-red": ["#58413e", "#f9dcd7"],
+    // Categorical — Teal
+    "--color-background-teal": ["#e3f6f1", "#14362e"],
+    "--color-border-teal": ["#bfeadb", "#1e4e42"],
+    "--color-icon-teal": ["#217964", "#67cbb3"],
+    "--color-text-teal": ["#217964", "#67cbb3"],
 
-    // Categorical — Teal H=158 C=9
-    "--color-background-teal": ["#d4e7dc", "#46564d"],
-    "--color-border-teal": ["#c6d9ce", "#303f36"],
-    "--color-icon-teal": ["#3b4a41", "#d4e7dc"],
-    "--color-text-teal": ["#3b4a41", "#d4e7dc"],
-
-    // Categorical — Yellow H=90 C=23
-    "--color-background-yellow": ["#f4e1b7", "#5e512d"],
-    "--color-border-yellow": ["#e5d3a9", "#463a18"],
-    "--color-icon-yellow": ["#524622", "#f4e1b7"],
-    "--color-text-yellow": ["#524622", "#f4e1b7"],
+    // Categorical — Yellow
+    "--color-background-yellow": ["#fdf6e7", "#382914"],
+    "--color-border-yellow": ["#fae5b9", "#523b1c"],
+    "--color-icon-yellow": ["#b47818", "#f6b244"],
+    "--color-text-yellow": ["#b47818", "#f6b244"],
 
     // =========================================================================
     // Radius — clean and subtle
@@ -325,16 +316,16 @@ export const stoneTheme = defineTheme({
     // indeterminate both route to blue for the in-progress / loading look.
     "progressbar-fill": {
       "variant:accent": {
-        backgroundColor: "light-dark(#d7e4f5, #a0acbc)", // Blue T90 / T70
+        backgroundColor: "light-dark(#36729e, #7ab8e6)", // Soft Slate Blue
       },
       "variant:success": {
-        backgroundColor: "light-dark(#d0e9ce, #9ab298)", // Green T90 / T70
+        backgroundColor: "light-dark(#2e7d32, #81c784)", // Soft Forest Green
       },
       "variant:warning": {
-        backgroundColor: "light-dark(#f4e1b7, #bbaa82)", // Yellow T90 / T70
+        backgroundColor: "light-dark(#b47818, #f6b244)", // Soft Warm Amber
       },
       "variant:error": {
-        backgroundColor: "light-dark(#f9dcd7, #c0a5a0)", // Red T90 / T70
+        backgroundColor: "light-dark(#c2413a, #e57373)", // Soft Terracotta Red
       },
     },
 

@@ -43,7 +43,7 @@ function POEditPage() {
       content={
         <LayoutContent padding={6}>
           <VStack gap={4}>
-            <PageHeader title="Edit Pemesanan" subtitle={`Mengubah ${order.order_code} : sesuaikan item & vendor`} />
+            <PageHeader title="Edit Pemesanan" subtitle={`Perbarui rincian pesanan ${order.order_code}`} />
             <OrderForm order={order} initialItems={currentItems} />
           </VStack>
         </LayoutContent>

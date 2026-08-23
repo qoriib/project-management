@@ -38,8 +38,8 @@ function MasterProjectPage() {
         <LayoutContent padding={6}>
           <VStack gap={4}>
             <PageHeader
-              title="Master Data Proyek"
-              subtitle="Kelola data proyek dan tahapannya"
+              title="Master Proyek"
+              subtitle="Kelola daftar proyek dan tahun anggaran"
               actions={<Button variant="primary" label="Tambah Proyek" onClick={openCreate} />}
             />
             <MasterProjectTable onEdit={openEdit} />

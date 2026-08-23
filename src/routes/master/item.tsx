@@ -38,8 +38,8 @@ function MasterItemPage() {
         <LayoutContent padding={6}>
           <VStack gap={4}>
             <PageHeader
-              title="Master Data Item"
-              subtitle="Kelola data item kebutuhan"
+              title="Master Item"
+              subtitle="Kelola data master barang dan material"
               actions={<Button variant="primary" label="Tambah Item" onClick={openCreate} />}
             />
             <MasterItemTable onEdit={openEdit} />

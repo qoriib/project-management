@@ -12,10 +12,13 @@ import { useAppStore } from "@/store/useAppStore";
 import { ReportItemLogDialog } from "@/components/report/ReportItemLogDialog";
 import { ReportSummaryCards } from "@/components/report/ReportSummaryCards";
 import { ReportRequirementTable } from "@/components/report/ReportRequirementTable";
+import { getTimestampString } from "@/utils/formatters";
+import { useToast } from "@astryxdesign/core/Toast";
 import { type ISODateString } from "@astryxdesign/core/Calendar";
 import { type RequirementReportItem, getRequirementReport, generateRequirementReportExcel } from "@/db/services";
 
 function DashboardPage() {
+  const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const [report, setReport] = useState<RequirementReportItem[]>([]);
@@ -29,17 +32,23 @@ function DashboardPage() {
     if (!selectedProjectId) return;
     try {
       setExporting(true);
+      const timestamp = getTimestampString();
+      const filename = `${timestamp}_Laporan_${selectedProjectId}.xlsx`;
+
       const filePath = await save({
         filters: [{ name: "Excel", extensions: ["xlsx"] }],
-        defaultPath: "BOM_Report.xlsx",
+        defaultPath: filename,
+        title: "Simpan Laporan Excel",
       });
 
       if (filePath) {
         const buffer = await generateRequirementReportExcel(selectedProjectId, startDate, endDate);
         await writeFile(filePath, buffer);
+        showToast({ body: "Laporan Excel berhasil diekspor!", type: "info" });
       }
     } catch (err) {
       console.error("Export failed", err);
+      showToast({ body: "Gagal mengekspor laporan Excel.", type: "error" });
     } finally {
       setExporting(false);
     }
@@ -76,7 +85,7 @@ function DashboardPage() {
             <VStack gap={4}>
               <PageHeader
                 title="Laporan Kebutuhan & Realisasi"
-                subtitle="Ringkasan pemenuhan kebutuhan terhadap pemesanan dan penerimaan"
+                subtitle="Ringkasan realisasi pesanan dan penerimaan terhadap BOM"
                 actions={
                   selectedProjectId ? (
                     <HStack gap={4} align="end">

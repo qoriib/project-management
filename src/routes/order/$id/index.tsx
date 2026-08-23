@@ -47,7 +47,7 @@ function PODetailPage() {
           <VStack gap={4}>
             <PageHeader
               title="Detail Pemesanan"
-              subtitle={`Tracking PO ${order.order_code} : status per item & log NP`}
+              subtitle={`Informasi dan pelacakan pemesanan ${order.order_code}`}
               actions={
                 <HStack gap={2} wrap="wrap">
                   <Button variant="secondary" size="sm" label="Kembali" onClick={() => navigate({ to: "/order" })} />

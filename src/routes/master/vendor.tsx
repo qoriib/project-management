@@ -38,8 +38,8 @@ function MasterVendorPage() {
         <LayoutContent padding={6}>
           <VStack gap={4}>
             <PageHeader
-              title="Master Data Vendor"
-              subtitle="Kelola data vendor pemasok kebutuhan"
+              title="Master Vendor"
+              subtitle="Kelola data vendor dan pemasok"
               actions={<Button variant="primary" label="Tambah Vendor" onClick={openCreate} />}
             />
             <MasterVendorTable onEdit={openEdit} />

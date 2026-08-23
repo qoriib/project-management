@@ -12,7 +12,7 @@ function NewOrderPage() {
       content={
         <LayoutContent padding={6}>
           <VStack gap={4}>
-            <PageHeader title="Pemesanan Baru" subtitle="Buat PO : pilih vendor & volume dengan cek sisa BOM" />
+            <PageHeader title="Pemesanan Baru" subtitle="Buat pesanan pembelian baru" />
             <ProjectRequired>
               <OrderForm />
             </ProjectRequired>

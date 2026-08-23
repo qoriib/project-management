@@ -18,7 +18,7 @@ function ReceiptPage() {
           <VStack gap={4}>
             <PageHeader
               title="Daftar Penerimaan (NP)"
-              subtitle="Log kronologis penerimaan item di lapangan"
+              subtitle="Kelola dan pantau riwayat penerimaan barang"
               actions={
                 selectedProjectId ? (
                   <Button variant="primary" label="Buat Baru" onClick={() => navigate({ to: "/receipt/new" })} />

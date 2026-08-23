@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button, Card, Center, Heading, Text, VStack } from "@astryxdesign/core";
 import { useForm } from "@tanstack/react-form";
-import * as v from "valibot";
 import { login } from "@/db/services/auth.service";
 import { getFieldError } from "@/utils/form";
 import { APP } from "@/configs/app.config";
 import { useAppStore } from "@/store/useAppStore";
 import { PinInput } from "@/components/shared/PinInput";
+import * as v from "valibot";
 import sbrLight from "@/assets/branding/sbr-logo-lighttheme.png";
 import sbrDark from "@/assets/branding/sbr-logo-darktheme.png";
 

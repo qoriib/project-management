@@ -38,8 +38,8 @@ function MasterKategoriPage() {
         <LayoutContent padding={6}>
           <VStack gap={4}>
             <PageHeader
-              title="Master Data Kategori"
-              subtitle="Kelola data kategori item"
+              title="Master Kategori"
+              subtitle="Kelola kategori klasifikasi material"
               actions={<Button variant="primary" label="Tambah Kategori" onClick={openCreate} />}
             />
             <MasterCategoryTable onEdit={openEdit} />

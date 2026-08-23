@@ -20,10 +20,7 @@ function NewReceiptPage() {
       content={
         <LayoutContent padding={6}>
           <VStack gap={4}>
-            <PageHeader
-              title="Penerimaan Baru"
-              subtitle="Catat volume diterima per item : tidak boleh melebihi sisa PO"
-            />
+            <PageHeader title="Penerimaan Baru" subtitle="Catat bukti penerimaan barang masuk" />
             <ProjectRequired>
               <ReceiptForm
                 initialPoId={initialPoId}
