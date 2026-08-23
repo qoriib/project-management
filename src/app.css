@@ -13,3 +13,11 @@ html,
 body {
   overscroll-behavior: none;
 }
+
+/* Project-level design tokens — mapped to active theme variables */
+:root {
+  --pm-border: var(--color-border);
+  --pm-surface: var(--color-background-card);
+  --pm-error-muted: var(--color-error-muted);
+  --pm-success-muted: var(--color-success-muted);
+}

@@ -46,7 +46,9 @@ function AppLayout() {
 
   useEffect(() => {
     const title = `${APP.title} - ${userRole}`;
-    getCurrentWindow().setTitle(title);
+    try {
+      getCurrentWindow().setTitle(title).catch(() => {});
+    } catch {}
   }, [userRole]);
 
   useEffect(() => {

@@ -102,7 +102,8 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
         {plannedRows.length > 0 ? (
           <Table
             hasHover
-            textOverflow="truncate"
+        density="compact"
+        textOverflow="truncate"
             columns={columns}
             data={paginatedRows as VariantRow[]}
             idKey="unique_id"

@@ -6,9 +6,9 @@ import { OrderForm } from "@/components/order/OrderForm";
 
 function NewOrderPage() {
   return (
-    <Section padding={6}>
-      <VStack gap={4}>
-        <PageHeader title="Pemesanan Baru" subtitle="Buat pesanan pembelian item ke vendor" />
+    <Section padding={4} style={{ maxWidth: "100%" }}>
+      <VStack gap={3}>
+        <PageHeader title="Pemesanan Baru" subtitle="Buat PO : pilih vendor & volume dengan cek sisa BOM" />
         <ProjectRequired>
           <OrderForm />
         </ProjectRequired>
