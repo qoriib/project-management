@@ -14,7 +14,7 @@ export function PageHeader({ title, subtitle, actions, compact = true }: PageHea
       <VStack gap={0.5}>
         <Heading level={compact ? 3 : 2}>{title}</Heading>
         {subtitle && (
-          <Text size="sm" color="secondary" wordBreak="break-word" textWrap="wrap">
+          <Text color="secondary" wordBreak="break-word" textWrap="wrap">
             {subtitle}
           </Text>
         )}

@@ -8,7 +8,7 @@ export interface ReportComparisonCellProps {
   poLabel?: string;
   bomLabel?: string;
   poColor?: TextColor;
-  poClassName?: string;
+  isError?: boolean;
 }
 
 export function ReportComparisonCell({
@@ -17,13 +17,13 @@ export function ReportComparisonCell({
   poLabel = "PO:",
   bomLabel = "BOM:",
   poColor,
-  poClassName,
+  isError,
 }: ReportComparisonCellProps) {
   return (
     <VStack gap={0.5} align="end">
       <HStack gap={1} justify="end">
         <Text weight="medium">{poLabel}</Text>
-        <Text type="code" color={poColor} className={poClassName}>
+        <Text type="code" color={poColor} style={{ color: isError ? "var(--color-error)" : undefined }}>
           {poValue}
         </Text>
       </HStack>

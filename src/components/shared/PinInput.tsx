@@ -118,11 +118,9 @@ export function PinInput({
           style={{
             width: 46,
             height: 54,
-            border: isError
-              ? "1px solid var(--color-error)"
-              : "1px solid var(--color-border)",
-            borderRadius: "var(--radius-lg, 12px)",
-            backgroundColor: "var(--color-background-card)",
+            border: isError ? "1px solid var(--color-error)" : "1px solid var(--color-border)",
+            borderRadius: "var(--radius-container)",
+            backgroundColor: "var(--color-background-surface)",
             color: "var(--color-text-primary)",
             fontSize: "1.5rem",
             fontWeight: 700,

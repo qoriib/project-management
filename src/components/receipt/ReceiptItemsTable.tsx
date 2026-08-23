@@ -35,11 +35,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
       header: "Harga (Rp)",
       key: "price",
       width: pixel(140),
-      renderCell: (row) => (
-        <Text type="code" className="pm-tabular">
-          {formatNumber(row.price ?? 0)}
-        </Text>
-      ),
+      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0)}</Text>,
     },
     {
       align: "end",
@@ -77,7 +73,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
       key: "remaining",
       width: pixel(120),
       renderCell: (row) => (
-        <Text type="code" color="secondary" className="pm-tabular">
+        <Text type="code" color="secondary">
           {formatNumber(row.remaining ?? 0)}
         </Text>
       ),

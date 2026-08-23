@@ -95,7 +95,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
             poValue={r.total_ordered > 0 ? formatNumber(poPrice) : "-"}
             bomValue={r.is_unplanned ? "-" : formatNumber(plannedPrice)}
             poColor={isUnder ? "accent" : undefined}
-            poClassName={isOver ? "pm-error-text" : undefined}
+            isError={isOver}
           />
         );
       },
@@ -152,7 +152,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
             poValue={formatNumber(poTotal)}
             bomValue={r.is_unplanned ? "-" : formatNumber(plannedTotal)}
             poColor={isUnder ? "accent" : undefined}
-            poClassName={isOver ? "pm-error-text" : undefined}
+            isError={isOver}
           />
         );
       },

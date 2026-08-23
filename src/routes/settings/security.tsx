@@ -1,15 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Heading, Text, VStack, HStack } from "@astryxdesign/core";
-import { FormLayout } from "@astryxdesign/core/FormLayout";
+import { Button, HStack, Heading, Text, VStack } from "@astryxdesign/core";
 import { useToast } from "@astryxdesign/core/Toast";
-import { changePin } from "@/db/services/auth.service";
 import { useForm } from "@tanstack/react-form";
+import { changePin } from "@/db/services/auth.service";
 import { getFieldError, handleFormError } from "@/utils/form";
-import { sanitizePin } from "@/utils/formatters";
-import { useRef } from "react";
+import { PinInput } from "@/components/shared/PinInput";
 import * as v from "valibot";
-
-const PIN_LENGTH = 6;
 
 const changePinSchema = v.object({
   newPin: v.pipe(v.string(), v.length(6, "PIN harus tepat 6 digit")),
@@ -17,7 +13,6 @@ const changePinSchema = v.object({
 
 function SettingsSecurity() {
   const showToast = useToast();
-  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const form = useForm({
     defaultValues: {
@@ -50,121 +45,53 @@ function SettingsSecurity() {
           aplikasi.
         </Text>
       </VStack>
-      <VStack gap={3} width={480}>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
-        >
-          <FormLayout>
-            <form.Field name="newPin">
-              {(field) => {
-                const pinDigits = Array.from({ length: PIN_LENGTH }, (_, index) => field.state.value[index] ?? "");
-                const errorText = getFieldError(field.state.meta.errors, field.state.meta.isTouched);
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+      >
+        <VStack width={320} gap={4}>
+          <form.Field name="newPin">
+            {(field) => {
+              const errorText = getFieldError(field.state.meta.errors, field.state.meta.isTouched);
 
-                return (
-                  <VStack gap={2} width="100%">
-                    <Text size="sm" color="secondary">
-                      Masukkan 6 digit angka
+              return (
+                <VStack gap={2}>
+                  <Text size="sm" weight="medium">
+                    PIN Baru (6 Digit)
+                  </Text>
+                  <PinInput
+                    length={6}
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val)}
+                    isError={Boolean(errorText)}
+                    onSubmit={() => form.handleSubmit()}
+                  />
+                  {errorText ? (
+                    <Text size="sm" justify="center" style={{ color: "var(--color-error)" }}>
+                      {errorText.message}
                     </Text>
-                    <HStack gap={2} justify="center" width="100%">
-                      {pinDigits.map((digit, index) => (
-                        <input
-                          key={index}
-                          ref={(el) => {
-                            inputRefs.current[index] = el;
-                          }}
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={1}
-                          aria-label={`Digit PIN baru ${index + 1}`}
-                          value={digit}
-                          onBlur={field.handleBlur}
-                          onChange={(event) => {
-                            const rawValue = event.target.value;
-                            const nextValue = sanitizePin(rawValue).slice(-1);
-                            const currentDigits = Array.from(
-                              { length: PIN_LENGTH },
-                              (_, pos) => field.state.value[pos] ?? "",
-                            );
-
-                            if (nextValue) {
-                              currentDigits[index] = nextValue;
-                              field.handleChange(currentDigits.join(""));
-                              if (index < PIN_LENGTH - 1) {
-                                inputRefs.current[index + 1]?.focus();
-                              }
-                            } else {
-                              currentDigits[index] = "";
-                              field.handleChange(currentDigits.join(""));
-                            }
-                          }}
-                          onKeyDown={(event) => {
-                            if (event.key === "Backspace" && !digit && index > 0) {
-                              inputRefs.current[index - 1]?.focus();
-                            }
-                            if (event.key === "ArrowLeft" && index > 0) {
-                              inputRefs.current[index - 1]?.focus();
-                            }
-                            if (event.key === "ArrowRight" && index < PIN_LENGTH - 1) {
-                              inputRefs.current[index + 1]?.focus();
-                            }
-                            if (event.key === "Enter") {
-                              form.handleSubmit();
-                            }
-                          }}
-                          onPaste={(event) => {
-                            event.preventDefault();
-                            const pasted = sanitizePin(event.clipboardData.getData("text"));
-                            if (!pasted) return;
-
-                            const currentDigits = Array.from(
-                              { length: PIN_LENGTH },
-                              (_, pos) => field.state.value[pos] ?? "",
-                            );
-                            const nextDigits = pasted.slice(0, PIN_LENGTH).split("");
-
-                            for (let i = 0; i < PIN_LENGTH; i += 1) {
-                              currentDigits[i] = nextDigits[i] ?? "";
-                            }
-
-                            field.handleChange(currentDigits.join(""));
-                            const lastFilledIndex = Math.min(pasted.length, PIN_LENGTH) - 1;
-                            if (lastFilledIndex >= 0) {
-                              inputRefs.current[Math.min(lastFilledIndex, PIN_LENGTH - 1)]?.focus();
-                            }
-                          }}
-                          autoComplete="off"
-                          className={`pm-pin-input${errorText ? " is-error" : ""}`}
-                        />
-                      ))}
-                    </HStack>
-                    {errorText ? (
-                      <Text size="sm" justify="center" className="pm-error-text">
-                        {errorText.message}
-                      </Text>
-                    ) : null}
-                  </VStack>
-                );
-              }}
-            </form.Field>
-            <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-              children={([canSubmit, isSubmitting]) => (
-                <Button
-                  type="submit"
-                  variant="primary"
-                  isLoading={isSubmitting}
-                  isDisabled={!canSubmit}
-                  label="Simpan PIN"
-                />
-              )}
-            />
-          </FormLayout>
-        </form>
-      </VStack>
+                  ) : null}
+                </VStack>
+              );
+            }}
+          </form.Field>
+          <form.Subscribe
+            selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+            children={([canSubmit, isSubmitting]) => (
+              <Button
+                type="submit"
+                label="Simpan PIN Baru"
+                variant="primary"
+                isDisabled={!canSubmit}
+                isLoading={isSubmitting}
+              />
+            )}
+          />
+        </VStack>
+      </form>
     </HStack>
   );
 }

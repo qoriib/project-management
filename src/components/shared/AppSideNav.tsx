@@ -38,8 +38,13 @@ export function AppSideNav() {
         />
       }
       footer={
-        <HStack paddingInline={2} gap={2} align="center">
-          <img src={sbrLogo} alt="SBR Logo" className="pm-logo-sidenav" />
+        <HStack gap={1} align="center">
+          <img
+            src={sbrLogo}
+            alt="SBR Logo"
+            height={46}
+            style={{ height: 46, width: "auto", objectFit: "contain", flexShrink: 0 }}
+          />
           <VStack gap={0}>
             <Text size="base" weight="semibold">
               {APP.companyName}

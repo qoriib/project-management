@@ -67,7 +67,7 @@ function PODetailPage() {
                     <Text size="sm" color="secondary" type="label">
                       Nomor Order
                     </Text>
-                    <Text weight="semibold" type="code" className="pm-tabular">
+                    <Text weight="semibold" type="code">
                       {order.order_code || "-"}
                     </Text>
                   </VStack>
@@ -100,7 +100,7 @@ function PODetailPage() {
             </Grid>
             <VStack gap={2}>
               <Heading level={4}>Rincian Item & Pemenuhan</Heading>
-              <VStack gap={0} className="pm-table-wrap">
+              <VStack gap={0}>
                 <OrderItemTrackingTable />
               </VStack>
             </VStack>
@@ -115,7 +115,7 @@ function PODetailPage() {
                     onClick={() => navigate({ search: { order: String(order.order_id) }, to: "/receipt/new" })}
                   />
                 </HStack>
-                <VStack gap={0} className="pm-table-wrap">
+                <VStack gap={0}>
                   <OrderReceiptLogTable />
                 </VStack>
               </VStack>
