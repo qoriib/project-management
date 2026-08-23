@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { parseDecimalInput } from "@/utils/formatters";
+import { parseDecimalInput, todayISO } from "@/utils/formatters";
 
 const itemRowSchema = v.object({
   delivered: v.number(),
@@ -53,4 +53,17 @@ export interface ReceiptFormProps {
   initialEditId?: string;
   onSuccess: (poId: string) => void;
   onCancel: () => void;
+}
+
+export function buildDefaultValues(
+  data?: Partial<ReceiptFormValues> | null,
+  nextReceiptCode = "",
+  initialPoId = "",
+): ReceiptFormValues {
+  return {
+    order_id: data?.order_id ?? initialPoId ?? "",
+    receipt_code: data?.receipt_code ?? nextReceiptCode,
+    receipt_date: data?.receipt_date ?? todayISO(),
+    items: data?.items ?? [],
+  };
 }

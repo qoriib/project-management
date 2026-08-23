@@ -1,7 +1,6 @@
 import { receiptRepo, orderRepo } from "@/db/repositories";
+import { parseDecimalInput } from "@/utils/formatters";
 import type { ReceiptItemRow } from "./receipt.schema";
-
-// ── Order Items Loader ────────────────────────────────────────────────────────────
 
 /**
  * Ambil item-item dari sebuah Order dan konversi ke shape ReceiptItemRow
@@ -34,8 +33,6 @@ export async function loadOrderItemsAsReceiptRows(poId: string): Promise<Receipt
     };
   });
 }
-
-// ── Edit Data Loader ───────────────────────────────────────────────────────────
 
 /**
  * Ambil data receipt yang ada (mode edit).
@@ -90,10 +87,6 @@ export async function loadReceiptEditData(receiptId: string): Promise<{
     order_id: receipt.order_id,
   };
 }
-
-import { parseDecimalInput } from "@/utils/formatters";
-
-// ── Payload Builder ────────────────────────────────────────────────────────────
 
 /** Filter hanya item dengan qty > 0 sebagai payload simpan */
 export function buildReceiptItemPayload(items: ReceiptItemRow[]): { order_item_id: string; qty: number }[] {

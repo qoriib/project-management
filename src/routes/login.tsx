@@ -58,7 +58,7 @@ function LoginPage() {
                 {APP.title}
               </Heading>
               <Text size="sm" color="secondary" justify="center">
-                Masuk dengan PIN 6 digit · {APP.companyName}
+                {APP.companyName}
               </Text>
             </VStack>
             <VStack gap={4} width="100%">

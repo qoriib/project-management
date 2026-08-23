@@ -4,8 +4,8 @@ import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
 import { Table } from "@astryxdesign/core/Table";
-import { type ReceiptRow, useReceiptColumns } from "./table/useReceiptColumns";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { type ReceiptRow, useReceiptColumns } from "./table/useReceiptColumns";
 
 export function ReceiptTable() {
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);

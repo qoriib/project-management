@@ -3,9 +3,9 @@ import { useForm } from "@tanstack/react-form";
 import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import { generateNextCode, todayISO } from "@/utils/formatters";
+import { generateNextCode } from "@/utils/formatters";
 import { buildReceiptItemPayload, loadReceiptEditData, loadOrderItemsAsReceiptRows } from "./receipt.utils";
-import { type ReceiptFormProps, type ReceiptItemRow, receiptSchema } from "./receipt.schema";
+import { type ReceiptFormProps, buildDefaultValues, receiptSchema } from "./receipt.schema";
 
 /**
  * Custom hook yang mengorkestrasikan seluruh logic form Receipt:
@@ -33,12 +33,7 @@ export function useReceiptForm({
   }, [receipts]);
 
   const form = useForm({
-    defaultValues: {
-      receipt_code: nextReceiptCode,
-      receipt_date: todayISO(),
-      items: [] as ReceiptItemRow[],
-      order_id: initialPoId ?? "",
-    },
+    defaultValues: buildDefaultValues(null, nextReceiptCode, initialPoId),
     validators: { onChange: receiptSchema },
     onSubmit: async ({ value }) => {
       const payload = buildReceiptItemPayload(value.items);
@@ -84,12 +79,7 @@ export function useReceiptForm({
         const editData = await loadReceiptEditData(initialEditId!);
 
         if (editData !== null) {
-          form.reset({
-            order_id: editData!.order_id,
-            receipt_code: editData!.receipt_code,
-            receipt_date: editData!.receipt_date,
-            items: editData!.items,
-          });
+          form.reset(buildDefaultValues(editData, nextReceiptCode));
         }
       } else {
         if (!form.getFieldValue("receipt_code")) {
