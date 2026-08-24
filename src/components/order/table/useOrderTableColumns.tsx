@@ -34,7 +34,7 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
     {
       header: "Vendor",
       key: "vendor_names",
-      width: proportional(3),
+      width: proportional(1),
       renderCell: (row: PORow) =>
         row?.vendor_names && row.vendor_names.length > 0 ? (
           <HStack gap={1} wrap="wrap">
@@ -50,21 +50,21 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
       align: "end",
       header: "Total Item",
       key: "item_count",
-      width: pixel(140),
+      width: pixel(100),
       renderCell: (row: PORow) => <Text type="code">{row.item_count}</Text>,
     },
     {
       align: "end",
       header: "Total (Rp)",
       key: "total_price",
-      width: pixel(240),
+      width: pixel(150),
       renderCell: (row: PORow) => <Text type="code">{formatNumber(row.total_price)}</Text>,
     },
     {
       align: "end",
       header: "Aksi",
       key: "actions",
-      width: proportional(1),
+      width: pixel(140),
       renderCell: (row: PORow) => (
         <HStack gap={2} justify="end">
           <IconButton

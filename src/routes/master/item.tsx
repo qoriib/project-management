@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { MasterItemTable } from "@/components/master/MasterItemTable";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
+import { useKeyboardShortcut } from "@/utils/useKeyboardShortcut";
 import type { ItemWithDetails } from "@/db/repositories";
 
 export const Route = createFileRoute("/master/item")({
@@ -20,6 +21,12 @@ function MasterItemPage() {
     window.addEventListener("openMasterCreate", handleOpen);
     return () => window.removeEventListener("openMasterCreate", handleOpen);
   }, []);
+
+  const dispatchCreate = useCallback(() => {
+    window.dispatchEvent(new CustomEvent("openMasterCreate"));
+  }, []);
+
+  useKeyboardShortcut({ key: "n", ctrl: true, handler: dispatchCreate });
 
   function openCreate() {
     setEditTarget(null);

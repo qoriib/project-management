@@ -23,6 +23,16 @@ export function RequirementTable() {
   const currentProject = projects.find((p) => p.project_id === selectedProjectId);
   const isApproved = currentProject?.requirements_is_approved === 1;
 
+  // Listen for Ctrl+N shortcut dispatched by the parent route page.
+  // Respects the isApproved guard — same as the table footer button.
+  useEffect(() => {
+    function handleOpen() {
+      if (!isApproved) handleOpenAdd();
+    }
+    window.addEventListener("openRequirementCreate", handleOpen);
+    return () => window.removeEventListener("openRequirementCreate", handleOpen);
+  }, [isApproved]);
+
   useEffect(() => {
     if (selectedProjectId) loadRequirements(selectedProjectId);
   }, [selectedProjectId, loadRequirements]);

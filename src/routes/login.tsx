@@ -4,11 +4,9 @@ import { useForm } from "@tanstack/react-form";
 import { login } from "@/db/services/auth.service";
 import { getFieldError } from "@/utils/form";
 import { APP } from "@/configs/app.config";
-import { useAppStore } from "@/store/useAppStore";
 import { PinInput } from "@/components/shared/PinInput";
 import * as v from "valibot";
-import sbrLight from "@/assets/branding/sbr-logo-lighttheme.png";
-import sbrDark from "@/assets/branding/sbr-logo-darktheme.png";
+import appLogo from "@/assets/branding/logo-menpro.svg";
 
 const loginSchema = v.object({
   pin: v.pipe(v.string(), v.length(6, "PIN harus tepat 6 digit")),
@@ -16,8 +14,6 @@ const loginSchema = v.object({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const resolvedMode = useAppStore((s) => s.resolvedMode);
-  const sbrLogo = resolvedMode === "dark" ? sbrDark : sbrLight;
 
   const form = useForm({
     defaultValues: { pin: "" },
@@ -48,7 +44,7 @@ function LoginPage() {
           }}
         >
           <VStack gap={5} align="center">
-            <img src={sbrLogo} alt="SBR" height={76} style={{ height: 76, width: "auto", objectFit: "contain" }} />
+            <img src={appLogo} alt="Manajemen Proyek" className="app-logo" />
             <VStack gap={1} align="center">
               <Heading level={3} justify="center">
                 {APP.title}

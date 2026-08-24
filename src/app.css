@@ -33,3 +33,22 @@ body {
 .text-financial-neutral {
   color: inherit;
 }
+
+/* ============================================================================
+   App branding logo — eliminates inline style on <img>
+   ============================================================================ */
+
+.app-logo {
+  height: 72px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+
+.app-logo--sidebar {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}

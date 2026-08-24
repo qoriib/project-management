@@ -4,23 +4,19 @@ import { useShallow } from "zustand/react/shallow";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { APP, getUserRole } from "@/configs/app.config";
-import sbrLight from "@/assets/branding/sbr-logo-lighttheme.png";
-import sbrDark from "@/assets/branding/sbr-logo-darktheme.png";
+import appLogo from "@/assets/branding/logo-menpro.svg";
 
 export function AppSideNav() {
   const navigate = useNavigate();
   const userRole = getUserRole();
 
-  const { activeNav, setActiveNav, selectedProjectId, resolvedMode } = useAppStore(
+  const { activeNav, setActiveNav, selectedProjectId } = useAppStore(
     useShallow((s) => ({
       activeNav: s.activeNav,
       selectedProjectId: s.selectedProjectId,
       setActiveNav: s.setActiveNav,
-      resolvedMode: s.resolvedMode,
     })),
   );
-
-  const sbrLogo = resolvedMode === "dark" ? sbrDark : sbrLight;
 
   const projects = useMasterStore((state) => state.projects);
   const activeProject = projects.find((p) => p.project_id === selectedProjectId);
@@ -39,12 +35,7 @@ export function AppSideNav() {
       }
       footer={
         <HStack gap={1} align="center">
-          <img
-            src={sbrLogo}
-            alt="SBR Logo"
-            height={46}
-            style={{ height: 46, width: "auto", objectFit: "contain", flexShrink: 0 }}
-          />
+          <img src={appLogo} alt="Manajemen Proyek" className="app-logo--sidebar" />
           <VStack gap={0}>
             <Text size="base" weight="semibold">
               {APP.companyName}

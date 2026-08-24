@@ -36,7 +36,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
     {
       header: "Vendor",
       key: "vendor_names",
-      width: proportional(3),
+      width: proportional(1),
       renderCell: (row: ReceiptRow) =>
         row?.vendor_names && row.vendor_names.length > 0 ? (
           <HStack gap={1} wrap="wrap">
@@ -59,7 +59,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
       align: "end",
       header: "Aksi",
       key: "actions",
-      width: proportional(1),
+      width: pixel(120),
       renderCell: (row) => (
         <HStack justify="end" gap={2}>
           <IconButton
