@@ -76,7 +76,10 @@ function SettingsDatabase() {
       setIsImportConfirmOpen(false);
       setIsImporting(true);
       await invoke("import_csv_zip", { sourcePath: importSourcePath });
-      showToast({ body: "Data berhasil diimpor!", type: "info" });
+      showToast({ body: "Data berhasil diimpor! Memuat ulang...", type: "info" });
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error: any) {
       handleFormError(error, showToast);
     } finally {
@@ -90,7 +93,10 @@ function SettingsDatabase() {
       setIsResetting(true);
       setIsResetDialogOpen(false);
       await invoke("reset_db");
-      showToast({ body: "Data berhasil direset!", type: "info" });
+      showToast({ body: "Data berhasil direset! Memuat ulang...", type: "info" });
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error: any) {
       handleFormError(error, showToast);
     } finally {

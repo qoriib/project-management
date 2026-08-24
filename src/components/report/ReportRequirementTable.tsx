@@ -94,8 +94,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
           <ReportComparisonCell
             poValue={r.total_ordered > 0 ? formatNumber(poPrice) : "-"}
             bomValue={r.is_unplanned ? "-" : formatNumber(plannedPrice)}
-            poColor={isUnder ? "accent" : undefined}
-            isError={isOver}
+            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
           />
         );
       },
@@ -151,8 +150,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
           <ReportComparisonCell
             poValue={formatNumber(poTotal)}
             bomValue={r.is_unplanned ? "-" : formatNumber(plannedTotal)}
-            poColor={isUnder ? "accent" : undefined}
-            isError={isOver}
+            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
           />
         );
       },
@@ -174,7 +172,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
         const ordered = r.total_ordered ?? 0;
         const planned = r.planned_volume ?? 0;
         const percent = planned > 0 ? (ordered / planned) * 100 : 0;
-        const variant = percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
+        const variant = percent > 100 ? "error" : "success";
 
         return (
           <ProgressBar
@@ -205,7 +203,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
         const delivered = r.total_delivered ?? 0;
         const ordered = r.total_ordered ?? 0;
         const percent = ordered > 0 ? (delivered / ordered) * 100 : 0;
-        const variant = percent > 100 ? "error" : percent >= 100 ? "success" : "accent";
+        const variant = percent > 100 ? "error" : "success";
 
         return (
           <ProgressBar
