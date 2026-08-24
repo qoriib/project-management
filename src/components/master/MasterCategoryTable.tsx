@@ -70,13 +70,13 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       width: proportional(1),
       renderCell: (row: CategoryRow) => row.category_name || "-",
     },
-    {
-      align: "end",
-      header: "Jumlah Item",
-      key: "count",
-      width: pixel(150),
-      renderCell: (row: CategoryRow) => <Text type="code">{String(row.count)}</Text>,
-    },
+    // {
+    //   align: "end",
+    //   header: "Jumlah Item",
+    //   key: "count",
+    //   width: pixel(150),
+    //   renderCell: (row: CategoryRow) => <Text type="code">{String(row.count)}</Text>,
+    // },
     {
       align: "end",
       header: "Aksi",

@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Theme } from "@astryxdesign/core/theme";
-import { stoneTheme } from "./themes/stone/stoneTheme";
+import { appTheme } from "./theme";
 import { routeTree } from "@/routeTree.gen";
 import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
@@ -21,12 +21,12 @@ declare module "@tanstack/react-router" {
 const hashHistory = createHashHistory();
 const router = createRouter({ history: hashHistory, routeTree });
 
-/** Inner component that reads themeMode from the store and passes it to <Theme>. */
+/** Inner component that reads themeMode from the store and passes appTheme to <Theme>. */
 function ThemedApp() {
   const themeMode = useAppStore((s) => s.themeMode);
 
   return (
-    <Theme theme={stoneTheme} mode={themeMode}>
+    <Theme theme={appTheme} mode={themeMode}>
       <InternationalizationProvider
         locale="en"
         overrides={{

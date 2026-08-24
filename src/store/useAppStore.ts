@@ -55,7 +55,7 @@ export const useAppStore = create<AppStore>()(
     {
       name: "app-storage",
       storage: createJSONStorage(() => localStorage),
-      // Persist project selection and theme choice only.
+      // Persist project selection and themeMode.
       // DbReady, globalError, activeNav reset on every load.
       partialize: (state) => ({
         selectedProjectId: state.selectedProjectId,
