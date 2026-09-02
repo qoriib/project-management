@@ -32,7 +32,7 @@ function BOMPage() {
           <VStack gap={4}>
             <PageHeader
               title="Rencana Kebutuhan (BOM)"
-              subtitle="Daftar dan rincian kebutuhan material proyek"
+              subtitle="Daftar dan rincian kebutuhan item"
               actions={<RequirementApprovalActions />}
             />
             <ProjectRequired>

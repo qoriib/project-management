@@ -1,7 +1,7 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 /**
- * Entitas Requirement mewakili Rencana Kebutuhan Material/Jasa (Bill of Quantities / BOM) per proyek.
+ * Entitas Requirement mewakili Rencana Kebutuhan Item per proyek.
  */
 export interface Requirement {
   /** UUID v7 primary key kebutuhan proyek */

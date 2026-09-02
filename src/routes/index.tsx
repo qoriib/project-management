@@ -88,7 +88,7 @@ function DashboardPage() {
             <VStack gap={4}>
               <PageHeader
                 title="Laporan Kebutuhan & Realisasi"
-                subtitle="Ringkasan realisasi pesanan dan penerimaan terhadap BOM"
+                subtitle="Ringkasan realisasi pesanan dan penerimaan terhadap kebutuhan"
                 actions={
                   selectedProjectId ? (
                     <HStack gap={4} align="end">

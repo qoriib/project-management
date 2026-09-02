@@ -46,7 +46,7 @@ function MasterSatuanPage() {
           <VStack gap={4}>
             <PageHeader
               title="Master Satuan"
-              subtitle="Kelola satuan ukuran material"
+              subtitle="Kelola satuan ukuran item"
               actions={<Button variant="primary" label="Tambah Satuan" onClick={openCreate} />}
             />
             <MasterUnitTable onEdit={openEdit} />

@@ -46,7 +46,7 @@ function MasterItemPage() {
           <VStack gap={4}>
             <PageHeader
               title="Master Item"
-              subtitle="Kelola data master barang dan material"
+              subtitle="Kelola data master item"
               actions={<Button variant="primary" label="Tambah Item" onClick={openCreate} />}
             />
             <MasterItemTable onEdit={openEdit} />

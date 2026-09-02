@@ -46,7 +46,7 @@ function MasterKategoriPage() {
           <VStack gap={4}>
             <PageHeader
               title="Master Kategori"
-              subtitle="Kelola kategori klasifikasi material"
+              subtitle="Kelola kategori klasifikasi item"
               actions={<Button variant="primary" label="Tambah Kategori" onClick={openCreate} />}
             />
             <MasterCategoryTable onEdit={openEdit} />
