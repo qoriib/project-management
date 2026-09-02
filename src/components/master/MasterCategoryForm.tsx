@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
-import { Button, Dialog, HStack, Heading, TextInput, VStack } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, TextInput } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
+import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
@@ -79,68 +80,80 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
           form.handleSubmit();
         }}
       >
-        <VStack gap={3}>
-          <Heading level={3}>{initialData ? "Edit Kategori" : "Tambah Kategori"}</Heading>
-          <FormLayout>
-            <form.Field
-              name="prefix"
-              children={(field) => (
-                <TextInput
-                  label="Prefix"
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val.toUpperCase().slice(0, 1))}
-                  onBlur={field.handleBlur}
-                  isRequired
-                  statusVariant="tooltip"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+        <Layout
+          header={
+            <LayoutHeader hasDivider>
+              <Heading level={3}>{initialData ? "Edit Kategori" : "Tambah Kategori"}</Heading>
+            </LayoutHeader>
+          }
+          content={
+            <LayoutContent padding={4}>
+              <FormLayout>
+                <form.Field
+                  name="prefix"
+                  children={(field) => (
+                    <TextInput
+                      label="Prefix"
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val.toUpperCase().slice(0, 1))}
+                      onBlur={field.handleBlur}
+                      isRequired
+                      statusVariant="tooltip"
+                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                    />
+                  )}
                 />
-              )}
-            />
-            <form.Field
-              name="category_code"
-              children={(field) => (
-                <TextInput
-                  label="Kode Kategori"
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val)}
-                  onBlur={field.handleBlur}
-                  isRequired
-                  statusVariant="tooltip"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                <form.Field
+                  name="category_code"
+                  children={(field) => (
+                    <TextInput
+                      label="Kode Kategori"
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val)}
+                      onBlur={field.handleBlur}
+                      isRequired
+                      statusVariant="tooltip"
+                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                    />
+                  )}
                 />
-              )}
-            />
-            <form.Field
-              name="category_name"
-              children={(field) => (
-                <TextInput
-                  label="Nama Kategori"
-                  value={field.state.value}
-                  onChange={(val) => field.handleChange(val)}
-                  onBlur={field.handleBlur}
-                  isRequired
-                  statusVariant="tooltip"
-                  status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                <form.Field
+                  name="category_name"
+                  children={(field) => (
+                    <TextInput
+                      label="Nama Kategori"
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val)}
+                      onBlur={field.handleBlur}
+                      isRequired
+                      statusVariant="tooltip"
+                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                    />
+                  )}
                 />
-              )}
-            />
-            <HStack gap={2} justify="end">
-              <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
-              <form.Subscribe
-                selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-                children={([canSubmit, isSubmitting]) => (
-                  <Button
-                    variant="primary"
-                    label="Simpan"
-                    type="submit"
-                    isLoading={isSubmitting}
-                    isDisabled={!canSubmit}
-                  />
-                )}
-              />
-            </HStack>
-          </FormLayout>
-        </VStack>
+              </FormLayout>
+            </LayoutContent>
+          }
+          footer={
+            <LayoutFooter hasDivider>
+              <HStack gap={2} justify="end" width="100%">
+                <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
+                <form.Subscribe
+                  selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                  children={([canSubmit, isSubmitting]) => (
+                    <Button
+                      variant="primary"
+                      label="Simpan"
+                      type="submit"
+                      isLoading={isSubmitting}
+                      isDisabled={!canSubmit}
+                    />
+                  )}
+                />
+              </HStack>
+            </LayoutFooter>
+          }
+        />
       </form>
     </Dialog>
   );

@@ -16,6 +16,7 @@ import {
   VStack,
 } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
+import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
@@ -24,7 +25,7 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { formatNumber, formatItemCode, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import { useOrderItemForm } from "./form/useOrderItemForm";
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-form";
 import type { OrderItemDetail } from "@/db/repositories";
 
 interface OrderItemDialogProps {
@@ -49,7 +50,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
     },
   });
 
-  const selectedItemId = useStore(form.store, (s) => s.values.item_id);
+  const selectedItemId = useSelector(form.store, (s) => s.values.item_id);
 
   useEffect(() => {
     if (selectedItemId) {
@@ -76,7 +77,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -84,204 +85,216 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
             form.handleSubmit();
           }}
         >
-          <VStack gap={4}>
-            <Heading level={3}>{initialData ? "Edit Item Pesanan" : "Tambah Item Pesanan"}</Heading>
-            <FormLayout>
-              {/* Item */}
-              <HStack gap={2} align="end" width="100%">
-                <VStack width="100%">
-                  <form.Field
-                    name="item_id"
-                    children={(field) => (
-                      <Selector
-                        label="Item"
-                        description={selectedItemCode ? `Kode: ${selectedItemCode}` : undefined}
-                        options={itemOptions}
-                        value={field.state.value}
-                        onChange={async (val) => {
-                          await handleItemChange(val as string);
-                        }}
-                        onBlur={field.handleBlur}
-                        hasSearch
-                        searchPlaceholder="Cari item..."
-                        isRequired
-                        statusVariant="tooltip"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+          <Layout
+            header={
+              <LayoutHeader hasDivider>
+                <Heading level={3}>{initialData ? "Edit Item Pesanan" : "Tambah Item Pesanan"}</Heading>
+              </LayoutHeader>
+            }
+            content={
+              <LayoutContent padding={4}>
+                <VStack gap={4}>
+                  <FormLayout>
+                    {/* Item */}
+                    <HStack gap={2} align="end" width="100%">
+                      <VStack width="100%">
+                        <form.Field
+                          name="item_id"
+                          children={(field) => (
+                            <Selector
+                              label="Item"
+                              description={selectedItemCode ? `Kode: ${selectedItemCode}` : undefined}
+                              options={itemOptions}
+                              value={field.state.value}
+                              onChange={async (val) => {
+                                await handleItemChange(val as string);
+                              }}
+                              onBlur={field.handleBlur}
+                              hasSearch
+                              searchPlaceholder="Cari item..."
+                              isRequired
+                              statusVariant="tooltip"
+                              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                            />
+                          )}
+                        />
+                      </VStack>
+                      <IconButton
+                        variant="secondary"
+                        icon={<Plus />}
+                        label="Tambah Item Baru"
+                        onClick={() => setIsItemFormOpen(true)}
+                        type="button"
                       />
-                    )}
-                  />
-                </VStack>
-                <IconButton
-                  variant="secondary"
-                  icon={<Plus />}
-                  label="Tambah Item Baru"
-                  onClick={() => setIsItemFormOpen(true)}
-                  type="button"
-                />
-              </HStack>
+                    </HStack>
 
-              {/* Harga Satuan */}
-              <HStack gap={2} align="end" width="100%">
-                <VStack width="100%">
-                  <form.Field
-                    name="item_price_id"
-                    children={(field) => (
-                      <Selector
-                        label="Harga Satuan (Rp)"
-                        options={priceOptions}
-                        value={field.state.value}
-                        onChange={(val) => field.handleChange(val as string)}
-                        onBlur={field.handleBlur}
-                        hasSearch
-                        searchPlaceholder="Cari riwayat harga..."
+                    {/* Harga Satuan */}
+                    <HStack gap={2} align="end" width="100%">
+                      <VStack width="100%">
+                        <form.Field
+                          name="item_price_id"
+                          children={(field) => (
+                            <Selector
+                              label="Harga Satuan (Rp)"
+                              options={priceOptions}
+                              value={field.state.value}
+                              onChange={(val) => field.handleChange(val as string)}
+                              onBlur={field.handleBlur}
+                              hasSearch
+                              searchPlaceholder="Cari riwayat harga..."
+                              isDisabled={!selectedItemId}
+                              isRequired
+                              statusVariant="tooltip"
+                              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                            />
+                          )}
+                        />
+                      </VStack>
+                      <IconButton
+                        variant="secondary"
+                        icon={<MoreHorizontal />}
+                        label="Kelola Harga"
+                        onClick={() => setIsPriceFormOpen(true)}
+                        type="button"
                         isDisabled={!selectedItemId}
-                        isRequired
-                        statusVariant="tooltip"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                       />
-                    )}
-                  />
-                </VStack>
-                <IconButton
-                  variant="secondary"
-                  icon={<MoreHorizontal />}
-                  label="Kelola Harga"
-                  onClick={() => setIsPriceFormOpen(true)}
-                  type="button"
-                  isDisabled={!selectedItemId}
-                />
-              </HStack>
+                    </HStack>
 
-              {/* Vendor */}
-              <HStack gap={2} align="end" width="100%">
-                <VStack width="100%">
-                  <form.Field
-                    name="vendor_id"
-                    children={(field) => (
-                      <Selector
-                        label="Vendor"
-                        options={vendorOptions}
-                        value={field.state.value}
-                        onChange={(val) => field.handleChange(val as string)}
-                        onBlur={field.handleBlur}
-                        hasSearch
-                        searchPlaceholder="Cari vendor pemasok..."
-                        isRequired
-                        statusVariant="tooltip"
-                        status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                    {/* Vendor */}
+                    <HStack gap={2} align="end" width="100%">
+                      <VStack width="100%">
+                        <form.Field
+                          name="vendor_id"
+                          children={(field) => (
+                            <Selector
+                              label="Vendor"
+                              options={vendorOptions}
+                              value={field.state.value}
+                              onChange={(val) => field.handleChange(val as string)}
+                              onBlur={field.handleBlur}
+                              hasSearch
+                              searchPlaceholder="Cari vendor pemasok..."
+                              isRequired
+                              statusVariant="tooltip"
+                              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                            />
+                          )}
+                        />
+                      </VStack>
+                      <IconButton
+                        variant="secondary"
+                        icon={<Plus />}
+                        label="Tambah Vendor Baru"
+                        onClick={() => setIsVendorFormOpen(true)}
+                        type="button"
                       />
-                    )}
-                  />
-                </VStack>
-                <IconButton
-                  variant="secondary"
-                  icon={<Plus />}
-                  label="Tambah Vendor Baru"
-                  onClick={() => setIsVendorFormOpen(true)}
-                  type="button"
-                />
-              </HStack>
+                    </HStack>
 
-              {/* Volume dengan InputGroup Satuan */}
-              <form.Field
-                name="qty"
-                children={(field) => (
-                  <InputGroup
-                    label="Volume Pesanan"
-                    isRequired
-                    status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                  >
-                    <TextInput
-                      label="Volume Pesanan"
-                      isLabelHidden
-                      value={String(field.state.value ?? "")}
-                      onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
-                      onBlur={field.handleBlur}
+                    {/* Volume dengan InputGroup Satuan */}
+                    <form.Field
+                      name="qty"
+                      children={(field) => (
+                        <InputGroup
+                          label="Volume Pesanan"
+                          isRequired
+                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                        >
+                          <TextInput
+                            label="Volume Pesanan"
+                            isLabelHidden
+                            value={String(field.state.value ?? "")}
+                            onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
+                            onBlur={field.handleBlur}
+                          />
+                          <InputGroupText>{selectedItem?.unit_name || "-"}</InputGroupText>
+                        </InputGroup>
+                      )}
                     />
-                    <InputGroupText>{selectedItem?.unit_name || "-"}</InputGroupText>
-                  </InputGroup>
-                )}
-              />
 
-              {/* Kena PPn */}
-              <form.Field
-                name="has_tax"
-                children={(field) => (
-                  <Switch
-                    label="Termasuk PPn (12%)"
-                    value={field.state.value}
-                    onChange={(checked) => field.handleChange(checked)}
-                    onBlur={field.handleBlur}
+                    {/* Kena PPn */}
+                    <form.Field
+                      name="has_tax"
+                      children={(field) => (
+                        <Switch
+                          label="Termasuk PPn (12%)"
+                          value={Boolean(field.state.value)}
+                          onChange={(checked) => field.handleChange(checked)}
+                        />
+                      )}
+                    />
+                  </FormLayout>
+
+                  {/* Realtime calculation summary card */}
+                  <form.Subscribe
+                    selector={(s) => ({
+                      itemId: s.values.item_id,
+                      priceId: s.values.item_price_id,
+                      qty: s.values.qty,
+                      hasTax: s.values.has_tax,
+                    })}
+                  >
+                    {({ itemId, priceId, qty, hasTax }) => {
+                      let priceNum = 0;
+                      if (itemId && priceId) {
+                        const prices = itemPricesMap.get(itemId) ?? [];
+                        const pObj = prices.find((p) => String(p.item_price_id) === String(priceId));
+                        if (pObj) priceNum = pObj.price;
+                      }
+                      const numQty = parseDecimalInput(qty);
+                      const subtotal = numQty * priceNum;
+                      const taxAmount = hasTax ? subtotal * 0.12 : 0;
+                      const total = subtotal + taxAmount;
+
+                      return (
+                        <Card padding={3}>
+                          <VStack gap={1.5}>
+                            <HStack justify="between">
+                              <Text size="sm" color="secondary">
+                                Subtotal
+                              </Text>
+                              <Text type="code">Rp {formatNumber(subtotal)}</Text>
+                            </HStack>
+                            <HStack justify="between">
+                              <Text size="sm" color="secondary">
+                                PPn (12%)
+                              </Text>
+                              <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount)}` : "-"}</Text>
+                            </HStack>
+                            <Divider />
+                            <HStack justify="between">
+                              <Text weight="bold">Total</Text>
+                              <Text type="code" weight="bold" color="primary">
+                                Rp {formatNumber(total)}
+                              </Text>
+                            </HStack>
+                          </VStack>
+                        </Card>
+                      );
+                    }}
+                  </form.Subscribe>
+                </VStack>
+              </LayoutContent>
+            }
+            footer={
+              <LayoutFooter hasDivider>
+                <HStack justify="end" gap={2} width="100%">
+                  <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
+                  <form.Subscribe
+                    selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                    children={([canSubmit, isSubmitting]) => (
+                      <Button
+                        variant="primary"
+                        label="Simpan"
+                        type="submit"
+                        isLoading={isSubmitting}
+                        isDisabled={!canSubmit}
+                      />
+                    )}
                   />
-                )}
-              />
-            </FormLayout>
-
-            {/* Realtime calculation summary card */}
-            <form.Subscribe
-              selector={(s) => ({
-                itemId: s.values.item_id,
-                priceId: s.values.item_price_id,
-                qty: s.values.qty,
-                hasTax: s.values.has_tax,
-              })}
-            >
-              {({ itemId, priceId, qty, hasTax }) => {
-                let priceNum = 0;
-                if (itemId && priceId) {
-                  const prices = itemPricesMap.get(itemId) ?? [];
-                  const pObj = prices.find((p) => String(p.item_price_id) === String(priceId));
-                  if (pObj) priceNum = pObj.price;
-                }
-                const numQty = parseDecimalInput(qty);
-                const subtotal = numQty * priceNum;
-                const taxAmount = hasTax ? subtotal * 0.12 : 0;
-                const total = subtotal + taxAmount;
-
-                return (
-                  <Card padding={3}>
-                    <VStack gap={1.5}>
-                      <HStack justify="between">
-                        <Text size="sm" color="secondary">
-                          Subtotal
-                        </Text>
-                        <Text type="code">Rp {formatNumber(subtotal)}</Text>
-                      </HStack>
-                      <HStack justify="between">
-                        <Text size="sm" color="secondary">
-                          PPn (12%)
-                        </Text>
-                        <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount)}` : "-"}</Text>
-                      </HStack>
-                      <Divider />
-                      <HStack justify="between">
-                        <Text weight="bold">Total</Text>
-                        <Text type="code" weight="bold" color="primary">
-                          Rp {formatNumber(total)}
-                        </Text>
-                      </HStack>
-                    </VStack>
-                  </Card>
-                );
-              }}
-            </form.Subscribe>
-
-            <HStack justify="end" gap={2}>
-              <Button variant="secondary" label="Batal" onClick={onClose} type="button" />
-              <form.Subscribe
-                selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-                children={([canSubmit, isSubmitting]) => (
-                  <Button
-                    variant="primary"
-                    label="Simpan"
-                    type="submit"
-                    isLoading={isSubmitting}
-                    isDisabled={!canSubmit}
-                  />
-                )}
-              />
-            </HStack>
-          </VStack>
+                </HStack>
+              </LayoutFooter>
+            }
+          />
         </form>
       </Dialog>
 

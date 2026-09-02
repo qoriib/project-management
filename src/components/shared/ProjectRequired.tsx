@@ -45,11 +45,7 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
             </List>
           ) : (
             <VStack align="center">
-              <Button
-                variant="primary"
-                label="Buat Proyek Baru"
-                onClick={() => navigate({ to: "/master/project" })}
-              />
+              <Button variant="primary" label="Buat Proyek Baru" onClick={() => navigate({ to: "/master/project" })} />
             </VStack>
           )}
         </VStack>

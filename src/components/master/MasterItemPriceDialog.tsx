@@ -6,16 +6,16 @@ import {
   Dialog,
   EmptyState,
   HStack,
+  Heading,
   IconButton,
   Table,
   Text,
   TextInput,
   VStack,
 } from "@astryxdesign/core";
-import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
+import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
-import { PageHeader } from "@/components/shared/PageHeader";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { formatNumber, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
@@ -195,71 +195,73 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560}>
-        <VStack gap={4}>
-          <PageHeader
-            title={item?.item_name ?? ""}
-            actions={<IconButton variant="secondary" icon={<X />} label="Tutup" onClick={onClose} />}
-          />
-          <Table
-            idKey="item_price_id"
-            plugins={{ rowIndex: rowIndexPlugin, pagination: paginationPlugin }}
-            textOverflow="truncate"
-            columns={columns}
-            data={paginatedPrices as PriceRow[]}
-            emptyState={<EmptyState isCompact title="Belum ada riwayat harga" />}
-          />
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-          >
-            <Card>
-              <Layout
-                content={
-                  <LayoutContent>
-                    <FormLayout>
-                      <form.Field
-                        name="price"
-                        children={(field) => (
-                          <TextInput
-                            label="Harga (Rp)"
-                            value={field.state.value}
-                            onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
-                            onBlur={field.handleBlur}
-                            isRequired
-                            statusVariant="tooltip"
-                            status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                          />
-                        )}
-                      />
-                    </FormLayout>
-                  </LayoutContent>
-                }
-                footer={
-                  <LayoutFooter hasDivider>
-                    <HStack justify="end" gap={2} width="100%">
-                      <form.Subscribe
-                        selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-                        children={([canSubmit, isSubmitting]) => (
-                          <Button
-                            type="submit"
-                            variant="primary"
-                            label="Tambah"
-                            isLoading={isSubmitting}
-                            isDisabled={!canSubmit}
-                          />
-                        )}
-                      />
-                    </HStack>
-                  </LayoutFooter>
-                }
-              />
-            </Card>
-          </form>
-        </VStack>
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560} maxHeight="85vh">
+        <Layout
+          header={
+            <LayoutHeader hasDivider>
+              <HStack justify="between" align="center" width="100%">
+                <Heading level={3}>{item?.item_name ?? "Riwayat Harga"}</Heading>
+                <IconButton variant="secondary" icon={<X />} label="Tutup" onClick={onClose} />
+              </HStack>
+            </LayoutHeader>
+          }
+          content={
+            <LayoutContent padding={4}>
+              <VStack gap={4}>
+                <Table
+                  idKey="item_price_id"
+                  plugins={{ rowIndex: rowIndexPlugin, pagination: paginationPlugin }}
+                  textOverflow="truncate"
+                  columns={columns}
+                  data={paginatedPrices as PriceRow[]}
+                  emptyState={<EmptyState isCompact title="Belum ada riwayat harga" />}
+                />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    form.handleSubmit();
+                  }}
+                >
+                  <Card>
+                    <VStack gap={3}>
+                      <FormLayout>
+                        <form.Field
+                          name="price"
+                          children={(field) => (
+                            <TextInput
+                              label="Harga (Rp)"
+                              value={field.state.value}
+                              onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
+                              onBlur={field.handleBlur}
+                              isRequired
+                              statusVariant="tooltip"
+                              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                            />
+                          )}
+                        />
+                      </FormLayout>
+                      <HStack justify="end" gap={2} width="100%">
+                        <form.Subscribe
+                          selector={(state) => [state.canSubmit, state.isSubmitting] as const}
+                          children={([canSubmit, isSubmitting]) => (
+                            <Button
+                              type="submit"
+                              variant="primary"
+                              label="Tambah Harga"
+                              isLoading={isSubmitting}
+                              isDisabled={!canSubmit}
+                            />
+                          )}
+                        />
+                      </HStack>
+                    </VStack>
+                  </Card>
+                </form>
+              </VStack>
+            </LayoutContent>
+          }
+        />
       </Dialog>
       <AlertDialog
         title="Hapus Harga"
