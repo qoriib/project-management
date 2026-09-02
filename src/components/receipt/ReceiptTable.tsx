@@ -34,7 +34,6 @@ export function ReceiptTable() {
   const rowIndexPlugin = useTableRowIndex({
     data: receipts as ReceiptRow[],
     getRowKey: (item) => item.receipt_id,
-    label: "#",
   });
 
   return (

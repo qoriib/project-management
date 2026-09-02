@@ -48,7 +48,6 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
   const logIndexPlugin = useTableRowIndex({
     data: paginatedLogs as LogRow[],
     getRowKey: (logItem) => logItem.reference,
-    label: "#",
     startFrom: (page - 1) * pageSize + 1,
   });
 

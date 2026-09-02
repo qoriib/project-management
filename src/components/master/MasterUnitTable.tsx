@@ -46,7 +46,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
     {
       header: "Nama Satuan",
       key: "unit_name",
-      width: proportional(1),
+      width: proportional(1, { minWidth: 240 }),
       renderCell: (row: UnitRow) => row.unit_name || "-",
     },
     {
@@ -73,7 +73,6 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: units as UnitRow[],
     getRowKey: (item) => item.unit_id,
-    label: "#",
   });
 
   return (

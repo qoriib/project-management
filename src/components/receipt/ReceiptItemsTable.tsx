@@ -82,7 +82,6 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: items,
     getRowKey: (item) => item.order_item_id,
-    label: "#",
   });
 
   return (

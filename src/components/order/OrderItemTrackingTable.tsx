@@ -120,7 +120,6 @@ export function OrderItemTrackingTable() {
   const rowIndexPlugin = useTableRowIndex({
     data: items as TrackingRow[],
     getRowKey: (item) => item.order_item_id,
-    label: "#",
   });
 
   return (

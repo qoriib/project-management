@@ -127,7 +127,6 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const rowIndexPlugin = useTableRowIndex<OrderItemRow>({
     data: items as OrderItemRow[],
     getRowKey: (item) => item.order_item_id,
-    label: "#",
   });
 
   return (

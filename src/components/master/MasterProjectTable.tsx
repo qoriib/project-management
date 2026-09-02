@@ -51,13 +51,13 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
     {
       header: "Nama Proyek",
       key: "project_name",
-      width: proportional(2),
+      width: proportional(2, { minWidth: 280 }),
       renderCell: (row: ProjectRow) => row.project_name || "-",
     },
     {
       header: "Nama Perusahaan",
       key: "company_name",
-      width: proportional(1.5),
+      width: proportional(1.5, { minWidth: 240 }),
       renderCell: (row: ProjectRow) => row.company_name || "-",
     },
     {
@@ -71,7 +71,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       align: "end",
       header: "Aksi",
       key: "actions",
-      width: pixel(300),
+      width: pixel(200),
       renderCell: (row: ProjectRow) => {
         const isActive = row.project_id === selectedProjectId;
         return (
@@ -100,7 +100,6 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: projects as ProjectRow[],
     getRowKey: (item) => item.project_id,
-    label: "#",
   });
 
   return (

@@ -12,10 +12,11 @@ import { useAppStore } from "@/store/useAppStore";
 import { ReportItemLogDialog } from "@/components/report/ReportItemLogDialog";
 import { ReportSummaryCards } from "@/components/report/ReportSummaryCards";
 import { ReportRequirementTable } from "@/components/report/ReportRequirementTable";
-import { getTimestampString } from "@/utils/formatters";
+import { getTimestampString, sanitizeFilename } from "@/utils/formatters";
 import { useToast } from "@astryxdesign/core/Toast";
 import { type ISODateString } from "@astryxdesign/core/Calendar";
 import { type RequirementReportItem, getRequirementReport, generateRequirementReportExcel } from "@/db/services";
+import { useMasterStore } from "@/store/useMasterStore";
 
 function DashboardPage() {
   const showToast = useToast();
@@ -33,7 +34,9 @@ function DashboardPage() {
     try {
       setExporting(true);
       const timestamp = getTimestampString();
-      const filename = `${timestamp}_Laporan_${selectedProjectId}.xlsx`;
+      const project = useMasterStore.getState().projects.find((p) => p.project_id === selectedProjectId);
+      const projectName = project?.project_name ? sanitizeFilename(project.project_name) : "Proyek";
+      const filename = `${timestamp}_Laporan_${projectName}.xlsx`;
 
       const filePath = await save({
         filters: [{ name: "Excel", extensions: ["xlsx"] }],

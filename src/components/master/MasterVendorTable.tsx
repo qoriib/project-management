@@ -48,19 +48,19 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
     {
       header: "Nama Vendor",
       key: "vendor_name",
-      width: proportional(1.5),
+      width: proportional(1.5, { minWidth: 240 }),
       renderCell: (row: VendorRow) => row.vendor_name || "-",
     },
     {
       header: "Telepon",
       key: "phone",
-      width: pixel(150),
+      width: pixel(140),
       renderCell: (row: VendorRow) => row.phone || "-",
     },
     {
       header: "Alamat",
       key: "address",
-      width: proportional(2),
+      width: proportional(2, { minWidth: 280 }),
       renderCell: (row: VendorRow) => row.address || "-",
     },
     {
@@ -87,7 +87,6 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: vendors as VendorRow[],
     getRowKey: (item) => item.vendor_id,
-    label: "#",
   });
 
   return (

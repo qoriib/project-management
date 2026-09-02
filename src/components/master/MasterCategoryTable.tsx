@@ -53,13 +53,13 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
     {
       header: "Kode Kategori",
       key: "category_code",
-      width: pixel(150),
+      width: pixel(140),
       renderCell: (row: CategoryRow) => (row.category_code ? <EntityCode id={row.category_code} /> : "-"),
     },
     {
       header: "Nama Kategori",
       key: "category_name",
-      width: proportional(1),
+      width: proportional(1, { minWidth: 240 }),
       renderCell: (row: CategoryRow) => row.category_name || "-",
     },
     {
@@ -86,7 +86,6 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: categories as CategoryRow[],
     getRowKey: (item) => item.category_id,
-    label: "#",
   });
 
   return (

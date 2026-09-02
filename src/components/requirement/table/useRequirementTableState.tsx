@@ -76,7 +76,6 @@ export function useRequirementTableState({ requirements, isApproved, onAdd }: Us
   const rowIndexPlugin = useTableRowIndex<RequirementRow>({
     data: dataWithFooters,
     getRowKey: (item) => String(item.requirement_id),
-    label: "#",
   });
 
   return {

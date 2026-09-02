@@ -50,7 +50,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
     {
       header: "Kode Item",
       key: "item_code",
-      width: pixel(180),
+      width: pixel(140),
       renderCell: (row: ItemRow) => {
         const code = formatItemCode(row);
         return code ? <EntityCode id={code} /> : "-";
@@ -60,26 +60,26 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(1),
+      width: proportional(1, { minWidth: 280 }),
       renderCell: (row: ItemRow) => row.item_name || "-",
     },
     {
       header: "Satuan",
       key: "unit",
-      width: pixel(120),
+      width: pixel(100),
       renderCell: (row: ItemRow) => row.unit_name || "-",
     },
     {
       header: "Kategori",
       key: "category",
-      width: pixel(150),
+      width: pixel(100),
       renderCell: (row: ItemRow) => (row.category_name ? <Badge variant="neutral" label={row.category_name} /> : "-"),
     },
     {
       align: "end",
       header: "Aksi",
       key: "actions",
-      width: pixel(180),
+      width: pixel(200),
       renderCell: (row: ItemRow) => (
         <HStack gap={2} justify="end">
           <Button size="sm" variant="secondary" label="Harga" onClick={() => setPriceItem(row)} />
@@ -100,7 +100,6 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: items as ItemRow[],
     getRowKey: (item) => item.item_id,
-    label: "#",
   });
 
   return (

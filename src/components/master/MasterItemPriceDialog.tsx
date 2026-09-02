@@ -190,7 +190,6 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
   const rowIndexPlugin = useTableRowIndex({
     data: paginatedPrices as PriceRow[],
     getRowKey: (item) => item.item_price_id,
-    label: "#",
     startFrom: (page - 1) * pageSize + 1,
   });
 

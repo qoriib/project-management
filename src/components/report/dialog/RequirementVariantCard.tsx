@@ -48,7 +48,6 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
   const plannedIndexPlugin = useTableRowIndex({
     data: paginatedRows as VariantRow[],
     getRowKey: (row: VariantRow) => row.unique_id,
-    label: "#",
     startFrom: (page - 1) * pageSize + 1,
   });
 

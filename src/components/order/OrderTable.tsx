@@ -45,7 +45,6 @@ export function OrderTable({ onEdit }: OrderTableProps) {
   const rowIndexPlugin = useTableRowIndex({
     data: orders as PORow[],
     getRowKey: (item) => item.order_id,
-    label: "#",
   });
 
   return (

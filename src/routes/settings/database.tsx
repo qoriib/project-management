@@ -5,10 +5,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { SettingsExportDialog } from "@/components/settings/SettingsExportDialog";
 import { Download, Upload } from "lucide-react";
-import { getTimestampString } from "@/utils/formatters";
+import { getTimestampString, sanitizeFilename } from "@/utils/formatters";
 import { handleFormError } from "@/utils/form";
 import { resetDatabase } from "@/db/services";
-import { resetAllStores } from "@/store";
+import { resetAllStores, useMasterStore } from "@/store";
 
 function SettingsDatabase() {
   const showToast = useToast();
@@ -28,7 +28,9 @@ function SettingsDatabase() {
       setIsExportDialogOpen(false);
 
       const timestamp = getTimestampString();
-      const filename = `${timestamp}_ProjectBackup_${projectId}.proyek`;
+      const project = useMasterStore.getState().projects.find((p) => p.project_id === projectId);
+      const projectName = project?.project_name ? sanitizeFilename(project.project_name) : "Project";
+      const filename = `${timestamp}_ProjectBackup_${projectName}.proyek`;
 
       const targetPath = await save({
         defaultPath: filename,
@@ -41,9 +43,8 @@ function SettingsDatabase() {
           projectId,
           targetPath,
         });
+        showToast({ body: "Data berhasil diekspor!", type: "info" });
       }
-
-      showToast({ body: "Data berhasil diekspor!", type: "info" });
     } catch (error: any) {
       handleFormError(error, showToast);
     } finally {

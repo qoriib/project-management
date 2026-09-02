@@ -67,7 +67,6 @@ export function OrderReceiptLogTable() {
   const rowIndexPlugin = useTableRowIndex({
     data: receiptItems as LogRow[],
     getRowKey: (item) => item.receipt_item_id,
-    label: "#",
   });
 
   return (

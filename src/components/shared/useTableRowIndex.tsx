@@ -6,7 +6,10 @@ import {
 } from "@astryxdesign/core/Table";
 
 export function useTableRowIndex<T extends Record<string, unknown>>(config: UseTableRowIndexConfig<T>): TablePlugin<T> {
-  const basePlugin = useBaseTableRowIndex(config);
+  const basePlugin = useBaseTableRowIndex({
+    label: "",
+    ...config,
+  });
 
   return useMemo(() => {
     return {

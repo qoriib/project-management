@@ -138,6 +138,20 @@ export function getTimestampString(date: Date = new Date()): string {
   return `${yyyy}-${MM}-${dd}_${hh}-${mm}-${ss}`;
 }
 
+/**
+ * Membersihkan string agar aman digunakan sebagai nama file dengan menghapus/mengganti karakter ilegal.
+ *
+ * @param name - String nama yang ingin dibersihkan
+ * @returns String nama file yang aman (tanpa karakter khusus filesystem)
+ */
+export function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[/\\?%*:|"<>]/g, "_")
+    .replace(/\s+/g, "_")
+    .replace(/_+/g, "_")
+    .trim();
+}
+
 /** Struktur bagian-bagian kode item untuk pembentukan kode lengkap */
 export interface ItemCodeParts {
   category_prefix?: string | null;

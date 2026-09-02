@@ -59,7 +59,6 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
   const rowIndexPlugin = useTableRowIndex({
     data: enrichedReport,
     getRowKey: (item: EnrichedReportItem) => item.unique_id,
-    label: "#",
   });
 
   const columns: TableColumn<EnrichedReportItem>[] = [
