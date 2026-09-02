@@ -23,6 +23,9 @@ export { receiptRepo } from "./receipt.repository";
 export { receiptItemRepo } from "./receipt-item.repository";
 
 export type { ProjectWithRelations } from "./project.repository";
+export type { VendorWithRelation } from "./vendor.repository";
+export type { UnitWithRelation } from "./unit.repository";
+export type { ItemCategoryWithRelation } from "./item-category.repository";
 export type { ItemWithDetails } from "./item.repository";
 export type { OrderWithSummary, OrderFilters } from "./order.repository";
 export type { OrderItemDetail, OrderItemInput } from "./order-item.repository";

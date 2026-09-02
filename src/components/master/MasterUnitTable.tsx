@@ -8,15 +8,13 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
-import type { Unit } from "@/db/repositories";
+import type { UnitWithRelation } from "@/db/repositories";
 
 interface MasterUnitTableProps {
-  onEdit: (unit: Unit) => void;
+  onEdit: (unit: UnitWithRelation) => void;
 }
 
-interface UnitRow extends Unit, Record<string, unknown> {
-  count: number;
-}
+interface UnitRow extends UnitWithRelation, Record<string, unknown> {}
 
 export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
   const showToast = useToast();
@@ -26,7 +24,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { units, items, deleteUnit } = useMasterStore();
+  const { units, deleteUnit } = useMasterStore();
 
   async function handleDelete() {
     if (!deleteTarget) {
@@ -45,11 +43,6 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
     }
   }
 
-  const unitRows = units.map((unit) => ({
-    ...unit,
-    count: items.filter((item) => item.unit_id === unit.unit_id).length,
-  }));
-
   const columns: TableColumn<UnitRow>[] = [
     {
       header: "Nama Satuan",
@@ -57,13 +50,6 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
       width: proportional(1),
       renderCell: (row: UnitRow) => row.unit_name || "-",
     },
-    // {
-    //   align: "end",
-    //   header: "Jumlah Item",
-    //   key: "count",
-    //   width: pixel(150),
-    //   renderCell: (row: UnitRow) => <Text type="code">{String(row.count)}</Text>,
-    // },
     {
       align: "end",
       header: "Aksi",
@@ -83,7 +69,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            isDisabled={row.count > 0}
+            isDisabled={row.has_relation}
             onClick={() => setDeleteTarget({ id: row.unit_id, label: row.unit_name })}
           />
         </HStack>
@@ -92,7 +78,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
   ];
 
   const rowIndexPlugin = useTableRowIndex({
-    data: unitRows as UnitRow[],
+    data: units as UnitRow[],
     getRowKey: (item) => item.unit_id,
     label: "#",
   });
@@ -103,7 +89,7 @@ export function MasterUnitTable({ onEdit }: MasterUnitTableProps) {
         hasHover
         textOverflow="truncate"
         columns={columns}
-        data={unitRows as UnitRow[]}
+        data={units as UnitRow[]}
         idKey="unit_id"
         plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<TableEmptyState message="Belum ada satuan." />}

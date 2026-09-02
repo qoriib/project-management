@@ -6,18 +6,18 @@ import {
   type CreateProject,
   type CreateUnit,
   type CreateVendor,
-  type ItemCategory,
+  type ItemCategoryWithRelation,
   type ItemPrice,
   type ItemWithDetails,
   type ProjectWithRelations,
-  type Unit,
+  type UnitWithRelation,
   type UpdateItem,
   type UpdateItemCategory,
   type UpdateItemPrice,
   type UpdateProject,
   type UpdateUnit,
   type UpdateVendor,
-  type Vendor,
+  type VendorWithRelation,
   itemCategoryRepo,
   itemPriceRepo,
   itemRepo,
@@ -30,10 +30,10 @@ interface MasterStore {
   // ── States ─────────────────────────────────────────────────────────────────
   isLoaded: boolean;
   items: ItemWithDetails[];
-  categories: ItemCategory[];
+  categories: ItemCategoryWithRelation[];
   projects: ProjectWithRelations[];
-  units: Unit[];
-  vendors: Vendor[];
+  units: UnitWithRelation[];
+  vendors: VendorWithRelation[];
   /** Item_price_id → ItemPrice[], keyed by item_id for fast lookup */
   itemPricesMap: Map<string, ItemPrice[]>;
 

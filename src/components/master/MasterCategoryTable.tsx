@@ -9,15 +9,13 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
-import type { ItemCategory } from "@/db/repositories";
+import type { ItemCategoryWithRelation } from "@/db/repositories";
 
 interface MasterCategoryTableProps {
-  onEdit: (category: ItemCategory) => void;
+  onEdit: (category: ItemCategoryWithRelation) => void;
 }
 
-interface CategoryRow extends ItemCategory, Record<string, unknown> {
-  count: number;
-}
+interface CategoryRow extends ItemCategoryWithRelation, Record<string, unknown> {}
 
 export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   const showToast = useToast();
@@ -27,7 +25,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { categories, items, deleteCategory } = useMasterStore();
+  const { categories, deleteCategory } = useMasterStore();
 
   async function handleDelete() {
     if (!deleteTarget) {
@@ -45,11 +43,6 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       setDeleting(false);
     }
   }
-
-  const categoryRows = categories.map((category) => ({
-    ...category,
-    count: items.filter((item) => item.category_id === category.category_id).length,
-  }));
 
   const columns: TableColumn<CategoryRow>[] = [
     {
@@ -70,13 +63,6 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       width: proportional(1),
       renderCell: (row: CategoryRow) => row.category_name || "-",
     },
-    // {
-    //   align: "end",
-    //   header: "Jumlah Item",
-    //   key: "count",
-    //   width: pixel(150),
-    //   renderCell: (row: CategoryRow) => <Text type="code">{String(row.count)}</Text>,
-    // },
     {
       align: "end",
       header: "Aksi",
@@ -96,7 +82,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
             variant="destructive"
             label="Hapus"
             icon={<Trash2 size={16} />}
-            isDisabled={row.count > 0}
+            isDisabled={row.has_relation}
             onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })}
           />
         </HStack>
@@ -105,7 +91,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   ];
 
   const rowIndexPlugin = useTableRowIndex({
-    data: categoryRows as CategoryRow[],
+    data: categories as CategoryRow[],
     getRowKey: (item) => item.category_id,
     label: "#",
   });
@@ -118,7 +104,7 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
         plugins={{ rowIndex: rowIndexPlugin }}
         textOverflow="truncate"
         columns={columns}
-        data={categoryRows as CategoryRow[]}
+        data={categories as CategoryRow[]}
         emptyState={<TableEmptyState message="Belum ada kategori." />}
       />
       <AlertDialog

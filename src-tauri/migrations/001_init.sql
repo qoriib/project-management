@@ -152,3 +152,32 @@ WHEN (SELECT requirements_is_approved FROM projects WHERE project_id = OLD.proje
 BEGIN
     SELECT RAISE(ABORT, 'Gagal: Kebutuhan untuk proyek ini telah dikunci.');
 END;
+
+-- Indexes for performance (FK lookups, EXISTS subqueries, and table JOINs)
+CREATE INDEX IF NOT EXISTS idx_items_category_id ON items(category_id);
+CREATE INDEX IF NOT EXISTS idx_items_unit_id ON items(unit_id);
+CREATE INDEX IF NOT EXISTS idx_items_deleted_at ON items(deleted_at);
+
+CREATE INDEX IF NOT EXISTS idx_item_prices_item_id ON item_prices(item_id);
+CREATE INDEX IF NOT EXISTS idx_item_prices_deleted_at ON item_prices(deleted_at);
+
+CREATE INDEX IF NOT EXISTS idx_requirements_project_id ON requirements(project_id);
+CREATE INDEX IF NOT EXISTS idx_requirements_item_id ON requirements(item_id);
+CREATE INDEX IF NOT EXISTS idx_requirements_item_price_id ON requirements(item_price_id);
+CREATE INDEX IF NOT EXISTS idx_requirements_deleted_at ON requirements(deleted_at);
+
+CREATE INDEX IF NOT EXISTS idx_orders_project_id ON orders(project_id);
+CREATE INDEX IF NOT EXISTS idx_orders_order_date ON orders(order_date);
+CREATE INDEX IF NOT EXISTS idx_orders_deleted_at ON orders(deleted_at);
+
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_item_id ON order_items(item_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_vendor_id ON order_items(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_item_price_id ON order_items(item_price_id);
+
+CREATE INDEX IF NOT EXISTS idx_receipts_order_id ON receipts(order_id);
+CREATE INDEX IF NOT EXISTS idx_receipts_receipt_date ON receipts(receipt_date);
+CREATE INDEX IF NOT EXISTS idx_receipts_deleted_at ON receipts(deleted_at);
+
+CREATE INDEX IF NOT EXISTS idx_receipt_items_receipt_id ON receipt_items(receipt_id);
+CREATE INDEX IF NOT EXISTS idx_receipt_items_order_item_id ON receipt_items(order_item_id);

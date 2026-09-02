@@ -1,11 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-export type ThemeMode = "light" | "dark" | "system";
-
-function getSystemMode(): "light" | "dark" {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
+export type ThemeMode = "light" | "dark";
 
 interface AppStore {
   selectedProjectId: string | null;
@@ -21,61 +17,44 @@ interface AppStore {
   resolvedMode: "light" | "dark";
   setThemeMode: (mode: ThemeMode) => void;
   toggleThemeMode: () => void;
-  _setSystemMode: (mode: "light" | "dark") => void;
 }
 
 export const useAppStore = create<AppStore>()(
   persist(
     (set, get) => ({
-      _setSystemMode: (mode) => {
-        const { themeMode } = get();
-        if (themeMode === "system") set({ resolvedMode: mode });
-      },
       activeNav: "/",
       dbReady: false,
-      resolvedMode: getSystemMode(), // will be corrected after persist rehydrates
+      resolvedMode: "light",
       selectedProjectId: null,
       setActiveNav: (nav) => set({ activeNav: nav }),
       setDbReady: (ready) => set({ dbReady: ready }),
       setSelectedProjectId: (id) => set({ selectedProjectId: id }),
       setThemeMode: (mode) => {
-        const systemMode = getSystemMode();
         set({
+          resolvedMode: mode,
           themeMode: mode,
-          resolvedMode: mode === "system" ? systemMode : mode,
         });
       },
-      themeMode: "dark",
+      themeMode: "light",
       toggleThemeMode: () => {
         const { resolvedMode } = get();
         const next: ThemeMode = resolvedMode === "dark" ? "light" : "dark";
-        set({ themeMode: next, resolvedMode: next });
+        set({ resolvedMode: next, themeMode: next });
       },
     }),
     {
       name: "app-storage",
-      storage: createJSONStorage(() => localStorage),
-      // Persist project selection and themeMode.
-      // DbReady, globalError, activeNav reset on every load.
-      partialize: (state) => ({
-        selectedProjectId: state.selectedProjectId,
-        themeMode: state.themeMode,
-      }),
-      // After rehydration, sync resolvedMode from the persisted themeMode
       onRehydrateStorage: () => (state) => {
         if (!state) {
           return;
         }
-        const systemMode = getSystemMode();
-        state.resolvedMode = state.themeMode === "system" ? systemMode : state.themeMode;
+        state.resolvedMode = state.themeMode || "light";
       },
+      partialize: (state) => ({
+        selectedProjectId: state.selectedProjectId,
+        themeMode: state.themeMode,
+      }),
+      storage: createJSONStorage(() => localStorage),
     },
   ),
 );
-
-// Set up once at module load so the store stays reactive to OS changes
-// Without needing a React component wrapper.
-const mq = window.matchMedia("(prefers-color-scheme: dark)");
-mq.addEventListener("change", (e) => {
-  useAppStore.getState()._setSystemMode(e.matches ? "dark" : "light");
-});
