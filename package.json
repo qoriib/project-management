@@ -16,7 +16,6 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "db:seed": "vite-node src/db/seeds/run-cli.ts",
-    "db:reset": "vite-node src/db/seeds/run-reset-cli.ts",
     "lint": "oxlint -c oxlint.config.json",
     "lint:fix": "oxlint -c oxlint.config.json --fix",
     "format": "oxfmt -c oxfmt.config.json src",

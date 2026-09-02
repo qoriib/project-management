@@ -62,14 +62,11 @@ npm run dev:staff
 npm run dev:manager
 ```
 
-### 2. Database Seeding & Reset
+### 2. Database Seeding
 
 ```powershell
 # Mengisi database dengan data awal
 npm run db:seed
-
-# Mereset dan mengosongkan database
-npm run db:reset
 ```
 
 ### 3. Build Production
