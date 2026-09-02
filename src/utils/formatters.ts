@@ -117,14 +117,14 @@ export function todayISO(): string {
 }
 
 /**
- * Menghasilkan string timestamp aman untuk penamaan file ekspor / backup dengan format `YYYY-MM-DD_HH-mm-ss`.
+ * Menghasilkan string timestamp untuk penamaan file ekspor / backup dengan format `YYYYMMDD_HHmmss`.
  *
  * @param date - Objek Date sumber (default: saat ini)
- * @returns String timestamp (e.g. `2026-08-24_00-30-00`)
+ * @returns String timestamp (e.g. `20260902_204116`)
  *
  * @example
  * ```ts
- * getTimestampString(); // "2026-08-24_00-30-00"
+ * getTimestampString(); // "20260902_204116"
  * ```
  */
 export function getTimestampString(date: Date = new Date()): string {
@@ -135,21 +135,23 @@ export function getTimestampString(date: Date = new Date()): string {
   const mm = date.getMinutes().toString().padStart(2, "0");
   const ss = date.getSeconds().toString().padStart(2, "0");
 
-  return `${yyyy}-${MM}-${dd}_${hh}-${mm}-${ss}`;
+  return `${yyyy}${MM}${dd}_${hh}${mm}${ss}`;
 }
 
 /**
- * Membersihkan string agar aman digunakan sebagai nama file dengan menghapus/mengganti karakter ilegal.
+ * Menormalkan string agar aman untuk penamaan file tanpa tanda baca atau karakter khusus.
  *
- * @param name - String nama yang ingin dibersihkan
- * @returns String nama file yang aman (tanpa karakter khusus filesystem)
+ * @param name - String nama yang ingin dinormalisasi
+ * @returns String nama file yang bersih (hanya karakter alfanumerik dan pemisah underscore)
  */
 export function sanitizeFilename(name: string): string {
-  return name
-    .replace(/[/\\?%*:|"<>]/g, "_")
-    .replace(/\s+/g, "_")
-    .replace(/_+/g, "_")
-    .trim();
+  return (
+    name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "Proyek"
+  );
 }
 
 /** Struktur bagian-bagian kode item untuk pembentukan kode lengkap */

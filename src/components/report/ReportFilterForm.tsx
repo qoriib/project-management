@@ -21,8 +21,8 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
         {(field) => (
           <DateInput
             hasClear
-            label="Dari Tanggal"
             isLabelHidden
+            label="Dari Tanggal"
             placeholder="Dari Tanggal"
             format="system_date"
             statusVariant="tooltip"
@@ -31,7 +31,6 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
               field.handleChange(v as ISODateString | undefined);
               setTimeout(() => form.handleSubmit(), 0);
             }}
-            width={180}
           />
         )}
       </form.Field>
@@ -39,18 +38,17 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
         {(field) => (
           <DateInput
             hasClear
-            label="Sampai Tanggal"
             isLabelHidden
+            label="Sampai Tanggal"
             placeholder="Sampai Tanggal"
             format="system_date"
             statusVariant="tooltip"
+            min={form.getFieldValue("startDate") as ISODateString | undefined}
             value={field.state.value as DateInputProps["value"]}
             onChange={(v) => {
               field.handleChange(v as ISODateString | undefined);
               setTimeout(() => form.handleSubmit(), 0);
             }}
-            min={form.getFieldValue("startDate") as ISODateString | undefined}
-            width={180}
           />
         )}
       </form.Field>

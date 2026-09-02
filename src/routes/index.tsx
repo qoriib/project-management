@@ -35,8 +35,8 @@ function DashboardPage() {
       setExporting(true);
       const timestamp = getTimestampString();
       const project = useMasterStore.getState().projects.find((p) => p.project_id === selectedProjectId);
-      const projectName = project?.project_name ? sanitizeFilename(project.project_name) : "Proyek";
-      const filename = `${timestamp}_Laporan_${projectName}.xlsx`;
+      const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
+      const filename = `${timestamp}_${projectName}.xlsx`;
 
       const filePath = await save({
         filters: [{ name: "Excel", extensions: ["xlsx"] }],

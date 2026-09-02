@@ -29,8 +29,8 @@ function SettingsDatabase() {
 
       const timestamp = getTimestampString();
       const project = useMasterStore.getState().projects.find((p) => p.project_id === projectId);
-      const projectName = project?.project_name ? sanitizeFilename(project.project_name) : "Project";
-      const filename = `${timestamp}_ProjectBackup_${projectName}.proyek`;
+      const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
+      const filename = `${timestamp}_${projectName}.proyek`;
 
       const targetPath = await save({
         defaultPath: filename,
