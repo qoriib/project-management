@@ -172,14 +172,6 @@ export const appTheme = defineTheme({
 
     "--text-supporting-size": "12px",
 
-    // Financial semantic tokens — LAPORAN / DASHBOARD
-    // Over-budget / Rugi (PO > BOM)  → Red (#c62828 / #ef5350)
-    // Under-budget / Untung (PO < BOM) → Green (#2e7d32 / #81c784)
-    "--color-financial-over": ["#c62828", "#ef5350"],
-    "--color-financial-over-muted": ["#fbeeed", "#3a1d1d"],
-    "--color-financial-under": ["#2e7d32", "#81c784"],
-    "--color-financial-under-muted": ["#eaf5ec", "#1c3322"],
-
     "--color-background-blue": ["#e8f2fa", "#193347"],
     "--color-border-blue": ["#cde2f3", "#254964"],
     "--color-icon-blue": ["#36729e", "#7ab8e6"],

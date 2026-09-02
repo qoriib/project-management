@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { HStack, IconButton, Table } from "@astryxdesign/core";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";

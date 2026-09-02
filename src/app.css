@@ -23,11 +23,11 @@ body {
    ============================================================================ */
 
 .text-financial-over {
-  color: var(--color-financial-over);
+  color: var(--color-error);
 }
 
 .text-financial-under {
-  color: var(--color-financial-under);
+  color: var(--color-success);
 }
 
 .text-financial-neutral {
