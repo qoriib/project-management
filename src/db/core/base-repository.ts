@@ -1,17 +1,13 @@
 /**
- * Base Repository — Generic CRUD with soft-delete support, fluent aggregation, and atomic transactions.
+ * Base Repository — Generic CRUD with soft-delete support and atomic transactions.
  *
- * Provides standard find/create/update/delete/aggregate operations
+ * Provides standard find/create/update/delete operations
  * that all entity repositories inherit and can extend.
- *
- * @template TEntity   The full entity type returned from queries
- * @template TCreate   The shape of data for creating a new record
- * @template TUpdate   The shape of data for updating an existing record
  */
 
 import { getDB } from "@/db/index";
 import { QueryBuilder } from "./query-builder";
-import { DbError, NotFoundError, wrapDbError } from "./errors";
+import { DbError, wrapDbError } from "./errors";
 import { v7 as uuidv7 } from "uuid";
 import { dbLog } from "./db-logger";
 import type { FindOptions, ModelDefinition, OrderByClause, SimpleWhere } from "./types";
@@ -58,9 +54,9 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
         qb.offset(options.offset);
       }
 
-      const { sql, params } = qb.build(),
-        db = await this.db(),
-        rows = await db.select<TEntity[]>(sql, params);
+      const { sql, params } = qb.build();
+      const db = await this.db();
+      const rows = await db.select<TEntity[]>(sql, params);
       dbLog.debug(`[${this.model.tableName}] findAll → ${rows.length} row(s)`);
       return rows;
     } catch (error) {
@@ -77,33 +73,18 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
     dbLog.debug(`[${this.model.tableName}] findById id=${id}`);
     try {
       const qb = this.query().where(this.model.primaryKey, "=", id);
+      if (includeDeleted) qb.includeDeleted();
 
-      if (includeDeleted) {
-        qb.includeDeleted();
-      }
-
-      const { sql, params } = qb.build(),
-        db = await this.db(),
-        rows = await db.select<TEntity[]>(sql, params),
-        result = rows[0] ?? null;
+      const { sql, params } = qb.build();
+      const db = await this.db();
+      const rows = await db.select<TEntity[]>(sql, params);
+      const result = rows[0] ?? null;
       dbLog.debug(`[${this.model.tableName}] findById id=${id} → ${result ? "found" : "not found"}`);
       return result;
     } catch (error) {
       dbLog.error(`[${this.model.tableName}] findById ERROR: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
-  }
-
-  /**
-   * Find a single record by its primary key (UUID string).
-   * Throws NotFoundError if not found.
-   */
-  async findByIdOrFail(id: string, includeDeleted = false): Promise<TEntity> {
-    const record = await this.findById(id, includeDeleted);
-    if (!record) {
-      throw new NotFoundError(this.model.tableName, id);
-    }
-    return record;
   }
 
   /**
@@ -125,19 +106,13 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
     dbLog.debug(`[${this.model.tableName}] count where=${JSON.stringify(where ?? {})}`);
     try {
       const qb = this.query().selectRaw("COUNT(*) as count");
+      if (includeDeleted) qb.includeDeleted();
+      if (where) qb.applySimpleWhere(where);
 
-      if (includeDeleted) {
-        qb.includeDeleted();
-      }
-
-      if (where) {
-        qb.applySimpleWhere(where);
-      }
-
-      const { sql, params } = qb.build(),
-        db = await this.db(),
-        rows = await db.select<{ count: number }[]>(sql, params),
-        total = rows[0]?.count ?? 0;
+      const { sql, params } = qb.build();
+      const db = await this.db();
+      const rows = await db.select<{ count: number }[]>(sql, params);
+      const total = rows[0]?.count ?? 0;
       dbLog.debug(`[${this.model.tableName}] count → ${total}`);
       return total;
     } catch (error) {
@@ -155,70 +130,16 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   }
 
   /**
-   * Calculate MAX value of a column or expression.
-   */
-  async max(columnOrExpr: string, where?: SimpleWhere, includeDeleted = false): Promise<number | string | null> {
-    try {
-      const qb = this.query().selectRaw(`MAX(${columnOrExpr}) as max_val`);
-      if (includeDeleted) qb.includeDeleted();
-      if (where) qb.applySimpleWhere(where);
-
-      const { sql, params } = qb.build();
-      const db = await this.db();
-      const rows = await db.select<{ max_val: number | string | null }[]>(sql, params);
-      return rows[0]?.max_val ?? null;
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
-  }
-
-  /**
-   * Calculate MIN value of a column or expression.
-   */
-  async min(columnOrExpr: string, where?: SimpleWhere, includeDeleted = false): Promise<number | string | null> {
-    try {
-      const qb = this.query().selectRaw(`MIN(${columnOrExpr}) as min_val`);
-      if (includeDeleted) qb.includeDeleted();
-      if (where) qb.applySimpleWhere(where);
-
-      const { sql, params } = qb.build();
-      const db = await this.db();
-      const rows = await db.select<{ min_val: number | string | null }[]>(sql, params);
-      return rows[0]?.min_val ?? null;
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
-  }
-
-  /**
-   * Calculate SUM value of a column or expression.
-   */
-  async sum(columnOrExpr: string, where?: SimpleWhere, includeDeleted = false): Promise<number> {
-    try {
-      const qb = this.query().selectRaw(`COALESCE(SUM(${columnOrExpr}), 0) as sum_val`);
-      if (includeDeleted) qb.includeDeleted();
-      if (where) qb.applySimpleWhere(where);
-
-      const { sql, params } = qb.build();
-      const db = await this.db();
-      const rows = await db.select<{ sum_val: number }[]>(sql, params);
-      return rows[0]?.sum_val ?? 0;
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
-  }
-
-  /**
    * Insert a new record with a generated UUID v7 as primary key.
    * Returns the UUID string of the newly created record.
    */
   async create(data: TCreate): Promise<string> {
     dbLog.debug(`[${this.model.tableName}] create data=${JSON.stringify(data)}`);
     try {
-      const id = this.generateId(),
-        columns: string[] = [this.model.primaryKey],
-        placeholders: string[] = ["$1"],
-        params: unknown[] = [id];
+      const id = this.generateId();
+      const columns: string[] = [this.model.primaryKey];
+      const placeholders: string[] = ["$1"];
+      const params: unknown[] = [id];
       let paramIdx = 2;
 
       for (const col of this.model.createColumns) {
@@ -230,8 +151,8 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
         }
       }
 
-      const sql = `INSERT INTO ${this.model.tableName} (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`,
-        db = await this.db();
+      const sql = `INSERT INTO ${this.model.tableName} (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
+      const db = await this.db();
       await db.execute(sql, params);
       dbLog.info(`[${this.model.tableName}] create OK → id=${id}`);
       return id;
@@ -276,8 +197,8 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   async update(id: string, data: Partial<TUpdate>): Promise<void> {
     dbLog.debug(`[${this.model.tableName}] update id=${id} data=${JSON.stringify(data)}`);
     try {
-      const setClauses: string[] = [],
-        params: unknown[] = [];
+      const setClauses: string[] = [];
+      const params: unknown[] = [];
       let paramIdx = 1;
 
       for (const col of this.model.updateColumns) {
@@ -293,61 +214,15 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
         return;
       }
 
-      setClauses.push(`updated_at = datetime('now', 'localtime')`);
+      setClauses.push("updated_at = datetime('now', 'localtime')");
 
       params.push(id);
-      const sql = `UPDATE ${this.model.tableName} SET ${setClauses.join(", ")} WHERE ${this.model.primaryKey} = $${paramIdx}`,
-        db = await this.db();
+      const sql = `UPDATE ${this.model.tableName} SET ${setClauses.join(", ")} WHERE ${this.model.primaryKey} = $${paramIdx}`;
+      const db = await this.db();
       await db.execute(sql, params);
       dbLog.info(`[${this.model.tableName}] update OK id=${id}`);
     } catch (error) {
       dbLog.error(`[${this.model.tableName}] update ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
-      throw wrapDbError(error, this.model.tableName);
-    }
-  }
-
-  /**
-   * Update multiple records matching a where condition.
-   */
-  async updateWhere(where: SimpleWhere, data: Partial<TUpdate>): Promise<number> {
-    try {
-      const setClauses: string[] = [];
-      const params: unknown[] = [];
-      let paramIdx = 1;
-
-      for (const col of this.model.updateColumns) {
-        const value = (data as Record<string, unknown>)[col];
-        if (value !== undefined) {
-          setClauses.push(`${col} = $${paramIdx++}`);
-          params.push(value ?? null);
-        }
-      }
-
-      if (setClauses.length === 0) {
-        return 0;
-      }
-
-      setClauses.push(`updated_at = datetime('now', 'localtime')`);
-
-      const qb = new QueryBuilder().from(this.model.tableName).applySimpleWhere(where);
-      const built = qb.build();
-
-      const whereMatch = built.sql.match(/WHERE\s+([\s\S]+)$/);
-      let whereClause = "";
-      if (whereMatch) {
-        let adjustedWhere = whereMatch[1];
-        for (const wp of built.params) {
-          adjustedWhere = adjustedWhere.replace(/\$\d+/, `$${paramIdx++}`);
-          params.push(wp);
-        }
-        whereClause = `WHERE ${adjustedWhere}`;
-      }
-
-      const sql = `UPDATE ${this.model.tableName} SET ${setClauses.join(", ")} ${whereClause}`;
-      const db = await this.db();
-      const res = await db.execute(sql, params);
-      return res.rowsAffected ?? 0;
-    } catch (error) {
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -413,7 +288,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
 
   /**
    * Permanently delete a record from the database.
-   * Use with caution — this bypasses soft delete.
    */
   async hardDelete(id: string): Promise<void> {
     dbLog.warn(`[${this.model.tableName}] hardDelete id=${id}`);
@@ -433,7 +307,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   async restore(id: string): Promise<void> {
     dbLog.debug(`[${this.model.tableName}] restore id=${id}`);
     if (!this.model.softDelete) {
-      dbLog.warn(`[${this.model.tableName}] restore failed — table does not support soft delete`);
       throw new DbError(`Tabel ${this.model.tableName} tidak mendukung soft delete`);
     }
 
@@ -472,10 +345,8 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       try {
         await db.execute(`ROLLBACK TO SAVEPOINT ${savepoint}`);
         await db.execute(`RELEASE SAVEPOINT ${savepoint}`);
-      } catch (rollbackErr) {
-        dbLog.warn(
-          `[${this.model.tableName}] Rollback failed: ${(rollbackErr as Error)?.message ?? String(rollbackErr)}`,
-        );
+      } catch {
+        // Ignore secondary rollback errors
       }
       throw wrapDbError(error, this.model.tableName);
     }
@@ -498,8 +369,8 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   protected async rawSelect<T>(sql: string, params?: unknown[]): Promise<T[]> {
     dbLog.debug(`[${this.model.tableName}] rawSelect sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
     try {
-      const db = await this.db(),
-        rows = await db.select<T[]>(sql, params);
+      const db = await this.db();
+      const rows = await db.select<T[]>(sql, params);
       dbLog.debug(`[${this.model.tableName}] rawSelect → ${rows.length} row(s)`);
       return rows;
     } catch (error) {
@@ -509,49 +380,20 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   }
 
   /**
-   * Execute a raw SQL statement (INSERT/UPDATE/DELETE).
-   */
-  protected async rawExecute(
-    sql: string,
-    params?: unknown[],
-  ): Promise<{ lastInsertId: string | number; rowsAffected: number }> {
-    dbLog.debug(`[${this.model.tableName}] rawExecute sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
-    try {
-      const db = await this.db(),
-        result = await db.execute(sql, params);
-      dbLog.info(
-        `[${this.model.tableName}] rawExecute OK rowsAffected=${result.rowsAffected} lastInsertId=${result.lastInsertId}`,
-      );
-      return {
-        lastInsertId: result.lastInsertId,
-        rowsAffected: result.rowsAffected,
-      };
-    } catch (error) {
-      dbLog.error(`[${this.model.tableName}] rawExecute ERROR: ${(error as Error)?.message ?? String(error)}`);
-      throw wrapDbError(error, this.model.tableName);
-    }
-  }
-
-  /**
    * Bulk insert multiple rows in a single query.
    * Reduces IPC calls from O(N) to O(1).
-   * Each row must include the UUID primary key as the first element.
    */
   protected async bulkInsert(table: string, columns: string[], data: unknown[][]): Promise<void> {
     dbLog.info(`[${this.model.tableName}] bulkInsert into=${table} rows=${data.length}`);
-    if (data.length === 0) {
-      dbLog.debug(`[${this.model.tableName}] bulkInsert skipped — empty data`);
-      return;
-    }
+    if (data.length === 0) return;
 
-    const chunkSize = 200,
-      db = await this.db();
-    let totalAffected = 0;
+    const chunkSize = 200;
+    const db = await this.db();
 
     for (let i = 0; i < data.length; i += chunkSize) {
-      const chunk = data.slice(i, i + chunkSize),
-        placeholders: string[] = [],
-        params: unknown[] = [];
+      const chunk = data.slice(i, i + chunkSize);
+      const placeholders: string[] = [];
+      const params: unknown[] = [];
 
       let paramIdx = 1;
       for (const row of chunk) {
@@ -563,14 +405,10 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
         placeholders.push(`(${rowPlaceholders.join(", ")})`);
       }
 
-      const sql = `INSERT INTO ${table} (${columns.join(", ")}) VALUES ${placeholders.join(", ")}`,
-        result = await db.execute(sql, params);
-      totalAffected += result.rowsAffected ?? chunk.length;
-      dbLog.debug(
-        `[${this.model.tableName}] bulkInsert chunk ${Math.floor(i / chunkSize) + 1} — ${chunk.length} row(s)`,
-      );
+      const sql = `INSERT INTO ${table} (${columns.join(", ")}) VALUES ${placeholders.join(", ")}`;
+      await db.execute(sql, params);
     }
-    dbLog.info(`[${this.model.tableName}] bulkInsert OK total=${totalAffected} row(s)`);
+    dbLog.info(`[${this.model.tableName}] bulkInsert OK total=${data.length} row(s)`);
   }
 
   /**

@@ -1,15 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Button, Divider, HStack, Text, VStack, Heading } from "@astryxdesign/core";
+import { AlertDialog, Button, Divider, Heading, HStack, Text, useToast, VStack } from "@astryxdesign/core";
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { SettingsResetDialog } from "@/components/settings/SettingsResetDialog";
 import { SettingsExportDialog } from "@/components/settings/SettingsExportDialog";
-import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Download, Upload } from "lucide-react";
-import { useToast } from "@astryxdesign/core/Toast";
 import { getTimestampString } from "@/utils/formatters";
 import { handleFormError } from "@/utils/form";
+import { resetDatabase } from "@/db/services";
+import { resetAllStores } from "@/store";
 
 function SettingsDatabase() {
   const showToast = useToast();
@@ -92,8 +91,9 @@ function SettingsDatabase() {
     try {
       setIsResetting(true);
       setIsResetDialogOpen(false);
-      await invoke("reset_db");
-      showToast({ body: "Data berhasil direset! Memuat ulang...", type: "info" });
+      await resetDatabase();
+      resetAllStores();
+      showToast({ body: "Basis data berhasil direset! Memuat ulang...", type: "info" });
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -108,7 +108,7 @@ function SettingsDatabase() {
 
   return (
     <>
-      <VStack gap={6}>
+      <VStack gap={4}>
         <HStack vAlign="center" gap={6}>
           <VStack width="100%" gap={1}>
             <Heading level={3}>Ekspor / Impor</Heading>
@@ -151,11 +151,16 @@ function SettingsDatabase() {
           />
         </HStack>
       </VStack>
-      <SettingsResetDialog
+      <AlertDialog
+        title="Reset Database"
+        description="Hapus seluruh basis data dan kembalikan ke setelan awal? Tindakan ini tidak dapat dibatalkan."
+        actionLabel="Reset"
+        actionVariant="destructive"
+        cancelLabel="Batal"
         isOpen={isResetDialogOpen}
-        onClose={() => setIsResetDialogOpen(false)}
-        onConfirm={executeReset}
-        isLoading={isResetting}
+        onOpenChange={(open) => !open && setIsResetDialogOpen(false)}
+        onAction={executeReset}
+        isActionLoading={isResetting}
       />
       <SettingsExportDialog
         isOpen={isExportDialogOpen}
@@ -165,8 +170,8 @@ function SettingsDatabase() {
       />
       <AlertDialog
         title="Impor Backup"
-        description="PERINGATAN: Mengimpor data akan menggabungkan perubahan ke dalam basis data saat ini. Aplikasi akan memuat ulang setelah selesai. Apakah Anda ingin melanjutkan?"
-        actionLabel="Ya, Impor"
+        description="Impor data cadangan ini? Data akan digabungkan dan aplikasi dimuat ulang."
+        actionLabel="Impor"
         actionVariant="primary"
         cancelLabel="Batal"
         isOpen={isImportConfirmOpen}

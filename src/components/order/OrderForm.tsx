@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertDialog, Button, HStack, Table, TextInput, VStack } from "@astryxdesign/core";
+import { AlertDialog, Button, EmptyState, HStack, Table, TextInput, VStack } from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { OrderItemDialog } from "@/components/order/OrderItemDialog";
 import { useOrderItemTableState } from "@/components/order/table/useOrderItemTableState";
@@ -173,7 +172,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
             columns={columns}
             data={dataWithFooters}
             plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin }}
-            emptyState={<TableEmptyState message="Belum ada item. Tambah item untuk melanjutkan." />}
+            emptyState={<EmptyState isCompact title="Belum ada item pesanan" />}
           />
         </VStack>
         <HStack justify="end" gap={2} wrap="wrap">
@@ -197,7 +196,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         onOpenChange={(open) => !open && setDeletingId(null)}
         onAction={handleDelete}
         title="Hapus Item Pesanan"
-        description="Apakah Anda yakin ingin menghapus item ini dari pesanan?"
+        description="Hapus item ini dari pesanan? Tindakan ini tidak dapat dibatalkan."
         actionLabel="Hapus"
         cancelLabel="Batal"
       />

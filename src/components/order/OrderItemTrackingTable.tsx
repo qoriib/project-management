@@ -1,8 +1,7 @@
-import { Table, Text } from "@astryxdesign/core";
+import { EmptyState, Table, Text } from "@astryxdesign/core";
 import { Item } from "@astryxdesign/core/Item";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
@@ -132,7 +131,7 @@ export function OrderItemTrackingTable() {
       columns={itemColumns}
       data={items as TrackingRow[]}
       plugins={{ rowIndex: rowIndexPlugin }}
-      emptyState={<TableEmptyState message="Tidak ada item dalam Order ini." />}
+      emptyState={<EmptyState isCompact title="Tidak ada item pesanan" />}
     />
   );
 }

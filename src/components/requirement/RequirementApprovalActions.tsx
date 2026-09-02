@@ -60,13 +60,13 @@ export function RequirementApprovalActions() {
         isOpen={Boolean(confirmType)}
         onOpenChange={(open) => !open && setConfirmType(null)}
         onAction={handleConfirm}
-        title={isApprove ? "Setujui Rancangan" : "Batal Persetujuan"}
+        title={isApprove ? "Setujui Rancangan" : "Batalkan Persetujuan"}
         description={
           isApprove
-            ? "Apakah Anda yakin ingin menyetujui Requirement proyek ini? Setelah disetujui, semua data Requirement pada proyek ini akan dikunci dan tidak dapat diubah lagi."
-            : "Apakah Anda yakin ingin membatalkan persetujuan Requirement ini? Data Requirement akan dapat diedit kembali."
+            ? "Setujui rancangan kebutuhan ini? Data akan dikunci dan tidak dapat diubah."
+            : "Batalkan persetujuan rancangan ini? Data akan dapat diedit kembali."
         }
-        actionLabel={isApprove ? "Setuju" : "Batalkan Persetujuan"}
+        actionLabel={isApprove ? "Setujui" : "Batalkan Persetujuan"}
         actionVariant={isApprove ? "primary" : "destructive"}
         cancelLabel="Batal"
         isActionLoading={isLoading}

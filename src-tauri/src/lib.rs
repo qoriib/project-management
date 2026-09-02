@@ -51,7 +51,6 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
-            db_sync::reset_db,
             db_sync::export_csv_zip,
             db_sync::import_csv_zip,
             auth::check_pin,

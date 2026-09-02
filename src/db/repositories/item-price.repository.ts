@@ -1,5 +1,4 @@
 import { BaseRepository } from "@/db/core/base-repository";
-import { wrapDbError } from "@/db/core/errors";
 import { type CreateItemPrice, type ItemPrice, ItemPriceModel, type UpdateItemPrice } from "@/db/models";
 
 export type ItemPriceWithRelation = ItemPrice & {
@@ -16,10 +15,10 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
    * Get all active price variants for a specific item.
    */
   async findByItem(itemId: string): Promise<ItemPrice[]> {
-    return this.findAll({
-      where: { item_id: itemId },
-      orderBy: { column: "item_price_id", direction: "DESC" },
-    });
+    return this.rawSelect<ItemPrice>(
+      "SELECT * FROM item_prices WHERE item_id = $1 AND deleted_at IS NULL ORDER BY item_price_id DESC",
+      [itemId],
+    );
   }
 
   /**
@@ -27,26 +26,20 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
    * Only active (non-soft-deleted) relations are considered.
    */
   async findByItemWithRelation(itemId: string): Promise<ItemPriceWithRelation[]> {
-    try {
-      const qb = this.query("item_prices")
-        .select("item_prices.*")
-        .selectRaw(
-          `(EXISTS(SELECT 1 FROM requirements WHERE item_price_id = item_prices.item_price_id AND deleted_at IS NULL)
-            OR EXISTS(SELECT 1 FROM order_items oi JOIN orders o ON o.order_id = oi.order_id WHERE oi.item_price_id = item_prices.item_price_id AND o.deleted_at IS NULL)) as has_relation`,
-        )
-        .where("item_prices.item_id", "=", itemId)
-        .orderBy("item_prices.item_price_id", "DESC");
+    const rows = await this.rawSelect<ItemPrice & { has_relation: number | boolean }>(
+      `SELECT item_prices.*,
+              (EXISTS(SELECT 1 FROM requirements WHERE item_price_id = item_prices.item_price_id AND deleted_at IS NULL)
+               OR EXISTS(SELECT 1 FROM order_items oi JOIN orders o ON o.order_id = oi.order_id WHERE oi.item_price_id = item_prices.item_price_id AND o.deleted_at IS NULL)) as has_relation
+       FROM item_prices
+       WHERE item_prices.item_id = $1 AND item_prices.deleted_at IS NULL
+       ORDER BY item_prices.item_price_id DESC`,
+      [itemId],
+    );
 
-      const { sql, params } = qb.build();
-      const rows = await this.rawSelect<ItemPrice & { has_relation: number | boolean }>(sql, params);
-
-      return rows.map((row) => ({
-        ...row,
-        has_relation: Boolean(row.has_relation),
-      }));
-    } catch (error) {
-      throw wrapDbError(error, "item_prices");
-    }
+    return rows.map((row) => ({
+      ...row,
+      has_relation: Boolean(row.has_relation),
+    }));
   }
 }
 

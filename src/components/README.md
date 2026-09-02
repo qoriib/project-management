@@ -32,7 +32,7 @@ src/components/
 ├── settings/       # Komponen Pengaturan & Database Backup
 └── shared/         # Komponen yang Digunakan Bersama
     ├── PageHeader.tsx         # Header halaman terstandarisasi (judul, subtitle, aksi)
-    ├── TableEmptyState.tsx    # State visual ketika data tabel kosong
+    ├── EntityCode.tsx         # Badge kode entitas terstandarisasi
     └── useTableRowIndex.ts    # Plugin nomor urut baris tabel Astryx
 ```
 

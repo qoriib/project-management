@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Table } from "@astryxdesign/core";
+import { EmptyState, Table } from "@astryxdesign/core";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
@@ -58,11 +57,11 @@ export function OrderTable({ onEdit }: OrderTableProps) {
         columns={columns}
         data={orders as PORow[]}
         plugins={{ rowIndex: rowIndexPlugin }}
-        emptyState={<TableEmptyState message="Belum ada Order." />}
+        emptyState={<EmptyState isCompact title="Belum ada pesanan (PO)" />}
       />
       <AlertDialog
-        title="Hapus Order"
-        description={`Hapus Order "${deletingId?.label}"? Semua item dan Penerimaan terkait akan ikut terhapus.`}
+        title="Hapus Pesanan"
+        description={`Hapus pesanan "${deletingId?.label}"? Semua item dan penerimaan terkait akan ikut terhapus.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isOpen={Boolean(deletingId)}

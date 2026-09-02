@@ -1,6 +1,6 @@
 /**
  * Core type definitions for the ORM layer.
- * Provides shared types used by QueryBuilder, BaseRepository, and all repositories.
+ * Shared types used by QueryBuilder, BaseRepository, and domain repositories.
  */
 
 export type WhereOperator =
@@ -15,12 +15,8 @@ export type WhereOperator =
   | "NOT LIKE"
   | "IN"
   | "NOT IN"
-  | "BETWEEN"
-  | "NOT BETWEEN"
   | "IS NULL"
-  | "IS NOT NULL"
-  | "EXISTS"
-  | "NOT EXISTS";
+  | "IS NOT NULL";
 
 export type OrderDirection = "ASC" | "DESC";
 export type JoinType = "INNER" | "LEFT" | "RIGHT" | "CROSS";
@@ -50,7 +46,6 @@ export interface WhereFilterObject {
   notLike?: string;
   in?: unknown[];
   notIn?: unknown[];
-  between?: [unknown, unknown];
   isNull?: boolean;
   isNotNull?: boolean;
 }
@@ -58,7 +53,7 @@ export interface WhereFilterObject {
 export type WhereValue = unknown | WhereFilterObject;
 
 /**
- * Flexible where clause supporting primitive values and operator objects:
+ * Flexible where clause supporting primitive values and operator objects.
  * @example
  * { project_id: "123", order_date: { gte: "2026-01-01" }, status: { in: ["A", "B"] } }
  */
@@ -90,19 +85,9 @@ export interface ModelDefinition {
   softDelete: boolean;
 }
 
-export interface ExecuteResult {
-  lastInsertId: string | number;
-  rowsAffected: number;
-}
-
 export interface JoinClause {
   type: JoinType;
   table: string;
   alias?: string;
   on: string;
-}
-
-export interface AggregateOptions {
-  where?: SimpleWhere;
-  includeDeleted?: boolean;
 }

@@ -49,11 +49,11 @@ export function useRequirementTableState({ requirements, isApproved, onAdd }: Us
             children: (
               <TableCell colSpan={999}>
                 <HStack justify="between" align="center" width="100%">
-                  <div>
+                  <HStack align="center">
                     {!isApproved && (
                       <Button variant="secondary" size="sm" icon={<Plus />} label="Tambah Kebutuhan" onClick={onAdd} />
                     )}
-                  </div>
+                  </HStack>
                   <HStack gap={2} align="center">
                     <Text weight="medium" size="base" color="secondary">
                       Total:

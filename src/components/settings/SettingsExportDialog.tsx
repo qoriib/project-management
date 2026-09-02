@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Dialog, HStack, Heading, Text, VStack } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, VStack } from "@astryxdesign/core";
 import { Selector } from "@astryxdesign/core/Selector";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -35,13 +35,13 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
 
   return (
     <Dialog
+      width={520}
       isOpen={isOpen}
       onOpenChange={(open) => {
         if (!open && !isLoading) {
           onClose();
         }
       }}
-      width={520}
     >
       <form
         onSubmit={(e) => {
@@ -53,10 +53,6 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
         <VStack gap={3}>
           <Heading level={3}>Ekspor Data Proyek</Heading>
           <FormLayout>
-            <Text type="supporting" color="secondary">
-              Pilih proyek mana yang ingin Anda ekspor. File backup ini dapat digunakan untuk memindahkan data proyek.
-            </Text>
-
             <Selector
               isRequired
               label="Pilih Proyek"
@@ -68,7 +64,6 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
               hasSearch
               searchPlaceholder="Cari proyek..."
             />
-
             <HStack gap={2} justify="end">
               <Button variant="secondary" onClick={onClose} isDisabled={isLoading} label="Batal" type="button" />
               <Button

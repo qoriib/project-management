@@ -1,8 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { HStack, IconButton, Table } from "@astryxdesign/core";
+import { EmptyState, HStack, IconButton, Table } from "@astryxdesign/core";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -99,14 +98,14 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
         textOverflow="truncate"
         columns={columns}
         data={categories as CategoryRow[]}
-        emptyState={<TableEmptyState message="Belum ada kategori." />}
+        emptyState={<EmptyState isCompact title="Belum ada kategori" />}
       />
       <AlertDialog
         isOpen={Boolean(deleteTarget)}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onAction={handleDelete}
-        title="Hapus Master Data"
-        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan.`}
+        title="Hapus Kategori"
+        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak dapat dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isActionLoading={deleting}

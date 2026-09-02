@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
+import { EmptyState, Table } from "@astryxdesign/core";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useAppStore } from "@/store/useAppStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import { Table } from "@astryxdesign/core/Table";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type ReceiptRow, useReceiptColumns } from "./table/useReceiptColumns";
 
@@ -47,11 +46,11 @@ export function ReceiptTable() {
         columns={columns}
         data={receipts as ReceiptRow[]}
         plugins={{ rowIndex: rowIndexPlugin }}
-        emptyState={<TableEmptyState message="Belum ada Penerimaan." />}
+        emptyState={<EmptyState isCompact title="Belum ada penerimaan (NP)" />}
       />
       <AlertDialog
-        title="Hapus Log Penerimaan"
-        description="Apakah Anda yakin ingin menghapus data Penerimaan ini?"
+        title="Hapus Penerimaan"
+        description="Hapus data penerimaan ini? Tindakan ini tidak dapat dibatalkan."
         actionLabel="Hapus"
         cancelLabel="Batal"
         isOpen={Boolean(deletingId)}

@@ -1,7 +1,6 @@
-import { Table, Text, TextInput, VStack } from "@astryxdesign/core";
+import { EmptyState, Table, Text, TextInput, VStack } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { formatItemCode, formatNumber, sanitizeDecimalInput } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
@@ -95,7 +94,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
         columns={columns}
         data={items}
         plugins={{ rowIndex: rowIndexPlugin }}
-        emptyState={<TableEmptyState message="Tidak ada item untuk order yang dipilih." />}
+        emptyState={<EmptyState isCompact title="Tidak ada item untuk diterima" />}
       />
     </VStack>
   );

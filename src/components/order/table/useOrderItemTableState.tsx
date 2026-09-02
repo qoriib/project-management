@@ -35,9 +35,9 @@ export function useOrderItemTableState({ items, onAdd }: UseOrderItemTableStateP
             children: (
               <TableCell colSpan={999}>
                 <HStack justify="between" align="center" width="100%">
-                  <div>
+                  <HStack align="center">
                     <Button variant="secondary" size="sm" icon={<Plus />} label="Tambah Item" onClick={onAdd} />
-                  </div>
+                  </HStack>
                   <HStack gap={2} align="center">
                     <Text weight="medium" size="base" color="secondary">
                       Total:

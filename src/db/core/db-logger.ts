@@ -1,82 +1,48 @@
 /**
- * Db-logger — Database action logger.
- *
- * Uses @tauri-apps/plugin-log when running inside Tauri (browser context),
- * and falls back to console.* when running in Node.js (e.g. seed scripts).
- *
- * Usage:
- *   dbLog.debug("[projects] findAll options=%s", JSON.stringify(opts));
- *   dbLog.info("[projects] create → id=%s", id);
- *   dbLog.warn("[projects] hardDelete id=%s", id);
- *   dbLog.error("[projects] create ERROR: %s", err.message);
+ * Database Action Logger.
+ * Uses @tauri-apps/plugin-log inside Tauri or falls back to console in CLI/Node.js.
  */
 
+type LogLevel = "debug" | "info" | "warn" | "error";
 type LogFn = (message: string) => void;
 
-interface DbLogger {
-  debug: LogFn;
-  info: LogFn;
-  warn: LogFn;
-  error: LogFn;
-}
+let tauriLogger: Record<LogLevel, LogFn> | null = null;
 
-/**
- * Lazily resolved Tauri log functions.
- * We import dynamically to avoid breaking Node.js environments.
- */
-let _tauriLog: {
-  debug: LogFn;
-  info: LogFn;
-  warn: LogFn;
-  error: LogFn;
-} | null = null;
+async function getLogger(): Promise<Record<LogLevel, LogFn>> {
+  if (tauriLogger) return tauriLogger;
 
-async function getTauriLog() {
-  if (_tauriLog) {
-    return _tauriLog;
-  }
-  const mod = await import("@tauri-apps/plugin-log");
-  _tauriLog = {
-    debug: mod.debug,
-    error: mod.error,
-    info: mod.info,
-    warn: mod.warn,
-  };
-  return _tauriLog;
-}
-
-/**
- * Check if we're running in Tauri (browser with Tauri backend).
- * In Node.js (seed scripts) window is undefined.
- */
-function isTauriContext(): boolean {
-  return typeof window !== "undefined";
-}
-
-/**
- * Internal dispatcher — routes to Tauri or console.
- */
-async function dispatch(level: "debug" | "info" | "warn" | "error", message: string): Promise<void> {
-  if (isTauriContext()) {
+  if (typeof window !== "undefined") {
     try {
-      const logger = await getTauriLog();
-      await logger[level](message);
+      const mod = await import("@tauri-apps/plugin-log");
+      tauriLogger = {
+        debug: mod.debug,
+        error: mod.error,
+        info: mod.info,
+        warn: mod.warn,
+      };
+      return tauriLogger;
     } catch {
-      // Fallback to console if Tauri plugin fails to load
-      console[level](`[DB] ${message}`);
+      // Fallback if plugin fails
     }
-  } else {
-    console[level](`[DB] ${message}`);
   }
+
+  tauriLogger = {
+    debug: (msg) => console.debug(`[DB] ${msg}`),
+    error: (msg) => console.error(`[DB] ${msg}`),
+    info: (msg) => console.info(`[DB] ${msg}`),
+    warn: (msg) => console.warn(`[DB] ${msg}`),
+  };
+
+  return tauriLogger;
 }
 
-/**
- * Public DB logger interface.
- * All methods are fire-and-forget (non-blocking).
- */
-export const dbLog: DbLogger = {
-  debug: (message: string) => void dispatch("debug", message),
-  error: (message: string) => void dispatch("error", message),
-  info: (message: string) => void dispatch("info", message),
-  warn: (message: string) => void dispatch("warn", message),
+function log(level: LogLevel, message: string): void {
+  void getLogger().then((logger) => logger[level](message));
+}
+
+export const dbLog = {
+  debug: (message: string) => log("debug", message),
+  error: (message: string) => log("error", message),
+  info: (message: string) => log("info", message),
+  warn: (message: string) => log("warn", message),
 };

@@ -1,5 +1,4 @@
 import { BaseRepository } from "@/db/core/base-repository";
-import { wrapDbError } from "@/db/core/errors";
 import { type CreateReceipt, type Receipt, ReceiptModel } from "@/db/models";
 import {
   receiptItemRepo,
@@ -42,40 +41,52 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
    * Get all receipts with summary info (item count, vendor names, project, order code).
    */
   async findAllWithSummary(filters?: ReceiptFilters): Promise<ReceiptSummary[]> {
-    try {
-      const query = this.query("receipts")
-        .select(
-          "receipts.receipt_id",
-          "receipts.receipt_code",
-          "receipts.order_id",
-          "orders.order_code",
-          "receipts.receipt_date",
-          "projects.project_name",
-        )
-        .selectCount("receipt_items.receipt_item_id", "item_count")
-        .selectGroupConcat("vendors.vendor_name", "vendor_names", true)
-        .leftJoin("orders", "orders", "orders.order_id = receipts.order_id AND orders.deleted_at IS NULL")
-        .leftJoin("projects", "projects", "projects.project_id = orders.project_id AND projects.deleted_at IS NULL")
-        .leftJoin("receipt_items", "receipt_items", "receipt_items.receipt_id = receipts.receipt_id")
-        .leftJoin("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
-        .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
-        .when(Boolean(filters?.vendor_id), (q) => q.where("order_items.vendor_id", "=", filters!.vendor_id))
-        .when(Boolean(filters?.project_id), (q) => q.where("orders.project_id", "=", filters!.project_id))
-        .when(Boolean(filters?.start_date), (q) => q.where("receipts.receipt_date", ">=", filters!.start_date))
-        .when(Boolean(filters?.end_date), (q) => q.where("receipts.receipt_date", "<=", filters!.end_date))
-        .groupBy("receipts.receipt_id")
-        .orderBy("receipts.receipt_id", "ASC");
+    const params: unknown[] = [];
+    let pIdx = 1;
+    let whereSql = "WHERE receipts.deleted_at IS NULL";
 
-      const { sql, params } = query.build();
-      const rows = await this.rawSelect<RawReceiptSummaryRow>(sql, params);
-
-      return rows.map((row) => ({
-        ...row,
-        vendor_names: row.vendor_names ? row.vendor_names.split(",").map((name) => name.trim()) : [],
-      }));
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
+    if (filters?.vendor_id) {
+      whereSql += ` AND order_items.vendor_id = $${pIdx++}`;
+      params.push(filters.vendor_id);
     }
+    if (filters?.project_id) {
+      whereSql += ` AND orders.project_id = $${pIdx++}`;
+      params.push(filters.project_id);
+    }
+    if (filters?.start_date) {
+      whereSql += ` AND receipts.receipt_date >= $${pIdx++}`;
+      params.push(filters.start_date);
+    }
+    if (filters?.end_date) {
+      whereSql += ` AND receipts.receipt_date <= $${pIdx++}`;
+      params.push(filters.end_date);
+    }
+
+    const sql = `
+      SELECT receipts.receipt_id,
+             receipts.receipt_code,
+             receipts.order_id,
+             orders.order_code,
+             receipts.receipt_date,
+             projects.project_name,
+             COUNT(receipt_items.receipt_item_id) as item_count,
+             GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names
+      FROM receipts
+      LEFT JOIN orders ON orders.order_id = receipts.order_id AND orders.deleted_at IS NULL
+      LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
+      LEFT JOIN receipt_items ON receipt_items.receipt_id = receipts.receipt_id
+      LEFT JOIN order_items ON order_items.order_item_id = receipt_items.order_item_id
+      LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
+      ${whereSql}
+      GROUP BY receipts.receipt_id
+      ORDER BY receipts.receipt_id ASC
+    `;
+
+    const rows = await this.rawSelect<RawReceiptSummaryRow>(sql, params);
+    return rows.map((row) => ({
+      ...row,
+      vendor_names: row.vendor_names ? row.vendor_names.split(",").map((name) => name.trim()) : [],
+    }));
   }
 
   /**

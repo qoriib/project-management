@@ -1,8 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Button, HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { Button, EmptyState, HStack, IconButton, Table, Text } from "@astryxdesign/core";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
@@ -113,14 +112,14 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
         data={projects as ProjectRow[]}
         idKey="project_id"
         plugins={{ rowIndex: rowIndexPlugin }}
-        emptyState={<TableEmptyState message="Belum ada project." />}
+        emptyState={<EmptyState isCompact title="Belum ada proyek" />}
       />
       <AlertDialog
         isOpen={Boolean(deleteTarget)}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onAction={handleDelete}
-        title="Hapus Master Data"
-        description={`Hapus proyek "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan.`}
+        title="Hapus Proyek"
+        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak dapat dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isActionLoading={deleting}

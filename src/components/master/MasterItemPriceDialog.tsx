@@ -1,12 +1,22 @@
 import { Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card, Dialog, HStack, IconButton, Table, Text, TextInput, VStack } from "@astryxdesign/core";
+import {
+  Button,
+  Card,
+  Dialog,
+  EmptyState,
+  HStack,
+  IconButton,
+  Table,
+  Text,
+  TextInput,
+  VStack,
+} from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { formatNumber, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -198,7 +208,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
             textOverflow="truncate"
             columns={columns}
             data={paginatedPrices as PriceRow[]}
-            emptyState={<TableEmptyState message="Belum ada harga. Tambahkan di bawah." />}
+            emptyState={<EmptyState isCompact title="Belum ada riwayat harga" />}
           />
           <form
             onSubmit={(e) => {
@@ -254,7 +264,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       </Dialog>
       <AlertDialog
         title="Hapus Harga"
-        description={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}? Tindakan ini tidak bisa dibatalkan.`}
+        description={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}? Tindakan ini tidak dapat dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isOpen={Boolean(deleteTarget)}

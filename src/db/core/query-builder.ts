@@ -1,21 +1,6 @@
 /**
  * Fluent SQL Query Builder.
- *
  * Generates parameterized SQL from method chains.
- * Supports SELECT, WHERE, JOIN, ORDER BY, GROUP BY, LIMIT/OFFSET,
- * subqueries, aggregate helpers, conditional clauses, and automatic soft-delete filtering.
- *
- * @example
- * ```ts
- * const { sql, params } = new QueryBuilder()
- *   .select("v.vendor_id", "v.vendor_name")
- *   .from("vendors", "v")
- *   .whereLike("v.vendor_name", "%Sinar%")
- *   .when(Boolean(status), (q) => q.where("v.status", "=", status))
- *   .orderBy("v.vendor_name", "ASC")
- *   .withSoftDelete("v")
- *   .build();
- * ```
  */
 
 import { getDB } from "@/db/index";
@@ -47,7 +32,7 @@ export class QueryBuilder {
   private _orderBys: OrderByClause[] = [];
   private _limit: number | null = null;
   private _offset: number | null = null;
-  private _softDeleteAlias: string | null = null;
+  private _softDeleteAliases: string[] = [];
   private _includeDeleted = false;
 
   /** Specify columns to select. Pass `"*"` or individual column names. */
@@ -56,31 +41,10 @@ export class QueryBuilder {
     return this;
   }
 
-  /** Specify a raw SELECT expression (e.g., aggregate, subquery, or complex calculation). */
+  /** Specify a raw SELECT expression. */
   selectRaw(expression: string): this {
     this._selectColumns.push(expression);
     return this;
-  }
-
-  /** Select an EXISTS subquery as a boolean/int column. */
-  selectExists(subquery: QueryBuilder | string, alias: string, params?: unknown[]): this {
-    if (subquery instanceof QueryBuilder) {
-      const built = subquery.build();
-      return this.selectRaw(`EXISTS(${built.sql}) as ${alias}`);
-    }
-    if (params && params.length > 0) {
-      this._selectColumns.push(`EXISTS(${subquery}) as ${alias}`);
-    } else {
-      this._selectColumns.push(`EXISTS(${subquery}) as ${alias}`);
-    }
-    return this;
-  }
-
-  /** Select a COALESCE expression. */
-  selectCoalesce(columnOrExpr: string, fallback: unknown, alias?: string): this {
-    const formattedFallback = typeof fallback === "string" ? `'${fallback}'` : String(fallback);
-    const expr = `COALESCE(${columnOrExpr}, ${formattedFallback})`;
-    return this.selectRaw(alias ? `${expr} as ${alias}` : expr);
   }
 
   /** Select a SUM aggregate with COALESCE. */
@@ -91,16 +55,6 @@ export class QueryBuilder {
   /** Select a COUNT aggregate. */
   selectCount(expression = "*", alias = "count"): this {
     return this.selectRaw(`COUNT(${expression}) as ${alias}`);
-  }
-
-  /** Select a MAX aggregate. */
-  selectMax(expression: string, alias = "max_val"): this {
-    return this.selectRaw(`MAX(${expression}) as ${alias}`);
-  }
-
-  /** Select a MIN aggregate. */
-  selectMin(expression: string, alias = "min_val"): this {
-    return this.selectRaw(`MIN(${expression}) as ${alias}`);
   }
 
   /** Select a GROUP_CONCAT aggregate. */
@@ -146,31 +100,12 @@ export class QueryBuilder {
     return this;
   }
 
-  /** Add an additional AND WHERE condition. */
-  andWhere(column: string, operator: WhereOperator, value?: unknown): this {
-    return this.where(column, operator, value);
-  }
-
-  /** Add an OR WHERE condition. */
-  orWhere(column: string, operator: WhereOperator, value?: unknown): this {
-    this._wheres.push({ column, connector: "OR", operator, value });
-    return this;
-  }
-
   /** Add a WHERE IN condition. */
   whereIn(column: string, values: unknown[]): this {
     if (values.length === 0) {
       return this.whereRaw("1 = 0");
     }
     return this.where(column, "IN", values);
-  }
-
-  /** Add a WHERE NOT IN condition. */
-  whereNotIn(column: string, values: unknown[]): this {
-    if (values.length === 0) {
-      return this.whereRaw("1 = 1");
-    }
-    return this.where(column, "NOT IN", values);
   }
 
   /** Add a WHERE IS NULL condition. */
@@ -186,29 +121,6 @@ export class QueryBuilder {
   /** Add a WHERE LIKE condition. */
   whereLike(column: string, pattern: string): this {
     return this.where(column, "LIKE", pattern);
-  }
-
-  /** Add a WHERE BETWEEN condition. */
-  whereBetween(column: string, min: unknown, max: unknown): this {
-    return this.where(column, "BETWEEN", [min, max]);
-  }
-
-  /** Add a WHERE EXISTS condition with subquery or string. */
-  whereExists(subquery: QueryBuilder | string, params?: unknown[]): this {
-    if (subquery instanceof QueryBuilder) {
-      const built = subquery.build();
-      return this.whereRaw(`EXISTS(${built.sql})`, built.params);
-    }
-    return this.whereRaw(`EXISTS(${subquery})`, params);
-  }
-
-  /** Add a WHERE NOT EXISTS condition with subquery or string. */
-  whereNotExists(subquery: QueryBuilder | string, params?: unknown[]): this {
-    if (subquery instanceof QueryBuilder) {
-      const built = subquery.build();
-      return this.whereRaw(`NOT EXISTS(${built.sql})`, built.params);
-    }
-    return this.whereRaw(`NOT EXISTS(${subquery})`, params);
   }
 
   /**
@@ -227,20 +139,12 @@ export class QueryBuilder {
 
   /**
    * Apply a flexible where condition for a column.
-   * Supports primitive values (`=`, `IS NULL`) and filter objects (`gte`, `in`, `like`, etc.).
+   * Supports primitive values and filter objects (`gte`, `in`, `like`, etc.).
    */
   applyWhere(column: string, value: WhereValue): this {
-    if (value === undefined) {
-      return this;
-    }
-
-    if (value === null) {
-      return this.whereNull(column);
-    }
-
-    if (Array.isArray(value)) {
-      return this.whereIn(column, value);
-    }
+    if (value === undefined) return this;
+    if (value === null) return this.whereNull(column);
+    if (Array.isArray(value)) return this.whereIn(column, value);
 
     if (typeof value === "object") {
       const filter = value as WhereFilterObject;
@@ -259,10 +163,6 @@ export class QueryBuilder {
       if (filter.like !== undefined) this.whereLike(column, filter.like);
       if (filter.notLike !== undefined) this.where(column, "NOT LIKE", filter.notLike);
       if (filter.in !== undefined && Array.isArray(filter.in)) this.whereIn(column, filter.in);
-      if (filter.notIn !== undefined && Array.isArray(filter.notIn)) this.whereNotIn(column, filter.notIn);
-      if (filter.between !== undefined && Array.isArray(filter.between)) {
-        this.whereBetween(column, filter.between[0], filter.between[1]);
-      }
       if (filter.isNull === true) this.whereNull(column);
       if (filter.isNotNull === true) this.whereNotNull(column);
       return this;
@@ -313,9 +213,20 @@ export class QueryBuilder {
     return this;
   }
 
-  /** Enable soft-delete filtering (adds `WHERE alias.deleted_at IS NULL`). */
-  withSoftDelete(alias?: string): this {
-    this._softDeleteAlias = alias ?? "";
+  /** Enable soft-delete filtering (adds `WHERE alias.deleted_at IS NULL`). Supports multiple table aliases. */
+  withSoftDelete(...aliases: (string | undefined)[]): this {
+    if (aliases.length === 0) {
+      if (!this._softDeleteAliases.includes("")) {
+        this._softDeleteAliases.push("");
+      }
+    } else {
+      for (const a of aliases) {
+        const alias = a ?? "";
+        if (!this._softDeleteAliases.includes(alias)) {
+          this._softDeleteAliases.push(alias);
+        }
+      }
+    }
     return this;
   }
 
@@ -338,15 +249,15 @@ export class QueryBuilder {
     cloned._orderBys = [...this._orderBys];
     cloned._limit = this._limit;
     cloned._offset = this._offset;
-    cloned._softDeleteAlias = this._softDeleteAlias;
+    cloned._softDeleteAliases = [...this._softDeleteAliases];
     cloned._includeDeleted = this._includeDeleted;
     return cloned;
   }
 
   /** Compile the query builder state into a parameterized SQL string + params. */
   build(): BuiltQuery {
-    const parts: string[] = [],
-      params: unknown[] = [];
+    const parts: string[] = [];
+    const params: unknown[] = [];
     let paramIdx = 1;
 
     // SELECT
@@ -369,13 +280,16 @@ export class QueryBuilder {
     const allWheres: WhereCondition[] = [...this._wheres];
 
     // Soft delete filter
-    if (this._softDeleteAlias !== null && !this._includeDeleted) {
-      const prefix = this._softDeleteAlias ? `${this._softDeleteAlias}.` : "";
-      allWheres.unshift({
-        column: `${prefix}deleted_at`,
-        connector: "AND",
-        operator: "IS NULL",
-      });
+    if (this._softDeleteAliases.length > 0 && !this._includeDeleted) {
+      for (let i = this._softDeleteAliases.length - 1; i >= 0; i--) {
+        const alias = this._softDeleteAliases[i];
+        const prefix = alias ? `${alias}.` : "";
+        allWheres.unshift({
+          column: `${prefix}deleted_at`,
+          connector: "AND",
+          operator: "IS NULL",
+        });
+      }
     }
 
     // WHERE
@@ -386,10 +300,9 @@ export class QueryBuilder {
         const cond = allWheres[i];
         let fragment: string;
 
-        // Handle raw WHERE expressions
         if (cond.column.startsWith("__RAW__")) {
-          const rawExpr = cond.column.slice(7),
-            rawParams = (cond.value as unknown[] | undefined) ?? [];
+          const rawExpr = cond.column.slice(7);
+          const rawParams = (cond.value as unknown[] | undefined) ?? [];
           let adjustedExpr = rawExpr;
           for (const rp of rawParams) {
             adjustedExpr = adjustedExpr.replace(/\$\d+/, `$${paramIdx}`);
@@ -407,15 +320,6 @@ export class QueryBuilder {
             params.push(...cond.value);
             fragment = `${cond.column} ${cond.operator} (${placeholders})`;
           }
-        } else if (
-          (cond.operator === "BETWEEN" || cond.operator === "NOT BETWEEN") &&
-          Array.isArray(cond.value) &&
-          cond.value.length === 2
-        ) {
-          const p1 = `$${paramIdx++}`;
-          const p2 = `$${paramIdx++}`;
-          params.push(cond.value[0], cond.value[1]);
-          fragment = `${cond.column} ${cond.operator} ${p1} AND ${p2}`;
         } else {
           fragment = `${cond.column} ${cond.operator} $${paramIdx}`;
           params.push(cond.value);
@@ -450,15 +354,13 @@ export class QueryBuilder {
 
     // LIMIT / OFFSET
     if (this._limit !== null) {
-      parts.push(`LIMIT $${paramIdx}`);
+      parts.push(`LIMIT $${paramIdx++}`);
       params.push(this._limit);
-      paramIdx++;
     }
 
     if (this._offset !== null) {
-      parts.push(`OFFSET $${paramIdx}`);
+      parts.push(`OFFSET $${paramIdx++}`);
       params.push(this._offset);
-      paramIdx++;
     }
 
     return { params, sql: parts.join("\n") };

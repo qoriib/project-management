@@ -3,6 +3,7 @@
  */
 
 export { login, logout, checkIsAuthenticated, changePin } from "./auth.service";
+export { resetDatabase } from "./database.service";
 
 export {
   getRequirementReport,

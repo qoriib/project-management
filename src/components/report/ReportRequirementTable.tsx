@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
-import { HStack, IconButton, Table, Text } from "@astryxdesign/core";
+import { EmptyState, HStack, IconButton, Table, Text } from "@astryxdesign/core";
 import { Item } from "@astryxdesign/core/Item";
-import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { Eye } from "lucide-react";
@@ -228,13 +227,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
   ];
 
   if (report.length === 0 && !loading) {
-    return (
-      <EmptyState
-        title="Belum ada Kebutuhan (BOM)"
-        description="Belum ada data kebutuhan Item yang direncanakan untuk proyek ini."
-        isCompact
-      />
-    );
+    return <EmptyState isCompact title="Belum ada laporan kebutuhan (BOM)" />;
   }
 
   return (
@@ -245,6 +238,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       data={groupedData}
       idKey={groupedIdKey}
       plugins={{ grouping: groupedPlugin, rowIndex: rowIndexPlugin }}
+      emptyState={<EmptyState isCompact title="Belum ada laporan kebutuhan (BOM)" />}
     />
   );
 }

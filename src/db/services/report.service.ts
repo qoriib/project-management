@@ -179,10 +179,18 @@ export async function getRequirementReport(
         "requirements.has_tax",
       )
       .from("requirements", "requirements")
-      .join("items", "items", "items.item_id = requirements.item_id")
-      .join("item_prices", "item_prices", "item_prices.item_price_id = requirements.item_price_id")
-      .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
-      .leftJoin("units", "units", "items.unit_id = units.unit_id")
+      .join("items", "items", "items.item_id = requirements.item_id AND items.deleted_at IS NULL")
+      .join(
+        "item_prices",
+        "item_prices",
+        "item_prices.item_price_id = requirements.item_price_id AND item_prices.deleted_at IS NULL",
+      )
+      .leftJoin(
+        "item_categories",
+        "categories",
+        "items.category_id = categories.category_id AND categories.deleted_at IS NULL",
+      )
+      .leftJoin("units", "units", "items.unit_id = units.unit_id AND units.deleted_at IS NULL")
       .where("requirements.project_id", "=", projectId)
       .withSoftDelete("requirements")
       .orderBy("items.item_id", "ASC");
@@ -205,10 +213,18 @@ export async function getRequirementReport(
       )
       .from("order_items", "order_items")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
-      .join("items", "items", "items.item_id = order_items.item_id")
-      .join("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
-      .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
-      .leftJoin("units", "units", "items.unit_id = units.unit_id")
+      .join("items", "items", "items.item_id = order_items.item_id AND items.deleted_at IS NULL")
+      .join(
+        "item_prices",
+        "item_prices",
+        "item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL",
+      )
+      .leftJoin(
+        "item_categories",
+        "categories",
+        "items.category_id = categories.category_id AND categories.deleted_at IS NULL",
+      )
+      .leftJoin("units", "units", "items.unit_id = units.unit_id AND units.deleted_at IS NULL")
       .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
       .withSoftDelete("orders")
@@ -224,8 +240,7 @@ export async function getRequirementReport(
       .join("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
       .where("orders.project_id", "=", projectId)
-      .withSoftDelete("receipts")
-      .withSoftDelete("orders")
+      .withSoftDelete("receipts", "orders")
       .when(Boolean(startDate), (q) => q.where("receipts.receipt_date", ">=", startDate!))
       .when(Boolean(endDate), (q) => q.where("receipts.receipt_date", "<=", endDate!))
       .groupBy("order_items.item_id");
@@ -365,8 +380,7 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
       .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
       .where("order_items.item_id", "=", itemId)
-      .withSoftDelete("receipts")
-      .withSoftDelete("orders")
+      .withSoftDelete("receipts", "orders")
       .when(Boolean(itemPriceId && itemPriceId.trim() !== ""), (q) =>
         q.where("order_items.item_price_id", "=", itemPriceId!),
       );
@@ -419,10 +433,18 @@ export async function getProjectOrderReport(
       )
       .from("order_items", "order_items")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
-      .join("items", "items", "items.item_id = order_items.item_id")
-      .join("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
-      .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
-      .leftJoin("units", "units", "units.unit_id = items.unit_id")
+      .join("items", "items", "items.item_id = order_items.item_id AND items.deleted_at IS NULL")
+      .join(
+        "item_prices",
+        "item_prices",
+        "item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL",
+      )
+      .leftJoin(
+        "item_categories",
+        "categories",
+        "categories.category_id = items.category_id AND categories.deleted_at IS NULL",
+      )
+      .leftJoin("units", "units", "units.unit_id = items.unit_id AND units.deleted_at IS NULL")
       .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
       .withSoftDelete("orders")
@@ -463,13 +485,16 @@ export async function getProjectReceiptReport(
       .join("receipts", "receipts", "receipts.receipt_id = receipt_items.receipt_id")
       .join("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
-      .join("items", "items", "items.item_id = order_items.item_id")
-      .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
-      .leftJoin("units", "units", "units.unit_id = items.unit_id")
+      .join("items", "items", "items.item_id = order_items.item_id AND items.deleted_at IS NULL")
+      .leftJoin(
+        "item_categories",
+        "categories",
+        "categories.category_id = items.category_id AND categories.deleted_at IS NULL",
+      )
+      .leftJoin("units", "units", "units.unit_id = items.unit_id AND units.deleted_at IS NULL")
       .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
-      .withSoftDelete("receipts")
-      .withSoftDelete("orders")
+      .withSoftDelete("receipts", "orders")
       .when(Boolean(startDate), (q) => q.where("receipts.receipt_date", ">=", startDate!))
       .when(Boolean(endDate), (q) => q.where("receipts.receipt_date", "<=", endDate!))
       .orderBy("receipts.receipt_id", "ASC");
@@ -498,10 +523,18 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
         "requirements.has_tax",
       )
       .from("requirements", "requirements")
-      .join("items", "items", "items.item_id = requirements.item_id")
-      .join("item_prices", "item_prices", "item_prices.item_price_id = requirements.item_price_id")
-      .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
-      .leftJoin("units", "units", "units.unit_id = items.unit_id")
+      .join("items", "items", "items.item_id = requirements.item_id AND items.deleted_at IS NULL")
+      .join(
+        "item_prices",
+        "item_prices",
+        "item_prices.item_price_id = requirements.item_price_id AND item_prices.deleted_at IS NULL",
+      )
+      .leftJoin(
+        "item_categories",
+        "categories",
+        "categories.category_id = items.category_id AND categories.deleted_at IS NULL",
+      )
+      .leftJoin("units", "units", "units.unit_id = items.unit_id AND units.deleted_at IS NULL")
       .where("requirements.project_id", "=", projectId)
       .withSoftDelete("requirements")
       .orderBy("categories.category_name", "ASC")

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Card, Heading, Text, Timestamp, VStack } from "@astryxdesign/core";
-import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { Badge, Card, EmptyState, Heading, Text, Timestamp, VStack } from "@astryxdesign/core";
 import {
   Table,
   type TableColumn,
@@ -23,17 +22,15 @@ interface TransactionHistoryCardProps {
 
 export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionHistoryCardProps) {
   const [logs, setLogs] = useState<ItemLogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const pageSize = 5;
 
   useEffect(() => {
     if (isOpen && item) {
       setPage(1);
-      setLoading(true);
       getItemLog(projectId, item.item_id)
         .then(setLogs)
-        .finally(() => setLoading(false));
+        .catch(() => setLogs([]));
     }
   }, [isOpen, projectId, item]);
 
@@ -102,13 +99,8 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
           data={paginatedLogs as LogRow[]}
           idKey="reference"
           plugins={{ rowIndex: logIndexPlugin, pagination: paginationPlugin }}
+          emptyState={<EmptyState isCompact title="Belum ada riwayat transaksi" />}
         />
-        {logs.length === 0 && !loading && (
-          <EmptyState
-            title="Belum ada transaksi"
-            description="Belum ada log Pemesanan atau Penerimaan untuk item ini."
-          />
-        )}
       </VStack>
     </Card>
   );

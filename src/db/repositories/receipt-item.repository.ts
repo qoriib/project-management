@@ -1,6 +1,4 @@
 import { BaseRepository } from "@/db/core/base-repository";
-import { QueryBuilder } from "@/db/core/query-builder";
-import { wrapDbError } from "@/db/core/errors";
 import { type CreateReceiptItem, type ReceiptItem, ReceiptItemModel } from "@/db/models";
 
 export interface ReceiptItemDetail {
@@ -34,53 +32,45 @@ class ReceiptItemRepository extends BaseRepository<ReceiptItem, CreateReceiptIte
    * Get all items for a specific receipt.
    */
   async findByReceipt(receiptId: string): Promise<ReceiptItemDetail[]> {
-    try {
-      const query = new QueryBuilder()
-        .select("receipt_items.*", "items.item_name", "units.unit_name as unit", "vendors.vendor_name")
-        .from("receipt_items", "receipt_items")
-        .leftJoin("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
-        .leftJoin("items", "items", "items.item_id = order_items.item_id")
-        .leftJoin("units", "units", "items.unit_id = units.unit_id")
-        .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
-        .where("receipt_items.receipt_id", "=", receiptId);
+    const sql = `
+      SELECT receipt_items.*,
+             items.item_name,
+             units.unit_name as unit,
+             vendors.vendor_name
+      FROM receipt_items
+      LEFT JOIN order_items ON order_items.order_item_id = receipt_items.order_item_id
+      LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
+      LEFT JOIN units ON items.unit_id = units.unit_id AND units.deleted_at IS NULL
+      LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
+      WHERE receipt_items.receipt_id = $1
+    `;
 
-      const { sql, params } = query.build();
-      return await this.rawSelect<ReceiptItemDetail>(sql, params);
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
+    return this.rawSelect<ReceiptItemDetail>(sql, [receiptId]);
   }
 
   /**
    * Get all receipt items for a specific Order (across all active receipts).
    */
   async findByOrder(orderId: string): Promise<ReceiptItemByOrder[]> {
-    try {
-      const query = new QueryBuilder()
-        .select(
-          "receipt_items.*",
-          "receipts.receipt_date",
-          "receipts.receipt_code",
-          "items.item_name",
-          "units.unit_name as unit",
-          "vendors.vendor_name",
-        )
-        .from("receipt_items", "receipt_items")
-        .join("receipts", "receipts", "receipts.receipt_id = receipt_items.receipt_id AND receipts.deleted_at IS NULL")
-        .join("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
-        .join("orders", "orders", "orders.order_id = order_items.order_id AND orders.deleted_at IS NULL")
-        .join("items", "items", "items.item_id = order_items.item_id")
-        .leftJoin("units", "units", "items.unit_id = units.unit_id")
-        .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
-        .where("order_items.order_id", "=", orderId)
-        .orderBy("receipts.receipt_date", "DESC")
-        .orderBy("receipt_items.receipt_item_id", "DESC");
+    const sql = `
+      SELECT receipt_items.*,
+             receipts.receipt_date,
+             receipts.receipt_code,
+             items.item_name,
+             units.unit_name as unit,
+             vendors.vendor_name
+      FROM receipt_items
+      JOIN receipts ON receipts.receipt_id = receipt_items.receipt_id AND receipts.deleted_at IS NULL
+      JOIN order_items ON order_items.order_item_id = receipt_items.order_item_id
+      JOIN orders ON orders.order_id = order_items.order_id AND orders.deleted_at IS NULL
+      JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
+      LEFT JOIN units ON items.unit_id = units.unit_id AND units.deleted_at IS NULL
+      LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
+      WHERE order_items.order_id = $1
+      ORDER BY receipts.receipt_date DESC, receipt_items.receipt_item_id DESC
+    `;
 
-      const { sql, params } = query.build();
-      return await this.rawSelect<ReceiptItemByOrder>(sql, params);
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
+    return this.rawSelect<ReceiptItemByOrder>(sql, [orderId]);
   }
 
   /**

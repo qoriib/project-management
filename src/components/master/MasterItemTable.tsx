@@ -1,8 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Badge, Button, HStack, IconButton, Table } from "@astryxdesign/core";
+import { Badge, Button, EmptyState, HStack, IconButton, Table } from "@astryxdesign/core";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
@@ -113,14 +112,14 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
         data={items as ItemRow[]}
         idKey="item_id"
         plugins={{ rowIndex: rowIndexPlugin }}
-        emptyState={<TableEmptyState message="Belum ada item." />}
+        emptyState={<EmptyState isCompact title="Belum ada item" />}
       />
       <AlertDialog
         isOpen={Boolean(deleteTarget)}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onAction={handleDelete}
-        title="Hapus Master Data"
-        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak bisa dibatalkan.`}
+        title="Hapus Item"
+        description={`Hapus "${deleteTarget?.label}"? Tindakan ini tidak dapat dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isActionLoading={deleting}

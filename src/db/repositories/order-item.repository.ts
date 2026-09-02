@@ -1,6 +1,4 @@
 import { BaseRepository } from "@/db/core/base-repository";
-import { QueryBuilder } from "@/db/core/query-builder";
-import { wrapDbError } from "@/db/core/errors";
 import { type CreateOrderItem, type OrderItem, OrderItemModel } from "@/db/models";
 
 export interface OrderItemDetail {
@@ -44,44 +42,36 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
    * Only active (non-soft-deleted) receipts are counted in total_delivered.
    */
   async findByOrder(orderId: string): Promise<OrderItemDetail[]> {
-    try {
-      const query = new QueryBuilder()
-        .select(
-          "order_items.order_item_id",
-          "order_items.order_id",
-          "order_items.item_id",
-          "order_items.vendor_id",
-          "order_items.item_price_id",
-          "order_items.qty",
-          "order_items.has_tax",
-          "item_prices.price",
-          "items.item_name",
-          "items.item_code",
-          "categories.prefix as category_prefix",
-          "categories.category_code",
-          "units.unit_name as unit",
-          "vendors.vendor_name",
-        )
-        .selectSum("CASE WHEN receipts.deleted_at IS NULL THEN receipt_items.qty ELSE 0 END", "total_delivered", 0)
-        .selectRaw(
-          "order_items.qty - COALESCE(SUM(CASE WHEN receipts.deleted_at IS NULL THEN receipt_items.qty ELSE 0 END), 0) as remaining",
-        )
-        .from("order_items", "order_items")
-        .leftJoin("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
-        .leftJoin("items", "items", "items.item_id = order_items.item_id")
-        .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
-        .leftJoin("units", "units", "items.unit_id = units.unit_id")
-        .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
-        .leftJoin("receipt_items", "receipt_items", "receipt_items.order_item_id = order_items.order_item_id")
-        .leftJoin("receipts", "receipts", "receipts.receipt_id = receipt_items.receipt_id")
-        .where("order_items.order_id", "=", orderId)
-        .groupBy("order_items.order_item_id");
+    const sql = `
+      SELECT order_items.order_item_id,
+             order_items.order_id,
+             order_items.item_id,
+             order_items.vendor_id,
+             order_items.item_price_id,
+             order_items.qty,
+             order_items.has_tax,
+             item_prices.price,
+             items.item_name,
+             items.item_code,
+             categories.prefix as category_prefix,
+             categories.category_code,
+             units.unit_name as unit,
+             vendors.vendor_name,
+             COALESCE(SUM(CASE WHEN receipts.deleted_at IS NULL THEN receipt_items.qty ELSE 0 END), 0) as total_delivered,
+             order_items.qty - COALESCE(SUM(CASE WHEN receipts.deleted_at IS NULL THEN receipt_items.qty ELSE 0 END), 0) as remaining
+      FROM order_items
+      LEFT JOIN item_prices ON item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL
+      LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
+      LEFT JOIN item_categories categories ON categories.category_id = items.category_id AND categories.deleted_at IS NULL
+      LEFT JOIN units ON items.unit_id = units.unit_id AND units.deleted_at IS NULL
+      LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
+      LEFT JOIN receipt_items ON receipt_items.order_item_id = order_items.order_item_id
+      LEFT JOIN receipts ON receipts.receipt_id = receipt_items.receipt_id AND receipts.deleted_at IS NULL
+      WHERE order_items.order_id = $1
+      GROUP BY order_items.order_item_id
+    `;
 
-      const { sql, params } = query.build();
-      return await this.rawSelect<OrderItemDetail>(sql, params);
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
+    return this.rawSelect<OrderItemDetail>(sql, [orderId]);
   }
 
   /**

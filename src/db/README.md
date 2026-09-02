@@ -44,7 +44,8 @@ src/db/
 ├── services/               # Layanan bisnis & pemrosesan data kompleks
 │   ├── report.service.ts   # Kalkulasi rekapitulasi, sisa pemenuhan, anggaran
 │   ├── excel.service.ts    # Ekspor laporan ke format Microsoft Excel (.xlsx)
-│   └── auth.service.ts     # Autentikasi dan verifikasi session role
+│   ├── auth.service.ts     # Autentikasi dan verifikasi session role
+│   └── database.service.ts # Manajemen basis data & reset database ORM
 ├── seeds/                  # Script data awal (seeders) CLI
 ├── index.ts                # Koneksi DB runtime (Tauri plugin-sql)
 └── node-db.ts              # Fallback koneksi SQLite untuk Node.js CLI

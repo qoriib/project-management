@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { Card, HStack, Heading, Text, VStack } from "@astryxdesign/core";
-import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { Card, EmptyState, HStack, Heading, Text, VStack } from "@astryxdesign/core";
 import {
   Table,
   type TableColumn,
@@ -106,53 +105,50 @@ export function OrderVariantCard({ item }: OrderVariantCardProps) {
     <Card>
       <VStack gap={3}>
         <Heading level={4}>Pemesanan (PO)</Heading>
-        {orderRows.length > 0 ? (
-          <Table
-            hasHover
-            textOverflow="truncate"
-            columns={columns}
-            data={paginatedRows as VariantRow[]}
-            idKey="unique_id"
-            plugins={{
-              rowIndex: orderIndexPlugin,
-              pagination: paginationPlugin,
-              footer: {
-                transformBodyRow: (props, _row, index) => {
-                  if (index === paginatedRows.length - 1) {
-                    return {
-                      ...props,
-                      afterRow: (
-                        <TableRow>
-                          <TableCell colSpan={6}>
-                            <HStack justify="end">
-                              <Text weight="bold" color="secondary">
-                                Total
-                              </Text>
-                            </HStack>
-                          </TableCell>
-                          <TableCell>
-                            <HStack justify="end">
-                              <Text weight="bold" type="code" size="lg">
-                                {formatNumber(item.total_order_price)}
-                              </Text>
-                            </HStack>
-                          </TableCell>
-                        </TableRow>
-                      ),
-                    };
-                  }
-                  return props;
-                },
-              },
-            }}
-          />
-        ) : (
-          <EmptyState
-            title="Belum ada pemesanan (PO)"
-            description="Belum ada rincian pemesanan untuk item ini."
-            isCompact
-          />
-        )}
+        <Table<VariantRow>
+          hasHover
+          textOverflow="truncate"
+          columns={columns}
+          data={paginatedRows}
+          idKey="unique_id"
+          emptyState={<EmptyState isCompact title="Belum ada rincian pemesanan (PO)" />}
+          plugins={{
+            rowIndex: orderIndexPlugin,
+            pagination: paginationPlugin,
+            ...(orderRows.length > 0
+              ? {
+                  footer: {
+                    transformBodyRow: (props, _row, index) => {
+                      if (index === paginatedRows.length - 1) {
+                        return {
+                          ...props,
+                          afterRow: (
+                            <TableRow>
+                              <TableCell colSpan={6}>
+                                <HStack justify="end">
+                                  <Text weight="bold" color="secondary">
+                                    Total
+                                  </Text>
+                                </HStack>
+                              </TableCell>
+                              <TableCell>
+                                <HStack justify="end">
+                                  <Text weight="bold" type="code" size="lg">
+                                    {formatNumber(item.total_order_price)}
+                                  </Text>
+                                </HStack>
+                              </TableCell>
+                            </TableRow>
+                          ),
+                        };
+                      }
+                      return props;
+                    },
+                  },
+                }
+              : {}),
+          }}
+        />
       </VStack>
     </Card>
   );

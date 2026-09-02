@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { Card, HStack, Heading, Text, VStack } from "@astryxdesign/core";
-import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { Card, EmptyState, HStack, Heading, Text, VStack } from "@astryxdesign/core";
 import {
   Table,
   type TableColumn,
@@ -99,52 +98,50 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
     <Card>
       <VStack gap={3}>
         <Heading level={4}>Kebutuhan (BOM)</Heading>
-        {plannedRows.length > 0 ? (
-          <Table
-            hasHover
-            textOverflow="truncate"
-            columns={columns}
-            data={paginatedRows as VariantRow[]}
-            idKey="unique_id"
-            plugins={{
-              rowIndex: plannedIndexPlugin,
-              pagination: paginationPlugin,
-              footer: {
-                transformBodyRow: (props, _row, index) => {
-                  if (index === paginatedRows.length - 1) {
-                    return {
-                      ...props,
-                      afterRow: (
-                        <TableRow>
-                          <TableCell colSpan={5}>
-                            <HStack justify="end">
-                              <Text weight="bold" color="secondary">
-                                Total
-                              </Text>
-                            </HStack>
-                          </TableCell>
-                          <TableCell>
-                            <HStack justify="end">
-                              <Text weight="bold" type="code" size="lg">
-                                {formatNumber(item.planned_budget)}
-                              </Text>
-                            </HStack>
-                          </TableCell>
-                        </TableRow>
-                      ),
-                    };
-                  }
-                  return props;
-                },
-              },
-            }}
-          />
-        ) : (
-          <EmptyState
-            title="Tidak ada data kebutuhan (BOM)"
-            description="Tidak ada rincian kebutuhan Item untuk item ini."
-          />
-        )}
+        <Table<VariantRow>
+          hasHover
+          textOverflow="truncate"
+          columns={columns}
+          data={paginatedRows}
+          idKey="unique_id"
+          emptyState={<EmptyState isCompact title="Tidak ada rincian kebutuhan (BOM)" />}
+          plugins={{
+            rowIndex: plannedIndexPlugin,
+            pagination: paginationPlugin,
+            ...(plannedRows.length > 0
+              ? {
+                  footer: {
+                    transformBodyRow: (props, _row, index) => {
+                      if (index === paginatedRows.length - 1) {
+                        return {
+                          ...props,
+                          afterRow: (
+                            <TableRow>
+                              <TableCell colSpan={5}>
+                                <HStack justify="end">
+                                  <Text weight="bold" color="secondary">
+                                    Total
+                                  </Text>
+                                </HStack>
+                              </TableCell>
+                              <TableCell>
+                                <HStack justify="end">
+                                  <Text weight="bold" type="code" size="lg">
+                                    {formatNumber(item.planned_budget)}
+                                  </Text>
+                                </HStack>
+                              </TableCell>
+                            </TableRow>
+                          ),
+                        };
+                      }
+                      return props;
+                    },
+                  },
+                }
+              : {}),
+          }}
+        />
       </VStack>
     </Card>
   );

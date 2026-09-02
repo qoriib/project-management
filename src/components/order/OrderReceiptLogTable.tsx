@@ -1,10 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
 import { IconButton } from "@astryxdesign/core/IconButton";
-import { Text, Timestamp } from "@astryxdesign/core";
+import { EmptyState, Text, Timestamp } from "@astryxdesign/core";
 import { Pencil } from "lucide-react";
 import { formatNumber } from "@/utils/formatters";
 import { useOrderStore } from "@/store/useOrderStore";
-import { TableEmptyState } from "@/components/shared/TableEmptyState";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
@@ -79,7 +78,7 @@ export function OrderReceiptLogTable() {
       columns={receiptColumns}
       data={receiptItems as LogRow[]}
       plugins={{ rowIndex: rowIndexPlugin }}
-      emptyState={<TableEmptyState message="Belum ada realisasi Penerimaan Item untuk Order ini." />}
+      emptyState={<EmptyState isCompact title="Belum ada penerimaan (NP)" />}
     />
   );
 }
