@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Button, Card, EmptyState, Heading, List, ListItem, Text, VStack } from "@astryxdesign/core";
+import { Button, Card, Heading, List, ListItem, Text, VStack } from "@astryxdesign/core";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import type { ReactNode } from "react";
@@ -44,17 +44,13 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
               ))}
             </List>
           ) : (
-            <EmptyState
-              title="Belum Ada Proyek"
-              description="Tidak ada proyek aktif yang tersedia. Buat proyek baru di Master Data untuk melanjutkan."
-              actions={
-                <Button
-                  variant="primary"
-                  label="Buat Proyek Baru"
-                  onClick={() => navigate({ to: "/master/project" })}
-                />
-              }
-            />
+            <VStack align="center">
+              <Button
+                variant="primary"
+                label="Buat Proyek Baru"
+                onClick={() => navigate({ to: "/master/project" })}
+              />
+            </VStack>
           )}
         </VStack>
       </Card>

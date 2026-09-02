@@ -110,35 +110,35 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
             pagination: paginationPlugin,
             ...(plannedRows.length > 0
               ? {
-                footer: {
-                  transformBodyRow: (props, _row, index) => {
-                    if (index === paginatedRows.length - 1) {
-                      return {
-                        ...props,
-                        afterRow: (
-                          <TableRow>
-                            <TableCell colSpan={5}>
-                              <HStack justify="end">
-                                <Text weight="bold" color="secondary">
-                                  Total
-                                </Text>
-                              </HStack>
-                            </TableCell>
-                            <TableCell>
-                              <HStack justify="end">
-                                <Text weight="bold" type="code" size="lg">
-                                  {formatNumber(item.planned_budget)}
-                                </Text>
-                              </HStack>
-                            </TableCell>
-                          </TableRow>
-                        ),
-                      };
-                    }
-                    return props;
+                  footer: {
+                    transformBodyRow: (props, _row, index) => {
+                      if (index === paginatedRows.length - 1) {
+                        return {
+                          ...props,
+                          afterRow: (
+                            <TableRow>
+                              <TableCell colSpan={5}>
+                                <HStack justify="end">
+                                  <Text weight="bold" color="secondary">
+                                    Total
+                                  </Text>
+                                </HStack>
+                              </TableCell>
+                              <TableCell>
+                                <HStack justify="end">
+                                  <Text weight="bold" type="code" size="lg">
+                                    {formatNumber(item.planned_budget)}
+                                  </Text>
+                                </HStack>
+                              </TableCell>
+                            </TableRow>
+                          ),
+                        };
+                      }
+                      return props;
+                    },
                   },
-                },
-              }
+                }
               : {}),
           }}
         />

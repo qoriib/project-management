@@ -13,7 +13,7 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { formatNumber } from "@/utils/formatters";
 import { type ItemLogEntry, type RequirementReportItem, getItemLog } from "@/db/services";
 
-interface LogRow extends ItemLogEntry, Record<string, unknown> { }
+interface LogRow extends ItemLogEntry, Record<string, unknown> {}
 
 interface TransactionHistoryCardProps {
   projectId: string;
