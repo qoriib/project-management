@@ -45,7 +45,7 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId: _ }: PriceSe
             </VStack>
             <IconButton
               variant="secondary"
-              icon={<MoreHorizontal size={16} />}
+              icon={<MoreHorizontal />}
               label="Tambah Harga Baru"
               onClick={onAddNewPrice}
               isDisabled={!itemId}

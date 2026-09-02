@@ -36,13 +36,7 @@ export function useOrderItemTableState({ items, onAdd }: UseOrderItemTableStateP
               <TableCell colSpan={999}>
                 <HStack justify="between" align="center" width="100%">
                   <div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      icon={<Plus size={16} />}
-                      label="Tambah Item"
-                      onClick={onAdd}
-                    />
+                    <Button variant="secondary" size="sm" icon={<Plus />} label="Tambah Item" onClick={onAdd} />
                   </div>
                   <HStack gap={2} align="center">
                     <Text weight="medium" size="base" color="secondary">

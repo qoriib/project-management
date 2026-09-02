@@ -34,7 +34,7 @@ export function ItemSelectorCell({ form, items, handleItemChange, onAddNewItem }
           )}
         </form.Field>
       </VStack>
-      <IconButton variant="secondary" label="Tambah Item Baru" icon={<Plus size={16} />} onClick={onAddNewItem} />
+      <IconButton variant="secondary" label="Tambah Item Baru" icon={<Plus />} onClick={onAddNewItem} />
     </HStack>
   );
 }

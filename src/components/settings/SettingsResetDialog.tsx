@@ -1,5 +1,6 @@
-import { Button, Dialog, HStack, Heading, Text, TextInput, VStack } from "@astryxdesign/core";
 import { useEffect, useState } from "react";
+import { Button, Dialog, HStack, Heading, Text, TextInput, VStack } from "@astryxdesign/core";
+import { FormLayout } from "@astryxdesign/core/FormLayout";
 
 interface SettingsResetDialogProps {
   isOpen: boolean;
@@ -26,37 +27,47 @@ export function SettingsResetDialog({ isOpen, onClose, onConfirm, isLoading = fa
 
   return (
     <Dialog
-      width={500}
       isOpen={isOpen}
       onOpenChange={(open) => {
         if (!open && !isLoading) {
           onClose();
         }
       }}
-      purpose="required"
+      width={520}
     >
-      <VStack gap={4}>
-        <Heading level={3}>Reset Database</Heading>
-        <Text color="secondary">
-          Tindakan ini akan menghapus bersih <strong>seluruh</strong> isi basis data termasuk semua Master Data secara
-          permanen.
-        </Text>
-        <TextInput
-          label="Ketik 'RESET' untuk melanjutkan:"
-          value={resetConfirmText}
-          onChange={(val) => setResetConfirmText(val || "")}
-        />
-        <HStack gap={2} justify="end">
-          <Button label="Batal" variant="secondary" onClick={onClose} isDisabled={isLoading} />
-          <Button
-            label="Hapus & Reset"
-            variant="destructive"
-            isDisabled={resetConfirmText !== "RESET"}
-            onClick={handleConfirm}
-            isLoading={isLoading}
-          />
-        </HStack>
-      </VStack>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleConfirm();
+        }}
+      >
+        <VStack gap={3}>
+          <Heading level={3}>Reset Database</Heading>
+          <FormLayout>
+            <Text type="supporting" color="secondary">
+              Tindakan ini akan menghapus bersih seluruh isi basis data termasuk semua Master Data secara permanen.
+            </Text>
+            <TextInput
+              isRequired
+              label="Konfirmasi Tindakan"
+              placeholder="Ketik 'RESET' untuk melanjutkan"
+              value={resetConfirmText}
+              onChange={(val) => setResetConfirmText(val || "")}
+            />
+            <HStack gap={2} justify="end">
+              <Button variant="secondary" label="Batal" onClick={onClose} isDisabled={isLoading} type="button" />
+              <Button
+                variant="destructive"
+                label="Hapus & Reset"
+                type="submit"
+                isDisabled={resetConfirmText !== "RESET" || isLoading}
+                isLoading={isLoading}
+              />
+            </HStack>
+          </FormLayout>
+        </VStack>
+      </form>
     </Dialog>
   );
 }

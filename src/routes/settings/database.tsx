@@ -121,14 +121,14 @@ function SettingsDatabase() {
             <Button
               label="Export"
               variant="secondary"
-              icon={<Download size="1em" />}
+              icon={<Download />}
               onClick={() => setIsExportDialogOpen(true)}
               isDisabled={isLoading}
             />
             <Button
               label="Import"
               variant="secondary"
-              icon={<Upload size="1em" />}
+              icon={<Upload />}
               onClick={handleImportSelect}
               isDisabled={isLoading}
             />

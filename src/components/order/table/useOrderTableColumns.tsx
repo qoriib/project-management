@@ -71,21 +71,21 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
             size="sm"
             variant="secondary"
             label="Detail"
-            icon={<Eye size={16} />}
+            icon={<Eye />}
             onClick={() => navigate({ to: `/order/${row.order_id}` })}
           />
           <IconButton
             size="sm"
             variant="secondary"
             label="Edit"
-            icon={<Pencil size={16} />}
+            icon={<Pencil />}
             onClick={() => onEdit(row.order_id)}
           />
           <IconButton
             size="sm"
             variant="destructive"
             label="Hapus"
-            icon={<Trash2 size={16} />}
+            icon={<Trash2 />}
             onClick={() => setDeleteTarget({ id: row.order_id, label: row.order_code })}
           />
         </HStack>

@@ -1,6 +1,7 @@
-import { Button, Dialog, VStack, Text, HStack, Heading } from "@astryxdesign/core";
+import { useEffect, useState } from "react";
+import { Button, Dialog, HStack, Heading, Text, VStack } from "@astryxdesign/core";
 import { Selector } from "@astryxdesign/core/Selector";
-import { useState, useEffect } from "react";
+import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useMasterStore } from "@/store/useMasterStore";
 
 interface SettingsExportDialogProps {
@@ -26,6 +27,12 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
     value: p.project_id,
   }));
 
+  const handleExport = () => {
+    if (selectedProjectId) {
+      onConfirm(selectedProjectId);
+    }
+  };
+
   return (
     <Dialog
       isOpen={isOpen}
@@ -34,38 +41,47 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
           onClose();
         }
       }}
-      width={400}
+      width={520}
     >
-      <VStack gap={4}>
-        <Heading level={3}>Ekspor Data</Heading>
-        <Text color="secondary">
-          Pilih proyek mana yang ingin Anda ekspor. File backup ini dapat digunakan untuk memindahkan data proyek.
-        </Text>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleExport();
+        }}
+      >
+        <VStack gap={3}>
+          <Heading level={3}>Ekspor Data Proyek</Heading>
+          <FormLayout>
+            <Text type="supporting" color="secondary">
+              Pilih proyek mana yang ingin Anda ekspor. File backup ini dapat digunakan untuk memindahkan data proyek.
+            </Text>
 
-        <Selector
-          label="Pilih Proyek"
-          value={selectedProjectId || ""}
-          options={projectOptions}
-          onChange={(val) => {
-            setSelectedProjectId(val || null);
-          }}
-          hasSearch
-          searchPlaceholder="Cari proyek..."
-        />
+            <Selector
+              isRequired
+              label="Pilih Proyek"
+              value={selectedProjectId || ""}
+              options={projectOptions}
+              onChange={(val) => {
+                setSelectedProjectId(val || null);
+              }}
+              hasSearch
+              searchPlaceholder="Cari proyek..."
+            />
 
-        <HStack gap={2} justify="end">
-          <Button variant="secondary" onClick={onClose} isDisabled={isLoading} label="Batal" />
-          <Button
-            variant="primary"
-            onClick={() => {
-              if (selectedProjectId) onConfirm(selectedProjectId);
-            }}
-            isDisabled={isLoading || !selectedProjectId}
-            isLoading={isLoading}
-            label="Mulai Ekspor"
-          />
-        </HStack>
-      </VStack>
+            <HStack gap={2} justify="end">
+              <Button variant="secondary" onClick={onClose} isDisabled={isLoading} label="Batal" type="button" />
+              <Button
+                variant="primary"
+                type="submit"
+                isDisabled={isLoading || !selectedProjectId}
+                isLoading={isLoading}
+                label="Mulai Ekspor"
+              />
+            </HStack>
+          </FormLayout>
+        </VStack>
+      </form>
     </Dialog>
   );
 }

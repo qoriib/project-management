@@ -142,7 +142,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
                 <IconButton
                   size="sm"
                   variant="destructive"
-                  icon={<Trash2 size={16} />}
+                  icon={<Trash2 />}
                   label="Hapus"
                   onClick={() => setDeleteTarget(row)}
                   isDisabled={true}
@@ -152,7 +152,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
               <IconButton
                 size="sm"
                 variant="destructive"
-                icon={<Trash2 size={16} />}
+                icon={<Trash2 />}
                 label="Hapus"
                 onClick={() => setDeleteTarget(row)}
                 isDisabled={false}
@@ -190,7 +190,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         <VStack gap={4}>
           <PageHeader
             title={item?.item_name ?? ""}
-            actions={<IconButton variant="secondary" icon={<X size={20} />} label="Tutup" onClick={onClose} />}
+            actions={<IconButton variant="secondary" icon={<X />} label="Tutup" onClick={onClose} />}
           />
           <Table
             idKey="item_price_id"

@@ -23,7 +23,7 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
         <VStack gap={4} align="center">
           <VStack gap={1} align="center">
             <HStack gap={2} align="center">
-              <FolderOpen size={18} />
+              <FolderOpen />
               <Heading level={3}>Pilih Proyek Aktif</Heading>
             </HStack>
             <Text color="secondary" size="sm" justify="center">
@@ -63,7 +63,7 @@ export function ProjectRequired({ children }: ProjectRequiredProps) {
             <Button
               variant="primary"
               label="Buat Proyek Baru"
-              icon={<Plus size={16} />}
+              icon={<Plus />}
               onClick={() => navigate({ to: "/master/project" })}
             />
           )}

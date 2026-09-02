@@ -104,7 +104,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                 </VStack>
                 <IconButton
                   variant="secondary"
-                  icon={<Plus size={16} />}
+                  icon={<Plus />}
                   label="Tambah Item Baru"
                   onClick={() => setIsItemFormOpen(true)}
                   type="button"
@@ -135,7 +135,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                 </VStack>
                 <IconButton
                   variant="secondary"
-                  icon={<MoreHorizontal size={16} />}
+                  icon={<MoreHorizontal />}
                   label="Kelola Harga"
                   onClick={() => setIsPriceFormOpen(true)}
                   type="button"

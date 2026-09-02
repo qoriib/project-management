@@ -83,18 +83,12 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
               label={isActive ? "Aktif" : "Aktifkan"}
               onClick={() => setSelectedProjectId(isActive ? null : row.project_id)}
             />
-            <IconButton
-              size="sm"
-              variant="secondary"
-              label="Edit"
-              icon={<Pencil size={16} />}
-              onClick={() => onEdit(row)}
-            />
+            <IconButton size="sm" variant="secondary" label="Edit" icon={<Pencil />} onClick={() => onEdit(row)} />
             <IconButton
               size="sm"
               variant="destructive"
               label="Hapus"
-              icon={<Trash2 size={16} />}
+              icon={<Trash2 />}
               onClick={() => setDeleteTarget({ id: row.project_id, label: row.project_name })}
               isDisabled={row.has_relation}
             />

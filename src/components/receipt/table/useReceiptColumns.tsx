@@ -66,7 +66,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
             size="sm"
             variant="secondary"
             label="Edit"
-            icon={<Pencil size={16} />}
+            icon={<Pencil />}
             onClick={() =>
               navigate({
                 to: "/receipt/$id/edit",
@@ -78,7 +78,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
             size="sm"
             variant="destructive"
             label="Hapus"
-            icon={<Trash2 size={16} />}
+            icon={<Trash2 />}
             onClick={() => setDeletingId(row.receipt_id)}
           />
         </HStack>

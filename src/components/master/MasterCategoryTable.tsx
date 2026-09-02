@@ -70,18 +70,12 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       width: pixel(120),
       renderCell: (row: CategoryRow) => (
         <HStack gap={2} justify="end">
-          <IconButton
-            size="sm"
-            variant="secondary"
-            label="Edit"
-            icon={<Pencil size={16} />}
-            onClick={() => onEdit(row)}
-          />
+          <IconButton size="sm" variant="secondary" label="Edit" icon={<Pencil />} onClick={() => onEdit(row)} />
           <IconButton
             size="sm"
             variant="destructive"
             label="Hapus"
-            icon={<Trash2 size={16} />}
+            icon={<Trash2 />}
             isDisabled={row.has_relation}
             onClick={() => setDeleteTarget({ id: row.category_id, label: row.category_name })}
           />

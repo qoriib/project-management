@@ -222,12 +222,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       key: "actions",
       width: pixel(70),
       renderCell: (r) => (
-        <IconButton
-          icon={<Eye size={16} />}
-          variant="secondary"
-          onClick={() => onLogClick(r)}
-          label="Lihat Rincian & Log"
-        />
+        <IconButton icon={<Eye />} variant="secondary" onClick={() => onLogClick(r)} label="Lihat Rincian & Log" />
       ),
     },
   ];

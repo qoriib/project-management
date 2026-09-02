@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Card, HStack, Heading, Text, VStack } from "@astryxdesign/core";
+import { Button, HStack, Heading, Text, VStack } from "@astryxdesign/core";
 import { Moon, Sun } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useShallow } from "zustand/react/shallow";
@@ -15,33 +15,20 @@ function SettingsAppearance() {
   const isDark = resolvedMode === "dark";
 
   return (
-    <VStack gap={4} width="100%">
-      <VStack gap={1}>
-        <Heading level={3}>Tampilan Aplikasi</Heading>
+    <HStack vAlign="center" gap={6}>
+      <VStack width="100%" gap={1}>
+        <Heading level={3}>Mode Tampilan</Heading>
         <Text type="supporting" color="secondary">
-          Kelola mode tampilan terang dan gelap aplikasi sesuai kenyamanan Anda.
+          Ubah skema warna antarmuka aplikasi antara mode terang dan mode gelap.
         </Text>
       </VStack>
-
-      <Card padding={4}>
-        <VStack gap={4}>
-          <HStack align="center" justify="between">
-            <VStack gap={0}>
-              <Text weight="semibold">Mode Terang / Gelap</Text>
-              <Text size="sm" color="secondary">
-                Ubah skema warna antara mode terang dan mode gelap.
-              </Text>
-            </VStack>
-            <Button
-              variant="secondary"
-              onClick={toggleThemeMode}
-              label={isDark ? "Ganti ke Terang" : "Ganti ke Gelap"}
-              icon={isDark ? <Sun /> : <Moon />}
-            />
-          </HStack>
-        </VStack>
-      </Card>
-    </VStack>
+      <Button
+        variant="secondary"
+        onClick={toggleThemeMode}
+        label={isDark ? "Ganti ke Terang" : "Ganti ke Gelap"}
+        icon={isDark ? <Sun /> : <Moon />}
+      />
+    </HStack>
   );
 }
 

@@ -9,6 +9,14 @@ function SettingsLayout() {
   const navigate = useNavigate({ from: "/settings" });
   const activeNav = APP.settingsNav.find((item) => item.href === location.pathname)?.id || APP.settingsNav[0]?.id;
 
+  const handleTabChange = (val: string) => {
+    const target = APP.settingsNav.find((i) => i.id === val);
+
+    if (target?.href) {
+      navigate({ to: target.href });
+    }
+  };
+
   return (
     <Layout
       height="fill"
@@ -16,14 +24,7 @@ function SettingsLayout() {
         <LayoutContent padding={6}>
           <VStack gap={4}>
             <PageHeader title="Pengaturan" subtitle="Kelola database, keamanan PIN, dan preferensi aplikasi" compact />
-            <TabList
-              value={activeNav}
-              onChange={(val) => {
-                const target = APP.settingsNav.find((i) => i.id === val);
-                if (target?.href) navigate({ to: target.href });
-              }}
-              hasDivider
-            >
+            <TabList hasDivider value={activeNav} onChange={handleTabChange}>
               {APP.settingsNav.map((item) => (
                 <Tab key={item.id} value={item.id} label={item.label} />
               ))}

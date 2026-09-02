@@ -58,7 +58,7 @@ export function OrderReceiptLogTable() {
           size="sm"
           variant="secondary"
           label="Edit"
-          icon={<Pencil size={16} />}
+          icon={<Pencil />}
           onClick={() => navigate({ to: `/receipt/${row.receipt_id}/edit` })}
         />
       ),

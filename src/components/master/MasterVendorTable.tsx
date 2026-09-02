@@ -71,18 +71,12 @@ export function MasterVendorTable({ onEdit }: MasterVendorTableProps) {
       width: pixel(120),
       renderCell: (row: VendorRow) => (
         <HStack gap={2} justify="end">
-          <IconButton
-            size="sm"
-            variant="secondary"
-            label="Edit"
-            icon={<Pencil size={16} />}
-            onClick={() => onEdit(row)}
-          />
+          <IconButton size="sm" variant="secondary" label="Edit" icon={<Pencil />} onClick={() => onEdit(row)} />
           <IconButton
             size="sm"
             variant="destructive"
             label="Hapus"
-            icon={<Trash2 size={16} />}
+            icon={<Trash2 />}
             onClick={() => setDeleteTarget({ id: row.vendor_id, label: row.vendor_name })}
             isDisabled={row.has_relation}
           />

@@ -84,18 +84,12 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       renderCell: (row: ItemRow) => (
         <HStack gap={2} justify="end">
           <Button size="sm" variant="secondary" label="Harga" onClick={() => setPriceItem(row)} />
-          <IconButton
-            size="sm"
-            variant="secondary"
-            label="Edit"
-            icon={<Pencil size={16} />}
-            onClick={() => onEdit(row)}
-          />
+          <IconButton size="sm" variant="secondary" label="Edit" icon={<Pencil />} onClick={() => onEdit(row)} />
           <IconButton
             size="sm"
             variant="destructive"
             label="Hapus"
-            icon={<Trash2 size={16} />}
+            icon={<Trash2 />}
             onClick={() => setDeleteTarget({ id: row.item_id, label: row.item_name })}
             isDisabled={row.has_relation}
           />

@@ -37,7 +37,7 @@ export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSele
             <IconButton
               type="button"
               variant="secondary"
-              icon={<Plus size={16} />}
+              icon={<Plus />}
               label="Tambah Vendor"
               onClick={onAddNewVendor}
             />

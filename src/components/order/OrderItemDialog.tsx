@@ -113,7 +113,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                 </VStack>
                 <IconButton
                   variant="secondary"
-                  icon={<Plus size={16} />}
+                  icon={<Plus />}
                   label="Tambah Item Baru"
                   onClick={() => setIsItemFormOpen(true)}
                   type="button"
@@ -144,7 +144,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                 </VStack>
                 <IconButton
                   variant="secondary"
-                  icon={<MoreHorizontal size={16} />}
+                  icon={<MoreHorizontal />}
                   label="Kelola Harga"
                   onClick={() => setIsPriceFormOpen(true)}
                   type="button"
@@ -175,7 +175,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                 </VStack>
                 <IconButton
                   variant="secondary"
-                  icon={<Plus size={16} />}
+                  icon={<Plus />}
                   label="Tambah Vendor Baru"
                   onClick={() => setIsVendorFormOpen(true)}
                   type="button"

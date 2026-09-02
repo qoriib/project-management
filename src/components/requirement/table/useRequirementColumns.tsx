@@ -125,18 +125,12 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
 
         return (
           <HStack gap={2} justify="end">
-            <IconButton
-              size="sm"
-              variant="secondary"
-              label="Edit"
-              icon={<Pencil size={16} />}
-              onClick={() => onEdit(row)}
-            />
+            <IconButton size="sm" variant="secondary" label="Edit" icon={<Pencil />} onClick={() => onEdit(row)} />
             <IconButton
               size="sm"
               variant="destructive"
               label="Hapus"
-              icon={<Trash2 size={16} />}
+              icon={<Trash2 />}
               onClick={() => setDeletingId(row.requirement_id)}
             />
           </HStack>

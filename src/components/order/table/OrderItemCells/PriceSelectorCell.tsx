@@ -49,7 +49,7 @@ export function PriceSelectorCell({ form, onAddNewPrice }: PriceSelectorCellProp
             <IconButton
               type="button"
               variant="secondary"
-              icon={<MoreHorizontal size={16} />}
+              icon={<MoreHorizontal />}
               label="Tambah Harga"
               onClick={onAddNewPrice}
               isDisabled={!itemId}
