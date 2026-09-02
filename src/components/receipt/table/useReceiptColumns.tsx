@@ -5,7 +5,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { type ReceiptSummary } from "@/db/repositories";
 
-export interface ReceiptRow extends ReceiptSummary, Record<string, unknown> { }
+export interface ReceiptRow extends ReceiptSummary, Record<string, unknown> {}
 
 interface UseReceiptColumnsProps {
   setDeletingId: (id: string | null) => void;

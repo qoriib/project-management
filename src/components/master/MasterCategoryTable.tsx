@@ -14,7 +14,7 @@ interface MasterCategoryTableProps {
   onEdit: (category: ItemCategoryWithRelation) => void;
 }
 
-interface CategoryRow extends ItemCategoryWithRelation, Record<string, unknown> {}
+interface CategoryRow extends ItemCategoryWithRelation, Record<string, unknown> { }
 
 export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
   const showToast = useToast();
