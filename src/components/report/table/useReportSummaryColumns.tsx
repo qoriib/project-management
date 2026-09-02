@@ -176,6 +176,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       },
     },
     {
+      align: "end",
       header: "Aksi",
       key: "actions",
       width: pixel(80),
