@@ -26,7 +26,7 @@ src/components/
 ├── receipt/        # Komponen Penerimaan Barang (Surat Jalan)
 │   ├── ReceiptForm.tsx, ReceiptTable.tsx, ReceiptDetail.tsx
 ├── report/         # Komponen Pelaporan & Rekapitulasi Proyek
-│   ├── ReportRequirementTable.tsx, ReportOrderTable.tsx, ReportReceiptTable.tsx
+│   ├── ReportSummaryTable.tsx, ReportOrderTable.tsx, ReportReceiptTable.tsx
 ├── requirement/    # Komponen Estimasi Kebutuhan Item Proyek
 │   ├── RequirementTable.tsx, RequirementApprovalActions.tsx, form/, table/
 ├── settings/       # Komponen Pengaturan & Database Backup

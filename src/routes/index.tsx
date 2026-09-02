@@ -11,7 +11,7 @@ import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { useAppStore } from "@/store/useAppStore";
 import { ReportItemLogDialog } from "@/components/report/ReportItemLogDialog";
 import { ReportSummaryCards } from "@/components/report/ReportSummaryCards";
-import { ReportRequirementTable } from "@/components/report/ReportRequirementTable";
+import { ReportSummaryTable } from "@/components/report/ReportSummaryTable";
 import { getTimestampString, sanitizeFilename } from "@/utils/formatters";
 import { useToast } from "@astryxdesign/core/Toast";
 import { type ISODateString } from "@astryxdesign/core/Calendar";
@@ -113,11 +113,7 @@ function DashboardPage() {
               />
               <ProjectRequired>
                 <ReportSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
-                <ReportRequirementTable
-                  report={report}
-                  loading={loading}
-                  onLogClick={(item) => setSelectedItem(item)}
-                />
+                <ReportSummaryTable report={report} loading={loading} onLogClick={(item) => setSelectedItem(item)} />
               </ProjectRequired>
             </VStack>
           </LayoutContent>

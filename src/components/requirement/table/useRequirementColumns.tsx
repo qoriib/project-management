@@ -20,7 +20,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
     {
       header: "Kode Item",
       key: "item_code_full",
-      width: pixel(160),
+      width: pixel(140),
       renderCell: (row) => {
         if (row.isFooter) return null;
         const code = formatItemCode(row);
@@ -30,7 +30,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(3),
+      width: proportional(1, { minWidth: 280 }),
       renderCell: (row) => {
         if (row.isFooter) return null;
         return row.item_name || "-";
@@ -63,7 +63,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       align: "end",
       header: "Harga (Rp)",
       key: "price",
-      width: pixel(200),
+      width: pixel(180),
       renderCell: (row) => {
         if (row.isFooter) return null;
         return <Text type="code">{formatNumber(row.price)}</Text>;
@@ -84,7 +84,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       align: "end",
       header: "PPn (12%)",
       key: "has_tax",
-      width: pixel(140),
+      width: pixel(180),
       renderCell: (row) => {
         if (row.isFooter) return null;
         const subtotal = (row.qty ?? 0) * (row.price ?? 0);

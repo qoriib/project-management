@@ -22,7 +22,7 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
     {
       header: "No. PO",
       key: "order_code",
-      width: pixel(180),
+      width: pixel(140),
       renderCell: (row: PORow) => <EntityCode id={row.order_code} />,
     },
     {
@@ -34,7 +34,7 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
     {
       header: "Vendor",
       key: "vendor_names",
-      width: proportional(1),
+      width: proportional(1, { minWidth: 240 }),
       renderCell: (row: PORow) =>
         row?.vendor_names && row.vendor_names.length > 0 ? (
           <HStack gap={1} wrap="wrap">
@@ -57,7 +57,7 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
       align: "end",
       header: "Total (Rp)",
       key: "total_price",
-      width: pixel(150),
+      width: pixel(180),
       renderCell: (row: PORow) => <Text type="code">{formatNumber(row.total_price)}</Text>,
     },
     {

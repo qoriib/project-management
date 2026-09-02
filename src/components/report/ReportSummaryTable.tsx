@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { EmptyState, HStack, IconButton, Table, Text } from "@astryxdesign/core";
-import { Item } from "@astryxdesign/core/Item";
+import { EmptyState, HStack, IconButton, Table, Text, VStack } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { Eye } from "lucide-react";
@@ -10,7 +9,7 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional, useTableGroupedRows } from "@astryxdesign/core/Table";
 import type { RequirementReportItem } from "@/db/services";
 
-interface ReportRequirementTableProps {
+interface ReportSummaryTableProps {
   report: RequirementReportItem[];
   loading: boolean;
   onLogClick: (item: RequirementReportItem) => void;
@@ -20,7 +19,7 @@ interface EnrichedReportItem extends RequirementReportItem, Record<string, unkno
   unique_id: string;
 }
 
-export function ReportRequirementTable({ report, loading, onLogClick }: ReportRequirementTableProps) {
+export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummaryTableProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const enrichedReport: EnrichedReportItem[] = useMemo(
@@ -65,16 +64,21 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
     {
       header: "Item",
       key: "item",
-      width: proportional(2),
+      width: proportional(1, { minWidth: 280 }),
       renderCell: (r) => {
         const code = formatItemCode(r);
-        return <Item density="compact" label={r.item_name} description={code ? <EntityCode id={code} /> : undefined} />;
+        return (
+          <VStack gap={0.5} align="start">
+            <Text weight="medium">{r.item_name}</Text>
+            {code ? <EntityCode id={code} /> : null}
+          </VStack>
+        );
       },
     },
     {
       header: "Satuan",
       key: "unit",
-      width: pixel(75),
+      width: pixel(80),
       renderCell: (r) => r.unit || "-",
     },
     {
@@ -125,7 +129,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       align: "end",
       header: "PPn (12%)",
       key: "has_tax",
-      width: pixel(150),
+      width: pixel(180),
       renderCell: (r) => (
         <ReportComparisonCell
           poValue={formatNumber(r.total_order_tax)}
@@ -137,7 +141,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       align: "end",
       header: "Total (Rp)",
       key: "total_price",
-      width: proportional(2),
+      width: pixel(180),
       renderCell: (r) => {
         const poTotal = r.total_order_price ?? 0;
         const plannedTotal = r.planned_budget ?? 0;
@@ -157,7 +161,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       align: "end",
       header: "Dipesan (PO)",
       key: "ordered",
-      width: proportional(2),
+      width: pixel(240),
       renderCell: (r) => {
         if (r.is_unplanned) {
           return (
@@ -188,7 +192,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
       align: "end",
       header: "Diterima (NP)",
       key: "delivered",
-      width: proportional(2),
+      width: pixel(240),
       renderCell: (r) => {
         if (r.is_unplanned) {
           return (
@@ -218,7 +222,7 @@ export function ReportRequirementTable({ report, loading, onLogClick }: ReportRe
     {
       header: "Aksi",
       key: "actions",
-      width: pixel(70),
+      width: pixel(80),
       renderCell: (r) => (
         <IconButton icon={<Eye />} variant="secondary" onClick={() => onLogClick(r)} label="Lihat Rincian & Log" />
       ),

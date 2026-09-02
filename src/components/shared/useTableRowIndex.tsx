@@ -7,7 +7,7 @@ import {
 
 export function useTableRowIndex<T extends Record<string, unknown>>(config: UseTableRowIndexConfig<T>): TablePlugin<T> {
   const basePlugin = useBaseTableRowIndex({
-    label: "",
+    label: "#",
     ...config,
   });
 

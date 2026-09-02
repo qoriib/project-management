@@ -5,7 +5,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { type ReceiptSummary } from "@/db/repositories";
 
-export interface ReceiptRow extends ReceiptSummary, Record<string, unknown> {}
+export interface ReceiptRow extends ReceiptSummary, Record<string, unknown> { }
 
 interface UseReceiptColumnsProps {
   setDeletingId: (id: string | null) => void;
@@ -18,7 +18,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
     {
       header: "No. NP",
       key: "receipt_code",
-      width: pixel(180),
+      width: pixel(140),
       renderCell: (row) => <EntityCode id={row.receipt_code} />,
     },
     {
@@ -30,13 +30,13 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
     {
       header: "No. PO",
       key: "order_code",
-      width: pixel(180),
+      width: pixel(140),
       renderCell: (row) => <EntityCode id={row.order_code} />,
     },
     {
       header: "Vendor",
       key: "vendor_names",
-      width: proportional(1),
+      width: proportional(1, { minWidth: 240 }),
       renderCell: (row: ReceiptRow) =>
         row?.vendor_names && row.vendor_names.length > 0 ? (
           <HStack gap={1} wrap="wrap">
@@ -52,7 +52,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
       align: "end",
       header: "Total Item",
       key: "item_count",
-      width: pixel(140),
+      width: pixel(100),
       renderCell: (row) => <Text type="code">{row.item_count}</Text>,
     },
     {
