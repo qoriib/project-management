@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
+import { DB_NAME } from "@/configs/database.config";
 import * as path from "node:path";
 import * as os from "node:os";
-import { DB_NAME } from "@/configs/database.config";
 
 class NodeDatabaseWrapper {
   private db: DatabaseSync;

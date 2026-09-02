@@ -8,5 +8,14 @@
   "bracketSpacing": true,
   "arrowParens": "always",
   "endOfLine": "lf",
-  "ignorePatterns": ["node_modules", "dist", "dist-ssr", "*.min.js", ".gemini", "src-tauri/target"]
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "dist-ssr",
+    "*.min.js",
+    ".gemini",
+    "src-tauri/target",
+    "src/routeTree.gen.ts",
+    "**/*.gen.ts"
+  ]
 }

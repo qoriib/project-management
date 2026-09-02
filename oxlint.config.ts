@@ -24,4 +24,14 @@ export default defineConfig({
     "unicorn/prefer-string-replace-all": "off",
     "oxc/no-map-spread": "off",
   },
+  ignorePatterns: [
+    "node_modules",
+    "dist",
+    "dist-ssr",
+    "*.min.js",
+    ".gemini",
+    "src-tauri/target",
+    "src/routeTree.gen.ts",
+    "**/*.gen.ts",
+  ],
 });
