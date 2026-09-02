@@ -14,27 +14,6 @@ body {
 }
 
 /* ============================================================================
-   Financial status color utilities — Laporan / Dashboard
-   Color philosophy:
-     - Over-budget  (PO > BOM): amber/warning  — bukan merah brand!
-     - Under-budget (PO < BOM): green/success  — nilai positif
-     - Brand crimson HANYA untuk aksen interaktif, bukan sinyal finansial.
-   Semua nilai menggunakan CSS custom properties dari logoTheme.ts.
-   ============================================================================ */
-
-.text-financial-over {
-  color: var(--color-error);
-}
-
-.text-financial-under {
-  color: var(--color-success);
-}
-
-.text-financial-neutral {
-  color: inherit;
-}
-
-/* ============================================================================
    App branding logo — eliminates inline style on <img>
    ============================================================================ */
 

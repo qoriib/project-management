@@ -9,6 +9,8 @@ interface ReportSummaryCardsProps {
 
 export function ReportSummaryCards({ totalBudget, totalPO, loading }: ReportSummaryCardsProps) {
   const delta = totalPO - totalBudget;
+  const deltaColor = delta > 0 ? "var(--color-error)" : delta < 0 ? "var(--color-success)" : undefined;
+  const absDelta = Math.abs(delta);
 
   return (
     <Grid gap={3} columns={{ max: 3, minWidth: 260 }}>
@@ -33,7 +35,9 @@ export function ReportSummaryCards({ totalBudget, totalPO, loading }: ReportSumm
           <Text size="sm" color="secondary" weight="medium" type="label">
             Nilai Selisih
           </Text>
-          <Heading level={3}>{loading ? "…" : `${delta > 0 ? "+" : ""}Rp ${formatNumber(delta)}`}</Heading>
+          <Heading level={3} style={deltaColor ? { color: deltaColor } : undefined}>
+            {loading ? "…" : `Rp ${formatNumber(absDelta)}`}
+          </Heading>
         </Card>
       </GridSpan>
     </Grid>

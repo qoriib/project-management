@@ -7,22 +7,18 @@ import type { ReactNode } from "react";
  *
  * Menampilkan pasangan nilai PO (atas) vs BOM (bawah) pada tabel laporan.
  *
- * Color philosophy SBR — status finansial BUKAN menggunakan brand crimson:
- *   - "over"  → amber/warning (.text-financial-over)  — PO > BOM (overspend)
- *   - "under" → green/success (.text-financial-under) — PO < BOM (hemat)
+ * Color philosophy SBR — status finansial:
+ *   - "over"  → var(--color-error) (amber/warning) — PO > BOM (overspend)
+ *   - "under" → var(--color-success) (green/success) — PO < BOM (hemat)
  *   - "normal"/ undefined → warna teks default (inherit)
- *
- * Styling dikontrol via CSS class dari app.css yang membaca token
- * --color-financial-over / --color-financial-under dari logoTheme.ts.
- * Tidak ada inline style atau hardcoded hex di sini.
  */
 
 export type FinancialStatus = "over" | "under" | "normal";
 
-const FINANCIAL_CLASS: Record<FinancialStatus, string> = {
-  over: "text-financial-over",
-  under: "text-financial-under",
-  normal: "",
+const FINANCIAL_COLOR: Record<FinancialStatus, string | undefined> = {
+  over: "var(--color-error)",
+  under: "var(--color-success)",
+  normal: undefined,
 };
 
 export interface ReportComparisonCellProps {
@@ -41,13 +37,13 @@ export function ReportComparisonCell({
   bomLabel = "BOM:",
   poStatus,
 }: ReportComparisonCellProps) {
-  const poClassName = poStatus ? FINANCIAL_CLASS[poStatus] : "";
+  const poColor = poStatus ? FINANCIAL_COLOR[poStatus] : undefined;
 
   return (
     <VStack gap={0.5} align="end">
       <HStack gap={1} justify="end">
         <Text weight="medium">{poLabel}</Text>
-        <Text type="code" className={poClassName}>
+        <Text type="code" style={poColor ? { color: poColor } : undefined}>
           {poValue}
         </Text>
       </HStack>
