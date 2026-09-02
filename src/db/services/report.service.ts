@@ -41,6 +41,7 @@ export interface RequirementReportItem {
 }
 
 export interface ItemLogEntry {
+  id: string;
   date: string;
   type: "Order" | "Receipt";
   reference: string;
@@ -352,7 +353,7 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
   try {
     // 1. Get Orders
     const orderQuery = new QueryBuilder()
-      .select("orders.order_date as date")
+      .select("orders.order_id as id", "orders.order_date as date")
       .selectRaw("'Order' as type")
       .selectRaw("orders.order_code as reference")
       .select("order_items.qty", "vendors.vendor_name")
@@ -368,7 +369,7 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
 
     // 2. Get Receipts (active receipts only)
     const receiptQuery = new QueryBuilder()
-      .select("receipts.receipt_date as date")
+      .select("receipts.receipt_id as id", "receipts.receipt_date as date")
       .selectRaw("'Receipt' as type")
       .selectRaw("receipts.receipt_code as reference")
       .selectRaw("receipt_items.qty")

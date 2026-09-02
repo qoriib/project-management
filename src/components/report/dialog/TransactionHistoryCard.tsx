@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Card, EmptyState, Heading, Text, Timestamp, VStack } from "@astryxdesign/core";
+import { Badge, Card, EmptyState, Heading, Link, Text, Timestamp, VStack } from "@astryxdesign/core";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Table,
   type TableColumn,
@@ -12,7 +13,7 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { formatNumber } from "@/utils/formatters";
 import { type ItemLogEntry, type RequirementReportItem, getItemLog } from "@/db/services";
 
-interface LogRow extends ItemLogEntry, Record<string, unknown> {}
+interface LogRow extends ItemLogEntry, Record<string, unknown> { }
 
 interface TransactionHistoryCardProps {
   projectId: string;
@@ -21,6 +22,7 @@ interface TransactionHistoryCardProps {
 }
 
 export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionHistoryCardProps) {
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<ItemLogEntry[]>([]);
   const [page, setPage] = useState(1);
   const pageSize = 5;
@@ -55,13 +57,13 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
     {
       header: "Tanggal",
       key: "date",
-      width: pixel(110),
+      width: pixel(100),
       renderCell: (r) => <Timestamp value={r.date} format="system_date" size="base" />,
     },
     {
       header: "Tipe",
       key: "type",
-      width: pixel(75),
+      width: pixel(60),
       renderCell: (r) => (
         <Badge variant={r.type === "Order" ? "blue" : "green"} label={r.type === "Order" ? "PO" : "NP"} />
       ),
@@ -69,14 +71,28 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
     {
       header: "Referensi",
       key: "reference",
-      width: pixel(120),
-      renderCell: (r) => <Text type="code">{r.reference}</Text>,
+      width: pixel(140),
+      renderCell: (r) => {
+        if (!r.id) {
+          return <Text type="code">{r.reference}</Text>;
+        }
+        const targetUrl = r.type === "Order" ? `/order/${r.id}` : `/receipt/${r.id}/edit`;
+        return (
+          <Link
+            onClick={() => {
+              navigate({ to: targetUrl });
+            }}
+          >
+            <Text type="code">{r.reference}</Text>
+          </Link>
+        );
+      },
     },
     {
       align: "end",
       header: "Volume",
       key: "qty",
-      width: pixel(90),
+      width: pixel(80),
       renderCell: (r) => <Text type="code">{formatNumber(r.qty)}</Text>,
     },
     {

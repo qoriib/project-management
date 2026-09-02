@@ -8,6 +8,7 @@ import {
   paginateData,
   TableRow,
   TableCell,
+  proportional,
 } from "@astryxdesign/core/Table";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { formatNumber } from "@/utils/formatters";
@@ -56,35 +57,35 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
-      width: pixel(140),
+      width: pixel(160),
       renderCell: (r) => <Text type="code">{formatNumber(r.price)}</Text>,
     },
     {
       align: "end",
       header: "Volume",
       key: "qty",
-      width: pixel(100),
+      width: pixel(80),
       renderCell: (r) => <Text type="code">{formatNumber(r.qty)}</Text>,
     },
     {
       align: "end",
       header: "Subtotal (Rp)",
       key: "dpp",
-      width: pixel(140),
+      width: pixel(160),
       renderCell: (r) => <Text type="code">{formatNumber(r.dpp)}</Text>,
     },
     {
       align: "end",
       header: "PPn (12%)",
       key: "has_tax",
-      width: pixel(120),
+      width: pixel(160),
       renderCell: (r) => <Text type="code">{r.has_tax === 1 ? formatNumber(r.tax_amount) : "-"}</Text>,
     },
     {
       align: "end",
       header: "Total (Rp)",
       key: "subtotal",
-      width: pixel(150),
+      width: proportional(1, { minWidth: 180 }),
       renderCell: (r) => (
         <Text type="code" weight="bold">
           {formatNumber(r.subtotal)}
@@ -109,35 +110,35 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
             pagination: paginationPlugin,
             ...(plannedRows.length > 0
               ? {
-                  footer: {
-                    transformBodyRow: (props, _row, index) => {
-                      if (index === paginatedRows.length - 1) {
-                        return {
-                          ...props,
-                          afterRow: (
-                            <TableRow>
-                              <TableCell colSpan={5}>
-                                <HStack justify="end">
-                                  <Text weight="bold" color="secondary">
-                                    Total
-                                  </Text>
-                                </HStack>
-                              </TableCell>
-                              <TableCell>
-                                <HStack justify="end">
-                                  <Text weight="bold" type="code" size="lg">
-                                    {formatNumber(item.planned_budget)}
-                                  </Text>
-                                </HStack>
-                              </TableCell>
-                            </TableRow>
-                          ),
-                        };
-                      }
-                      return props;
-                    },
+                footer: {
+                  transformBodyRow: (props, _row, index) => {
+                    if (index === paginatedRows.length - 1) {
+                      return {
+                        ...props,
+                        afterRow: (
+                          <TableRow>
+                            <TableCell colSpan={5}>
+                              <HStack justify="end">
+                                <Text weight="bold" color="secondary">
+                                  Total
+                                </Text>
+                              </HStack>
+                            </TableCell>
+                            <TableCell>
+                              <HStack justify="end">
+                                <Text weight="bold" type="code" size="lg">
+                                  {formatNumber(item.planned_budget)}
+                                </Text>
+                              </HStack>
+                            </TableCell>
+                          </TableRow>
+                        ),
+                      };
+                    }
+                    return props;
                   },
-                }
+                },
+              }
               : {}),
           }}
         />
