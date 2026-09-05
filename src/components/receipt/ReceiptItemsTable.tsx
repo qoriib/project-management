@@ -17,7 +17,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
     {
       header: "Kode Item",
       key: "item_code",
-      width: pixel(160),
+      width: pixel(140),
       renderCell: (row) => {
         const code = formatItemCode(row);
         return code ? <EntityCode id={code} /> : "-";
@@ -26,14 +26,14 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(2),
-      renderCell: (row) => <Text weight="medium">{row.item_name || "-"}</Text>,
+      width: proportional(1, { minWidth: 280 }),
+      renderCell: (row) => row.item_name || "-",
     },
     {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
-      width: pixel(140),
+      width: pixel(180),
       renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0)}</Text>,
     },
     {
@@ -63,7 +63,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
     {
       header: "Satuan",
       key: "unit",
-      width: pixel(90),
+      width: pixel(80),
       renderCell: (row) => row.unit || "-",
     },
   ];
