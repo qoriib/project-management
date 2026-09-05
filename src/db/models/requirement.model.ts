@@ -14,8 +14,8 @@ export interface Requirement {
   item_price_id: string;
   /** Volume / kuantitas yang dibutuhkan */
   qty: number;
-  /** Flag apakah perhitungan terkena PPN 12% (1 = Ya, 0 = Tidak) */
-  has_tax: number;
+  /** Flag apakah perhitungan terkena PPN 12% */
+  has_tax: boolean;
   /** Timestamp waktu pembuatan data */
   created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
@@ -24,12 +24,12 @@ export interface Requirement {
   deleted_at: string | null;
 }
 
-/** Payload untuk membuat baris kebutuhan proyek baru (has_tax bernilai default 0 jika diabaikan) */
+/** Payload untuk membuat baris kebutuhan proyek baru (has_tax bernilai default false jika diabaikan) */
 export type CreateRequirement = Omit<
   Requirement,
   "requirement_id" | "created_at" | "updated_at" | "deleted_at" | "has_tax"
 > & {
-  has_tax?: number;
+  has_tax?: boolean;
 };
 
 /** Payload untuk memperbarui baris kebutuhan proyek */

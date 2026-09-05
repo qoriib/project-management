@@ -8,6 +8,7 @@ export enum AppRole {
 export const APP = {
   defaultRole: AppRole.MANAGER,
   companyName: "PT SANG BIMA RATU",
+  taxRatio: 0.12,
   sidenav: [
     {
       label: "Laporan",

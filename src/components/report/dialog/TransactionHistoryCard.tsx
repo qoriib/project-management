@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Card, EmptyState, Heading, Link, Text, Timestamp, VStack } from "@astryxdesign/core";
+import { Badge, Card, EmptyState, Heading, Link, Text, Timestamp } from "@astryxdesign/core";
+import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Table,
@@ -105,18 +106,27 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
 
   return (
     <Card>
-      <VStack gap={3}>
-        <Heading level={4}>Riwayat Transaksi</Heading>
-        <Table
-          hasHover
-          textOverflow="truncate"
-          columns={columns}
-          data={paginatedLogs as LogRow[]}
-          idKey="reference"
-          plugins={{ rowIndex: logIndexPlugin, pagination: paginationPlugin }}
-          emptyState={<EmptyState isCompact title="Belum ada riwayat transaksi" />}
-        />
-      </VStack>
+      <Layout
+        height="auto"
+        header={
+          <LayoutHeader hasDivider>
+            <Heading level={4}>Riwayat Transaksi</Heading>
+          </LayoutHeader>
+        }
+        content={
+          <LayoutContent padding={0}>
+            <Table
+              hasHover
+              textOverflow="truncate"
+              columns={columns}
+              data={paginatedLogs as LogRow[]}
+              idKey="reference"
+              plugins={{ rowIndex: logIndexPlugin, pagination: paginationPlugin }}
+              emptyState={<EmptyState isCompact title="Belum ada riwayat transaksi" />}
+            />
+          </LayoutContent>
+        }
+      />
     </Card>
   );
 }

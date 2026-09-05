@@ -4,12 +4,13 @@
 
 import { QueryBuilder } from "@/db/core/query-builder";
 import { DbError, wrapDbError } from "@/db/core/errors";
+import { calcDPP, calcTax } from "@/utils/calc";
 
 export interface RequirementReportVariant {
   item_price_id: string;
   price: number;
   qty: number;
-  has_tax: number;
+  has_tax: boolean;
   dpp: number;
   tax_amount: number;
   subtotal: number;
@@ -61,7 +62,7 @@ export interface OrderReportItem {
   unit_name: string | null;
   qty: number;
   price: number;
-  has_tax: number;
+  has_tax: boolean;
   total_price: number;
 }
 
@@ -88,7 +89,7 @@ export interface RequirementReportDetailItem {
   unit_name: string | null;
   qty: number;
   price: number;
-  has_tax: number;
+  has_tax: boolean;
   dpp: number;
   tax_amount: number;
   total_price: number;
@@ -269,13 +270,13 @@ export async function getRequirementReport(
         itemMap.set(req.item_id, item);
       }
 
-      const dpp = req.qty * req.price;
-      const taxAmount = req.has_tax === 1 ? dpp * 0.12 : 0;
+      const dpp = calcDPP(req.qty, req.price);
+      const taxAmount = calcTax(dpp, Boolean(req.has_tax));
       const subtotal = dpp + taxAmount;
 
       item.planned_variants.push({
         dpp,
-        has_tax: req.has_tax,
+        has_tax: Boolean(req.has_tax),
         item_price_id: req.item_price_id,
         price: req.price,
         qty: req.qty,
@@ -297,13 +298,13 @@ export async function getRequirementReport(
         itemMap.set(ord.item_id, item);
       }
 
-      const dpp = ord.qty * ord.price;
-      const taxAmount = ord.has_tax === 1 ? dpp * 0.12 : 0;
+      const dpp = calcDPP(ord.qty, ord.price);
+      const taxAmount = calcTax(dpp, Boolean(ord.has_tax));
       const subtotal = dpp + taxAmount;
 
       item.order_variants.push({
         dpp,
-        has_tax: ord.has_tax,
+        has_tax: Boolean(ord.has_tax),
         item_price_id: ord.item_price_id,
         price: ord.price,
         qty: ord.qty,
@@ -453,7 +454,11 @@ export async function getProjectOrderReport(
       .when(Boolean(endDate), (q) => q.where("orders.order_date", "<=", endDate!))
       .orderBy("orders.order_id", "ASC");
 
-    return await query.getMany<OrderReportItem>();
+    const rows = await query.getMany<OrderReportItem>();
+    return rows.map((r) => ({
+      ...r,
+      has_tax: Boolean(r.has_tax),
+    }));
   } catch (error) {
     throw wrapDbError(error, "order_report");
   }
@@ -554,10 +559,11 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
     }>();
 
     return raw.map((r) => {
-      const dpp = (r.qty || 0) * (r.price || 0);
-      const taxAmount = r.has_tax === 1 ? dpp * 0.12 : 0;
+      const dpp = calcDPP(r.qty, r.price);
+      const taxAmount = calcTax(dpp, Boolean(r.has_tax));
       return {
         ...r,
+        has_tax: Boolean(r.has_tax),
         dpp,
         tax_amount: taxAmount,
         total_price: dpp + taxAmount,

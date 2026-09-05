@@ -23,6 +23,7 @@ import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog
 import { MasterVendorForm } from "@/components/master/MasterVendorForm";
 import { useMasterStore } from "@/store/useMasterStore";
 import { formatNumber, formatItemCode, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
+import { calcDPP, calcTax, TAX_RATIO_PERCENT } from "@/utils/calc";
 import { getFieldError } from "@/utils/form";
 import { useOrderItemForm } from "./form/useOrderItemForm";
 import { useSelector } from "@tanstack/react-form";
@@ -216,7 +217,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                       name="has_tax"
                       children={(field) => (
                         <Switch
-                          label="Termasuk PPn (12%)"
+                          label={`Termasuk PPn (${TAX_RATIO_PERCENT}%)`}
                           value={Boolean(field.state.value)}
                           onChange={(checked) => field.handleChange(checked)}
                         />
@@ -241,9 +242,9 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                         if (pObj) priceNum = pObj.price;
                       }
                       const numQty = parseDecimalInput(qty);
-                      const subtotal = numQty * priceNum;
-                      const taxAmount = hasTax ? subtotal * 0.12 : 0;
-                      const total = subtotal + taxAmount;
+                      const dpp = calcDPP(numQty, priceNum);
+                      const taxAmount = calcTax(dpp, hasTax);
+                      const total = dpp + taxAmount;
 
                       return (
                         <Card padding={3}>
@@ -252,11 +253,11 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                               <Text size="sm" color="secondary">
                                 Subtotal
                               </Text>
-                              <Text type="code">Rp {formatNumber(subtotal)}</Text>
+                              <Text type="code">Rp {formatNumber(dpp)}</Text>
                             </HStack>
                             <HStack justify="between">
                               <Text size="sm" color="secondary">
-                                PPn (12%)
+                                PPn ({TAX_RATIO_PERCENT}%):
                               </Text>
                               <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount)}` : "-"}</Text>
                             </HStack>

@@ -20,7 +20,7 @@ export function useTableRowIndex<T extends Record<string, unknown>>(config: UseT
         // The first column returned by basePlugin is the index column
         // We override its width to 64px
         if (result.length > 0 && result[0].key === "__rowIndex") {
-          result[0] = { ...result[0], width: { type: "pixel", value: 52 }, align: "start" };
+          result[0] = { ...result[0], width: { type: "pixel", value: 54 }, align: "end" };
         }
         return result;
       },

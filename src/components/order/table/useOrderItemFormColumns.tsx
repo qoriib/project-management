@@ -2,6 +2,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { HStack, IconButton, Text } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
+import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
 
@@ -18,8 +19,8 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
   const columns: TableColumn<OrderItemRow>[] = [
     {
       header: "Kode Item",
-      key: "item_code_full",
-      width: pixel(160),
+      key: "item_code",
+      width: pixel(140),
       renderCell: (row) => {
         if (row.isFooter) return null;
         const code = formatItemCode(row);
@@ -29,10 +30,33 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(2),
+      width: proportional(1, { minWidth: 280 }),
       renderCell: (row) => {
         if (row.isFooter) return null;
-        return <Text weight="medium">{row.item_name || "-"}</Text>;
+        return row.item_name || "-";
+      },
+    },
+    {
+      header: "Satuan",
+      key: "unit",
+      width: pixel(80),
+      renderCell: (row) => {
+        if (row.isFooter) return null;
+        return row.unit || "-";
+      },
+    },
+    {
+      align: "end",
+      header: "Volume",
+      key: "qty",
+      width: pixel(140),
+      renderCell: (row) => {
+        if (row.isFooter) return null;
+        return (
+          <Text type="code" weight="medium">
+            {formatNumber(row.qty)}
+          </Text>
+        );
       },
     },
     {
@@ -55,47 +79,24 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       },
     },
     {
-      header: "Satuan",
-      key: "unit",
-      width: pixel(80),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return row.unit ?? "-";
-      },
-    },
-    {
-      align: "end",
-      header: "Volume",
-      key: "qty",
-      width: pixel(120),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return (
-          <Text type="code" weight="medium">
-            {formatNumber(row.qty)}
-          </Text>
-        );
-      },
-    },
-    {
       align: "end",
       header: "Subtotal (Rp)",
       key: "subtotal",
-      width: pixel(160),
+      width: pixel(180),
       renderCell: (row) => {
         if (row.isFooter) return null;
-        return <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0))}</Text>;
+        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
+        return <Text type="code">{formatNumber(subtotal)}</Text>;
       },
     },
     {
       align: "end",
-      header: "PPn (12%)",
+      header: `PPn (${TAX_RATIO_PERCENT}%)`,
       key: "has_tax",
-      width: pixel(130),
+      width: pixel(180),
       renderCell: (row) => {
-        if (row.isFooter) return null;
-        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        const taxAmount = row.has_tax ? subtotal * 0.12 : 0;
+        const dpp = calcDPP(row.qty, row.price);
+        const taxAmount = calcTax(dpp, row.has_tax);
         return row.has_tax ? (
           <Text type="code">{formatNumber(taxAmount)}</Text>
         ) : (
@@ -109,11 +110,11 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       align: "end",
       header: "Total (Rp)",
       key: "total",
-      width: pixel(160),
+      width: pixel(180),
       renderCell: (row) => {
         if (row.isFooter) return null;
-        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        const total = row.has_tax ? subtotal * 1.12 : subtotal;
+        const dpp = calcDPP(row.qty, row.price);
+        const total = calcLineTotal(dpp, row.has_tax);
         return (
           <Text type="code" weight="bold">
             {formatNumber(total)}
@@ -125,7 +126,7 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       align: "end",
       header: "Aksi",
       key: "actions",
-      width: pixel(100),
+      width: pixel(120),
       renderCell: (row) => {
         if (row.isFooter) return null;
 

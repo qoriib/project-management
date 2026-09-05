@@ -267,7 +267,7 @@ export async function seedRequirements(): Promise<void> {
         item_price_id: matchedPrice.item_price_id,
         project_id: projectId,
         qty: b.qty,
-        has_tax: b.hasTax ? 1 : 0,
+        has_tax: Boolean(b.hasTax),
       });
     }
   }

@@ -10,7 +10,7 @@ export interface OrderItemDetail {
   /** Resolved price from joined item_prices */
   price: number;
   qty: number;
-  has_tax?: number;
+  has_tax?: boolean;
   item_name?: string;
   category_prefix?: string;
   category_code?: string;
@@ -27,7 +27,7 @@ export interface OrderItemInput {
   vendor_id: string | null;
   item_price_id: string;
   qty: number;
-  has_tax?: number;
+  has_tax?: boolean;
 }
 
 type UpdateOrderItem = Partial<CreateOrderItem>;
@@ -71,7 +71,11 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
       GROUP BY order_items.order_item_id
     `;
 
-    return this.rawSelect<OrderItemDetail>(sql, [orderId]);
+    const rows = await this.rawSelect<OrderItemDetail>(sql, [orderId]);
+    return rows.map((r) => ({
+      ...r,
+      has_tax: Boolean(r.has_tax),
+    }));
   }
 
   /**

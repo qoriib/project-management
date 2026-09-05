@@ -184,7 +184,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
 
       for (const item of existingItems) {
         await orderItemRepo.update(item.order_item_id!, {
-          has_tax: item.has_tax ? 1 : 0,
+          has_tax: item.has_tax,
           item_id: item.item_id ?? undefined,
           item_price_id: item.item_price_id,
           qty: item.qty,
@@ -199,7 +199,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
    */
   async createItem(orderId: string, item: Omit<OrderItemInput, "order_item_id">): Promise<string> {
     return orderItemRepo.create({
-      has_tax: item.has_tax ? 1 : 0,
+      has_tax: item.has_tax ?? false,
       item_id: item.item_id!,
       item_price_id: item.item_price_id,
       order_id: orderId,
@@ -213,7 +213,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
    */
   async updateItem(orderItemId: string, item: OrderItemInput): Promise<void> {
     await orderItemRepo.update(orderItemId, {
-      has_tax: item.has_tax ? 1 : 0,
+      has_tax: item.has_tax,
       item_id: item.item_id ?? undefined,
       item_price_id: item.item_price_id,
       qty: item.qty,

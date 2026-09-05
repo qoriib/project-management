@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Button, HStack, Text } from "@astryxdesign/core";
 import { Plus } from "lucide-react";
 import { formatNumber } from "@/utils/formatters";
+import { calcGrandTotal } from "@/utils/calc";
 import { type TablePlugin, TableCell } from "@astryxdesign/core/Table";
 import type { OrderItemRow } from "./useOrderItemFormColumns";
 
@@ -11,14 +12,7 @@ interface UseOrderItemTableStateProps {
 }
 
 export function useOrderItemTableState({ items, onAdd }: UseOrderItemTableStateProps) {
-  const grandTotal = useMemo(() => {
-    let grand = 0;
-    for (const item of items) {
-      const sub = (item.qty ?? 0) * (item.price ?? 0);
-      grand += item.has_tax ? sub * 1.12 : sub;
-    }
-    return grand;
-  }, [items]);
+  const grandTotal = useMemo(() => calcGrandTotal(items), [items]);
 
   const dataWithFooters = useMemo(() => {
     const list = [...items] as OrderItemRow[];

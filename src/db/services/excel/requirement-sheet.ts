@@ -10,6 +10,7 @@ import {
   type SheetColumnConfig,
 } from "./styles";
 import { formatItemCode } from "@/utils/formatters";
+import { calcDPP, calcTax } from "@/utils/calc";
 
 /**
  * Creates the Requirements registry sheet (Rincian Kebutuhan / BOM).
@@ -57,8 +58,8 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
     const row = ws.getRow(rowIdx);
 
     const code = formatItemCode(item) || item.item_code || "-";
-    const dpp = item.dpp || (item.qty || 0) * (item.price || 0);
-    const taxAmount = item.tax_amount || (item.has_tax === 1 ? dpp * 0.12 : 0);
+    const dpp = item.dpp || calcDPP(item.qty, item.price);
+    const taxAmount = item.tax_amount || calcTax(dpp, item.has_tax);
     const totalPrice = item.total_price || dpp + taxAmount;
 
     sumQty += item.qty || 0;

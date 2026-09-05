@@ -19,19 +19,19 @@ export function OrderReceiptLogTable() {
     {
       header: "No. NP",
       key: "receipt_code",
-      width: pixel(160),
+      width: pixel(140),
       renderCell: (row) => <EntityCode id={row.receipt_code} />,
     },
     {
-      header: "Tanggal Penerimaan",
+      header: "Tanggal",
       key: "receipt_date",
-      width: pixel(140),
+      width: pixel(120),
       renderCell: (row) => <Timestamp value={row.receipt_date} format="system_date" size="base" />,
     },
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(4),
+      width: proportional(1, { minWidth: 280 }),
       renderCell: (row) => row.item_name || "-",
     },
     {
@@ -45,13 +45,17 @@ export function OrderReceiptLogTable() {
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => <Text type="code">{formatNumber(row.qty)}</Text>,
+      renderCell: (row) => (
+        <Text type="code" weight="medium">
+          {formatNumber(row.qty)}
+        </Text>
+      ),
     },
     {
       align: "end",
       header: "Aksi",
       key: "actions",
-      width: proportional(1),
+      width: pixel(80),
       renderCell: (row) => (
         <IconButton
           size="sm"

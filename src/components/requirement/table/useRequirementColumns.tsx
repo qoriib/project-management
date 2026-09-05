@@ -2,6 +2,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { HStack, IconButton, Text } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
+import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { RequirementDetail } from "@/db/repositories";
 
@@ -19,7 +20,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
   const baseColumns: TableColumn<RequirementRow>[] = [
     {
       header: "Kode Item",
-      key: "item_code_full",
+      key: "item_code",
       width: pixel(140),
       renderCell: (row) => {
         if (row.isFooter) return null;
@@ -82,14 +83,14 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
     },
     {
       align: "end",
-      header: "PPn (12%)",
+      header: `PPn (${TAX_RATIO_PERCENT}%)`,
       key: "has_tax",
       width: pixel(180),
       renderCell: (row) => {
         if (row.isFooter) return null;
-        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        const taxAmount = row.has_tax === 1 ? subtotal * 0.12 : 0;
-        return row.has_tax === 1 ? (
+        const dpp = calcDPP(row.qty, row.price);
+        const taxAmount = calcTax(dpp, row.has_tax);
+        return row.has_tax ? (
           <Text type="code">{formatNumber(taxAmount)}</Text>
         ) : (
           <Text size="sm" color="secondary">
@@ -105,8 +106,8 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       width: pixel(180),
       renderCell: (row) => {
         if (row.isFooter) return null;
-        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        const total = row.has_tax === 1 ? subtotal * 1.12 : subtotal;
+        const dpp = calcDPP(row.qty, row.price);
+        const total = calcLineTotal(dpp, row.has_tax);
         return (
           <Text type="code" weight="bold">
             {formatNumber(total)}

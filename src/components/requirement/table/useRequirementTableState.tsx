@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import { Button, HStack, Text } from "@astryxdesign/core";
 import { Plus } from "lucide-react";
-import { type TablePlugin, TableCell } from "@astryxdesign/core/Table";
 import { formatNumber } from "@/utils/formatters";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { calcGrandTotal } from "@/utils/calc";
+import { type TablePlugin, TableCell } from "@astryxdesign/core/Table";
 import type { RequirementRow } from "./useRequirementColumns";
 import type { RequirementDetail } from "@/db/repositories";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 
 interface UseRequirementTableStateProps {
   requirements: RequirementDetail[];
@@ -14,20 +15,7 @@ interface UseRequirementTableStateProps {
 }
 
 export function useRequirementTableState({ requirements, isApproved, onAdd }: UseRequirementTableStateProps) {
-  const grandTotal = useMemo(() => {
-    let grand = 0;
-
-    for (const b of requirements) {
-      if (b.estimated_total != null) {
-        grand += b.estimated_total;
-      } else {
-        const sub = (b.qty ?? 0) * (b.price ?? 0);
-        grand += b.has_tax === 1 ? sub * 1.12 : sub;
-      }
-    }
-
-    return grand;
-  }, [requirements]);
+  const grandTotal = useMemo(() => calcGrandTotal(requirements), [requirements]);
 
   const dataWithFooters = useMemo(() => {
     const list = [...requirements] as RequirementRow[];

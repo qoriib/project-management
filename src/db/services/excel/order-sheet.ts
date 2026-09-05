@@ -11,6 +11,7 @@ import {
   type SheetColumnConfig,
 } from "./styles";
 import { formatItemCode } from "@/utils/formatters";
+import { calcDPP, calcTax } from "@/utils/calc";
 
 /**
  * Creates the Purchase Orders registry sheet (Rincian Pesanan).
@@ -61,8 +62,8 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     const row = ws.getRow(rowIdx);
 
     const code = formatItemCode(item) || item.item_code || "-";
-    const dpp = (item.qty || 0) * (item.price || 0);
-    const taxAmount = item.has_tax === 1 ? dpp * 0.12 : 0;
+    const dpp = calcDPP(item.qty, item.price);
+    const taxAmount = calcTax(dpp, item.has_tax);
     const totalPrice = item.total_price || dpp + taxAmount;
 
     sumQty += item.qty || 0;

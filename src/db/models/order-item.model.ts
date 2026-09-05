@@ -16,8 +16,8 @@ export interface OrderItem {
   item_price_id: string;
   /** Jumlah volume kuantitas yang dipesan */
   qty: number;
-  /** Flag pajak PPN 12% (1 = Ya, 0 = Tidak) */
-  has_tax: number;
+  /** Flag pajak PPN 12% */
+  has_tax: boolean;
 }
 
 /** Payload untuk membuat baris detail pesanan baru */

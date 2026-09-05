@@ -48,13 +48,13 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
     onSubmit: async ({ value }) => {
       if (!selectedProjectId) return;
 
-      const itemInputs: OrderItemInput[] = items.map((i) => ({
-        order_item_id: i.order_item_id.startsWith("draft-") ? undefined : i.order_item_id,
-        item_id: i.item_id,
-        vendor_id: i.vendor_id,
-        item_price_id: i.item_price_id,
-        qty: i.qty,
-        has_tax: i.has_tax ? 1 : 0,
+      const itemInputs: OrderItemInput[] = items.map((item) => ({
+        order_item_id: item.order_item_id.startsWith("draft-") ? undefined : item.order_item_id,
+        item_id: item.item_id,
+        vendor_id: item.vendor_id,
+        item_price_id: item.item_price_id,
+        qty: item.qty,
+        has_tax: item.has_tax,
       }));
 
       try {
@@ -199,7 +199,6 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
         actionLabel="Hapus"
         cancelLabel="Batal"
       />
-
       <OrderItemDialog
         isOpen={isItemDialogOpen}
         onClose={() => {
@@ -235,7 +234,7 @@ export function buildOrderItemDetail(
     order_item_id: editingItem ? editingItem.order_item_id : `draft-${Date.now()}`,
     price: priceDef?.price ?? 0,
     qty: numQty,
-    has_tax: payload.has_tax ? 1 : 0,
+    has_tax: payload.has_tax,
     remaining: numQty,
     total_delivered: 0,
     unit: itemDef?.unit_name ?? "",

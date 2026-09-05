@@ -61,7 +61,11 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
       ORDER BY requirements.requirement_id ASC
     `;
 
-    return this.rawSelect<RequirementDetail>(sql, params);
+    const rows = await this.rawSelect<RequirementDetail>(sql, params);
+    return rows.map((r) => ({
+      ...r,
+      has_tax: Boolean(r.has_tax),
+    }));
   }
 }
 

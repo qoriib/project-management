@@ -66,17 +66,6 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
       width: pixel(90),
       renderCell: (row) => row.unit || "-",
     },
-    {
-      align: "end",
-      header: "Sisa PO",
-      key: "remaining",
-      width: pixel(120),
-      renderCell: (row) => (
-        <Text type="code" color="secondary">
-          {formatNumber(row.remaining ?? 0)}
-        </Text>
-      ),
-    },
   ];
 
   const rowIndexPlugin = useTableRowIndex({

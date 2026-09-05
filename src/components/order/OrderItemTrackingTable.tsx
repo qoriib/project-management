@@ -1,10 +1,10 @@
 import { EmptyState, Table, Text } from "@astryxdesign/core";
-import { Item } from "@astryxdesign/core/Item";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
 
@@ -15,32 +15,25 @@ export function OrderItemTrackingTable() {
 
   const itemColumns: TableColumn<TrackingRow>[] = [
     {
-      header: "Item",
-      key: "item",
-      width: proportional(2),
+      header: "Kode Item",
+      key: "item_code",
+      width: pixel(140),
       renderCell: (row) => {
         const code = formatItemCode(row);
-        return (
-          <Item
-            density="compact"
-            label={row.item_name || "-"}
-            description={code ? <EntityCode id={code} /> : undefined}
-          />
-        );
+        return code ? <EntityCode id={code} /> : "-";
       },
+    },
+    {
+      header: "Nama Item",
+      key: "item_name",
+      width: proportional(1, { minWidth: 280 }),
+      renderCell: (row) => row.item_name || "-",
     },
     {
       header: "Satuan",
       key: "unit",
       width: pixel(80),
       renderCell: (row) => row.unit || "-",
-    },
-    {
-      align: "end",
-      header: "Harga (Rp)",
-      key: "price",
-      width: pixel(180),
-      renderCell: (row) => <Text type="code">{formatNumber(row.price)}</Text>,
     },
     {
       align: "end",
@@ -55,20 +48,30 @@ export function OrderItemTrackingTable() {
     },
     {
       align: "end",
-      header: "Subtotal (Rp)",
-      key: "subtotal",
+      header: "Harga (Rp)",
+      key: "price",
       width: pixel(180),
-      renderCell: (row) => <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0))}</Text>,
+      renderCell: (row) => <Text type="code">{formatNumber(row.price)}</Text>,
     },
     {
       align: "end",
-      header: "PPn (12%)",
-      key: "has_tax",
-      width: pixel(140),
+      header: "Subtotal (Rp)",
+      key: "subtotal",
+      width: pixel(180),
       renderCell: (row) => {
         const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        const taxAmount = row.has_tax === 1 ? subtotal * 0.12 : 0;
-        return row.has_tax === 1 ? (
+        return <Text type="code">{formatNumber(subtotal)}</Text>;
+      },
+    },
+    {
+      align: "end",
+      header: `PPn (${TAX_RATIO_PERCENT}%)`,
+      key: "has_tax",
+      width: pixel(180),
+      renderCell: (row) => {
+        const dpp = calcDPP(row.qty, row.price);
+        const taxAmount = calcTax(dpp, row.has_tax);
+        return row.has_tax ? (
           <Text type="code">{formatNumber(taxAmount)}</Text>
         ) : (
           <Text size="sm" color="secondary">
@@ -83,10 +86,10 @@ export function OrderItemTrackingTable() {
       key: "total",
       width: pixel(180),
       renderCell: (row) => {
-        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        const total = row.has_tax === 1 ? subtotal * 1.12 : subtotal;
+        const dpp = calcDPP(row.qty, row.price);
+        const total = calcLineTotal(dpp, row.has_tax);
         return (
-          <Text type="code" weight="medium">
+          <Text type="code" weight="bold">
             {formatNumber(total)}
           </Text>
         );
@@ -96,12 +99,12 @@ export function OrderItemTrackingTable() {
       align: "end",
       header: "Penerimaan",
       key: "progress",
-      width: proportional(1),
+      width: pixel(200),
       renderCell: (row) => {
         const delivered = row.total_delivered ?? 0;
         const total = row.qty ?? 0;
         const pct = total > 0 ? (delivered / total) * 100 : 0;
-        const variant = pct > 100 ? "error" : pct >= 100 ? "success" : "accent";
+        const variant = pct > 100 ? "error" : "success";
 
         return (
           <ProgressBar

@@ -284,7 +284,7 @@ export async function seedOrders(): Promise<void> {
       vendor_id: string;
       item_price_id: string;
       qty: number;
-      has_tax: number;
+      has_tax: boolean;
     }> = [];
 
     for (const item of ord.items) {
@@ -303,7 +303,7 @@ export async function seedOrders(): Promise<void> {
       }
 
       orderItems.push({
-        has_tax: item.hasTax ? 1 : 0,
+        has_tax: Boolean(item.hasTax),
         item_id: itemRecord.item_id,
         item_price_id: matchedPrice.item_price_id,
         qty: item.qty,
