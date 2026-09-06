@@ -1,116 +1,136 @@
-import type * as ExcelJS from "exceljs";
+import { DEFAULT_SHEET_VIEW, EXCEL_COL_WIDTH, EXCEL_NUM_FMT } from "./styles";
+import { createFormalKop, renderTableHeaderRow, styleBodyRow, styleTotalRow, type SheetColumnConfig } from "./utils";
+import { formatItemCode, toISODate } from "@/utils/formatters";
 import type { ReceiptSheetContext } from "./types";
-import {
-  BORDER_ACCOUNTING_TOTAL,
-  BORDER_ALL_LIGHT,
-  createFormalKop,
-  EXCEL_NUM_FMT,
-  FORMAL_STYLE,
-  formatToDDMMYYYY,
-  renderTableHeaderRow,
-  type SheetColumnConfig,
-} from "./styles";
-import { formatItemCode } from "@/utils/formatters";
+import type * as ExcelJS from "exceljs";
 
-/**
- * Creates the Goods Receipt registry sheet (Rincian Penerimaan).
- */
+const COLUMNS: SheetColumnConfig[] = [
+  {
+    header: "NO",
+    key: "no",
+    width: EXCEL_COL_WIDTH.no,
+    align: "center",
+  },
+  {
+    header: "TANGGAL",
+    key: "receipt_date",
+    width: EXCEL_COL_WIDTH.date,
+    align: "center",
+  },
+  {
+    header: "NO. NP",
+    key: "receipt_code",
+    width: EXCEL_COL_WIDTH.receiptCode,
+    align: "left",
+  },
+  {
+    header: "NO. PO",
+    key: "order_code",
+    width: EXCEL_COL_WIDTH.orderCode,
+    align: "left",
+  },
+  {
+    header: "VENDOR",
+    key: "vendor_name",
+    width: EXCEL_COL_WIDTH.vendor,
+    align: "left",
+  },
+  {
+    header: "KODE ITEM",
+    key: "item_code",
+    width: EXCEL_COL_WIDTH.itemCode,
+    align: "center",
+  },
+  {
+    header: "NAMA ITEM",
+    key: "item_name",
+    width: EXCEL_COL_WIDTH.itemName,
+    align: "left",
+  },
+  {
+    header: "KATEGORI",
+    key: "category_name",
+    width: EXCEL_COL_WIDTH.category,
+    align: "center",
+  },
+  {
+    header: "SATUAN",
+    key: "unit_name",
+    width: EXCEL_COL_WIDTH.unit,
+    align: "center",
+  },
+  {
+    header: "VOLUME",
+    key: "qty",
+    width: EXCEL_COL_WIDTH.qty,
+    align: "right",
+    numFmt: EXCEL_NUM_FMT.quantity,
+  },
+];
+
 export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptSheetContext): void {
   const { project_name, company_name, fiscal_year, period, receiptData } = context;
-  const ws = workbook.addWorksheet("RINCIAN PENERIMAAN", {
-    views: [{ state: "frozen", xSplit: 0, ySplit: 5, showGridLines: true }],
+
+  const worksheet = workbook.addWorksheet("PENERIMAAN", {
+    views: [DEFAULT_SHEET_VIEW],
   });
 
-  const COLUMNS: SheetColumnConfig[] = [
-    { header: "NO", key: "no", width: 6 },
-    { header: "TANGGAL TERIMA", key: "receipt_date", width: 16 },
-    { header: "NOMOR PENERIMAAN (NP)", key: "receipt_code", width: 22 },
-    { header: "NOMOR PESANAN (PO)", key: "order_code", width: 20 },
-    { header: "NAMA PENYEDIA / VENDOR", key: "vendor_name", width: 28 },
-    { header: "KODE ITEM", key: "item_code", width: 16 },
-    { header: "URAIAN BARANG / PEKERJAAN", key: "item_name", width: 36 },
-    { header: "KATEGORI", key: "category_name", width: 16 },
-    { header: "SATUAN", key: "unit_name", width: 10 },
-    { header: "VOLUME", key: "qty", width: 18 },
-  ];
+  worksheet.columns = COLUMNS.map((column) => ({
+    key: column.key,
+    width: column.width,
+  }));
 
-  ws.columns = COLUMNS.map((c) => ({ key: c.key, width: c.width }));
-
-  createFormalKop(ws, {
+  createFormalKop(worksheet, {
     company_name,
     endCol: "J",
     endColIdx: 10,
     startCol: "A",
     startColIdx: 1,
     subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
-    title: "BUKU REGISTER PENERIMAAN BARANG (GOODS RECEIPTS / SURAT JALAN)",
+    title: "RINCIAN PENERIMAAN",
   });
 
-  renderTableHeaderRow(ws, COLUMNS, 5);
+  renderTableHeaderRow(worksheet, COLUMNS, 5);
 
-  let sumQty = 0;
+  let totalReceivedQuantity = 0;
 
   receiptData.forEach((item, index) => {
-    const rowIdx = index + 6;
-    const row = ws.getRow(rowIdx);
+    const rowNumber = index + 6;
+    const row = worksheet.getRow(rowNumber);
 
-    const code = formatItemCode(item) || item.item_code || "-";
-    sumQty += item.qty || 0;
+    const receiptDate = toISODate(item.receipt_date);
+    const receiptCode = item.receipt_code ?? "-";
+    const orderCode = item.order_code ?? "-";
+    const vendorName = item.vendor_name ?? "-";
+    const itemCode = formatItemCode(item) ?? item.item_code;
+    const categoryName = item.category_name ?? "-";
+    const unitName = item.unit_name ?? "-";
+
+    totalReceivedQuantity += item.qty;
 
     row.values = [
       index + 1,
-      formatToDDMMYYYY(item.receipt_date),
-      item.receipt_code || "-",
-      item.order_code || "-",
-      item.vendor_name || "-",
-      code,
+      receiptDate,
+      receiptCode,
+      orderCode,
+      vendorName,
+      itemCode,
       item.item_name,
-      item.category_name || "-",
-      item.unit_name || "-",
-      item.qty || 0,
+      categoryName,
+      unitName,
+      item.qty,
     ];
 
-    const isEven = index % 2 === 1;
-    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-      cell.border = BORDER_ALL_LIGHT;
-      cell.font = { name: FORMAL_STYLE.fontFamily, size: 9 };
-      if (isEven) {
-        cell.fill = { fgColor: { argb: FORMAL_STYLE.zebraBg }, pattern: "solid", type: "pattern" };
-      }
-
-      if (colNumber === 1 || colNumber === 2 || colNumber === 6 || colNumber === 8 || colNumber === 9) {
-        cell.alignment = { horizontal: "center", vertical: "middle" };
-      } else if (colNumber === 3 || colNumber === 4 || colNumber === 5 || colNumber === 7) {
-        cell.alignment = { horizontal: "left", vertical: "middle" };
-      } else {
-        cell.alignment = { horizontal: "right", vertical: "middle" };
-      }
-
-      if (colNumber === 10) {
-        cell.numFmt = EXCEL_NUM_FMT.quantity;
-      }
-    });
+    styleBodyRow(row, COLUMNS);
   });
 
-  // Total Row
-  const totalRowIdx = receiptData.length + 6;
-  const totalRow = ws.getRow(totalRowIdx);
-  totalRow.values = ["", "TOTAL PENERIMAAN", "", "", "", "", "", "", "", sumQty];
+  // Baris Total
+  const totalRowIndex = receiptData.length + 6;
+  const totalRow = worksheet.getRow(totalRowIndex);
+  totalRow.values = ["", "TOTAL", "", "", "", "", "", "", "", totalReceivedQuantity];
 
-  ws.mergeCells(`B${totalRowIdx}:I${totalRowIdx}`);
+  worksheet.mergeCells(`B${totalRowIndex}:I${totalRowIndex}`);
+  styleTotalRow(totalRow, COLUMNS);
 
-  totalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-    cell.font = { bold: true, color: { argb: FORMAL_STYLE.totalRowText }, name: FORMAL_STYLE.fontFamily, size: 9 };
-    cell.fill = { fgColor: { argb: FORMAL_STYLE.totalRowBg }, pattern: "solid", type: "pattern" };
-    cell.border = BORDER_ACCOUNTING_TOTAL;
-
-    if (colNumber === 2) {
-      cell.alignment = { horizontal: "center", vertical: "middle" };
-    } else if (colNumber === 10) {
-      cell.numFmt = EXCEL_NUM_FMT.quantity;
-      cell.alignment = { horizontal: "right", vertical: "middle" };
-    }
-  });
-
-  ws.autoFilter = "A5:J5";
+  worksheet.autoFilter = "A5:J5";
 }

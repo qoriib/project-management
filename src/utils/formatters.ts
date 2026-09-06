@@ -93,17 +93,31 @@ export function parseDecimalInput(val?: string | number | null): number {
 }
 
 /**
- * Mengubah objek Date ke string tanggal ISO format `YYYY-MM-DD`.
+ * Mengubah objek Date atau string tanggal ke string tanggal ISO format `YYYY-MM-DD`.
  *
- * @param date - Objek Date (default: saat ini)
- * @returns String tanggal format `YYYY-MM-DD`
+ * @param date - Objek Date atau string tanggal (default: saat ini)
+ * @returns String tanggal format `YYYY-MM-DD` atau `"-"` jika kosong / tidak valid
  *
  * @example
  * ```ts
  * toISODate(new Date(2026, 7, 24)); // "2026-08-24"
+ * toISODate("2026-08-24T10:00:00Z"); // "2026-08-24"
+ * toISODate("2026-08-24"); // "2026-08-24"
+ * toISODate(null); // "-"
  * ```
  */
-export function toISODate(date: Date = new Date()): string {
+export function toISODate(date: Date | string | null | undefined = new Date()): string {
+  if (!date) return "-";
+  if (typeof date === "string") {
+    if (/^\d{4}-\d{2}-\d{2}/.test(date)) {
+      return date.slice(0, 10);
+    }
+    const parsed = new Date(date);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().slice(0, 10);
+    }
+    return date;
+  }
   return date.toISOString().slice(0, 10);
 }
 
@@ -212,4 +226,26 @@ export function generateNextCode(
 
   const nextNum = maxNum + 1;
   return `${prefix}${nextNum.toString().padStart(digits, "0")}`;
+}
+
+/**
+ * Menghasilkan string label periode dari rentang tanggal opsional.
+ *
+ * @param startDate - Tanggal mulai (ISO string, opsional)
+ * @param endDate - Tanggal akhir (ISO string, opsional)
+ * @returns Label periode yang siap ditampilkan
+ *
+ * @example
+ * ```ts
+ * formatPeriod("2026-01-01", "2026-12-31"); // "2026-01-01 s/d 2026-12-31"
+ * formatPeriod("2026-01-01");               // "Mulai 2026-01-01"
+ * formatPeriod(undefined, "2026-12-31");    // "Sampai 2026-12-31"
+ * formatPeriod();                           // "Semua Periode"
+ * ```
+ */
+export function formatPeriod(startDate?: string, endDate?: string): string {
+  if (startDate && endDate) return `${startDate} s/d ${endDate}`;
+  if (startDate) return `Mulai ${startDate}`;
+  if (endDate) return `Sampai ${endDate}`;
+  return "Semua Periode";
 }

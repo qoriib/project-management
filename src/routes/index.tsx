@@ -15,7 +15,7 @@ import { ReportSummaryTable } from "@/components/report/ReportSummaryTable";
 import { getTimestampString, sanitizeFilename } from "@/utils/formatters";
 import { useToast } from "@astryxdesign/core/Toast";
 import { type ISODateString } from "@astryxdesign/core/Calendar";
-import { type RequirementReportItem, getRequirementReport, generateRequirementReportExcel } from "@/db/services";
+import { type RequirementReportItem, getRequirementReport, generateReportExcel } from "@/db/services";
 import { useMasterStore } from "@/store/useMasterStore";
 
 function DashboardPage() {
@@ -45,7 +45,7 @@ function DashboardPage() {
       });
 
       if (filePath) {
-        const buffer = await generateRequirementReportExcel(selectedProjectId, startDate, endDate);
+        const buffer = await generateReportExcel(selectedProjectId, startDate, endDate);
         await writeFile(filePath, buffer);
         showToast({ body: "Laporan Excel berhasil diekspor!", type: "info" });
       }

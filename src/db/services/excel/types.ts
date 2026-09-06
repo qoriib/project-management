@@ -12,12 +12,6 @@ export interface ExcelProjectMeta {
   period: string;
 }
 
-export interface ExecutiveSummaryContext extends ExcelProjectMeta {
-  data: RequirementReportItem[];
-  orderData: OrderReportItem[];
-  receiptData: ReceiptReportItem[];
-}
-
 export interface FulfillmentSheetContext extends ExcelProjectMeta {
   data: RequirementReportItem[];
 }

@@ -6,29 +6,30 @@ import {
   getProjectReceiptReport,
 } from "../report.service";
 import { projectRepo } from "@/db/repositories";
-import { createExecutiveSummarySheet } from "./summary-sheet";
 import { createFulfillmentSheet } from "./fulfillment-sheet";
 import { createRequirementSheet } from "./requirement-sheet";
 import { createOrderSheet } from "./order-sheet";
 import { createReceiptSheet } from "./receipt-sheet";
+import { formatPeriod } from "@/utils/formatters";
 
-export * from "./types";
-export * from "./styles";
-export { createExecutiveSummarySheet } from "./summary-sheet";
 export { createFulfillmentSheet } from "./fulfillment-sheet";
 export { createRequirementSheet } from "./requirement-sheet";
 export { createOrderSheet } from "./order-sheet";
 export { createReceiptSheet } from "./receipt-sheet";
 
+export * from "./types";
+export * from "./styles";
+export * from "./utils";
+
 /**
  * Generates a formal institutional standard multi-sheet Excel report.
  */
-export async function generateRequirementReportExcel(
+export async function generateReportExcel(
   projectId: string,
   startDate?: string,
   endDate?: string,
 ): Promise<Uint8Array> {
-  const [project, data, requirementData, orderData, receiptData] = await Promise.all([
+  const [projectRecord, fulfillmentData, requirementData, orderData, receiptData] = await Promise.all([
     projectRepo.findById(projectId),
     getRequirementReport(projectId, startDate, endDate),
     getProjectRequirementReport(projectId),
@@ -37,68 +38,52 @@ export async function generateRequirementReportExcel(
   ]);
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = project?.company_name ?? "Sistem Manajemen Proyek";
-  workbook.created = new Date();
 
-  const projectName = project?.project_name ?? "Proyek";
-  const companyName = project?.company_name ?? "Instansi / Perusahaan";
-  const fiscalYear = project?.fiscal_year ? String(project.fiscal_year) : new Date().getFullYear().toString();
-  const periodStr =
-    startDate && endDate
-      ? `${startDate} s/d ${endDate}`
-      : startDate
-        ? `Mulai ${startDate}`
-        : endDate
-          ? `Sampai ${endDate}`
-          : "Semua Periode";
+  const projectName = projectRecord?.project_name ?? "Proyek";
+  const companyName = projectRecord?.company_name ?? "Instansi / Perusahaan";
+  const fiscalYear = projectRecord?.fiscal_year
+    ? String(projectRecord.fiscal_year)
+    : new Date().getFullYear().toString();
 
-  // 1. Sheet: Ringkasan Eksekutif & Pengesahan
-  createExecutiveSummarySheet(workbook, {
-    project_name: projectName,
-    company_name: companyName,
-    fiscal_year: fiscalYear,
-    period: periodStr,
-    data,
-    orderData,
-    receiptData,
-  });
+  const formattedPeriod = formatPeriod(startDate, endDate);
 
-  // 2. Sheet: Kebutuhan & Realisasi (BOM & PO Fulfillment)
+  // 1. Sheet: Pemenuhan (BOM vs PO Realization)
   createFulfillmentSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
     fiscal_year: fiscalYear,
-    period: periodStr,
-    data,
+    period: formattedPeriod,
+    data: fulfillmentData,
   });
 
-  // 3. Sheet: Rincian Kebutuhan (Bill of Items / BOM)
+  // 2. Sheet: Rincian Kebutuhan (BOM)
   createRequirementSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
     fiscal_year: fiscalYear,
-    period: periodStr,
+    period: formattedPeriod,
     requirementData,
   });
 
-  // 4. Sheet: Rincian Pesanan (Purchase Orders / PO)
+  // 3. Sheet: Rincian Pesanan (PO)
   createOrderSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
     fiscal_year: fiscalYear,
-    period: periodStr,
+    period: formattedPeriod,
     orderData,
   });
 
-  // 5. Sheet: Rincian Penerimaan (Goods Receipts / NP)
+  // 4. Sheet: Rincian Penerimaan (NP)
   createReceiptSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
     fiscal_year: fiscalYear,
-    period: periodStr,
+    period: formattedPeriod,
     receiptData,
   });
 
-  const buffer = await workbook.xlsx.writeBuffer();
-  return new Uint8Array(buffer);
+  const arrayBuffer = await workbook.xlsx.writeBuffer();
+
+  return new Uint8Array(arrayBuffer);
 }

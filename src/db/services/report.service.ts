@@ -20,6 +20,7 @@ export interface RequirementReportVariant {
 export interface RequirementReportItem {
   item_id: string;
   item_code: string;
+  category_id?: string;
   category_prefix?: string;
   category_code?: string;
   item_name: string;
@@ -99,6 +100,7 @@ interface RawRequirementRow {
   item_id: string;
   item_price_id: string;
   item_code: string;
+  category_id?: string;
   category_prefix?: string;
   category_code?: string;
   item_name: string;
@@ -116,6 +118,7 @@ interface RawOrderRow {
   qty: number;
   has_tax: number;
   item_code: string;
+  category_id?: string;
   category_prefix?: string;
   category_code?: string;
   item_name: string;
@@ -132,6 +135,7 @@ interface RawReceiptRow {
 function createDefaultReportItem(row: RawRequirementRow | RawOrderRow, isUnplanned: boolean): RequirementReportItem {
   return {
     category: row.category || "LAINNYA",
+    category_id: row.category_id,
     category_code: row.category_code,
     category_prefix: row.category_prefix,
     is_unplanned: isUnplanned,
@@ -171,6 +175,7 @@ export async function getRequirementReport(
         "requirements.item_id",
         "requirements.item_price_id",
         "items.item_code",
+        "categories.category_id",
         "categories.prefix as category_prefix",
         "categories.category_code",
         "items.item_name",
@@ -206,6 +211,7 @@ export async function getRequirementReport(
         "order_items.qty",
         "order_items.has_tax",
         "items.item_code",
+        "categories.category_id",
         "categories.prefix as category_prefix",
         "categories.category_code",
         "items.item_name",
@@ -318,27 +324,27 @@ export async function getRequirementReport(
       item.total_order_price += subtotal;
     }
 
-    // 5. Populate delivery & sort
-    const plannedList: RequirementReportItem[] = [];
-    const unplannedList: RequirementReportItem[] = [];
-
-    for (const item of itemMap.values()) {
+    // 5. Populate delivery & sort by category_id (ASC), then planned status, then item_name
+    const allItems = Array.from(itemMap.values());
+    for (const item of allItems) {
       item.total_delivered = receiptMap.get(item.item_id) || 0;
       if (!item.price && item.order_variants.length > 0) {
         item.price = item.order_variants[0].price;
       }
-
-      if (item.is_unplanned) {
-        unplannedList.push(item);
-      } else {
-        plannedList.push(item);
-      }
     }
 
-    plannedList.sort((a, b) => (a.item_name || "").localeCompare(b.item_name || ""));
-    unplannedList.sort((a, b) => (a.item_name || "").localeCompare(b.item_name || ""));
+    allItems.sort((a, b) => {
+      const catA = a.category_id || "\uffff";
+      const catB = b.category_id || "\uffff";
+      const cmp = catA.localeCompare(catB);
+      if (cmp !== 0) return cmp;
+      if (Boolean(a.is_unplanned) !== Boolean(b.is_unplanned)) {
+        return a.is_unplanned ? 1 : -1;
+      }
+      return (a.item_name || "").localeCompare(b.item_name || "");
+    });
 
-    return [...plannedList, ...unplannedList];
+    return allItems;
   } catch (error) {
     if (error instanceof DbError) {
       throw error;
@@ -543,7 +549,7 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
       .leftJoin("units", "units", "units.unit_id = items.unit_id AND units.deleted_at IS NULL")
       .where("requirements.project_id", "=", projectId)
       .withSoftDelete("requirements")
-      .orderBy("categories.category_name", "ASC")
+      .orderBy("categories.category_id", "ASC")
       .orderBy("items.item_name", "ASC");
 
     const raw = await query.getMany<{

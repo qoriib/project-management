@@ -23,6 +23,23 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
     [report],
   );
 
+  const groupOrder = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of report) {
+      const catName = (item.category as string) ?? "LAINNYA";
+      if (!map.has(catName)) {
+        map.set(catName, item.category_id ?? "\uffff");
+      }
+    }
+    const entries = Array.from(map.entries());
+    entries.sort((a, b) => {
+      const cmp = a[1].localeCompare(b[1]);
+      if (cmp !== 0) return cmp;
+      return a[0].localeCompare(b[0]);
+    });
+    return entries.map(([name]) => name);
+  }, [report]);
+
   const {
     data: groupedData,
     plugin: groupedPlugin,
@@ -32,6 +49,7 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
     data: enrichedReport,
     getRowKey: (item: EnrichedReportItem) => item.unique_id,
     groupBy: (item: EnrichedReportItem) => (item.category as string) ?? "LAINNYA",
+    groupOrder,
     onToggleGroup: (key: string) => {
       setCollapsedGroups((prev) => {
         const next = new Set(prev);
