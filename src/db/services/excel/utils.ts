@@ -130,7 +130,7 @@ export function styleTotalRow(row: ExcelJS.Row, columns: SheetColumnConfig[]): v
     cell.border = BORDER_ACCOUNTING_TOTAL;
 
     if (columnNumber === 2) {
-      cell.alignment = ALIGN_CENTER;
+      cell.alignment = ALIGN_RIGHT;
     } else if (columnConfig?.numFmt) {
       cell.numFmt = columnConfig.numFmt;
       cell.alignment = ALIGN_RIGHT;

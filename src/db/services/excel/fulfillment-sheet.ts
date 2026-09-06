@@ -278,7 +278,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     firstCategoryCell.font = FONT_CATEGORY_HEADER;
     firstCategoryCell.alignment = ALIGN_CATEGORY_HEADER;
 
-    for (let columnIndex = 1; columnIndex <= 20; columnIndex++) {
+    for (let columnIndex = 1; columnIndex <= TOTAL_HEADER_COLUMNS; columnIndex++) {
       const cell = categoryRow.getCell(columnIndex);
       cell.fill = FILL_SECONDARY_HEADER;
       cell.border = BORDER_ALL_LIGHT;
@@ -463,7 +463,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     cell.border = BORDER_ACCOUNTING_TOTAL;
 
     if (columnNumber === 2) {
-      cell.alignment = ALIGN_CENTER;
+      cell.alignment = ALIGN_RIGHT;
       return;
     }
 
