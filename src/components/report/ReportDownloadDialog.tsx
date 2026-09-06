@@ -6,7 +6,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { useMasterStore } from "@/store/useMasterStore";
 import { getTimestampString, sanitizeFilename } from "@/utils/formatters";
-import { generateFulfillmentVolumePdf } from "@/db/services/pdf";
+import { generateReportPdf } from "@/db/services/pdf";
 import { generateReportExcel } from "@/db/services/excel";
 import type { ISODateString } from "@astryxdesign/core/Calendar";
 
@@ -45,7 +45,7 @@ export function ReportDownloadDialog({ isOpen, onClose, projectId, startDate, en
         });
 
         if (filePath) {
-          const buffer = await generateFulfillmentVolumePdf(projectId, startDate, endDate);
+          const buffer = await generateReportPdf(projectId, startDate, endDate);
           await writeFile(filePath, buffer);
           showToast({ body: "Laporan PDF berhasil diunduh!", type: "info" });
           onClose();

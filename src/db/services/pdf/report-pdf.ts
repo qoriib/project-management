@@ -8,12 +8,12 @@ import type { FulfillmentPdfContext } from "./types";
 export type { FulfillmentPdfContext, ItemTransactionHistory, TransactionHistoryPdfContext } from "./types";
 
 /**
- * Membuat dokumen PDF formal multi-halaman yang menggabungkan:
+ * Membuat dokumen PDF laporan formal multi-halaman yang menggabungkan:
  * 1. Halaman Lanskap: Laporan Pemenuhan (Volume)
  * 2. Halaman Potret: Riwayat Transaksi per Item (Pengadaan & Penerimaan)
  * 3. Footer Dinamis: Penomoran halaman dan timestamp di seluruh orientasi
  */
-export function createFulfillmentVolumePdf(context: FulfillmentPdfContext): jsPDF {
+export function createReportPdf(context: FulfillmentPdfContext): jsPDF {
   const doc = new jsPDF({
     orientation: PDF_PAGE.orientation,
     unit: PDF_PAGE.unit,
@@ -38,3 +38,6 @@ export function createFulfillmentVolumePdf(context: FulfillmentPdfContext): jsPD
 
   return doc;
 }
+
+/** Alias kompatibilitas fungsi lama */
+export const createFulfillmentVolumePdf = createReportPdf;

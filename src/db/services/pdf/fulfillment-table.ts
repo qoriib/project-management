@@ -3,11 +3,16 @@ import { calcRatio } from "@/utils/calc";
 import { formatItemCode } from "@/utils/formatters";
 import {
   PDF_COLORS,
-  PDF_PAGE,
+  PDF_FULFILLMENT_BODY_STYLES,
+  PDF_FULFILLMENT_DATE_RANGE_COL_STYLES,
+  PDF_FULFILLMENT_HEAD_STYLES,
+  PDF_FULFILLMENT_STANDARD_COL_STYLES,
+  PDF_PAGE_LANDSCAPE,
   PDF_TABLE_BASE_STYLES,
-  PDF_TABLE_BODY_STYLES,
-  PDF_TABLE_HEAD_STYLES,
+  PDF_TABLE_CATEGORY_BANNER_STYLES,
   PDF_TABLE_STYLE,
+  PDF_TABLE_TOTAL_LABEL_STYLES,
+  PDF_TABLE_TOTAL_ROW_STYLES,
 } from "./styles";
 import { formatPercentage, formatQty, renderPdfKop } from "./utils";
 import type jsPDF from "jspdf";
@@ -25,10 +30,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     hasDateRange,
   } = context;
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const marginLeft = PDF_PAGE.margins.left;
-  const marginRight = PDF_PAGE.margins.right;
-  const printableWidth = pageWidth - marginLeft - marginRight;
+  const { margins, printableWidth, kopStartY, tableStartY } = PDF_PAGE_LANDSCAPE;
 
   // 1. Render Kop Formal
   renderPdfKop(doc, {
@@ -36,8 +38,8 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     projectName,
     companyName,
     period,
-    pageWidth,
-    startY: 16,
+    pageWidth: doc.internal.pageSize.getWidth(),
+    startY: kopStartY,
   });
 
   // 2. Pengelompokan Data per Kategori
@@ -96,17 +98,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
       {
         content: categoryName.toUpperCase(),
         colSpan: hasDateRange ? 12 : 10,
-        styles: {
-          fillColor: PDF_COLORS.categoryBg,
-          textColor: PDF_COLORS.categoryText,
-          fontStyle: "bold",
-          halign: "left",
-          valign: PDF_TABLE_STYLE.valign,
-          fontSize: 7.5,
-          lineWidth: PDF_TABLE_STYLE.borderWidth,
-          lineColor: PDF_COLORS.borderDark,
-          cellPadding: { top: 2, bottom: 2, left: 3, right: 3 },
-        },
+        styles: PDF_TABLE_CATEGORY_BANNER_STYLES,
       },
     ]);
 
@@ -190,25 +182,14 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
   const overallOrderPercentage = calcRatio(totalOrderedVolume, totalPlannedVolume);
   const overallDeliveryPercentage = calcRatio(totalDeliveredVolume, totalOrderedVolume);
 
-  const totalRowCellStyle = {
-    fontStyle: "bold" as const,
-    fillColor: PDF_COLORS.totalBg,
-    textColor: PDF_COLORS.totalText,
-    lineWidth: PDF_TABLE_STYLE.borderWidth,
-    lineColor: PDF_COLORS.borderDark,
-    valign: PDF_TABLE_STYLE.valign,
-  };
+  const totalRowCellStyle = PDF_TABLE_TOTAL_ROW_STYLES;
 
   const totalRow: RowInput = hasDateRange
     ? [
         {
           content: "TOTAL KESELURUHAN",
           colSpan: 4,
-          styles: {
-            ...totalRowCellStyle,
-            halign: "right",
-            fontSize: 7.5,
-          },
+          styles: PDF_TABLE_TOTAL_LABEL_STYLES,
         },
         {
           content: formatQty(totalPlannedVolume),
@@ -247,11 +228,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         {
           content: "TOTAL KESELURUHAN",
           colSpan: 4,
-          styles: {
-            ...totalRowCellStyle,
-            halign: "right",
-            fontSize: 7.5,
-          },
+          styles: PDF_TABLE_TOTAL_LABEL_STYLES,
         },
         {
           content: formatQty(totalPlannedVolume),
@@ -324,43 +301,12 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         ],
       ];
 
-  const columnStyles: Record<number, { cellWidth: number; halign: "center" | "left" | "right" }> = hasDateRange
-    ? {
-        0: { cellWidth: 10, halign: "center" as const }, // NO
-        1: { cellWidth: 24, halign: "center" as const }, // KODE ITEM
-        2: { cellWidth: 59, halign: "left" as const }, // NAMA ITEM
-        3: { cellWidth: 16, halign: "center" as const }, // SATUAN
-        4: { cellWidth: 22, halign: "right" as const }, // BOQ VOL
-        5: { cellWidth: 20, halign: "right" as const }, // PO PERIODE
-        6: { cellWidth: 20, halign: "right" as const }, // PO KUMULATIF
-        7: { cellWidth: 18, halign: "right" as const }, // PO %
-        8: { cellWidth: 20, halign: "right" as const }, // NP PERIODE
-        9: { cellWidth: 20, halign: "right" as const }, // NP KUMULATIF
-        10: { cellWidth: 20, halign: "right" as const }, // NP SISA
-        11: { cellWidth: 20, halign: "right" as const }, // NP %
-      }
-    : {
-        0: { cellWidth: 10, halign: "center" as const }, // NO
-        1: { cellWidth: 24, halign: "center" as const }, // KODE ITEM
-        2: { cellWidth: 85, halign: "left" as const }, // NAMA ITEM
-        3: { cellWidth: 16, halign: "center" as const }, // SATUAN
-        4: { cellWidth: 24, halign: "right" as const }, // BOQ VOL
-        5: { cellWidth: 24, halign: "right" as const }, // PO VOL
-        6: { cellWidth: 20, halign: "right" as const }, // PO %
-        7: { cellWidth: 22, halign: "right" as const }, // NP DATANG
-        8: { cellWidth: 22, halign: "right" as const }, // NP SISA
-        9: { cellWidth: 22, halign: "right" as const }, // NP %
-      };
+  const columnStyles = hasDateRange ? PDF_FULFILLMENT_DATE_RANGE_COL_STYLES : PDF_FULFILLMENT_STANDARD_COL_STYLES;
 
   // 6. Eksekusi Render autoTable Lanskap
   autoTable(doc, {
-    startY: 27,
-    margin: {
-      top: 15,
-      right: marginRight,
-      bottom: 14,
-      left: marginLeft,
-    },
+    startY: tableStartY,
+    margin: margins,
     head: tableHead,
     body: tableBody,
     theme: "plain",
@@ -368,15 +314,8 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     styles: {
       ...PDF_TABLE_BASE_STYLES,
     },
-    headStyles: {
-      ...PDF_TABLE_HEAD_STYLES,
-      fontSize: 7.2,
-      cellPadding: { top: 2, bottom: 2, left: 1.5, right: 1.5 },
-    },
-    bodyStyles: {
-      ...PDF_TABLE_BODY_STYLES,
-      cellPadding: { top: 1.8, bottom: 1.8, left: 1.5, right: 1.5 },
-    },
+    headStyles: PDF_FULFILLMENT_HEAD_STYLES,
+    bodyStyles: PDF_FULFILLMENT_BODY_STYLES,
     columnStyles,
     didParseCell: (data) => {
       // Pastikan seluruh header selalu horizontal align center dan vertical align middle

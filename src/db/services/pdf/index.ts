@@ -1,8 +1,8 @@
 import { projectRepo } from "@/db/repositories";
 import { formatPeriod } from "@/utils/formatters";
-import type { RequirementReportItem } from "../report.service";
 import { getItemLog, getRequirementReport } from "../report.service";
-import { createFulfillmentVolumePdf } from "./fulfillment-pdf";
+import { createReportPdf } from "./report-pdf";
+import type { RequirementReportItem } from "../report.service";
 import type { FulfillmentPdfItem, ItemTransactionHistory } from "./types";
 
 export * from "./types";
@@ -10,17 +10,12 @@ export * from "./styles";
 export * from "./utils";
 export * from "./fulfillment-table";
 export * from "./transaction-history-table";
-export * from "./fulfillment-pdf";
+export * from "./report-pdf";
 
 /**
- * Generates a focused Landscape PDF report of BOQ vs PO vs Delivery Volume,
- * followed by a Portrait section detailing transaction history per item.
+ * Menghasilkan dokumen PDF laporan formal (Lanskap: Pemenuhan Volume, Potret: Riwayat Transaksi per Item).
  */
-export async function generateFulfillmentVolumePdf(
-  projectId: string,
-  startDate?: string,
-  endDate?: string,
-): Promise<Uint8Array> {
+export async function generateReportPdf(projectId: string, startDate?: string, endDate?: string): Promise<Uint8Array> {
   const hasDateRange = Boolean(startDate);
 
   const [projectRecord, periodData, cumulativeData] = await Promise.all([
@@ -30,6 +25,7 @@ export async function generateFulfillmentVolumePdf(
   ]);
 
   const cumulativeMap = new Map<string, RequirementReportItem>();
+
   if (cumulativeData) {
     for (const item of cumulativeData) {
       cumulativeMap.set(item.item_id, item);
@@ -37,6 +33,7 @@ export async function generateFulfillmentVolumePdf(
   }
 
   const baseList = cumulativeData || periodData;
+
   const fulfillmentData: FulfillmentPdfItem[] = baseList.map((item) => {
     const pItem = periodData.find((p) => p.item_id === item.item_id);
     const cItem = cumulativeData ? cumulativeMap.get(item.item_id) : item;
@@ -68,13 +65,17 @@ export async function generateFulfillmentVolumePdf(
     itemsWithActivity.map(async (item) => {
       try {
         const logs = await getItemLog(projectId, item.item_id);
+
         let filteredLogs = logs;
+
         if (startDate) {
           filteredLogs = filteredLogs.filter((log) => log.date >= startDate);
         }
+
         if (endDate) {
           filteredLogs = filteredLogs.filter((log) => log.date <= endDate);
         }
+
         return { item, logs: filteredLogs };
       } catch {
         return { item, logs: [] };
@@ -88,7 +89,7 @@ export async function generateFulfillmentVolumePdf(
   const companyName = projectRecord?.company_name ?? "Perusahaan";
   const formattedPeriod = formatPeriod(startDate, endDate);
 
-  const doc = createFulfillmentVolumePdf({
+  const doc = createReportPdf({
     project_name: projectName,
     company_name: companyName,
     period: formattedPeriod,
@@ -101,3 +102,6 @@ export async function generateFulfillmentVolumePdf(
 
   return new Uint8Array(arrayBuffer);
 }
+
+/** Alias kompatibilitas */
+export const generateFulfillmentVolumePdf = generateReportPdf;

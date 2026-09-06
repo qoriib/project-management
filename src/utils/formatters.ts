@@ -114,11 +114,17 @@ export function toISODate(date: Date | string | null | undefined = new Date()): 
     }
     const parsed = new Date(date);
     if (!isNaN(parsed.getTime())) {
-      return parsed.toISOString().slice(0, 10);
+      const y = parsed.getFullYear();
+      const m = String(parsed.getMonth() + 1).padStart(2, "0");
+      const d = String(parsed.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     }
     return date;
   }
-  return date.toISOString().slice(0, 10);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 /**
@@ -296,28 +302,19 @@ export function formatPercentage(value: number | null | undefined, decimals = 1)
 }
 
 /**
- * Memformat tanggal ISO string atau objek Date menjadi format standar lokal Indonesia `DD/MM/YYYY`.
+ * Memformat tanggal ISO string atau objek Date menjadi format standar ISO `YYYY-MM-DD`.
  *
  * @param date - String tanggal ISO (e.g. "2026-09-06") atau objek Date
- * @returns String tanggal terformat (e.g. "06/09/2026") atau "-" jika tidak valid
+ * @returns String tanggal terformat format ISO `YYYY-MM-DD` atau "-" jika tidak valid
  *
  * @example
  * ```ts
- * formatDate("2026-09-06"); // "06/09/2026"
- * formatDate(new Date(2026, 8, 6)); // "06/09/2026"
+ * formatDate("2026-09-06"); // "2026-09-06"
+ * formatDate(new Date(2026, 8, 6)); // "2026-09-06"
  * formatDate(null); // "-"
  * ```
  */
 export function formatDate(date?: Date | string | null): string {
   if (!date) return "-";
-  try {
-    const d = typeof date === "string" ? new Date(date) : date;
-    if (isNaN(d.getTime())) return typeof date === "string" ? date : "-";
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
-  } catch {
-    return typeof date === "string" ? date : "-";
-  }
+  return toISODate(date);
 }

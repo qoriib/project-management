@@ -23,4 +23,4 @@ export {
   type ReceiptSheetContext,
 } from "./excel";
 
-export { generateFulfillmentVolumePdf, createFulfillmentVolumePdf } from "./pdf";
+export { generateReportPdf, generateFulfillmentVolumePdf, createReportPdf, createFulfillmentVolumePdf } from "./pdf";

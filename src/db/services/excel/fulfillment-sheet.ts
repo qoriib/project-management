@@ -125,12 +125,12 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       width: EXCEL_COL_WIDTH.qty,
     },
     {
-      header: "VOL. BELUM TERIMA",
+      header: "VOL. TERSISA",
       key: "remaining",
       width: EXCEL_COL_WIDTH.qty,
     },
     {
-      header: "% REALISASI",
+      header: "% PEMENUHAN",
       key: "delivery_pct",
       width: EXCEL_COL_WIDTH.percentage,
     },

@@ -43,7 +43,7 @@ const COLUMNS: SheetColumnConfig[] = [
     numFmt: EXCEL_NUM_FMT.quantity,
   },
   {
-    header: "HARGA SATUAN (RP)",
+    header: "HARGA (RP)",
     key: "price",
     width: EXCEL_COL_WIDTH.price,
     align: "right",
@@ -64,7 +64,7 @@ const COLUMNS: SheetColumnConfig[] = [
     numFmt: EXCEL_NUM_FMT.currency,
   },
   {
-    header: "TOTAL ANGGARAN (RP)",
+    header: "TOTAL (RP)",
     key: "total_price",
     width: EXCEL_COL_WIDTH.total,
     align: "right",

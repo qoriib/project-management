@@ -2,7 +2,9 @@ import { PDF_COLORS, PDF_FONTS, PDF_PAGE } from "./styles";
 import type jsPDF from "jspdf";
 import type { PdfKopOptions } from "./types";
 
-export { formatDate, formatPercentage, formatQty } from "@/utils/formatters";
+import { toISODate } from "@/utils/formatters";
+
+export { formatDate, formatPercentage, formatQty, toISODate } from "@/utils/formatters";
 
 /**
  * Merender Kop Dokumen Formal (Judul, Subtitle, dan Garis Pemisah).
@@ -29,10 +31,10 @@ export function renderPdfKop(doc: jsPDF, options: PdfKopOptions): void {
  */
 export function renderPdfFooter(doc: jsPDF): void {
   const totalPages = doc.getNumberOfPages();
-  const printTimestamp = new Date().toLocaleString("id-ID", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const now = new Date();
+  const dateISO = toISODate(now);
+  const timeISO = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const printTimestamp = `${dateISO} ${timeISO}`;
 
   const marginLeft = PDF_PAGE.margins.left;
   const marginRight = PDF_PAGE.margins.right;

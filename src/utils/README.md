@@ -15,7 +15,7 @@ Menyediakan pemformatan standar lokal Indonesia (`id-ID`) dan manipulasi string 
 | **`formatNumber(value, decimals?)`**                  | Memformat angka dengan pemisah ribuan titik (`.`) dan koma (`,`) desimal lokal Indonesia (`id-ID`). Default max 5 desimal.   |
 | **`formatQty(value, decimals?)`**                     | Memformat kuantitas volume barang (default max 2 desimal) dan mengembalikan `"-"` jika kosong/0.                             |
 | **`formatPercentage(value, decimals?)`**              | Memformat nilai rasio desimal ke string persentase lokal (e.g. `0.125` $\rightarrow$ `"12,5%"`). Mengembalikan `"-"` jika 0. |
-| **`formatDate(date?)`**                               | Mengonversi tanggal (ISO string atau Date) menjadi format standar Indonesia (`DD/MM/YYYY`). Mengembalikan `"-"` jika kosong. |
+| **`formatDate(date?)`**                               | Mengonversi tanggal (ISO string atau Date) menjadi format standar ISO (`YYYY-MM-DD`). Mengembalikan `"-"` jika kosong.       |
 | **`formatPeriod(startDate?, endDate?)`**              | Menghasilkan label teks rentang periode (e.g. `"2026-01-01 s/d 2026-12-31"`, `"Semua Periode"`).                             |
 | **`sanitizePin(val, maxLength?)`**                    | Membersihkan string PIN hanya berisi angka (0-9) dengan batas panjang maksimal (default: 6).                                 |
 | **`sanitizeDecimalInput(val)`**                       | Membersihkan input desimal untuk pasar Indonesia (mengubah titik ke koma, menghapus karakter non-angka).                     |
