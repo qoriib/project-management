@@ -33,9 +33,9 @@ function OrderListPage() {
         <LayoutHeader hasDivider padding={6}>
           <HStack gap={2} vAlign="center" hAlign="between">
             <VStack gap={0.5}>
-              <Heading level={3}>Daftar Pemesanan (PO)</Heading>
+              <Heading level={3}>Daftar Pengadaan (PO)</Heading>
               <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                Kelola dan pantau seluruh pemesanan pembelian
+                Kelola dan pantau seluruh pengadaan pembelian
               </Text>
             </VStack>
             {selectedProjectId ? <Button variant="primary" label="Buat Baru" onClick={openNew} /> : null}

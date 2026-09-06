@@ -16,6 +16,10 @@ let dbInstance: Database | null = null;
 async function getTauriDb(): Promise<DatabaseLike> {
   if (!dbInstance) {
     dbInstance = await Database.load(DB_SQLITE_URL);
+    // Enable WAL journal mode: allows concurrent readers + one writer without locking.
+    // Set busy_timeout: SQLite retries for up to 5s before throwing "database is locked".
+    await dbInstance.execute("PRAGMA journal_mode = WAL;");
+    await dbInstance.execute("PRAGMA busy_timeout = 5000;");
   }
 
   return {

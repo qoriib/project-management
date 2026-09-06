@@ -77,7 +77,7 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
   const columns = useReportSummaryColumns({ onLogClick });
 
   if (report.length === 0 && !loading) {
-    return <EmptyState isCompact title="Belum ada laporan kebutuhan (BOM)" />;
+    return <EmptyState isCompact title="Belum ada laporan kebutuhan (BOQ)" />;
   }
 
   return (
@@ -88,7 +88,7 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
       data={groupedData}
       idKey={groupedIdKey}
       plugins={{ grouping: groupedPlugin, rowIndex: rowIndexPlugin, stickyColumns }}
-      emptyState={<EmptyState isCompact title="Belum ada laporan kebutuhan (BOM)" />}
+      emptyState={<EmptyState isCompact title="Belum ada laporan kebutuhan (BOQ)" />}
     />
   );
 }

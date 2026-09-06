@@ -280,8 +280,8 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           { content: "KODE ITEM", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
           { content: "NAMA ITEM", rowSpan: 2, styles: { halign: "left", valign: "middle" } },
           { content: "SATUAN", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
-          { content: "KEBUTUHAN (BOM)", colSpan: 1, styles: { halign: "center" } },
-          { content: "PEMESANAN (PO)", colSpan: 3, styles: { halign: "center" } },
+          { content: "KEBUTUHAN (BOQ)", colSpan: 1, styles: { halign: "center" } },
+          { content: "PENGADAAN (PO)", colSpan: 3, styles: { halign: "center" } },
           { content: "PENERIMAAN (NP)", colSpan: 4, styles: { halign: "center" } },
         ],
         [
@@ -301,8 +301,8 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           { content: "KODE ITEM", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
           { content: "NAMA ITEM", rowSpan: 2, styles: { halign: "left", valign: "middle" } },
           { content: "SATUAN", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
-          { content: "KEBUTUHAN (BOM)", colSpan: 1, styles: { halign: "center" } },
-          { content: "PEMESANAN (PO)", colSpan: 2, styles: { halign: "center" } },
+          { content: "KEBUTUHAN (BOQ)", colSpan: 1, styles: { halign: "center" } },
+          { content: "PENGADAAN (PO)", colSpan: 2, styles: { halign: "center" } },
           { content: "PENERIMAAN (NP)", colSpan: 3, styles: { halign: "center" } },
         ],
         [
@@ -321,7 +321,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         1: { cellWidth: 24, halign: "center" as const }, // KODE ITEM
         2: { cellWidth: 59, halign: "left" as const }, // NAMA ITEM
         3: { cellWidth: 16, halign: "center" as const }, // SATUAN
-        4: { cellWidth: 22, halign: "right" as const }, // BOM VOL
+        4: { cellWidth: 22, halign: "right" as const }, // BOQ VOL
         5: { cellWidth: 20, halign: "right" as const }, // PO PERIODE
         6: { cellWidth: 20, halign: "right" as const }, // PO KUMULATIF
         7: { cellWidth: 18, halign: "right" as const }, // PO %
@@ -335,7 +335,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         1: { cellWidth: 24, halign: "center" as const }, // KODE ITEM
         2: { cellWidth: 85, halign: "left" as const }, // NAMA ITEM
         3: { cellWidth: 16, halign: "center" as const }, // SATUAN
-        4: { cellWidth: 24, halign: "right" as const }, // BOM VOL
+        4: { cellWidth: 24, halign: "right" as const }, // BOQ VOL
         5: { cellWidth: 24, halign: "right" as const }, // PO VOL
         6: { cellWidth: 20, halign: "right" as const }, // PO %
         7: { cellWidth: 22, halign: "right" as const }, // NP DATANG
@@ -423,7 +423,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           }
         } else {
           if (isUnplanned) {
-            // Kolom Pemesanan (5, 6) dan Penerimaan (7, 9) pada item belanja di luar rencana
+            // Kolom Pengadaan (5, 6) dan Penerimaan (7, 9) pada item belanja di luar rencana
             if (columnIndex === 5 || columnIndex === 6 || columnIndex === 7 || columnIndex === 9) {
               data.cell.styles.fillColor = PDF_COLORS.unplannedCellBg;
             } else {

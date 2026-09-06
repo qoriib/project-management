@@ -149,9 +149,9 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
           <LayoutHeader hasDivider padding={6}>
             <HStack gap={2} vAlign="center" hAlign="between">
               <VStack gap={0.5}>
-                <Heading level={3}>{order ? "Edit Pemesanan" : "Pemesanan Baru"}</Heading>
+                <Heading level={3}>{order ? "Edit Pengadaan" : "Pengadaan Baru"}</Heading>
                 <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                  {order ? `Perbarui rincian pesanan ${order.order_code}` : "Buat pesanan pembelian baru"}
+                  {order ? `Perbarui rincian pengadaan ${order.order_code}` : "Buat pengadaan pembelian baru"}
                 </Text>
               </VStack>
               <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting] as const}>
@@ -160,7 +160,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
                     variant="primary"
                     type="button"
                     onClick={() => form.handleSubmit()}
-                    label={order ? "Simpan Perubahan" : "Simpan Pemesanan"}
+                    label={order ? "Simpan Perubahan" : "Simpan Pengadaan"}
                     isLoading={isSubmitting}
                     isDisabled={isItemDialogOpen || !canSubmit}
                   />

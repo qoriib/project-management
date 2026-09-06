@@ -333,27 +333,28 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   }
 
   /**
-   * Execute operations within a database transaction using SQLite SAVEPOINT.
-   * Supports nesting, automatic commit, and automatic rollback on failure.
+   * Execute operations within a database transaction using BEGIN/COMMIT/ROLLBACK.
+   * Automatically commits on success and rolls back on failure.
+   *
+   * Note: Does NOT support nesting. Avoid calling transaction() inside another
+   * transaction() — execute raw SQL directly instead to stay on the same connection.
    */
   public async transaction<T>(operation: () => Promise<T>): Promise<T> {
     const db = await this.db();
-    const savepoint = `sp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    dbLog.debug(`[${this.model.tableName}] Transaction START (savepoint: ${savepoint})`);
+    dbLog.debug(`[${this.model.tableName}] Transaction START`);
 
     try {
-      await db.execute(`SAVEPOINT ${savepoint}`);
+      await db.execute("BEGIN");
       const result = await operation();
-      await db.execute(`RELEASE SAVEPOINT ${savepoint}`);
-      dbLog.debug(`[${this.model.tableName}] Transaction COMMIT (savepoint: ${savepoint})`);
+      await db.execute("COMMIT");
+      dbLog.debug(`[${this.model.tableName}] Transaction COMMIT`);
       return result;
     } catch (error) {
       dbLog.error(
-        `[${this.model.tableName}] Transaction ROLLBACK (savepoint: ${savepoint}): ${(error as Error)?.message ?? String(error)}`,
+        `[${this.model.tableName}] Transaction ROLLBACK: ${(error as Error)?.message ?? String(error)}`,
       );
       try {
-        await db.execute(`ROLLBACK TO SAVEPOINT ${savepoint}`);
-        await db.execute(`RELEASE SAVEPOINT ${savepoint}`);
+        await db.execute("ROLLBACK");
       } catch {
         // Ignore secondary rollback errors
       }

@@ -11,17 +11,17 @@ export const APP = {
   taxRatio: 0.12,
   sidenav: [
     {
-      label: "Laporan",
+      label: "Laporan Pemenuhan",
       icon: LayoutDashboard,
       href: "/",
     },
     {
       icon: ClipboardList,
-      label: "Kebutuhan (BOM)",
+      label: "Kebutuhan (BOQ)",
       href: "/requirement",
     },
     {
-      label: "Pemesanan (PO)",
+      label: "Pengadaan (PO)",
       icon: ShoppingCart,
       href: "/order",
     },

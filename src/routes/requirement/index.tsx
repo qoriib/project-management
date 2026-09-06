@@ -39,7 +39,7 @@ function RequirementPage() {
         <LayoutHeader hasDivider padding={6}>
           <HStack gap={2} vAlign="center" hAlign="between">
             <VStack gap={0.5}>
-              <Heading level={3}>Rencana Kebutuhan (BOM)</Heading>
+              <Heading level={3}>Rencana Kebutuhan (BOQ)</Heading>
               <Text color="secondary" wordBreak="break-word" textWrap="wrap">
                 Daftar dan rincian kebutuhan item
               </Text>

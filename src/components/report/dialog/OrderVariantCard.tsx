@@ -101,7 +101,7 @@ export function OrderVariantCard({ item }: OrderVariantCardProps) {
         height="auto"
         header={
           <LayoutHeader hasDivider>
-            <Heading level={4}>Pemesanan (PO)</Heading>
+            <Heading level={4}>Pengadaan (PO)</Heading>
           </LayoutHeader>
         }
         content={

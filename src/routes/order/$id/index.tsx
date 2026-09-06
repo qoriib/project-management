@@ -33,7 +33,7 @@ function OrderDetailPage() {
         height="fill"
         content={
           <LayoutContent padding={6}>
-            <Text color="secondary">Pemesanan tidak ditemukan.</Text>
+            <Text color="secondary">Pengadaan tidak ditemukan.</Text>
           </LayoutContent>
         }
       />
@@ -46,16 +46,16 @@ function OrderDetailPage() {
         <LayoutHeader hasDivider padding={6}>
           <HStack gap={2} vAlign="center" hAlign="between">
             <VStack gap={0.5}>
-              <Heading level={3}>Detail Pemesanan</Heading>
+              <Heading level={3}>Detail Pengadaan</Heading>
               <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                {`Informasi dan pelacakan pemesanan ${order.order_code}`}
+                {`Informasi dan pelacakan pengadaan ${order.order_code}`}
               </Text>
             </VStack>
             <HStack gap={2} wrap="wrap">
               <Button
                 variant="primary"
                 size="sm"
-                label="Edit Pemesanan"
+                label="Edit Pengadaan"
                 onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
               />
             </HStack>

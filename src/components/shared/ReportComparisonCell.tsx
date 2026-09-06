@@ -5,11 +5,11 @@ import type { ReactNode } from "react";
 /**
  * ReportComparisonCell
  *
- * Menampilkan pasangan nilai PO (atas) vs BOM (bawah) pada tabel laporan.
+ * Menampilkan pasangan nilai PO (atas) vs BOQ (bawah) pada tabel laporan.
  *
  * Color philosophy SBR — status finansial:
- *   - "over"  → var(--color-error) (amber/warning) — PO > BOM (overspend)
- *   - "under" → var(--color-success) (green/success) — PO < BOM (hemat)
+ *   - "over"  → var(--color-error) (amber/warning) — PO > BOQ (overspend)
+ *   - "under" → var(--color-success) (green/success) — PO < BOQ (hemat)
  *   - "normal"/ undefined → warna teks default (inherit)
  */
 
@@ -26,7 +26,7 @@ export interface ReportComparisonCellProps {
   bomValue: ReactNode;
   poLabel?: string;
   bomLabel?: string;
-  /** Status finansial nilai PO terhadap BOM — menentukan warna label */
+  /** Status finansial nilai PO terhadap BOQ — menentukan warna label */
   poStatus?: FinancialStatus;
 }
 
@@ -34,7 +34,7 @@ export function ReportComparisonCell({
   poValue,
   bomValue,
   poLabel = "PO:",
-  bomLabel = "BOM:",
+  bomLabel = "BOQ:",
   poStatus,
 }: ReportComparisonCellProps) {
   const poColor = poStatus ? FINANCIAL_COLOR[poStatus] : undefined;

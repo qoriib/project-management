@@ -13,7 +13,7 @@ export * from "./transaction-history-table";
 export * from "./fulfillment-pdf";
 
 /**
- * Generates a focused Landscape PDF report of BOM vs PO vs Delivery Volume,
+ * Generates a focused Landscape PDF report of BOQ vs PO vs Delivery Volume,
  * followed by a Portrait section detailing transaction history per item.
  */
 export async function generateFulfillmentVolumePdf(
@@ -56,7 +56,7 @@ export async function generateFulfillmentVolumePdf(
     };
   });
 
-  // Ambil riwayat transaksi untuk item yang memiliki pergerakan pemesanan atau penerimaan
+  // Ambil riwayat transaksi untuk item yang memiliki pergerakan pengadaan atau penerimaan
   const itemsWithActivity = fulfillmentData.filter(
     (item) =>
       (item.cumulative_ordered ?? item.total_ordered ?? 0) > 0 ||

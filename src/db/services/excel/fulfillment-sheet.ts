@@ -60,7 +60,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       key: "unit",
       width: EXCEL_COL_WIDTH.unit,
     },
-    // Bagian Kebutuhan (BOM)
+    // Bagian Kebutuhan (BOQ)
     {
       header: "HARGA (RP)",
       key: "price_bom",
@@ -86,7 +86,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       key: "planned_budget",
       width: EXCEL_COL_WIDTH.total,
     },
-    // Bagian Pemesanan (PO)
+    // Bagian Pengadaan (PO)
     {
       header: "HARGA (RP)",
       key: "price_po",
@@ -164,7 +164,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
   headerGroupRow.getCell(4).value = "KATEGORI";
   headerGroupRow.getCell(5).value = "SATUAN";
   headerGroupRow.getCell(6).value = "KEBUTUHAN";
-  headerGroupRow.getCell(11).value = "PEMESANAN";
+  headerGroupRow.getCell(11).value = "PENGADAAN";
   headerGroupRow.getCell(16).value = "DEVIASI BIAYA (RP)";
   headerGroupRow.getCell(17).value = "PENERIMAAN";
 
@@ -192,7 +192,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
   worksheet.mergeCells("D4:D5");
   worksheet.mergeCells("E4:E5");
   worksheet.mergeCells("F4:J4"); // KEBUTUHAN (5 Kolom: F–J)
-  worksheet.mergeCells("K4:O4"); // PEMESANAN (5 Kolom: K–O)
+  worksheet.mergeCells("K4:O4"); // PENGADAAN (5 Kolom: K–O)
   worksheet.mergeCells("P4:P5"); // DEVIASI BIAYA
   worksheet.mergeCells("Q4:S4"); // PENERIMAAN (3 Kolom: Q–S)
 
@@ -329,7 +329,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       const unitDisplay = item.unit || "-";
 
       // Nilai tampilan terformat konsisten dengan tabel report web:
-      // Jika item unplanned, seluruh kolom BOM berharga "-"
+      // Jika item unplanned, seluruh kolom BOQ berharga "-"
       const displayPriceBom = !item.is_unplanned && plannedPrice > 0 ? plannedPrice : "-";
       const displayPlannedVol = !item.is_unplanned && plannedVolume > 0 ? plannedVolume : "-";
       const displayPlannedDpp = !item.is_unplanned && plannedDpp > 0 ? plannedDpp : "-";
@@ -388,7 +388,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
         let cellFill = FILL_WHITE;
 
         if (item.is_unplanned) {
-          // Kolom Pemesanan (11-15) dan Penerimaan (17, 19) pada item di luar rencana
+          // Kolom Pengadaan (11-15) dan Penerimaan (17, 19) pada item di luar rencana
           if (
             columnNumber === 11 ||
             columnNumber === 12 ||

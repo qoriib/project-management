@@ -161,7 +161,7 @@ function createDefaultReportItem(row: RawRequirementRow | RawOrderRow, isUnplann
 /**
  * Generates the full Requirement fulfillment report for a project.
  * Items in Requirements and Orders are grouped strictly by item_id (one row per item).
- * If an item has multiple prices/variants in BOM or PO, all variants are preserved in planned_variants / order_variants.
+ * If an item has multiple prices/variants in BOQ or PO, all variants are preserved in planned_variants / order_variants.
  */
 export async function getRequirementReport(
   projectId: string,
@@ -169,7 +169,7 @@ export async function getRequirementReport(
   endDate?: string,
 ): Promise<RequirementReportItem[]> {
   try {
-    // 1. Build Requirements (BOM) Query
+    // 1. Build Requirements (BOQ) Query
     const requirementQuery = new QueryBuilder()
       .select(
         "requirements.item_id",
@@ -268,7 +268,7 @@ export async function getRequirementReport(
     // 4. Group strictly by item_id
     const itemMap = new Map<string, RequirementReportItem>();
 
-    // Process Requirements (BOM)
+    // Process Requirements (BOQ)
     for (const req of rawRequirements) {
       let item = itemMap.get(req.item_id);
       if (!item) {
@@ -518,7 +518,7 @@ export async function getProjectReceiptReport(
 }
 
 /**
- * Gets all BOM (requirement) items for a project formatted for export.
+ * Gets all BOQ (requirement) items for a project formatted for export.
  */
 export async function getProjectRequirementReport(projectId: string): Promise<RequirementReportDetailItem[]> {
   try {

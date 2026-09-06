@@ -82,7 +82,7 @@ export function RequirementTable() {
         data={requirements as RequirementRow[]}
         idKey={(item) => String(item.requirement_id)}
         plugins={{ rowIndex: rowIndexPlugin, stickyColumns }}
-        emptyState={<EmptyState isCompact title="Belum ada rencana kebutuhan (BOM)" />}
+        emptyState={<EmptyState isCompact title="Belum ada rencana kebutuhan (BOQ)" />}
       />
       <AlertDialog
         isOpen={Boolean(deletingId)}

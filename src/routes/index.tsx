@@ -53,7 +53,7 @@ function DashboardPage() {
           <LayoutHeader hasDivider padding={6}>
             <HStack gap={2} vAlign="center" hAlign="between">
               <VStack gap={0.5}>
-                <Heading level={3}>Laporan Kebutuhan & Realisasi</Heading>
+                <Heading level={3}>Laporan Pemenuhan</Heading>
                 <Text color="secondary" wordBreak="break-word" textWrap="wrap">
                   Ringkasan realisasi pesanan dan penerimaan terhadap kebutuhan
                 </Text>

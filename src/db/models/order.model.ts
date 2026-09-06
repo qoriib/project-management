@@ -1,7 +1,7 @@
 import type { ModelDefinition } from "@/db/core/types";
 
 /**
- * Entitas Order mewakili Dokumen Surat Pemesanan / Purchase Order (PO) proyek ke vendor.
+ * Entitas Order mewakili Dokumen Surat Pengadaan / Purchase Order (PO) proyek ke vendor.
  */
 export interface Order {
   /** UUID v7 primary key pesanan */

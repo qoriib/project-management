@@ -17,7 +17,7 @@ export function ReportSummaryCards({ totalBudget, totalPO, loading }: ReportSumm
       <GridSpan columns={1}>
         <Card height="100%">
           <Text size="sm" color="secondary" weight="medium" type="label">
-            Nilai Rencana (BOM)
+            Nilai Rencana (BOQ)
           </Text>
           <Heading level={3}>{loading ? "…" : `Rp ${formatNumber(totalBudget)}`}</Heading>
         </Card>

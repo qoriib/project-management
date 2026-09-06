@@ -94,7 +94,7 @@ const COLUMNS: SheetColumnConfig[] = [
 export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheetContext): void {
   const { project_name, company_name, period, orderData } = context;
 
-  const worksheet = workbook.addWorksheet("PEMESANAN", {
+  const worksheet = workbook.addWorksheet("PENGADAAN", {
     views: [DEFAULT_SHEET_VIEW],
   });
 
@@ -109,7 +109,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     startCol: "A",
     startColIdx: 1,
     subtitle: `${project_name} | ${company_name} | ${period}`,
-    title: "LAPORAN PEMESANAN",
+    title: "LAPORAN PENGADAAN",
   });
 
   renderTableHeaderRow(worksheet, COLUMNS, 4);

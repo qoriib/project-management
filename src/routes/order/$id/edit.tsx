@@ -30,7 +30,7 @@ function OrderEditPage() {
         height="fill"
         content={
           <LayoutContent padding={6}>
-            <Text color="secondary">Pemesanan tidak ditemukan.</Text>
+            <Text color="secondary">Pengadaan tidak ditemukan.</Text>
           </LayoutContent>
         }
       />

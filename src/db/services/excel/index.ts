@@ -52,7 +52,7 @@ export async function generateReportExcel(
     data: fulfillmentData,
   });
 
-  // 2. Sheet: Laporan Kebutuhan (BOM)
+  // 2. Sheet: Laporan Kebutuhan (BOQ)
   createRequirementSheet(workbook, {
     project_name: projectName,
     company_name: companyName,

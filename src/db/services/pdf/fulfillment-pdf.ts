@@ -10,7 +10,7 @@ export type { FulfillmentPdfContext, ItemTransactionHistory, TransactionHistoryP
 /**
  * Membuat dokumen PDF formal multi-halaman yang menggabungkan:
  * 1. Halaman Lanskap: Laporan Pemenuhan (Volume)
- * 2. Halaman Potret: Riwayat Transaksi per Item (Pemesanan & Penerimaan)
+ * 2. Halaman Potret: Riwayat Transaksi per Item (Pengadaan & Penerimaan)
  * 3. Footer Dinamis: Penomoran halaman dan timestamp di seluruh orientasi
  */
 export function createFulfillmentVolumePdf(context: FulfillmentPdfContext): jsPDF {

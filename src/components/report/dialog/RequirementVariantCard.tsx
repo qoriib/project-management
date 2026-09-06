@@ -102,7 +102,7 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
         height="auto"
         header={
           <LayoutHeader hasDivider>
-            <Heading level={4}>Kebutuhan (BOM)</Heading>
+            <Heading level={4}>Kebutuhan (BOQ)</Heading>
           </LayoutHeader>
         }
         content={
@@ -113,7 +113,7 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
               columns={columns}
               data={paginatedRows}
               idKey="unique_id"
-              emptyState={<EmptyState isCompact title="Tidak ada rincian kebutuhan (BOM)" />}
+              emptyState={<EmptyState isCompact title="Tidak ada rincian kebutuhan (BOQ)" />}
               plugins={{
                 rowIndex: plannedIndexPlugin,
                 pagination: paginationPlugin,
