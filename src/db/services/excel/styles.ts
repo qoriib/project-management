@@ -251,14 +251,14 @@ export const DEFAULT_SHEET_VIEW: Partial<ExcelJS.WorksheetView> = {
   showGridLines: false,
   state: "frozen",
   xSplit: 0,
-  ySplit: 5,
+  ySplit: 4,
 };
 
 export const FULFILLMENT_SHEET_VIEW: Partial<ExcelJS.WorksheetView> = {
   showGridLines: false,
   state: "frozen",
   xSplit: 0,
-  ySplit: 6,
+  ySplit: 5,
 };
 
 /**

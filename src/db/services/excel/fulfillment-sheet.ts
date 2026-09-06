@@ -26,13 +26,7 @@ import { createFormalKop, type SheetColumnConfig } from "./utils";
 import { formatItemCode } from "@/utils/formatters";
 
 export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: FulfillmentSheetContext): void {
-  const {
-    project_name: projectName,
-    company_name: companyName,
-    fiscal_year: fiscalYear,
-    period,
-    data: fulfillmentItems,
-  } = context;
+  const { project_name, company_name, period, data: fulfillmentItems } = context;
 
   const worksheet = workbook.addWorksheet("PEMENUHAN", {
     views: [FULFILLMENT_SHEET_VIEW],
@@ -146,23 +140,22 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
   }));
 
   createFormalKop(worksheet, {
-    company_name: companyName,
     endCol: "S",
     endColIdx: 19,
     startCol: "A",
     startColIdx: 1,
-    subtitle: `Proyek: ${projectName}  |  Tahun Anggaran: ${fiscalYear}  |  Periode: ${period}`,
+    subtitle: `${project_name} | ${company_name} | ${period}`,
     title: "RINCIAN PEMENUHAN",
   });
 
-  // 1. Render Grouped Header 2 Baris (Baris 5 & 6)
+  // 1. Render Grouped Header 2 Baris (Baris 4 & 5)
   const TOTAL_HEADER_COLUMNS = 19;
-  const headerGroupRow = worksheet.getRow(5);
-  const subHeaderRow = worksheet.getRow(6);
+  const headerGroupRow = worksheet.getRow(4);
+  const subHeaderRow = worksheet.getRow(5);
   headerGroupRow.height = EXCEL_ROW_HEIGHT.tableHeaderGroup;
   subHeaderRow.height = EXCEL_ROW_HEIGHT.tableHeaderGroup;
 
-  // Nilai Header Baris 5 (Top Level)
+  // Nilai Header Baris 4 (Top Level)
   headerGroupRow.getCell(1).value = "NO";
   headerGroupRow.getCell(2).value = "KODE ITEM";
   headerGroupRow.getCell(3).value = "NAMA ITEM";
@@ -173,7 +166,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
   headerGroupRow.getCell(16).value = "DEVIASI BIAYA (RP)";
   headerGroupRow.getCell(17).value = "PENERIMAAN";
 
-  // Nilai Header Baris 6 (Sub Level)
+  // Nilai Header Baris 5 (Sub Level)
   subHeaderRow.getCell(6).value = "HARGA (RP)";
   subHeaderRow.getCell(7).value = "VOLUME";
   subHeaderRow.getCell(8).value = "SUBTOTAL (RP)";
@@ -191,18 +184,18 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
   subHeaderRow.getCell(19).value = "% REALISASI FISIK";
 
   // Merge Cell Header
-  worksheet.mergeCells("A5:A6");
-  worksheet.mergeCells("B5:B6");
-  worksheet.mergeCells("C5:C6");
-  worksheet.mergeCells("D5:D6");
-  worksheet.mergeCells("E5:E6");
-  worksheet.mergeCells("F5:J5"); // KEBUTUHAN (5 Kolom: F–J)
-  worksheet.mergeCells("K5:O5"); // PEMESANAN (5 Kolom: K–O)
-  worksheet.mergeCells("P5:P6"); // DEVIASI BIAYA
-  worksheet.mergeCells("Q5:S5"); // PENERIMAAN (3 Kolom: Q–S)
+  worksheet.mergeCells("A4:A5");
+  worksheet.mergeCells("B4:B5");
+  worksheet.mergeCells("C4:C5");
+  worksheet.mergeCells("D4:D5");
+  worksheet.mergeCells("E4:E5");
+  worksheet.mergeCells("F4:J4"); // KEBUTUHAN (5 Kolom: F–J)
+  worksheet.mergeCells("K4:O4"); // PEMESANAN (5 Kolom: K–O)
+  worksheet.mergeCells("P4:P5"); // DEVIASI BIAYA
+  worksheet.mergeCells("Q4:S4"); // PENERIMAAN (3 Kolom: Q–S)
 
-  // Styling seluruh cell header di Baris 5 & 6
-  for (let rowIndex = 5; rowIndex <= 6; rowIndex++) {
+  // Styling seluruh cell header di Baris 4 & 5
+  for (let rowIndex = 4; rowIndex <= 5; rowIndex++) {
     const currentRow = worksheet.getRow(rowIndex);
 
     for (let columnIndex = 1; columnIndex <= TOTAL_HEADER_COLUMNS; columnIndex++) {
@@ -253,7 +246,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     return nameA.localeCompare(nameB);
   });
 
-  let currentRowIndex = 7;
+  let currentRowIndex = 6;
   let itemNumber = 1;
 
   for (const [categoryName, categoryGroup] of sortedCategoryEntries) {
@@ -279,9 +272,9 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     const categoryRow = worksheet.getRow(categoryRowIndex);
     categoryRow.height = EXCEL_ROW_HEIGHT.categoryHeader;
 
-    worksheet.mergeCells(`A${categoryRowIndex}:T${categoryRowIndex}`);
+    worksheet.mergeCells(`A${categoryRowIndex}:S${categoryRowIndex}`);
     const firstCategoryCell = worksheet.getCell(`A${categoryRowIndex}`);
-    firstCategoryCell.value = `KATEGORI: ${categoryName.toUpperCase()}`;
+    firstCategoryCell.value = categoryName.toUpperCase();
     firstCategoryCell.font = FONT_CATEGORY_HEADER;
     firstCategoryCell.alignment = ALIGN_CATEGORY_HEADER;
 
@@ -499,5 +492,5 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     }
   });
 
-  worksheet.autoFilter = "A6:S6";
+  worksheet.autoFilter = "A5:S5";
 }

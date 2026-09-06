@@ -11,7 +11,6 @@ import {
   EXCEL_ROW_HEIGHT,
   FILL_TABLE_HEADER,
   FILL_TOTAL_ROW,
-  FONT_KOP_AGENCY,
   FONT_KOP_SUBTITLE,
   FONT_KOP_TITLE,
   FONT_REGULAR,
@@ -28,7 +27,6 @@ export interface SheetColumnConfig {
 }
 
 interface FormalKopOptions {
-  company_name: string;
   title: string;
   subtitle: string;
   endCol: string;
@@ -38,7 +36,8 @@ interface FormalKopOptions {
 }
 
 /**
- * Creates a formal Kop (Letterhead / Document Header) across specified columns in grayscale.
+ * Creates a formal Kop (Document Header) across specified columns.
+ * Displays only report title and subtitle/metadata with bottom separator.
  */
 export function createFormalKop(worksheet: ExcelJS.Worksheet, options: FormalKopOptions): void {
   const startColumn = options.startCol ?? "A";
@@ -46,44 +45,36 @@ export function createFormalKop(worksheet: ExcelJS.Worksheet, options: FormalKop
   const endColumn = options.endCol;
   const endColumnIndex = options.endColIdx;
 
-  // Baris 1: Nama Instansi / Perusahaan
+  // Baris 1: Judul Laporan
   worksheet.mergeCells(`${startColumn}1:${endColumn}1`);
-  const agencyNameCell = worksheet.getCell(`${startColumn}1`);
-  agencyNameCell.value = options.company_name.toUpperCase();
-  agencyNameCell.font = FONT_KOP_AGENCY;
-  agencyNameCell.alignment = ALIGN_CENTER;
-  worksheet.getRow(1).height = EXCEL_ROW_HEIGHT.kopAgency;
-
-  // Baris 2: Judul Laporan
-  worksheet.mergeCells(`${startColumn}2:${endColumn}2`);
-  const reportTitleCell = worksheet.getCell(`${startColumn}2`);
+  const reportTitleCell = worksheet.getCell(`${startColumn}1`);
   reportTitleCell.value = options.title;
   reportTitleCell.font = FONT_KOP_TITLE;
   reportTitleCell.alignment = ALIGN_CENTER;
-  worksheet.getRow(2).height = EXCEL_ROW_HEIGHT.kopTitle;
+  worksheet.getRow(1).height = EXCEL_ROW_HEIGHT.kopTitle;
 
-  // Baris 3: Subtitle / Metadata (Proyek, Tahun Anggaran, Periode)
-  worksheet.mergeCells(`${startColumn}3:${endColumn}3`);
-  const subtitleCell = worksheet.getCell(`${startColumn}3`);
+  // Baris 2: Subtitle / Metadata (Proyek, Tahun Anggaran, Periode)
+  worksheet.mergeCells(`${startColumn}2:${endColumn}2`);
+  const subtitleCell = worksheet.getCell(`${startColumn}2`);
   subtitleCell.value = options.subtitle;
   subtitleCell.font = FONT_KOP_SUBTITLE;
   subtitleCell.alignment = ALIGN_CENTER;
-  worksheet.getRow(3).height = EXCEL_ROW_HEIGHT.kopSubtitle;
+  worksheet.getRow(2).height = EXCEL_ROW_HEIGHT.kopSubtitle;
 
-  // Border garis pemisah bawah pada Baris 3
+  // Border garis pemisah bawah pada Baris 2
   for (let columnIndex = startColumnIndex; columnIndex <= endColumnIndex; columnIndex++) {
-    const separatorCell = worksheet.getRow(3).getCell(columnIndex);
+    const separatorCell = worksheet.getRow(2).getCell(columnIndex);
     separatorCell.border = BORDER_KOP_SEPARATOR;
   }
 
-  // Baris 4: Spacer kosong
-  worksheet.getRow(4).height = EXCEL_ROW_HEIGHT.kopSpacer;
+  // Baris 3: Spacer kosong
+  worksheet.getRow(3).height = EXCEL_ROW_HEIGHT.kopSpacer;
 }
 
 /**
- * Standard table column header renderer at a given row (default row 5).
+ * Standard table column header renderer at a given row (default row 4).
  */
-export function renderTableHeaderRow(worksheet: ExcelJS.Worksheet, columns: SheetColumnConfig[], rowNumber = 5): void {
+export function renderTableHeaderRow(worksheet: ExcelJS.Worksheet, columns: SheetColumnConfig[], rowNumber = 4): void {
   const headerRow = worksheet.getRow(rowNumber);
   headerRow.height = EXCEL_ROW_HEIGHT.tableHeader;
 

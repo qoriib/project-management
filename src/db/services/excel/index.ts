@@ -40,10 +40,7 @@ export async function generateReportExcel(
   const workbook = new ExcelJS.Workbook();
 
   const projectName = projectRecord?.project_name ?? "Proyek";
-  const companyName = projectRecord?.company_name ?? "Instansi / Perusahaan";
-  const fiscalYear = projectRecord?.fiscal_year
-    ? String(projectRecord.fiscal_year)
-    : new Date().getFullYear().toString();
+  const companyName = projectRecord?.company_name ?? "Perusahaan";
 
   const formattedPeriod = formatPeriod(startDate, endDate);
 
@@ -51,7 +48,6 @@ export async function generateReportExcel(
   createFulfillmentSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
-    fiscal_year: fiscalYear,
     period: formattedPeriod,
     data: fulfillmentData,
   });
@@ -60,7 +56,6 @@ export async function generateReportExcel(
   createRequirementSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
-    fiscal_year: fiscalYear,
     period: formattedPeriod,
     requirementData,
   });
@@ -69,7 +64,6 @@ export async function generateReportExcel(
   createOrderSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
-    fiscal_year: fiscalYear,
     period: formattedPeriod,
     orderData,
   });
@@ -78,7 +72,6 @@ export async function generateReportExcel(
   createReceiptSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
-    fiscal_year: fiscalYear,
     period: formattedPeriod,
     receiptData,
   });

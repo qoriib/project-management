@@ -73,7 +73,7 @@ const COLUMNS: SheetColumnConfig[] = [
 ];
 
 export function createRequirementSheet(workbook: ExcelJS.Workbook, context: RequirementSheetContext): void {
-  const { project_name, company_name, fiscal_year, period, requirementData } = context;
+  const { project_name, company_name, period, requirementData } = context;
 
   const worksheet = workbook.addWorksheet("KEBUTUHAN", {
     views: [DEFAULT_SHEET_VIEW],
@@ -85,16 +85,15 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
   }));
 
   createFormalKop(worksheet, {
-    company_name,
     endCol: "J",
     endColIdx: 10,
     startCol: "A",
     startColIdx: 1,
-    subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
+    subtitle: `${project_name} | ${company_name} | ${period}`,
     title: "RINCIAN KEBUTUHAN",
   });
 
-  renderTableHeaderRow(worksheet, COLUMNS, 5);
+  renderTableHeaderRow(worksheet, COLUMNS, 4);
 
   let totalQuantity = 0;
   let totalDpp = 0;
@@ -102,7 +101,7 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
   let totalBudget = 0;
 
   requirementData.forEach((item, index) => {
-    const rowNumber = index + 6;
+    const rowNumber = index + 5;
     const row = worksheet.getRow(rowNumber);
 
     const itemCode = formatItemCode(item) ?? item.item_code;
@@ -131,12 +130,12 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
   });
 
   // Baris Total
-  const totalRowIndex = requirementData.length + 6;
+  const totalRowIndex = requirementData.length + 5;
   const totalRow = worksheet.getRow(totalRowIndex);
   totalRow.values = ["", "TOTAL", "", "", "", totalQuantity, "", totalDpp, totalTaxAmount, totalBudget];
 
   worksheet.mergeCells(`B${totalRowIndex}:E${totalRowIndex}`);
   styleTotalRow(totalRow, COLUMNS);
 
-  worksheet.autoFilter = "A5:J5";
+  worksheet.autoFilter = "A4:J4";
 }

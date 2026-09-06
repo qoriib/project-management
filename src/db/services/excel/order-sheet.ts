@@ -92,7 +92,7 @@ const COLUMNS: SheetColumnConfig[] = [
 ];
 
 export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheetContext): void {
-  const { project_name, company_name, fiscal_year, period, orderData } = context;
+  const { project_name, company_name, period, orderData } = context;
 
   const worksheet = workbook.addWorksheet("PEMESANAN", {
     views: [DEFAULT_SHEET_VIEW],
@@ -104,16 +104,15 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   }));
 
   createFormalKop(worksheet, {
-    company_name,
     endCol: "M",
     endColIdx: 13,
     startCol: "A",
     startColIdx: 1,
-    subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
+    subtitle: `${project_name} | ${company_name} | ${period}`,
     title: "RINCIAN PEMESANAN",
   });
 
-  renderTableHeaderRow(worksheet, COLUMNS, 5);
+  renderTableHeaderRow(worksheet, COLUMNS, 4);
 
   let totalOrderedQuantity = 0;
   let totalDpp = 0;
@@ -121,7 +120,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   let totalOrderPrice = 0;
 
   orderData.forEach((item, index) => {
-    const rowNumber = index + 6;
+    const rowNumber = index + 5;
     const row = worksheet.getRow(rowNumber);
 
     const dpp = calcDPP(item.qty, item.price);
@@ -160,7 +159,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   });
 
   // Baris Total
-  const totalRowIndex = orderData.length + 6;
+  const totalRowIndex = orderData.length + 5;
   const totalRow = worksheet.getRow(totalRowIndex);
   totalRow.values = [
     "",
@@ -181,5 +180,5 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   worksheet.mergeCells(`B${totalRowIndex}:H${totalRowIndex}`);
   styleTotalRow(totalRow, COLUMNS);
 
-  worksheet.autoFilter = "A5:M5";
+  worksheet.autoFilter = "A4:M4";
 }

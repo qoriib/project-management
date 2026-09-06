@@ -69,7 +69,7 @@ const COLUMNS: SheetColumnConfig[] = [
 ];
 
 export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptSheetContext): void {
-  const { project_name, company_name, fiscal_year, period, receiptData } = context;
+  const { project_name, company_name, period, receiptData } = context;
 
   const worksheet = workbook.addWorksheet("PENERIMAAN", {
     views: [DEFAULT_SHEET_VIEW],
@@ -81,21 +81,20 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
   }));
 
   createFormalKop(worksheet, {
-    company_name,
     endCol: "J",
     endColIdx: 10,
     startCol: "A",
     startColIdx: 1,
-    subtitle: `Proyek: ${project_name}  |  Tahun Anggaran: ${fiscal_year}  |  Periode: ${period}`,
+    subtitle: `${project_name} | ${company_name} | ${period}`,
     title: "RINCIAN PENERIMAAN",
   });
 
-  renderTableHeaderRow(worksheet, COLUMNS, 5);
+  renderTableHeaderRow(worksheet, COLUMNS, 4);
 
   let totalReceivedQuantity = 0;
 
   receiptData.forEach((item, index) => {
-    const rowNumber = index + 6;
+    const rowNumber = index + 5;
     const row = worksheet.getRow(rowNumber);
 
     const receiptDate = toISODate(item.receipt_date);
@@ -125,12 +124,12 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
   });
 
   // Baris Total
-  const totalRowIndex = receiptData.length + 6;
+  const totalRowIndex = receiptData.length + 5;
   const totalRow = worksheet.getRow(totalRowIndex);
   totalRow.values = ["", "TOTAL", "", "", "", "", "", "", "", totalReceivedQuantity];
 
   worksheet.mergeCells(`B${totalRowIndex}:I${totalRowIndex}`);
   styleTotalRow(totalRow, COLUMNS);
 
-  worksheet.autoFilter = "A5:J5";
+  worksheet.autoFilter = "A4:J4";
 }

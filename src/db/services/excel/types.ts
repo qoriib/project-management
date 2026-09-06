@@ -8,7 +8,6 @@ import type {
 export interface ExcelProjectMeta {
   project_name: string;
   company_name: string;
-  fiscal_year: string;
   period: string;
 }
 
