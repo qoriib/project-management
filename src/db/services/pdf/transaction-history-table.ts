@@ -18,10 +18,10 @@ import type jsPDF from "jspdf";
 export function renderTransactionHistorySection(doc: jsPDF, context: TransactionHistoryPdfContext): void {
   const { project_name: projectName, company_name: companyName, period, itemLogs } = context;
 
-  // 1. Tambah Halaman Baru Format Potret (A4: 210 x 297 mm)
+  // Tambah Halaman Baru Format Potret
   doc.addPage(PDF_PAGE_PORTRAIT.format, PDF_PAGE_PORTRAIT.orientation);
 
-  // 2. Render Kop Formal Bagian Riwayat Transaksi
+  // Render Kop Formal Bagian Riwayat Transaksi
   renderPdfKop(doc, {
     title: "RIWAYAT TRANSAKSI",
     projectName,
@@ -43,7 +43,7 @@ export function renderTransactionHistorySection(doc: jsPDF, context: Transaction
     return;
   }
 
-  // 3. Bangun Baris Body untuk Satu Tabel Terpadu
+  // Bangun Baris Body untuk Satu Tabel Terpadu
   const tableBody: RowInput[] = [];
 
   for (const { item, logs } of validItemLogs) {
@@ -72,7 +72,7 @@ export function renderTransactionHistorySection(doc: jsPDF, context: Transaction
     });
   }
 
-  // 4. Render Satu Tabel Tunggal Menggunakan autoTable
+  // Render Satu Tabel Tunggal Menggunakan autoTable
   autoTable(doc, {
     theme: "plain",
     startY: PDF_PAGE_PORTRAIT.tableStartY,

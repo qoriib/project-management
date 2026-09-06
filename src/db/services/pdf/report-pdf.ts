@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { PDF_PAGE } from "./styles";
+import { PDF_PAGE_LANDSCAPE } from "./styles";
 import { renderFulfillmentVolumeSection } from "./fulfillment-table";
 import { renderTransactionHistorySection } from "./transaction-history-table";
 import { renderPdfFooter } from "./utils";
@@ -15,9 +15,9 @@ export type { FulfillmentPdfContext, ItemTransactionHistory, TransactionHistoryP
  */
 export function createReportPdf(context: FulfillmentPdfContext): jsPDF {
   const doc = new jsPDF({
-    orientation: PDF_PAGE.orientation,
-    unit: PDF_PAGE.unit,
-    format: PDF_PAGE.format,
+    orientation: PDF_PAGE_LANDSCAPE.orientation,
+    unit: PDF_PAGE_LANDSCAPE.unit,
+    format: PDF_PAGE_LANDSCAPE.format,
   });
 
   // 1. Render Bagian Laporan Pemenuhan Volume (Lanskap)
@@ -38,6 +38,3 @@ export function createReportPdf(context: FulfillmentPdfContext): jsPDF {
 
   return doc;
 }
-
-/** Alias kompatibilitas fungsi lama */
-export const createFulfillmentVolumePdf = createReportPdf;

@@ -16,7 +16,7 @@ export * from "./report-pdf";
  * Menghasilkan dokumen PDF laporan formal (Lanskap: Pemenuhan Volume, Potret: Riwayat Transaksi per Item).
  */
 export async function generateReportPdf(projectId: string, startDate?: string, endDate?: string): Promise<Uint8Array> {
-  const hasDateRange = Boolean(startDate);
+  const hasDateRange = Boolean(startDate || endDate);
 
   const [projectRecord, periodData, cumulativeData] = await Promise.all([
     projectRepo.findById(projectId),
@@ -102,6 +102,3 @@ export async function generateReportPdf(projectId: string, startDate?: string, e
 
   return new Uint8Array(arrayBuffer);
 }
-
-/** Alias kompatibilitas */
-export const generateFulfillmentVolumePdf = generateReportPdf;

@@ -18,9 +18,6 @@ import { formatPercentage, formatQty, renderPdfKop } from "./utils";
 import type jsPDF from "jspdf";
 import type { FulfillmentPdfContext } from "./types";
 
-/**
- * Merender Bagian Laporan Pemenuhan Volume (Orientasi Lanskap).
- */
 export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentPdfContext): void {
   const {
     project_name: projectName,
@@ -32,7 +29,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
 
   const { margins, printableWidth, kopStartY, tableStartY } = PDF_PAGE_LANDSCAPE;
 
-  // 1. Render Kop Formal
+  // Render Kop Formal
   renderPdfKop(doc, {
     title: "LAPORAN PEMENUHAN",
     projectName,
@@ -42,7 +39,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     startY: kopStartY,
   });
 
-  // 2. Pengelompokan Data per Kategori
+  // Pengelompokan Data per Kategori
   const categoryMap = new Map<string, { categoryId: string; items: typeof fulfillmentItems }>();
 
   fulfillmentItems.forEach((item) => {
@@ -69,7 +66,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     return nameA.localeCompare(nameB);
   });
 
-  // 3. Akumulasi dan Pembentukan Baris Tabel
+  // Akumulasi dan Pembentukan Baris Tabel
   let totalPlannedVolume = 0;
   let totalOrderedVolume = 0;
   let totalPeriodOrderedVolume = 0;
@@ -93,11 +90,11 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
       return (firstItem.item_name || "").localeCompare(secondItem.item_name || "");
     });
 
-    // Baris Header Kategori (Banner Spanning 12 Kolom jika hasDateRange, 10 Kolom jika standar)
+    // Baris Header Kategori
     tableBody.push([
       {
         content: categoryName.toUpperCase(),
-        colSpan: hasDateRange ? 12 : 10,
+        colSpan: hasDateRange ? 11 : 9,
         styles: PDF_TABLE_CATEGORY_BANNER_STYLES,
       },
     ]);
@@ -109,11 +106,13 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
       const cumulativeDelivered = item.cumulative_delivered ?? item.total_delivered ?? 0;
       const periodDelivered = item.period_delivered ?? 0;
 
-      const orderedVolume = hasDateRange ? cumulativeOrdered : item.total_ordered || 0;
-      const deliveredVolume = hasDateRange ? cumulativeDelivered : item.total_delivered || 0;
-      const remainingVolume = orderedVolume - deliveredVolume;
+      // Volume perhitungan persentase selalu konsisten didapatkan dari volume kumulatif
+      const orderedVolume = cumulativeOrdered;
+      const deliveredVolume = cumulativeDelivered;
 
+      // % Pengadaan dihitung dari: (Kumulatif PO / BOQ)
       const orderPercentage = calcRatio(orderedVolume, plannedVolume);
+      // % Pemenuhan dihitung dari: (Kumulatif NP / Kumulatif PO)
       const deliveryPercentage = calcRatio(deliveredVolume, orderedVolume);
 
       totalPlannedVolume += plannedVolume;
@@ -150,8 +149,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           7: formatPercentage(orderPercentage),
           8: formatQty(periodDelivered),
           9: formatQty(cumulativeDelivered),
-          10: formatQty(remainingVolume > 0 ? remainingVolume : 0),
-          11: formatPercentage(deliveryPercentage),
+          10: formatPercentage(deliveryPercentage),
         });
       } else {
         tableBody.push({
@@ -168,8 +166,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           5: formatQty(orderedVolume),
           6: formatPercentage(orderPercentage),
           7: formatQty(deliveredVolume),
-          8: formatQty(remainingVolume > 0 ? remainingVolume : 0),
-          9: formatPercentage(deliveryPercentage),
+          8: formatPercentage(deliveryPercentage),
         });
       }
 
@@ -177,8 +174,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     });
   }
 
-  // 4. Baris Total Keseluruhan
-  const overallRemainingVolume = totalOrderedVolume - totalDeliveredVolume;
+  // Baris Total Keseluruhan
   const overallOrderPercentage = calcRatio(totalOrderedVolume, totalPlannedVolume);
   const overallDeliveryPercentage = calcRatio(totalDeliveredVolume, totalOrderedVolume);
 
@@ -187,7 +183,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
   const totalRow: RowInput = hasDateRange
     ? [
         {
-          content: "TOTAL KESELURUHAN",
+          content: "TOTAL",
           colSpan: 4,
           styles: PDF_TABLE_TOTAL_LABEL_STYLES,
         },
@@ -216,17 +212,13 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           styles: { ...totalRowCellStyle, halign: "right" },
         },
         {
-          content: formatQty(overallRemainingVolume > 0 ? overallRemainingVolume : 0),
-          styles: { ...totalRowCellStyle, halign: "right" },
-        },
-        {
           content: formatPercentage(overallDeliveryPercentage),
           styles: { ...totalRowCellStyle, halign: "right" },
         },
       ]
     : [
         {
-          content: "TOTAL KESELURUHAN",
+          content: "TOTAL",
           colSpan: 4,
           styles: PDF_TABLE_TOTAL_LABEL_STYLES,
         },
@@ -247,10 +239,6 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           styles: { ...totalRowCellStyle, halign: "right" },
         },
         {
-          content: formatQty(overallRemainingVolume > 0 ? overallRemainingVolume : 0),
-          styles: { ...totalRowCellStyle, halign: "right" },
-        },
-        {
           content: formatPercentage(overallDeliveryPercentage),
           styles: { ...totalRowCellStyle, halign: "right" },
         },
@@ -258,7 +246,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
 
   tableBody.push(totalRow);
 
-  // 5. Header Tabel 2-Tingkat
+  // Header Tabel 2-Tingkat
   const tableHead: RowInput[] = hasDateRange
     ? [
         [
@@ -268,17 +256,16 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           { content: "SATUAN", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
           { content: "KEBUTUHAN", colSpan: 1, styles: { halign: "center", valign: "middle" } },
           { content: "PENGADAAN", colSpan: 3, styles: { halign: "center", valign: "middle" } },
-          { content: "PENERIMAAN", colSpan: 4, styles: { halign: "center", valign: "middle" } },
+          { content: "PENERIMAAN", colSpan: 3, styles: { halign: "center", valign: "middle" } },
         ],
         [
           { content: "VOLUME", styles: { halign: "center" } },
-          { content: "PERIODE", styles: { halign: "center" } },
-          { content: "KUMULATIF", styles: { halign: "center" } },
-          { content: "% PENGADAAN", styles: { halign: "center" } },
-          { content: "PERIODE", styles: { halign: "center" } },
-          { content: "KUMULATIF", styles: { halign: "center" } },
-          { content: "SISA", styles: { halign: "center" } },
-          { content: "% PEMENUHAN", styles: { halign: "center" } },
+          { content: "VOLUME", styles: { halign: "center" } },
+          { content: "VOL. KUM", styles: { halign: "center" } },
+          { content: "%", styles: { halign: "center" } },
+          { content: "VOLUME", styles: { halign: "center" } },
+          { content: "VOL. KUM", styles: { halign: "center" } },
+          { content: "%", styles: { halign: "center" } },
         ],
       ]
     : [
@@ -289,27 +276,26 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           { content: "SATUAN", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
           { content: "KEBUTUHAN", colSpan: 1, styles: { halign: "center", valign: "middle" } },
           { content: "PENGADAAN", colSpan: 2, styles: { halign: "center", valign: "middle" } },
-          { content: "PENERIMAAN", colSpan: 3, styles: { halign: "center", valign: "middle" } },
+          { content: "PENERIMAAN", colSpan: 2, styles: { halign: "center", valign: "middle" } },
         ],
         [
           { content: "VOLUME", styles: { halign: "center" } },
           { content: "VOLUME", styles: { halign: "center" } },
-          { content: "% ORDER", styles: { halign: "center" } },
-          { content: "DATANG", styles: { halign: "center" } },
-          { content: "SISA", styles: { halign: "center" } },
-          { content: "% PEMENUHAN", styles: { halign: "center" } },
+          { content: "%", styles: { halign: "center" } },
+          { content: "VOLUME", styles: { halign: "center" } },
+          { content: "%", styles: { halign: "center" } },
         ],
       ];
 
   const columnStyles = hasDateRange ? PDF_FULFILLMENT_DATE_RANGE_COL_STYLES : PDF_FULFILLMENT_STANDARD_COL_STYLES;
 
-  // 6. Eksekusi Render autoTable Lanskap
+  // Eksekusi Render autoTable Lanskap
   autoTable(doc, {
+    theme: "plain",
     startY: tableStartY,
     margin: margins,
     head: tableHead,
     body: tableBody,
-    theme: "plain",
     tableWidth: printableWidth,
     styles: {
       ...PDF_TABLE_BASE_STYLES,
@@ -347,7 +333,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
               columnIndex === 7 ||
               columnIndex === 8 ||
               columnIndex === 9 ||
-              columnIndex === 11
+              columnIndex === 10
             ) {
               data.cell.styles.fillColor = PDF_COLORS.unplannedCellBg;
             } else {
@@ -360,7 +346,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
               data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
             } else if (columnIndex === 9 && isDeliveredOver) {
               data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else if (columnIndex === 11 && isDeliveryPctOver) {
+            } else if (columnIndex === 10 && isDeliveryPctOver) {
               data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
             } else {
               data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
@@ -368,8 +354,8 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           }
         } else {
           if (isUnplanned) {
-            // Kolom Pengadaan (5, 6) dan Penerimaan (7, 9) pada item belanja di luar rencana
-            if (columnIndex === 5 || columnIndex === 6 || columnIndex === 7 || columnIndex === 9) {
+            // Kolom Pengadaan (5, 6) dan Penerimaan (7, 8) pada item belanja di luar rencana
+            if (columnIndex === 5 || columnIndex === 6 || columnIndex === 7 || columnIndex === 8) {
               data.cell.styles.fillColor = PDF_COLORS.unplannedCellBg;
             } else {
               data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
@@ -382,7 +368,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
               data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
             } else if (columnIndex === 7 && isDeliveredOver) {
               data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else if (columnIndex === 9 && isDeliveryPctOver) {
+            } else if (columnIndex === 8 && isDeliveryPctOver) {
               data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
             } else {
               data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;

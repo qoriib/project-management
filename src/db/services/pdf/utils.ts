@@ -1,4 +1,4 @@
-import { PDF_COLORS, PDF_FONTS, PDF_PAGE } from "./styles";
+import { PDF_COLORS, PDF_FONTS, PDF_PAGE_LANDSCAPE } from "./styles";
 import type jsPDF from "jspdf";
 import type { PdfKopOptions } from "./types";
 
@@ -36,8 +36,8 @@ export function renderPdfFooter(doc: jsPDF): void {
   const timeISO = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   const printTimestamp = `${dateISO} ${timeISO}`;
 
-  const marginLeft = PDF_PAGE.margins.left;
-  const marginRight = PDF_PAGE.margins.right;
+  const marginLeft = PDF_PAGE_LANDSCAPE.margins.left;
+  const marginRight = PDF_PAGE_LANDSCAPE.margins.right;
 
   for (let pageIndex = 1; pageIndex <= totalPages; pageIndex++) {
     doc.setPage(pageIndex);
