@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { EmptyState, Table } from "@astryxdesign/core";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
+import { useToast } from "@astryxdesign/core/Toast";
 import { useAppStore } from "@/store/useAppStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { handleFormError } from "@/utils/form";
 import { type ReceiptRow, useReceiptColumns } from "./table/useReceiptColumns";
 
 export function ReceiptTable() {
+  const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -24,6 +27,8 @@ export function ReceiptTable() {
     try {
       await deleteReceipt(deletingId);
       setDeletingId(null);
+    } catch (error: unknown) {
+      handleFormError(error, showToast);
     } finally {
       setIsDeleting(false);
     }

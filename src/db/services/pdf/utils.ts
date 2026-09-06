@@ -1,5 +1,5 @@
-import type jsPDF from "jspdf";
 import { PDF_COLORS, PDF_FONTS, PDF_PAGE } from "./styles";
+import type jsPDF from "jspdf";
 import type { PdfKopOptions } from "./types";
 
 export { formatDate, formatPercentage, formatQty } from "@/utils/formatters";

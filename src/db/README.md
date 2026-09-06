@@ -7,7 +7,7 @@ Direktori `src/db` merupakan lapisan akses data (_Data Access Layer_) yang mengi
 ```
 ┌────────────────────────────────────────────────────────┐
 │                   Domain Services                      │
-│     (report.service.ts, excel.service.ts, auth)        │
+│        (report.service.ts, excel/, pdf/, auth)         │
 └───────────────────────────┬────────────────────────────┘
                             │
 ┌───────────────────────────▼────────────────────────────┐
@@ -43,7 +43,8 @@ src/db/
 │   ├── item.repository.ts, order.repository.ts, receipt.repository.ts, dll
 ├── services/               # Layanan bisnis & pemrosesan data kompleks
 │   ├── report.service.ts   # Kalkulasi rekapitulasi, sisa pemenuhan, anggaran
-│   ├── excel.service.ts    # Ekspor laporan ke format Microsoft Excel (.xlsx)
+│   ├── excel/              # Ekspor laporan ke format Microsoft Excel (.xlsx)
+│   ├── pdf/                # Ekspor laporan ke format PDF
 │   ├── auth.service.ts     # Autentikasi dan verifikasi session role
 │   └── database.service.ts # Manajemen basis data & reset database ORM
 ├── seeds/                  # Script data awal (seeders) CLI

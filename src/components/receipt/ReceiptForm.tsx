@@ -99,22 +99,12 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
               <form.Subscribe selector={(state) => [state.isSubmitted, state.values.items] as const}>
                 {([isSubmitted, items]) => (
                   <VStack gap={3}>
-                    {isSubmitted && (
-                      <form.Field name="items">
-                        {(field) =>
-                          field.state.meta.errors.length > 0 ? (
-                            <Banner
-                              status="error"
-                              title={
-                                typeof field.state.meta.errors[0] === "string"
-                                  ? field.state.meta.errors[0]
-                                  : (field.state.meta.errors[0] as any)?.message
-                              }
-                            />
-                          ) : null
-                        }
-                      </form.Field>
-                    )}
+                    <form.Field name="items">
+                      {(field) => {
+                        const error = getFieldError(field.state.meta.errors, isSubmitted || field.state.meta.isTouched);
+                        return error ? <Banner status="error" title={error.message} /> : null;
+                      }}
+                    </form.Field>
                     <ReceiptItemsTable items={items} form={form} />
                   </VStack>
                 )}

@@ -330,8 +330,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
     }
   }
 
-
-
   /**
    * Create a new QueryBuilder pre-configured for this model's table.
    */

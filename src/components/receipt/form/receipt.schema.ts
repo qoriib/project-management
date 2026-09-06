@@ -7,7 +7,10 @@ const itemRowSchema = v.object({
   item_name: v.string(),
   ordered: v.number(),
   order_item_id: v.string(),
-  qty: v.union([v.string(), v.number()]),
+  qty: v.pipe(
+    v.union([v.string(), v.number()]),
+    v.check((val) => parseDecimalInput(val) >= 0, "Volume tidak boleh negatif."),
+  ),
   remaining: v.number(),
   unit: v.string(),
 });
@@ -19,7 +22,7 @@ function atLeastOneItemReceived(items: unknown): boolean {
 
 export const receiptSchema = v.object({
   receipt_code: v.pipe(v.string(), v.nonEmpty("Kode Penerimaan harus diisi.")),
-  receipt_date: v.pipe(v.string(), v.nonEmpty("Tanggal kirim harus diisi.")),
+  receipt_date: v.pipe(v.string(), v.nonEmpty("Tanggal Penerimaan harus diisi.")),
   items: v.pipe(v.array(itemRowSchema), v.custom(atLeastOneItemReceived, "Minimal ada 1 item yang diterima.")),
   order_id: v.pipe(v.string(), v.nonEmpty("Order harus dipilih.")),
 });

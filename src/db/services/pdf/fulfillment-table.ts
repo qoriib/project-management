@@ -1,10 +1,17 @@
-import type jsPDF from "jspdf";
 import autoTable, { type RowInput } from "jspdf-autotable";
 import { calcRatio } from "@/utils/calc";
 import { formatItemCode } from "@/utils/formatters";
-import { PDF_COLORS, PDF_FONTS, PDF_PAGE, PDF_TABLE_STYLE } from "./styles";
-import type { FulfillmentPdfContext } from "./types";
+import {
+  PDF_COLORS,
+  PDF_PAGE,
+  PDF_TABLE_BASE_STYLES,
+  PDF_TABLE_BODY_STYLES,
+  PDF_TABLE_HEAD_STYLES,
+  PDF_TABLE_STYLE,
+} from "./styles";
 import { formatPercentage, formatQty, renderPdfKop } from "./utils";
+import type jsPDF from "jspdf";
+import type { FulfillmentPdfContext } from "./types";
 
 /**
  * Merender Bagian Laporan Pemenuhan Volume (Orientasi Lanskap).
@@ -25,7 +32,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
 
   // 1. Render Kop Formal
   renderPdfKop(doc, {
-    title: "LAPORAN PEMENUHAN (VOLUME)",
+    title: "LAPORAN PEMENUHAN",
     projectName,
     companyName,
     period,
@@ -94,6 +101,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           textColor: PDF_COLORS.categoryText,
           fontStyle: "bold",
           halign: "left",
+          valign: PDF_TABLE_STYLE.valign,
           fontSize: 7.5,
           lineWidth: PDF_TABLE_STYLE.borderWidth,
           lineColor: PDF_COLORS.borderDark,
@@ -188,6 +196,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     textColor: PDF_COLORS.totalText,
     lineWidth: PDF_TABLE_STYLE.borderWidth,
     lineColor: PDF_COLORS.borderDark,
+    valign: PDF_TABLE_STYLE.valign,
   };
 
   const totalRow: RowInput = hasDateRange
@@ -278,40 +287,40 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         [
           { content: "NO", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
           { content: "KODE ITEM", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
-          { content: "NAMA ITEM", rowSpan: 2, styles: { halign: "left", valign: "middle" } },
+          { content: "NAMA ITEM", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
           { content: "SATUAN", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
-          { content: "KEBUTUHAN (BOQ)", colSpan: 1, styles: { halign: "center" } },
-          { content: "PENGADAAN (PO)", colSpan: 3, styles: { halign: "center" } },
-          { content: "PENERIMAAN (NP)", colSpan: 4, styles: { halign: "center" } },
+          { content: "KEBUTUHAN", colSpan: 1, styles: { halign: "center", valign: "middle" } },
+          { content: "PENGADAAN", colSpan: 3, styles: { halign: "center", valign: "middle" } },
+          { content: "PENERIMAAN", colSpan: 4, styles: { halign: "center", valign: "middle" } },
         ],
         [
-          { content: "VOLUME", styles: { halign: "right" } },
-          { content: "PERIODE", styles: { halign: "right" } },
-          { content: "KUMULATIF", styles: { halign: "right" } },
-          { content: "% ORDER", styles: { halign: "right" } },
-          { content: "PERIODE", styles: { halign: "right" } },
-          { content: "KUMULATIF", styles: { halign: "right" } },
-          { content: "SISA", styles: { halign: "right" } },
-          { content: "% PEMENUHAN", styles: { halign: "right" } },
+          { content: "VOLUME", styles: { halign: "center" } },
+          { content: "PERIODE", styles: { halign: "center" } },
+          { content: "KUMULATIF", styles: { halign: "center" } },
+          { content: "% PENGADAAN", styles: { halign: "center" } },
+          { content: "PERIODE", styles: { halign: "center" } },
+          { content: "KUMULATIF", styles: { halign: "center" } },
+          { content: "SISA", styles: { halign: "center" } },
+          { content: "% PEMENUHAN", styles: { halign: "center" } },
         ],
       ]
     : [
         [
           { content: "NO", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
           { content: "KODE ITEM", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
-          { content: "NAMA ITEM", rowSpan: 2, styles: { halign: "left", valign: "middle" } },
+          { content: "NAMA ITEM", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
           { content: "SATUAN", rowSpan: 2, styles: { halign: "center", valign: "middle" } },
-          { content: "KEBUTUHAN (BOQ)", colSpan: 1, styles: { halign: "center" } },
-          { content: "PENGADAAN (PO)", colSpan: 2, styles: { halign: "center" } },
-          { content: "PENERIMAAN (NP)", colSpan: 3, styles: { halign: "center" } },
+          { content: "KEBUTUHAN", colSpan: 1, styles: { halign: "center", valign: "middle" } },
+          { content: "PENGADAAN", colSpan: 2, styles: { halign: "center", valign: "middle" } },
+          { content: "PENERIMAAN", colSpan: 3, styles: { halign: "center", valign: "middle" } },
         ],
         [
-          { content: "VOLUME", styles: { halign: "right" } },
-          { content: "VOLUME", styles: { halign: "right" } },
-          { content: "% ORDER", styles: { halign: "right" } },
-          { content: "DATANG", styles: { halign: "right" } },
-          { content: "SISA", styles: { halign: "right" } },
-          { content: "% PEMENUHAN", styles: { halign: "right" } },
+          { content: "VOLUME", styles: { halign: "center" } },
+          { content: "VOLUME", styles: { halign: "center" } },
+          { content: "% ORDER", styles: { halign: "center" } },
+          { content: "DATANG", styles: { halign: "center" } },
+          { content: "SISA", styles: { halign: "center" } },
+          { content: "% PEMENUHAN", styles: { halign: "center" } },
         ],
       ];
 
@@ -357,31 +366,28 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     theme: "plain",
     tableWidth: printableWidth,
     styles: {
-      font: PDF_FONTS.primary,
-      lineWidth: PDF_TABLE_STYLE.borderWidth,
-      lineColor: PDF_COLORS.borderDark,
-      textColor: PDF_COLORS.textDark,
+      ...PDF_TABLE_BASE_STYLES,
     },
     headStyles: {
-      fillColor: PDF_COLORS.tableHeaderBg,
-      textColor: PDF_COLORS.tableHeaderText,
+      ...PDF_TABLE_HEAD_STYLES,
       fontSize: 7.2,
-      fontStyle: "bold",
-      lineWidth: PDF_TABLE_STYLE.borderWidth,
-      lineColor: PDF_COLORS.borderDark,
       cellPadding: { top: 2, bottom: 2, left: 1.5, right: 1.5 },
     },
     bodyStyles: {
-      fontSize: 7,
-      lineWidth: PDF_TABLE_STYLE.borderWidth,
-      lineColor: PDF_COLORS.borderDark,
-      textColor: PDF_COLORS.textDark,
+      ...PDF_TABLE_BODY_STYLES,
       cellPadding: { top: 1.8, bottom: 1.8, left: 1.5, right: 1.5 },
     },
     columnStyles,
     didParseCell: (data) => {
-      // Pastikan border styling selalu seragam di seluruh sel body
+      // Pastikan seluruh header selalu horizontal align center dan vertical align middle
+      if (data.section === "head") {
+        data.cell.styles.halign = PDF_TABLE_STYLE.headerHalign;
+        data.cell.styles.valign = PDF_TABLE_STYLE.headerValign;
+      }
+
+      // Pastikan border styling dan vertical align selalu seragam di seluruh sel body
       if (data.section === "body") {
+        data.cell.styles.valign = PDF_TABLE_STYLE.valign;
         data.cell.styles.lineWidth = PDF_TABLE_STYLE.borderWidth;
         data.cell.styles.lineColor = PDF_COLORS.borderDark;
 

@@ -1,9 +1,9 @@
 import jsPDF from "jspdf";
 import { PDF_PAGE } from "./styles";
-import type { FulfillmentPdfContext } from "./types";
 import { renderFulfillmentVolumeSection } from "./fulfillment-table";
 import { renderTransactionHistorySection } from "./transaction-history-table";
 import { renderPdfFooter } from "./utils";
+import type { FulfillmentPdfContext } from "./types";
 
 export type { FulfillmentPdfContext, ItemTransactionHistory, TransactionHistoryPdfContext } from "./types";
 
