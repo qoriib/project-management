@@ -13,6 +13,7 @@ import { useOrderItemTableState } from "@/components/order/table/useOrderItemTab
 import { buildDefaultValues, poSchema } from "@/components/order/form/order.schema";
 import { getFieldError, handleFormError } from "@/utils/form";
 import { generateNextCode, parseDecimalInput } from "@/utils/formatters";
+import { useTableStickyColumns } from "@astryxdesign/core/Table";
 import { type OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
 import type { OrderItemFormValues } from "@/components/order/form/orderItem.schema";
 import type { OrderItemDetail, OrderItemInput, OrderWithSummary } from "@/db/repositories";
@@ -129,6 +130,10 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
     getRowKey: (item) => item.order_item_id,
   });
 
+  const stickyColumns = useTableStickyColumns<OrderItemRow>({
+    startKeys: ["__rowIndex", "item_code", "item_name"],
+  });
+
   return (
     <>
       <VStack gap={4}>
@@ -170,7 +175,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
             textOverflow="truncate"
             columns={columns}
             data={dataWithFooters}
-            plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin }}
+            plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin, stickyColumns }}
             emptyState={<EmptyState isCompact title="Belum ada item pesanan" />}
           />
         </VStack>

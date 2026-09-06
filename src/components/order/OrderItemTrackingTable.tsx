@@ -5,7 +5,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, useTableStickyColumns } from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
 
 type TrackingRow = OrderItemDetail & Record<string, unknown>;
@@ -26,7 +26,7 @@ export function OrderItemTrackingTable() {
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(1, { minWidth: 280 }),
+      width: pixel(280),
       renderCell: (row) => row.item_name || "-",
     },
     {
@@ -125,6 +125,10 @@ export function OrderItemTrackingTable() {
     getRowKey: (item) => item.order_item_id,
   });
 
+  const stickyColumns = useTableStickyColumns<TrackingRow>({
+    startKeys: ["__rowIndex", "item_code", "item_name"],
+  });
+
   return (
     <Table
       hasHover
@@ -132,7 +136,7 @@ export function OrderItemTrackingTable() {
       textOverflow="truncate"
       columns={itemColumns}
       data={items as TrackingRow[]}
-      plugins={{ rowIndex: rowIndexPlugin }}
+      plugins={{ rowIndex: rowIndexPlugin, stickyColumns }}
       emptyState={<EmptyState isCompact title="Tidak ada item pesanan" />}
     />
   );

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { EmptyState, Table } from "@astryxdesign/core";
+import { useTableStickyColumns } from "@astryxdesign/core/Table";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { RequirementItemDialog } from "@/components/requirement/RequirementItemDialog";
 import { useAppStore } from "@/store/useAppStore";
 import { useRequirementStore } from "@/store/useRequirementStore";
 import { useMasterStore } from "@/store/useMasterStore";
-import { useRequirementColumns } from "./table/useRequirementColumns";
+import { type RequirementRow, useRequirementColumns } from "./table/useRequirementColumns";
 import { useRequirementTableState } from "./table/useRequirementTableState";
 import type { RequirementDetail } from "@/db/repositories";
 
@@ -69,6 +70,10 @@ export function RequirementTable() {
     onAdd: handleOpenAdd,
   });
 
+  const stickyColumns = useTableStickyColumns<RequirementRow>({
+    startKeys: ["__rowIndex", "item_code", "item_name"],
+  });
+
   return (
     <>
       <Table
@@ -77,7 +82,7 @@ export function RequirementTable() {
         columns={columns}
         data={dataWithFooters}
         idKey={(item) => String(item.requirement_id)}
-        plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin }}
+        plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin, stickyColumns }}
         emptyState={<EmptyState isCompact title="Belum ada rencana kebutuhan (BOM)" />}
       />
       <AlertDialog

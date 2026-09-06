@@ -71,7 +71,7 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
   });
 
   const stickyColumns = useTableStickyColumns<EnrichedReportItem>({
-    startKeys: ["item"],
+    startKeys: ["__rowIndex", "item"],
   });
 
   const columns = useReportSummaryColumns({ onLogClick });

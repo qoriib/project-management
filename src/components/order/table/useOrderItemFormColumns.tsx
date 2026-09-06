@@ -3,7 +3,7 @@ import { HStack, IconButton, Text } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel } from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
 
 export interface OrderItemRow extends OrderItemDetail, Record<string, unknown> {
@@ -30,7 +30,7 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(1, { minWidth: 280 }),
+      width: pixel(280),
       renderCell: (row) => {
         if (row.isFooter) return null;
         return row.item_name || "-";

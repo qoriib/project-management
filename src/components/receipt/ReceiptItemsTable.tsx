@@ -3,7 +3,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { formatItemCode, formatNumber, sanitizeDecimalInput } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, useTableStickyColumns } from "@astryxdesign/core/Table";
 import type { ReceiptItemRow } from "./form/receipt.schema";
 import type { useReceiptForm } from "./form/useReceiptForm";
 
@@ -26,7 +26,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(1, { minWidth: 280 }),
+      width: pixel(280),
       renderCell: (row) => row.item_name || "-",
     },
     {
@@ -73,6 +73,10 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
     getRowKey: (item) => item.order_item_id,
   });
 
+  const stickyColumns = useTableStickyColumns<ReceiptItemRow>({
+    startKeys: ["__rowIndex", "item_code", "item_name"],
+  });
+
   return (
     <VStack paddingBlock={6}>
       <Table
@@ -81,7 +85,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
         textOverflow="truncate"
         columns={columns}
         data={items}
-        plugins={{ rowIndex: rowIndexPlugin }}
+        plugins={{ rowIndex: rowIndexPlugin, stickyColumns }}
         emptyState={<EmptyState isCompact title="Tidak ada item untuk diterima" />}
       />
     </VStack>
