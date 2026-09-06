@@ -1,16 +1,24 @@
 import type { ItemLogEntry, RequirementReportItem } from "../report.service";
 
 export interface ItemTransactionHistory {
-  item: RequirementReportItem;
+  item: FulfillmentPdfItem;
   logs: ItemLogEntry[];
+}
+
+export interface FulfillmentPdfItem extends RequirementReportItem {
+  period_ordered?: number;
+  cumulative_ordered?: number;
+  period_delivered?: number;
+  cumulative_delivered?: number;
 }
 
 export interface FulfillmentPdfContext {
   project_name: string;
   company_name: string;
   period: string;
-  data: RequirementReportItem[];
+  data: FulfillmentPdfItem[];
   itemLogs?: ItemTransactionHistory[];
+  hasDateRange?: boolean;
 }
 
 export interface TransactionHistoryPdfContext {

@@ -73,7 +73,9 @@ export function renderTransactionHistorySection(doc: jsPDF, context: Transaction
     doc.setFont(PDF_FONTS.primary, "normal");
     doc.setFontSize(7);
     doc.setTextColor(...PDF_COLORS.textMuted);
-    const itemMeta = `Kategori: ${item.category || "LAINNYA"} | Satuan: ${item.unit || "-"} | PO: ${formatQty(item.total_ordered)} | NP: ${formatQty(item.total_delivered)}`;
+    const poQty = item.cumulative_ordered ?? item.total_ordered;
+    const npQty = item.cumulative_delivered ?? item.total_delivered;
+    const itemMeta = `Kategori: ${item.category || "LAINNYA"} | Satuan: ${item.unit || "-"} | PO: ${formatQty(poQty)} | NP: ${formatQty(npQty)}`;
     doc.text(itemMeta, portraitMarginLeft + portraitPrintableWidth - 2, currentY + 4.3, { align: "right" });
 
     currentY += bannerHeight;

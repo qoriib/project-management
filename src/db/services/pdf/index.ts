@@ -1,8 +1,9 @@
 import { projectRepo } from "@/db/repositories";
 import { formatPeriod } from "@/utils/formatters";
+import type { RequirementReportItem } from "../report.service";
 import { getItemLog, getRequirementReport } from "../report.service";
 import { createFulfillmentVolumePdf } from "./fulfillment-pdf";
-import type { ItemTransactionHistory } from "./types";
+import type { FulfillmentPdfItem, ItemTransactionHistory } from "./types";
 
 export * from "./types";
 export * from "./styles";
@@ -20,14 +21,47 @@ export async function generateFulfillmentVolumePdf(
   startDate?: string,
   endDate?: string,
 ): Promise<Uint8Array> {
-  const [projectRecord, fulfillmentData] = await Promise.all([
+  const hasDateRange = Boolean(startDate);
+
+  const [projectRecord, periodData, cumulativeData] = await Promise.all([
     projectRepo.findById(projectId),
     getRequirementReport(projectId, startDate, endDate),
+    hasDateRange ? getRequirementReport(projectId, undefined, endDate) : null,
   ]);
+
+  const cumulativeMap = new Map<string, RequirementReportItem>();
+  if (cumulativeData) {
+    for (const item of cumulativeData) {
+      cumulativeMap.set(item.item_id, item);
+    }
+  }
+
+  const baseList = cumulativeData || periodData;
+  const fulfillmentData: FulfillmentPdfItem[] = baseList.map((item) => {
+    const pItem = periodData.find((p) => p.item_id === item.item_id);
+    const cItem = cumulativeData ? cumulativeMap.get(item.item_id) : item;
+
+    const periodOrdered = pItem?.total_ordered ?? 0;
+    const cumulativeOrdered = cItem?.total_ordered ?? periodOrdered;
+
+    const periodDelivered = pItem?.total_delivered ?? 0;
+    const cumulativeDelivered = cItem?.total_delivered ?? periodDelivered;
+
+    return {
+      ...item,
+      period_ordered: periodOrdered,
+      cumulative_ordered: cumulativeOrdered,
+      period_delivered: periodDelivered,
+      cumulative_delivered: cumulativeDelivered,
+    };
+  });
 
   // Ambil riwayat transaksi untuk item yang memiliki pergerakan pemesanan atau penerimaan
   const itemsWithActivity = fulfillmentData.filter(
-    (item) => (item.total_ordered ?? 0) > 0 || (item.total_delivered ?? 0) > 0 || Boolean(item.is_unplanned),
+    (item) =>
+      (item.cumulative_ordered ?? item.total_ordered ?? 0) > 0 ||
+      (item.cumulative_delivered ?? item.total_delivered ?? 0) > 0 ||
+      Boolean(item.is_unplanned),
   );
 
   const rawItemLogs = await Promise.all(
@@ -60,6 +94,7 @@ export async function generateFulfillmentVolumePdf(
     period: formattedPeriod,
     data: fulfillmentData,
     itemLogs,
+    hasDateRange,
   });
 
   const arrayBuffer = doc.output("arraybuffer");
