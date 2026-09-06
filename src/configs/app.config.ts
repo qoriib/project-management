@@ -37,8 +37,8 @@ export const APP = {
         { label: "Proyek", href: "/master/project" },
         { label: "Item", href: "/master/item" },
         { label: "Vendor", href: "/master/vendor" },
-        { label: "Kategori", href: "/master/kategori" },
-        { label: "Satuan", href: "/master/satuan" },
+        { label: "Kategori", href: "/master/category" },
+        { label: "Satuan", href: "/master/unit" },
       ],
     },
     {

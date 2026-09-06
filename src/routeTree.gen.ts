@@ -13,10 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MasterRouteImport } from './routes/master'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as MasterCategoryRouteImport } from './routes/master/category'
 import { Route as MasterItemRouteImport } from './routes/master/item'
-import { Route as MasterKategoriRouteImport } from './routes/master/kategori'
 import { Route as MasterProjectRouteImport } from './routes/master/project'
-import { Route as MasterSatuanRouteImport } from './routes/master/satuan'
+import { Route as MasterUnitRouteImport } from './routes/master/unit'
 import { Route as MasterVendorRouteImport } from './routes/master/vendor'
 import { Route as OrderIndexRouteImport } from './routes/order/index'
 import { Route as OrderNewRouteImport } from './routes/order/new'
@@ -50,14 +50,14 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MasterCategoryRoute = MasterCategoryRouteImport.update({
+  id: '/category',
+  path: '/category',
+  getParentRoute: () => MasterRoute,
+} as any)
 const MasterItemRoute = MasterItemRouteImport.update({
   id: '/item',
   path: '/item',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterKategoriRoute = MasterKategoriRouteImport.update({
-  id: '/kategori',
-  path: '/kategori',
   getParentRoute: () => MasterRoute,
 } as any)
 const MasterProjectRoute = MasterProjectRouteImport.update({
@@ -65,9 +65,9 @@ const MasterProjectRoute = MasterProjectRouteImport.update({
   path: '/project',
   getParentRoute: () => MasterRoute,
 } as any)
-const MasterSatuanRoute = MasterSatuanRouteImport.update({
-  id: '/satuan',
-  path: '/satuan',
+const MasterUnitRoute = MasterUnitRouteImport.update({
+  id: '/unit',
+  path: '/unit',
   getParentRoute: () => MasterRoute,
 } as any)
 const MasterVendorRoute = MasterVendorRouteImport.update({
@@ -136,10 +136,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/master': typeof MasterRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
+  '/master/category': typeof MasterCategoryRoute
   '/master/item': typeof MasterItemRoute
-  '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
-  '/master/satuan': typeof MasterSatuanRoute
+  '/master/unit': typeof MasterUnitRoute
   '/master/vendor': typeof MasterVendorRoute
   '/order/new': typeof OrderNewRoute
   '/receipt/new': typeof ReceiptNewRoute
@@ -158,10 +158,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/master': typeof MasterRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
+  '/master/category': typeof MasterCategoryRoute
   '/master/item': typeof MasterItemRoute
-  '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
-  '/master/satuan': typeof MasterSatuanRoute
+  '/master/unit': typeof MasterUnitRoute
   '/master/vendor': typeof MasterVendorRoute
   '/order/new': typeof OrderNewRoute
   '/receipt/new': typeof ReceiptNewRoute
@@ -181,10 +181,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/master': typeof MasterRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
+  '/master/category': typeof MasterCategoryRoute
   '/master/item': typeof MasterItemRoute
-  '/master/kategori': typeof MasterKategoriRoute
   '/master/project': typeof MasterProjectRoute
-  '/master/satuan': typeof MasterSatuanRoute
+  '/master/unit': typeof MasterUnitRoute
   '/master/vendor': typeof MasterVendorRoute
   '/order/new': typeof OrderNewRoute
   '/receipt/new': typeof ReceiptNewRoute
@@ -205,10 +205,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/master'
     | '/settings'
+    | '/master/category'
     | '/master/item'
-    | '/master/kategori'
     | '/master/project'
-    | '/master/satuan'
+    | '/master/unit'
     | '/master/vendor'
     | '/order/new'
     | '/receipt/new'
@@ -227,10 +227,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/master'
     | '/settings'
+    | '/master/category'
     | '/master/item'
-    | '/master/kategori'
     | '/master/project'
-    | '/master/satuan'
+    | '/master/unit'
     | '/master/vendor'
     | '/order/new'
     | '/receipt/new'
@@ -249,10 +249,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/master'
     | '/settings'
+    | '/master/category'
     | '/master/item'
-    | '/master/kategori'
     | '/master/project'
-    | '/master/satuan'
+    | '/master/unit'
     | '/master/vendor'
     | '/order/new'
     | '/receipt/new'
@@ -312,18 +312,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/master/category': {
+      id: '/master/category'
+      path: '/category'
+      fullPath: '/master/category'
+      preLoaderRoute: typeof MasterCategoryRouteImport
+      parentRoute: typeof MasterRoute
+    }
     '/master/item': {
       id: '/master/item'
       path: '/item'
       fullPath: '/master/item'
       preLoaderRoute: typeof MasterItemRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/kategori': {
-      id: '/master/kategori'
-      path: '/kategori'
-      fullPath: '/master/kategori'
-      preLoaderRoute: typeof MasterKategoriRouteImport
       parentRoute: typeof MasterRoute
     }
     '/master/project': {
@@ -333,11 +333,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasterProjectRouteImport
       parentRoute: typeof MasterRoute
     }
-    '/master/satuan': {
-      id: '/master/satuan'
-      path: '/satuan'
-      fullPath: '/master/satuan'
-      preLoaderRoute: typeof MasterSatuanRouteImport
+    '/master/unit': {
+      id: '/master/unit'
+      path: '/unit'
+      fullPath: '/master/unit'
+      preLoaderRoute: typeof MasterUnitRouteImport
       parentRoute: typeof MasterRoute
     }
     '/master/vendor': {
@@ -428,18 +428,18 @@ declare module '@tanstack/react-router' {
 }
 
 interface MasterRouteChildren {
+  MasterCategoryRoute: typeof MasterCategoryRoute
   MasterItemRoute: typeof MasterItemRoute
-  MasterKategoriRoute: typeof MasterKategoriRoute
   MasterProjectRoute: typeof MasterProjectRoute
-  MasterSatuanRoute: typeof MasterSatuanRoute
+  MasterUnitRoute: typeof MasterUnitRoute
   MasterVendorRoute: typeof MasterVendorRoute
 }
 
 const MasterRouteChildren: MasterRouteChildren = {
+  MasterCategoryRoute: MasterCategoryRoute,
   MasterItemRoute: MasterItemRoute,
-  MasterKategoriRoute: MasterKategoriRoute,
   MasterProjectRoute: MasterProjectRoute,
-  MasterSatuanRoute: MasterSatuanRoute,
+  MasterUnitRoute: MasterUnitRoute,
   MasterVendorRoute: MasterVendorRoute,
 }
 

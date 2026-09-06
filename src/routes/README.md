@@ -11,10 +11,10 @@ src/routes/
 ├── login.tsx               # Halaman Pemilihan Role / Login
 ├── master/                 # Rute Halaman Master Data
 │   ├── index.tsx           # Hub navigasi master data
+│   ├── category.tsx        # /master/category
 │   ├── item.tsx            # /master/item
-│   ├── kategori.tsx        # /master/kategori
 │   ├── project.tsx         # /master/project
-│   ├── satuan.tsx          # /master/satuan
+│   ├── unit.tsx            # /master/unit
 │   └── vendor.tsx          # /master/vendor
 ├── order/                  # Rute Halaman SPK / Purchase Order
 │   ├── index.tsx           # /order (Daftar SPK)

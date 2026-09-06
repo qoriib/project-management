@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { HStack, IconButton, VStack } from "@astryxdesign/core";
-import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
+import { Heading, HStack, IconButton, Text, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { Download } from "lucide-react";
-import { PageHeader } from "@/components/shared/PageHeader";
 import { ReportFilterForm } from "@/components/report/ReportFilterForm";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { useAppStore } from "@/store/useAppStore";
@@ -50,33 +49,39 @@ function DashboardPage() {
     <>
       <Layout
         height="fill"
+        header={
+          <LayoutHeader hasDivider padding={6}>
+            <HStack gap={2} vAlign="center" hAlign="between">
+              <VStack gap={0.5}>
+                <Heading level={3}>Laporan Kebutuhan & Realisasi</Heading>
+                <Text color="secondary" wordBreak="break-word" textWrap="wrap">
+                  Ringkasan realisasi pesanan dan penerimaan terhadap kebutuhan
+                </Text>
+              </VStack>
+              {selectedProjectId ? (
+                <HStack gap={4} vAlign="center">
+                  <ReportFilterForm
+                    startDate={startDate}
+                    endDate={endDate}
+                    onFilterChange={(start, end) => {
+                      setStartDate(start);
+                      setEndDate(end);
+                    }}
+                  />
+                  <IconButton
+                    label="Unduh Laporan"
+                    variant="secondary"
+                    icon={<Download />}
+                    onClick={() => setDownloadDialogOpen(true)}
+                  />
+                </HStack>
+              ) : null}
+            </HStack>
+          </LayoutHeader>
+        }
         content={
           <LayoutContent padding={6}>
             <VStack gap={4}>
-              <PageHeader
-                title="Laporan Kebutuhan & Realisasi"
-                subtitle="Ringkasan realisasi pesanan dan penerimaan terhadap kebutuhan"
-                actions={
-                  selectedProjectId ? (
-                    <HStack gap={4} align="end">
-                      <ReportFilterForm
-                        startDate={startDate}
-                        endDate={endDate}
-                        onFilterChange={(start, end) => {
-                          setStartDate(start);
-                          setEndDate(end);
-                        }}
-                      />
-                      <IconButton
-                        label="Unduh Laporan"
-                        variant="secondary"
-                        icon={<Download />}
-                        onClick={() => setDownloadDialogOpen(true)}
-                      />
-                    </HStack>
-                  ) : undefined
-                }
-              />
               <ProjectRequired>
                 <ReportSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
                 <ReportSummaryTable report={report} loading={loading} onLogClick={(item) => setSelectedItem(item)} />

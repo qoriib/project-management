@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, VStack } from "@astryxdesign/core";
-import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { Button, Heading, HStack, Text, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { MasterProjectTable } from "@/components/master/MasterProjectTable";
 import { MasterProjectForm } from "@/components/master/MasterProjectForm";
 import { useKeyboardShortcut } from "@/utils/useKeyboardShortcut";
@@ -41,14 +40,22 @@ function MasterProjectPage() {
   return (
     <Layout
       height="fill"
+      header={
+        <LayoutHeader hasDivider padding={6}>
+          <HStack gap={2} vAlign="center" hAlign="between">
+            <VStack gap={0.5}>
+              <Heading level={3}>Master Proyek</Heading>
+              <Text color="secondary" wordBreak="break-word" textWrap="wrap">
+                Kelola daftar proyek dan tahun anggaran
+              </Text>
+            </VStack>
+            <Button variant="primary" label="Tambah Proyek" onClick={openCreate} />
+          </HStack>
+        </LayoutHeader>
+      }
       content={
         <LayoutContent padding={6}>
           <VStack gap={4}>
-            <PageHeader
-              title="Master Proyek"
-              subtitle="Kelola daftar proyek dan tahun anggaran"
-              actions={<Button variant="primary" label="Tambah Proyek" onClick={openCreate} />}
-            />
             <MasterProjectTable onEdit={openEdit} />
             <MasterProjectForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} initialData={editTarget} />
           </VStack>

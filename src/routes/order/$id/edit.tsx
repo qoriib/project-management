@@ -1,13 +1,12 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Text, VStack } from "@astryxdesign/core";
-import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { Heading, HStack, Text, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { OrderForm } from "@/components/order/OrderForm";
 import { useOrderStore } from "@/store/useOrderStore";
 
-function POEditPage() {
+function OrderEditPage() {
   const { id } = useParams({ strict: false });
   const { currentOrder: order, currentItems, loadOrderDetail, clearOrderDetail } = useOrderStore();
   const [loading, setLoading] = useState(true);
@@ -40,10 +39,21 @@ function POEditPage() {
   return (
     <Layout
       height="fill"
+      header={
+        <LayoutHeader hasDivider padding={6}>
+          <HStack gap={2} vAlign="center" hAlign="between">
+            <VStack gap={0.5}>
+              <Heading level={3}>Edit Pemesanan</Heading>
+              <Text color="secondary" wordBreak="break-word" textWrap="wrap">
+                {`Perbarui rincian pesanan ${order.order_code}`}
+              </Text>
+            </VStack>
+          </HStack>
+        </LayoutHeader>
+      }
       content={
         <LayoutContent padding={6}>
           <VStack gap={4}>
-            <PageHeader title="Edit Pemesanan" subtitle={`Perbarui rincian pesanan ${order.order_code}`} />
             <OrderForm order={order} initialItems={currentItems} />
           </VStack>
         </LayoutContent>
@@ -53,5 +63,5 @@ function POEditPage() {
 }
 
 export const Route = createFileRoute("/order/$id/edit")({
-  component: POEditPage,
+  component: OrderEditPage,
 });

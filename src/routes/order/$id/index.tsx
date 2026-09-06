@@ -2,14 +2,13 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { Button, Card, HStack, Heading, Text, Toolbar, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
-import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { useOrderStore } from "@/store/useOrderStore";
 import { OrderSummaryCard } from "@/components/order/OrderSummaryCard";
 import { OrderItemTrackingTable } from "@/components/order/OrderItemTrackingTable";
 import { OrderReceiptLogTable } from "@/components/order/OrderReceiptLogTable";
 
-function PODetailPage() {
+function OrderDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams({ strict: false });
   const { currentOrder: order, loadOrderDetail, clearOrderDetail } = useOrderStore();
@@ -43,24 +42,30 @@ function PODetailPage() {
   return (
     <Layout
       height="fill"
+      header={
+        <LayoutHeader hasDivider padding={6}>
+          <HStack gap={2} vAlign="center" hAlign="between">
+            <VStack gap={0.5}>
+              <Heading level={3}>Detail Pemesanan</Heading>
+              <Text color="secondary" wordBreak="break-word" textWrap="wrap">
+                {`Informasi dan pelacakan pemesanan ${order.order_code}`}
+              </Text>
+            </VStack>
+            <HStack gap={2} wrap="wrap">
+              <Button variant="secondary" size="sm" label="Kembali" onClick={() => navigate({ to: "/order" })} />
+              <Button
+                variant="primary"
+                size="sm"
+                label="Edit PO"
+                onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
+              />
+            </HStack>
+          </HStack>
+        </LayoutHeader>
+      }
       content={
         <LayoutContent padding={6}>
           <VStack gap={4}>
-            <PageHeader
-              title="Detail Pemesanan"
-              subtitle={`Informasi dan pelacakan pemesanan ${order.order_code}`}
-              actions={
-                <HStack gap={2} wrap="wrap">
-                  <Button variant="secondary" size="sm" label="Kembali" onClick={() => navigate({ to: "/order" })} />
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    label="Edit PO"
-                    onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
-                  />
-                </HStack>
-              }
-            />
             <OrderSummaryCard />
             <Card>
               <Layout
@@ -69,7 +74,7 @@ function PODetailPage() {
                   <LayoutHeader hasDivider>
                     <Toolbar
                       label="Rincian Item & Pemenuhan"
-                      startContent={<Heading level={4}>Rincian Item & Pemenuhan</Heading>}
+                      startContent={<Heading level={3}>Rincian Item & Pemenuhan</Heading>}
                     />
                   </LayoutHeader>
                 }
@@ -87,7 +92,7 @@ function PODetailPage() {
                   <LayoutHeader hasDivider>
                     <Toolbar
                       label="Log Penerimaan"
-                      startContent={<Heading level={4}>Log Penerimaan Terkait</Heading>}
+                      startContent={<Heading level={3}>Log Penerimaan Terkait</Heading>}
                       endContent={
                         <Button
                           variant="secondary"
@@ -114,5 +119,5 @@ function PODetailPage() {
 }
 
 export const Route = createFileRoute("/order/$id/")({
-  component: PODetailPage,
+  component: OrderDetailPage,
 });
