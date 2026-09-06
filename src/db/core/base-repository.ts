@@ -143,7 +143,10 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       let paramIdx = 2;
 
       for (const col of this.model.createColumns) {
-        const value = (data as Record<string, unknown>)[col];
+        let value = (data as Record<string, unknown>)[col];
+        if (typeof value === "boolean") {
+          value = value ? 1 : 0;
+        }
         if (value !== undefined) {
           columns.push(col);
           placeholders.push(`$${paramIdx++}`);
@@ -179,7 +182,10 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
         ids.push(id);
         const row: unknown[] = [id];
         for (const col of this.model.createColumns) {
-          const val = (data as Record<string, unknown>)[col];
+          let val = (data as Record<string, unknown>)[col];
+          if (typeof val === "boolean") {
+            val = val ? 1 : 0;
+          }
           row.push(val ?? null);
         }
         rows.push(row);
@@ -202,7 +208,10 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       let paramIdx = 1;
 
       for (const col of this.model.updateColumns) {
-        const value = (data as Record<string, unknown>)[col];
+        let value = (data as Record<string, unknown>)[col];
+        if (typeof value === "boolean") {
+          value = value ? 1 : 0;
+        }
         if (value !== undefined) {
           setClauses.push(`${col} = $${paramIdx++}`);
           params.push(value ?? null);
