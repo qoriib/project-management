@@ -5,7 +5,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
-import { type TableColumn, pixel, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
 
 type TrackingRow = OrderItemDetail & Record<string, unknown>;
@@ -26,7 +26,7 @@ export function OrderItemTrackingTable() {
     {
       header: "Nama Item",
       key: "item_name",
-      width: pixel(280),
+      width: proportional(1, { minWidth: 280 }),
       renderCell: (row) => row.item_name || "-",
     },
     {

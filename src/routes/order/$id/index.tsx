@@ -74,7 +74,7 @@ function OrderDetailPage() {
                   <LayoutHeader hasDivider>
                     <Toolbar
                       label="Rincian Item & Pemenuhan"
-                      startContent={<Heading level={3}>Rincian Item & Pemenuhan</Heading>}
+                      startContent={<Heading level={4}>Rincian Item & Pemenuhan</Heading>}
                     />
                   </LayoutHeader>
                 }
@@ -92,7 +92,7 @@ function OrderDetailPage() {
                   <LayoutHeader hasDivider>
                     <Toolbar
                       label="Log Penerimaan"
-                      startContent={<Heading level={3}>Log Penerimaan Terkait</Heading>}
+                      startContent={<Heading level={4}>Log Penerimaan Terkait</Heading>}
                       endContent={
                         <Button
                           variant="secondary"
