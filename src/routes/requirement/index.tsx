@@ -44,9 +44,7 @@ function RequirementPage() {
                 Daftar dan rincian kebutuhan item
               </Text>
             </VStack>
-            {selectedProjectId ? (
-              <Button variant="primary" label="Tambah Item" onClick={dispatchCreate} isDisabled={isApproved} />
-            ) : null}
+            <RequirementApprovalActions />
           </HStack>
         </LayoutHeader>
       }
@@ -63,7 +61,7 @@ function RequirementPage() {
         selectedProjectId ? (
           <LayoutFooter hasDivider padding={6}>
             <HStack gap={4} vAlign="center" hAlign="between">
-              <RequirementApprovalActions />
+              <Button variant="secondary" label="Tambah Item" onClick={dispatchCreate} isDisabled={isApproved} />
               <HStack gap={2} vAlign="center">
                 <Text weight="medium" size="base" color="secondary">
                   Total:

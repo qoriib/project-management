@@ -1,19 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertDialog, Button, EmptyState, HStack, Table, TextInput, VStack } from "@astryxdesign/core";
+import { AlertDialog, Button, EmptyState, Heading, HStack, Table, Text, TextInput, VStack } from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
+import { Card, Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { useTableStickyColumns } from "@astryxdesign/core/Table";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { OrderItemDialog } from "@/components/order/OrderItemDialog";
-import { useOrderItemTableState } from "@/components/order/table/useOrderItemTableState";
 import { buildDefaultValues, poSchema } from "@/components/order/form/order.schema";
 import { getFieldError, handleFormError } from "@/utils/form";
-import { generateNextCode, parseDecimalInput } from "@/utils/formatters";
-import { useTableStickyColumns } from "@astryxdesign/core/Table";
+import { generateNextCode, formatNumber, parseDecimalInput } from "@/utils/formatters";
+import { calcGrandTotal } from "@/utils/calc";
+import { useKeyboardShortcut } from "@/utils/useKeyboardShortcut";
 import { type OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
 import type { OrderItemFormValues } from "@/components/order/form/orderItem.schema";
 import type { OrderItemDetail, OrderItemInput, OrderWithSummary } from "@/db/repositories";
@@ -42,6 +45,8 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
       "PO-",
     );
   }, [orders, order]);
+
+  const grandTotal = useMemo(() => calcGrandTotal(items), [items]);
 
   const form = useForm({
     defaultValues: buildDefaultValues(order, nextOrderCode),
@@ -100,6 +105,13 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
     setIsItemDialogOpen(true);
   }
 
+  useKeyboardShortcut({
+    key: "n",
+    ctrl: true,
+    handler: handleOpenAdd,
+    enabled: Boolean(selectedProjectId),
+  });
+
   function handleSaveItem(payload: OrderItemFormValues) {
     const newDetail = buildOrderItemDetail(payload, editingItem, order?.order_id);
     if (editingItem) {
@@ -120,11 +132,6 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
     setDeleteTarget: setDeletingId,
   });
 
-  const { dataWithFooters, footerPlugin } = useOrderItemTableState({
-    items: items as OrderItemRow[],
-    onAdd: handleOpenAdd,
-  });
-
   const rowIndexPlugin = useTableRowIndex<OrderItemRow>({
     data: items as OrderItemRow[],
     getRowKey: (item) => item.order_item_id,
@@ -136,65 +143,102 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
 
   return (
     <>
-      <VStack gap={4}>
-        <HStack gap={3}>
-          <form.Field name="order_code">
-            {(field) => (
-              <TextInput
-                isRequired
-                width={240}
-                label="Nomor Order"
-                statusVariant="tooltip"
-                value={field.state.value}
-                onChange={(v) => field.handleChange(v ?? "")}
-                onBlur={field.handleBlur}
-                status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-              />
-            )}
-          </form.Field>
-          <form.Field name="order_date">
-            {(field) => (
-              <DateInput
-                isRequired
-                width={240}
-                format="system_date"
-                label="Tanggal Order"
-                statusVariant="tooltip"
-                value={field.state.value as DateInputProps["value"]}
-                onChange={(v) => field.handleChange(v ?? "")}
-                onBlur={field.handleBlur}
-                status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-              />
-            )}
-          </form.Field>
-        </HStack>
-        <VStack paddingBlock={6}>
-          <Table
-            hasHover
-            idKey="order_item"
-            textOverflow="truncate"
-            columns={columns}
-            data={dataWithFooters}
-            plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin, stickyColumns }}
-            emptyState={<EmptyState isCompact title="Belum ada item pesanan" />}
-          />
-        </VStack>
-        <HStack justify="end" gap={2} wrap="wrap">
-          <Button variant="secondary" type="button" label="Batal" onClick={() => navigate({ to: "/order" })} />
-          <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting] as const}>
-            {([canSubmit, isSubmitting]) => (
-              <Button
-                variant="primary"
-                type="button"
-                onClick={() => form.handleSubmit()}
-                label={order ? "Simpan Perubahan" : "Simpan Pemesanan"}
-                isLoading={isSubmitting}
-                isDisabled={isItemDialogOpen || !canSubmit}
-              />
-            )}
-          </form.Subscribe>
-        </HStack>
-      </VStack>
+      <Layout
+        height="fill"
+        header={
+          <LayoutHeader hasDivider padding={6}>
+            <HStack gap={2} vAlign="center" hAlign="between">
+              <VStack gap={0.5}>
+                <Heading level={3}>{order ? "Edit Pemesanan" : "Pemesanan Baru"}</Heading>
+                <Text color="secondary" wordBreak="break-word" textWrap="wrap">
+                  {order ? `Perbarui rincian pesanan ${order.order_code}` : "Buat pesanan pembelian baru"}
+                </Text>
+              </VStack>
+              <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting] as const}>
+                {([canSubmit, isSubmitting]) => (
+                  <Button
+                    variant="primary"
+                    type="button"
+                    onClick={() => form.handleSubmit()}
+                    label={order ? "Simpan Perubahan" : "Simpan Pemesanan"}
+                    isLoading={isSubmitting}
+                    isDisabled={isItemDialogOpen || !canSubmit}
+                  />
+                )}
+              </form.Subscribe>
+            </HStack>
+          </LayoutHeader>
+        }
+        content={
+          <LayoutContent padding={6}>
+            <VStack gap={4}>
+              <ProjectRequired>
+                <VStack gap={4}>
+                  <HStack gap={3}>
+                    <form.Field name="order_code">
+                      {(field) => (
+                        <TextInput
+                          isRequired
+                          width={240}
+                          label="Nomor Order"
+                          statusVariant="tooltip"
+                          value={field.state.value}
+                          onChange={(v) => field.handleChange(v ?? "")}
+                          onBlur={field.handleBlur}
+                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                        />
+                      )}
+                    </form.Field>
+                    <form.Field name="order_date">
+                      {(field) => (
+                        <DateInput
+                          isRequired
+                          width={240}
+                          format="system_date"
+                          label="Tanggal Order"
+                          statusVariant="tooltip"
+                          value={field.state.value as DateInputProps["value"]}
+                          onChange={(v) => field.handleChange(v ?? "")}
+                          onBlur={field.handleBlur}
+                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                        />
+                      )}
+                    </form.Field>
+                  </HStack>
+                  <Card>
+                    <Table
+                      hasHover
+                      idKey="order_item_id"
+                      textOverflow="truncate"
+                      columns={columns}
+                      data={items as OrderItemRow[]}
+                      plugins={{ rowIndex: rowIndexPlugin, stickyColumns }}
+                      emptyState={<EmptyState isCompact title="Belum ada item pesanan" />}
+                    />
+                  </Card>
+                </VStack>
+              </ProjectRequired>
+            </VStack>
+          </LayoutContent>
+        }
+        footer={
+          selectedProjectId ? (
+            <LayoutFooter hasDivider padding={6}>
+              <HStack gap={4} vAlign="center" hAlign="between">
+                <Button variant="secondary" label="Tambah Item" onClick={handleOpenAdd} />
+                <HStack gap={2} vAlign="center">
+                  <Text weight="medium" size="base" color="secondary">
+                    Total:
+                  </Text>
+                  <Text type="code" weight="bold" size="lg" color="primary">
+                    Rp {formatNumber(grandTotal)}
+                  </Text>
+                </HStack>
+              </HStack>
+            </LayoutFooter>
+          ) : null
+        }
+      />
       <AlertDialog
         isOpen={Boolean(deletingId)}
         onOpenChange={(open) => !open && setDeletingId(null)}

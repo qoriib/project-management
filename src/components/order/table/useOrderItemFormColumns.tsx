@@ -6,9 +6,7 @@ import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
 
-export interface OrderItemRow extends OrderItemDetail, Record<string, unknown> {
-  isFooter?: boolean;
-}
+export type OrderItemRow = OrderItemDetail & Record<string, unknown>;
 
 interface UseOrderItemFormColumnsProps {
   onEdit: (item: OrderItemDetail) => void;
@@ -22,7 +20,6 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       key: "item_code",
       width: pixel(140),
       renderCell: (row) => {
-        if (row.isFooter) return null;
         const code = formatItemCode(row);
         return code ? <EntityCode id={code} /> : "-";
       },
@@ -31,52 +28,37 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       header: "Nama Item",
       key: "item_name",
       width: proportional(1, { minWidth: 280 }),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return row.item_name || "-";
-      },
+      renderCell: (row) => row.item_name || "-",
     },
     {
       header: "Satuan",
       key: "unit",
       width: pixel(80),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return row.unit || "-";
-      },
+      renderCell: (row) => row.unit || "-",
     },
     {
       align: "end",
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return (
-          <Text type="code" weight="medium">
-            {formatNumber(row.qty)}
-          </Text>
-        );
-      },
+      renderCell: (row) => (
+        <Text type="code" weight="medium">
+          {formatNumber(row.qty)}
+        </Text>
+      ),
     },
     {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
       width: pixel(180),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return <Text type="code">{formatNumber(row.price)}</Text>;
-      },
+      renderCell: (row) => <Text type="code">{formatNumber(row.price)}</Text>,
     },
     {
       header: "Vendor",
       key: "vendor",
       width: pixel(200),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return row.vendor_name ?? "-";
-      },
+      renderCell: (row) => row.vendor_name ?? "-",
     },
     {
       align: "end",
@@ -84,7 +66,6 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       key: "subtotal",
       width: pixel(180),
       renderCell: (row) => {
-        if (row.isFooter) return null;
         const subtotal = (row.qty ?? 0) * (row.price ?? 0);
         return <Text type="code">{formatNumber(subtotal)}</Text>;
       },
@@ -112,7 +93,6 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       key: "total",
       width: pixel(180),
       renderCell: (row) => {
-        if (row.isFooter) return null;
         const dpp = calcDPP(row.qty, row.price);
         const total = calcLineTotal(dpp, row.has_tax);
         return (
@@ -127,22 +107,18 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       header: "Aksi",
       key: "actions",
       width: pixel(120),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-
-        return (
-          <HStack gap={2} justify="end">
-            <IconButton size="sm" variant="secondary" label="Edit" icon={<Pencil />} onClick={() => onEdit(row)} />
-            <IconButton
-              size="sm"
-              variant="destructive"
-              label="Hapus"
-              icon={<Trash2 />}
-              onClick={() => setDeleteTarget(row.order_item_id)}
-            />
-          </HStack>
-        );
-      },
+      renderCell: (row) => (
+        <HStack gap={2} justify="end">
+          <IconButton size="sm" variant="secondary" label="Edit" icon={<Pencil />} onClick={() => onEdit(row)} />
+          <IconButton
+            size="sm"
+            variant="destructive"
+            label="Hapus"
+            icon={<Trash2 />}
+            onClick={() => setDeleteTarget(row.order_item_id)}
+          />
+        </HStack>
+      ),
     },
   ];
 

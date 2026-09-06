@@ -1,9 +1,9 @@
-import { EmptyState, Table, Text, TextInput, VStack } from "@astryxdesign/core";
+import { Card, EmptyState, Table, Text, TextInput } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { formatItemCode, formatNumber, sanitizeDecimalInput } from "@/utils/formatters";
 import { getFieldError } from "@/utils/form";
-import { type TableColumn, pixel } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { ReceiptItemRow } from "./form/receipt.schema";
 import type { useReceiptForm } from "./form/useReceiptForm";
 
@@ -26,7 +26,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
     {
       header: "Nama Item",
       key: "item_name",
-      width: pixel(280),
+      width: proportional(1, { minWidth: 280 }),
       renderCell: (row) => row.item_name || "-",
     },
     {
@@ -74,7 +74,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
   });
 
   return (
-    <VStack paddingBlock={6}>
+    <Card>
       <Table
         hasHover
         idKey="order_item_id"
@@ -84,6 +84,6 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
         plugins={{ rowIndex: rowIndexPlugin }}
         emptyState={<EmptyState isCompact title="Tidak ada item untuk diterima" />}
       />
-    </VStack>
+    </Card>
   );
 }

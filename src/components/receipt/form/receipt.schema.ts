@@ -52,7 +52,6 @@ export interface ReceiptFormProps {
   initialPoId?: string;
   initialEditId?: string;
   onSuccess: (poId: string) => void;
-  onCancel: () => void;
 }
 
 export function buildDefaultValues(

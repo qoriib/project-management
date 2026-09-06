@@ -260,7 +260,6 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
           />
         </form>
       </Dialog>
-
       <MasterItemForm isOpen={isItemFormOpen} onClose={() => setIsItemFormOpen(false)} initialData={null} />
       <MasterItemPriceDialog
         isOpen={isPriceFormOpen}

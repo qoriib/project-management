@@ -1,7 +1,7 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Heading, HStack, Text, VStack } from "@astryxdesign/core";
-import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Text } from "@astryxdesign/core";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { OrderForm } from "@/components/order/OrderForm";
 import { useOrderStore } from "@/store/useOrderStore";
@@ -36,30 +36,7 @@ function OrderEditPage() {
       />
     );
 
-  return (
-    <Layout
-      height="fill"
-      header={
-        <LayoutHeader hasDivider padding={6}>
-          <HStack gap={2} vAlign="center" hAlign="between">
-            <VStack gap={0.5}>
-              <Heading level={3}>Edit Pemesanan</Heading>
-              <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                {`Perbarui rincian pesanan ${order.order_code}`}
-              </Text>
-            </VStack>
-          </HStack>
-        </LayoutHeader>
-      }
-      content={
-        <LayoutContent padding={6}>
-          <VStack gap={4}>
-            <OrderForm order={order} initialItems={currentItems} />
-          </VStack>
-        </LayoutContent>
-      }
-    />
-  );
+  return <OrderForm order={order} initialItems={currentItems} />;
 }
 
 export const Route = createFileRoute("/order/$id/edit")({
