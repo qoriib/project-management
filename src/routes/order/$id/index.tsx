@@ -52,11 +52,10 @@ function OrderDetailPage() {
               </Text>
             </VStack>
             <HStack gap={2} wrap="wrap">
-              <Button variant="secondary" size="sm" label="Kembali" onClick={() => navigate({ to: "/order" })} />
               <Button
                 variant="primary"
                 size="sm"
-                label="Edit PO"
+                label="Edit Pemesanan"
                 onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
               />
             </HStack>

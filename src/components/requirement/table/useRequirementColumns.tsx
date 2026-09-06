@@ -6,9 +6,7 @@ import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { RequirementDetail } from "@/db/repositories";
 
-export interface RequirementRow extends RequirementDetail, Record<string, unknown> {
-  isFooter?: boolean;
-}
+export type RequirementRow = RequirementDetail & Record<string, unknown>;
 
 interface UseRequirementColumnsProps {
   onEdit: (item: RequirementDetail) => void;
@@ -23,7 +21,6 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       key: "item_code",
       width: pixel(140),
       renderCell: (row) => {
-        if (row.isFooter) return null;
         const code = formatItemCode(row);
         return code ? <EntityCode id={code} /> : "-";
       },
@@ -32,43 +29,31 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       header: "Nama Item",
       key: "item_name",
       width: proportional(1, { minWidth: 280 }),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return row.item_name || "-";
-      },
+      renderCell: (row) => row.item_name || "-",
     },
     {
       header: "Satuan",
       key: "unit",
       width: pixel(80),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return row.unit || "-";
-      },
+      renderCell: (row) => row.unit || "-",
     },
     {
       align: "end",
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return (
-          <Text type="code" weight="medium">
-            {formatNumber(row.qty)}
-          </Text>
-        );
-      },
+      renderCell: (row) => (
+        <Text type="code" weight="medium">
+          {formatNumber(row.qty)}
+        </Text>
+      ),
     },
     {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
       width: pixel(180),
-      renderCell: (row) => {
-        if (row.isFooter) return null;
-        return <Text type="code">{formatNumber(row.price)}</Text>;
-      },
+      renderCell: (row) => <Text type="code">{formatNumber(row.price)}</Text>,
     },
     {
       align: "end",
@@ -76,7 +61,6 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       key: "subtotal",
       width: pixel(180),
       renderCell: (row) => {
-        if (row.isFooter) return null;
         const subtotal = (row.qty ?? 0) * (row.price ?? 0);
         return <Text type="code">{formatNumber(subtotal)}</Text>;
       },
@@ -87,7 +71,6 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       key: "has_tax",
       width: pixel(180),
       renderCell: (row) => {
-        if (row.isFooter) return null;
         const dpp = calcDPP(row.qty, row.price);
         const taxAmount = calcTax(dpp, row.has_tax);
         return row.has_tax ? (
@@ -105,7 +88,6 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       key: "total",
       width: pixel(180),
       renderCell: (row) => {
-        if (row.isFooter) return null;
         const dpp = calcDPP(row.qty, row.price);
         const total = calcLineTotal(dpp, row.has_tax);
         return (
@@ -121,7 +103,6 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       key: "actions",
       width: pixel(120),
       renderCell: (row) => {
-        if (row.isFooter) return null;
         if (isApproved) return null;
 
         return (

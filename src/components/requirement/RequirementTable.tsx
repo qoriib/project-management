@@ -6,8 +6,8 @@ import { RequirementItemDialog } from "@/components/requirement/RequirementItemD
 import { useAppStore } from "@/store/useAppStore";
 import { useRequirementStore } from "@/store/useRequirementStore";
 import { useMasterStore } from "@/store/useMasterStore";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type RequirementRow, useRequirementColumns } from "./table/useRequirementColumns";
-import { useRequirementTableState } from "./table/useRequirementTableState";
 import type { RequirementDetail } from "@/db/repositories";
 
 export function RequirementTable() {
@@ -64,10 +64,9 @@ export function RequirementTable() {
     isApproved,
   });
 
-  const { dataWithFooters, footerPlugin, rowIndexPlugin } = useRequirementTableState({
-    requirements,
-    isApproved,
-    onAdd: handleOpenAdd,
+  const rowIndexPlugin = useTableRowIndex<RequirementRow>({
+    data: requirements as RequirementRow[],
+    getRowKey: (item) => String(item.requirement_id),
   });
 
   const stickyColumns = useTableStickyColumns<RequirementRow>({
@@ -80,9 +79,9 @@ export function RequirementTable() {
         hasHover
         textOverflow="truncate"
         columns={columns}
-        data={dataWithFooters}
+        data={requirements as RequirementRow[]}
         idKey={(item) => String(item.requirement_id)}
-        plugins={{ footer: footerPlugin, rowIndex: rowIndexPlugin, stickyColumns }}
+        plugins={{ rowIndex: rowIndexPlugin, stickyColumns }}
         emptyState={<EmptyState isCompact title="Belum ada rencana kebutuhan (BOM)" />}
       />
       <AlertDialog
