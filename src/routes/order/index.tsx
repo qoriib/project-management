@@ -20,7 +20,6 @@ function POListPage() {
     navigate({ to: `/order/${id}/edit` });
   }
 
-  // Ctrl+N — mirrors the "Buat Baru" button guard.
   useKeyboardShortcut({
     key: "n",
     ctrl: true,

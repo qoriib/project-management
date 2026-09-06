@@ -7,7 +7,6 @@ import {
   BORDER_ACCOUNTING_TOTAL,
   BORDER_ALL_LIGHT,
   BORDER_ALL_THIN,
-  BORDER_KOP_SEPARATOR,
   EXCEL_ROW_HEIGHT,
   FILL_TABLE_HEADER,
   FILL_TOTAL_ROW,
@@ -30,7 +29,7 @@ interface FormalKopOptions {
   title: string;
   subtitle: string;
   endCol: string;
-  endColIdx: number;
+  endColIdx?: number;
   startCol?: string;
   startColIdx?: number;
 }
@@ -41,9 +40,7 @@ interface FormalKopOptions {
  */
 export function createFormalKop(worksheet: ExcelJS.Worksheet, options: FormalKopOptions): void {
   const startColumn = options.startCol ?? "A";
-  const startColumnIndex = options.startColIdx ?? 1;
   const endColumn = options.endCol;
-  const endColumnIndex = options.endColIdx;
 
   // Baris 1: Judul Laporan
   worksheet.mergeCells(`${startColumn}1:${endColumn}1`);
@@ -60,12 +57,6 @@ export function createFormalKop(worksheet: ExcelJS.Worksheet, options: FormalKop
   subtitleCell.font = FONT_KOP_SUBTITLE;
   subtitleCell.alignment = ALIGN_CENTER;
   worksheet.getRow(2).height = EXCEL_ROW_HEIGHT.kopSubtitle;
-
-  // Border garis pemisah bawah pada Baris 2
-  for (let columnIndex = startColumnIndex; columnIndex <= endColumnIndex; columnIndex++) {
-    const separatorCell = worksheet.getRow(2).getCell(columnIndex);
-    separatorCell.border = BORDER_KOP_SEPARATOR;
-  }
 
   // Baris 3: Spacer kosong
   worksheet.getRow(3).height = EXCEL_ROW_HEIGHT.kopSpacer;

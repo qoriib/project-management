@@ -16,7 +16,6 @@ function ReceiptPage() {
     navigate({ to: "/receipt/new" });
   }, [navigate]);
 
-  // Ctrl+N — mirrors the "Buat Baru" button guard.
   useKeyboardShortcut({
     key: "n",
     ctrl: true,

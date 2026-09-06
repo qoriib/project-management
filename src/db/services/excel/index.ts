@@ -44,7 +44,7 @@ export async function generateReportExcel(
 
   const formattedPeriod = formatPeriod(startDate, endDate);
 
-  // 1. Sheet: Pemenuhan (BOM vs PO Realization)
+  // 1. Sheet: Laporan Pemenuhan
   createFulfillmentSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
@@ -52,7 +52,7 @@ export async function generateReportExcel(
     data: fulfillmentData,
   });
 
-  // 2. Sheet: Rincian Kebutuhan (BOM)
+  // 2. Sheet: Laporan Kebutuhan (BOM)
   createRequirementSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
@@ -60,7 +60,7 @@ export async function generateReportExcel(
     requirementData,
   });
 
-  // 3. Sheet: Rincian Pesanan (PO)
+  // 3. Sheet: Laporan Pesanan (PO)
   createOrderSheet(workbook, {
     project_name: projectName,
     company_name: companyName,
@@ -68,7 +68,7 @@ export async function generateReportExcel(
     orderData,
   });
 
-  // 4. Sheet: Rincian Penerimaan (NP)
+  // 4. Sheet: Laporan Penerimaan (NP)
   createReceiptSheet(workbook, {
     project_name: projectName,
     company_name: companyName,

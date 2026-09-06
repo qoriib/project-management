@@ -90,7 +90,7 @@ export function createRequirementSheet(workbook: ExcelJS.Workbook, context: Requ
     startCol: "A",
     startColIdx: 1,
     subtitle: `${project_name} | ${company_name} | ${period}`,
-    title: "RINCIAN KEBUTUHAN",
+    title: "LAPORAN KEBUTUHAN",
   });
 
   renderTableHeaderRow(worksheet, COLUMNS, 4);

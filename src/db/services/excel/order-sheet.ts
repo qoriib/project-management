@@ -1,7 +1,7 @@
 import { DEFAULT_SHEET_VIEW, EXCEL_COL_WIDTH, EXCEL_NUM_FMT } from "./styles";
 import { createFormalKop, renderTableHeaderRow, styleBodyRow, styleTotalRow, type SheetColumnConfig } from "./utils";
 import { formatItemCode, toISODate } from "@/utils/formatters";
-import { calcDPP, calcTax } from "@/utils/calc";
+import { calcLine } from "@/utils/calc";
 import type { OrderSheetContext } from "./types";
 import type * as ExcelJS from "exceljs";
 
@@ -109,7 +109,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     startCol: "A",
     startColIdx: 1,
     subtitle: `${project_name} | ${company_name} | ${period}`,
-    title: "RINCIAN PEMESANAN",
+    title: "LAPORAN PEMESANAN",
   });
 
   renderTableHeaderRow(worksheet, COLUMNS, 4);
@@ -123,9 +123,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     const rowNumber = index + 5;
     const row = worksheet.getRow(rowNumber);
 
-    const dpp = calcDPP(item.qty, item.price);
-    const taxAmount = calcTax(dpp, item.has_tax);
-    const totalPrice = dpp + taxAmount;
+    const { dpp, tax: taxAmount, total: totalPrice } = calcLine(item.qty, item.price, item.has_tax);
 
     totalOrderedQuantity += item.qty;
     totalDpp += dpp;

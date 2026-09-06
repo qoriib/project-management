@@ -6,14 +6,11 @@ import type * as ExcelJS from "exceljs";
 export const FORMAL_STYLE = {
   fontFamily: "Calibri",
   fontCellSize: 9,
-  kopAgencySize: 11,
   kopTitleSize: 12,
   kopSubtitleSize: 9,
   categoryHeaderSize: 10,
 
   // Header and Title Colors
-  primaryHeaderBg: "FF262626",
-  primaryHeaderText: "FFFFFFFF",
   secondaryHeaderBg: "FFE5E5E5",
   secondaryHeaderText: "FF000000",
 
@@ -25,11 +22,10 @@ export const FORMAL_STYLE = {
   totalRowBg: "FFF2F2F2",
   totalRowText: "FF000000",
 
-  // Data Row Colors
-  bodyRowBg: "FFFFFFFF",
-  unplannedRowBg: "FFFFE0B2", // Kontras amber/orange untuk item belanja di luar rencana (unplanned)
-  budgetOverBg: "FFFFCDD2", // Kontras soft red untuk item over budget
-  budgetUnderBg: "FFFFFFFF", // Default putih untuk under budget (efisiensi, tidak perlu dikhawatirkan)
+  // Data Cell Colors
+  bodyCellBg: "FFFFFFFF",
+  unplannedCellBg: "FFFFE0B2", // Kontras amber/orange untuk item belanja di luar rencana (unplanned)
+  budgetOverCellBg: "FFFFCDD2", // Kontras soft red untuk item over budget
 
   // Border Colors
   borderDark: "FF000000",
@@ -45,7 +41,6 @@ export const FORMAL_STYLE = {
  * Row Height Standards
  */
 export const EXCEL_ROW_HEIGHT = {
-  kopAgency: 20,
   kopTitle: 22,
   kopSubtitle: 18,
   kopSpacer: 10,
@@ -90,28 +85,24 @@ export const EXCEL_NUM_FMT = {
  * Reusable Border Definitions
  */
 export const BORDER_ALL_THIN: Partial<ExcelJS.Borders> = {
-  bottom: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
-  left: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
-  right: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
-  top: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
+  bottom: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  left: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  right: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  top: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
 };
 
 export const BORDER_ALL_LIGHT: Partial<ExcelJS.Borders> = {
-  bottom: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
-  left: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
-  right: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
-  top: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
+  bottom: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  left: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  right: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  top: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
 };
 
 export const BORDER_ACCOUNTING_TOTAL: Partial<ExcelJS.Borders> = {
-  bottom: { color: { argb: FORMAL_STYLE.borderMedium }, style: "double" },
-  left: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
-  right: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
-  top: { color: { argb: FORMAL_STYLE.borderMedium }, style: "thin" },
-};
-
-export const BORDER_KOP_SEPARATOR: Partial<ExcelJS.Borders> = {
-  bottom: { color: { argb: FORMAL_STYLE.borderDark }, style: "medium" },
+  bottom: { color: { argb: FORMAL_STYLE.borderDark }, style: "double" },
+  left: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  right: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
+  top: { color: { argb: FORMAL_STYLE.borderDark }, style: "thin" },
 };
 
 /**
@@ -149,13 +140,6 @@ export const FONT_CATEGORY_HEADER: Partial<ExcelJS.Font> = {
   size: FORMAL_STYLE.categoryHeaderSize,
 };
 
-export const FONT_KOP_AGENCY: Partial<ExcelJS.Font> = {
-  bold: true,
-  color: { argb: FORMAL_STYLE.textDark },
-  name: FORMAL_STYLE.fontFamily,
-  size: FORMAL_STYLE.kopAgencySize,
-};
-
 export const FONT_KOP_TITLE: Partial<ExcelJS.Font> = {
   bold: true,
   color: { argb: FORMAL_STYLE.textDark },
@@ -190,26 +174,20 @@ export const FILL_TOTAL_ROW: ExcelJS.Fill = {
   type: "pattern",
 };
 
-export const FILL_UNPLANNED_ROW: ExcelJS.Fill = {
-  fgColor: { argb: FORMAL_STYLE.unplannedRowBg },
+export const FILL_UNPLANNED_CELL: ExcelJS.Fill = {
+  fgColor: { argb: FORMAL_STYLE.unplannedCellBg },
   pattern: "solid",
   type: "pattern",
 };
 
-export const FILL_BUDGET_OVER: ExcelJS.Fill = {
-  fgColor: { argb: FORMAL_STYLE.budgetOverBg },
-  pattern: "solid",
-  type: "pattern",
-};
-
-export const FILL_BUDGET_UNDER: ExcelJS.Fill = {
-  fgColor: { argb: FORMAL_STYLE.budgetUnderBg },
+export const FILL_BUDGET_OVER_CELL: ExcelJS.Fill = {
+  fgColor: { argb: FORMAL_STYLE.budgetOverCellBg },
   pattern: "solid",
   type: "pattern",
 };
 
 export const FILL_WHITE: ExcelJS.Fill = {
-  fgColor: { argb: FORMAL_STYLE.bodyRowBg },
+  fgColor: { argb: FORMAL_STYLE.bodyCellBg },
   pattern: "solid",
   type: "pattern",
 };
@@ -260,34 +238,3 @@ export const FULFILLMENT_SHEET_VIEW: Partial<ExcelJS.WorksheetView> = {
   xSplit: 0,
   ySplit: 5,
 };
-
-/**
- * Budget Status Types and Helper Functions
- */
-export type BudgetStatus = "over" | "under" | "unplanned" | "normal";
-
-export function getBudgetStatusColor(status: BudgetStatus): string {
-  switch (status) {
-    case "over":
-      return FORMAL_STYLE.budgetOverBg;
-    case "unplanned":
-      return FORMAL_STYLE.unplannedRowBg;
-    case "under":
-    case "normal":
-    default:
-      return FORMAL_STYLE.bodyRowBg;
-  }
-}
-
-export function getBudgetStatusFill(status: BudgetStatus): ExcelJS.Fill {
-  switch (status) {
-    case "over":
-      return FILL_BUDGET_OVER;
-    case "unplanned":
-      return FILL_UNPLANNED_ROW;
-    case "under":
-    case "normal":
-    default:
-      return FILL_WHITE;
-  }
-}

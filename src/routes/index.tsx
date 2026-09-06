@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { HStack, IconButton, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -15,7 +15,12 @@ import { ReportSummaryTable } from "@/components/report/ReportSummaryTable";
 import { getTimestampString, sanitizeFilename } from "@/utils/formatters";
 import { useToast } from "@astryxdesign/core/Toast";
 import { type ISODateString } from "@astryxdesign/core/Calendar";
-import { type RequirementReportItem, getRequirementReport, generateReportExcel } from "@/db/services";
+import {
+  type RequirementReportItem,
+  getRequirementReport,
+  generateReportExcel,
+  generateFulfillmentVolumePdf,
+} from "@/db/services";
 import { useMasterStore } from "@/store/useMasterStore";
 
 function DashboardPage() {
@@ -28,6 +33,7 @@ function DashboardPage() {
   const [startDate, setStartDate] = useState<ISODateString | undefined>(undefined);
   const [endDate, setEndDate] = useState<ISODateString | undefined>(undefined);
   const [exporting, setExporting] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const handleExport = async () => {
     if (!selectedProjectId) return;
@@ -54,6 +60,34 @@ function DashboardPage() {
       showToast({ body: "Gagal mengekspor laporan Excel.", type: "error" });
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!selectedProjectId) return;
+    try {
+      setExportingPdf(true);
+      const timestamp = getTimestampString();
+      const project = useMasterStore.getState().projects.find((p) => p.project_id === selectedProjectId);
+      const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
+      const filename = `${timestamp}_Laporan_Pemenuhan_Volume_${projectName}.pdf`;
+
+      const filePath = await save({
+        filters: [{ name: "PDF Document", extensions: ["pdf"] }],
+        defaultPath: filename,
+        title: "Simpan Laporan PDF (Volume)",
+      });
+
+      if (filePath) {
+        const buffer = await generateFulfillmentVolumePdf(selectedProjectId, startDate, endDate);
+        await writeFile(filePath, buffer);
+        showToast({ body: "Laporan PDF berhasil diekspor!", type: "info" });
+      }
+    } catch (err) {
+      console.error("PDF export failed", err);
+      showToast({ body: "Gagal mengekspor laporan PDF.", type: "error" });
+    } finally {
+      setExportingPdf(false);
     }
   };
 
@@ -105,7 +139,14 @@ function DashboardPage() {
                         label="Export Excel"
                         icon={<Download />}
                         onClick={handleExport}
-                        isDisabled={exporting}
+                        isDisabled={exporting || exportingPdf}
+                      />
+                      <IconButton
+                        variant="secondary"
+                        label="Export PDF (Volume)"
+                        icon={<FileText />}
+                        onClick={handleExportPdf}
+                        isDisabled={exporting || exportingPdf}
                       />
                     </HStack>
                   ) : undefined

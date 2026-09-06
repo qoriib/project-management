@@ -86,7 +86,7 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
     startCol: "A",
     startColIdx: 1,
     subtitle: `${project_name} | ${company_name} | ${period}`,
-    title: "RINCIAN PENERIMAAN",
+    title: "LAPORAN PENERIMAAN",
   });
 
   renderTableHeaderRow(worksheet, COLUMNS, 4);

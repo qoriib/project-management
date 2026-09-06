@@ -22,3 +22,5 @@ export {
   type OrderSheetContext,
   type ReceiptSheetContext,
 } from "./excel";
+
+export { generateFulfillmentVolumePdf, createFulfillmentVolumePdf } from "./pdf";

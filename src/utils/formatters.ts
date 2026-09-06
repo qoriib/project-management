@@ -249,3 +249,75 @@ export function formatPeriod(startDate?: string, endDate?: string): string {
   if (endDate) return `Sampai ${endDate}`;
   return "Semua Periode";
 }
+
+/**
+ * Memformat kuantitas/volume barang dengan pemisah ribuan lokal Indonesia (`id-ID`).
+ * Mengembalikan "-" jika nilai kosong, tidak valid, atau bernilai 0.
+ *
+ * @param value - Nilai kuantitas
+ * @param decimals - Maksimum digit desimal (default: 2)
+ * @returns String angka terformat atau "-"
+ *
+ * @example
+ * ```ts
+ * formatQty(1500); // "1.500"
+ * formatQty(12.5, 2); // "12,5"
+ * formatQty(0); // "-"
+ * ```
+ */
+export function formatQty(value: number | null | undefined, decimals = 2): string {
+  if (value === null || value === undefined || value === 0 || isNaN(value)) {
+    return "-";
+  }
+  return formatNumber(value, decimals);
+}
+
+/**
+ * Memformat rasio desimal ke string persentase lokal Indonesia (koma desimal).
+ * Mengembalikan "-" jika nilai kosong, tidak valid, atau bernilai 0.
+ *
+ * @param value - Rasio desimal (e.g. 0.125 untuk 12.5%)
+ * @param decimals - Jumlah digit desimal (default: 1)
+ * @returns String persentase terformat (e.g. "12,5%") atau "-"
+ *
+ * @example
+ * ```ts
+ * formatPercentage(0.125); // "12,5%"
+ * formatPercentage(1.0); // "100,0%"
+ * formatPercentage(0); // "-"
+ * ```
+ */
+export function formatPercentage(value: number | null | undefined, decimals = 1): string {
+  if (value === null || value === undefined || value === 0 || isNaN(value)) {
+    return "-";
+  }
+  const percentage = value * 100;
+  return `${percentage.toFixed(decimals).replace(".", ",")}%`;
+}
+
+/**
+ * Memformat tanggal ISO string atau objek Date menjadi format standar lokal Indonesia `DD/MM/YYYY`.
+ *
+ * @param date - String tanggal ISO (e.g. "2026-09-06") atau objek Date
+ * @returns String tanggal terformat (e.g. "06/09/2026") atau "-" jika tidak valid
+ *
+ * @example
+ * ```ts
+ * formatDate("2026-09-06"); // "06/09/2026"
+ * formatDate(new Date(2026, 8, 6)); // "06/09/2026"
+ * formatDate(null); // "-"
+ * ```
+ */
+export function formatDate(date?: Date | string | null): string {
+  if (!date) return "-";
+  try {
+    const d = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(d.getTime())) return typeof date === "string" ? date : "-";
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch {
+    return typeof date === "string" ? date : "-";
+  }
+}

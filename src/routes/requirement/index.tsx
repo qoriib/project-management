@@ -16,7 +16,6 @@ function BOMPage() {
     window.dispatchEvent(new CustomEvent("openRequirementCreate"));
   }, []);
 
-  // Ctrl+N — only active when a project is selected (requirement needs a project context).
   useKeyboardShortcut({
     key: "n",
     ctrl: true,

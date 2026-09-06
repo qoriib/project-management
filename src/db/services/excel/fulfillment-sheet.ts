@@ -1,5 +1,6 @@
 import type * as ExcelJS from "exceljs";
 import type { FulfillmentSheetContext } from "./types";
+import { calcRatio, calcVariance } from "@/utils/calc";
 import {
   ALIGN_CATEGORY_HEADER,
   ALIGN_CENTER,
@@ -8,19 +9,20 @@ import {
   ALIGN_RIGHT,
   BORDER_ACCOUNTING_TOTAL,
   BORDER_ALL_LIGHT,
-  type BudgetStatus,
   EXCEL_COL_WIDTH,
   EXCEL_NUM_FMT,
   EXCEL_ROW_HEIGHT,
+  FILL_BUDGET_OVER_CELL,
   FILL_SECONDARY_HEADER,
   FILL_TABLE_HEADER,
   FILL_TOTAL_ROW,
+  FILL_UNPLANNED_CELL,
+  FILL_WHITE,
   FONT_CATEGORY_HEADER,
   FONT_REGULAR,
   FONT_TABLE_HEADER,
   FONT_TOTAL_ROW,
   FULFILLMENT_SHEET_VIEW,
-  getBudgetStatusFill,
 } from "./styles";
 import { createFormalKop, type SheetColumnConfig } from "./utils";
 import { formatItemCode } from "@/utils/formatters";
@@ -145,7 +147,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     startCol: "A",
     startColIdx: 1,
     subtitle: `${project_name} | ${company_name} | ${period}`,
-    title: "RINCIAN PEMENUHAN",
+    title: "LAPORAN PEMENUHAN",
   });
 
   // 1. Render Grouped Header 2 Baris (Baris 4 & 5)
@@ -305,23 +307,11 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       const orderTax = item.total_order_tax || 0;
       const orderPrice = item.total_order_price || 0;
 
-      const variance = plannedBudget > 0 ? plannedBudget - orderPrice : -orderPrice;
-
-      // Logika status finansial baris (sama persis dengan useReportSummaryColumns):
-      // - unplanned: item belanja di luar BOM (kontras amber/orange)
-      // - over: nilai PO melebihi pagu BOM dan ada pemesanan (kontras red alert)
-      // - under: default normal putih (efisiensi anggaran, tidak perlu dikhawatirkan)
-      let budgetStatus: BudgetStatus = "normal";
-
-      if (item.is_unplanned) {
-        budgetStatus = "unplanned";
-      } else if (orderPrice > plannedBudget && orderedVolume > 0) {
-        budgetStatus = "over";
-      }
+      const variance = calcVariance(plannedBudget, orderPrice);
 
       const deliveredVolume = item.total_delivered || 0;
       const remainingVolume = orderedVolume - deliveredVolume;
-      const deliveryPercentage = orderedVolume > 0 ? deliveredVolume / orderedVolume : 0;
+      const deliveryPercentage = calcRatio(deliveredVolume, orderedVolume);
 
       totalPlannedVolume += plannedVolume;
       totalPlannedDpp += plannedDpp;
@@ -378,12 +368,60 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       ];
       itemNumber += 1;
 
-      const rowFill = getBudgetStatusFill(budgetStatus);
+      // Evaluasi status over per-cell (seperti pada useReportSummaryColumns aplikasi)
+      const isPriceOver = !item.is_unplanned && poPrice > plannedPrice && orderedVolume > 0;
+      const isVolumeOver = !item.is_unplanned && orderedVolume > plannedVolume && plannedVolume > 0;
+      const isDppOver = !item.is_unplanned && orderDpp > plannedDpp && plannedDpp > 0;
+      const isTaxOver = !item.is_unplanned && orderTax > plannedTax && plannedTax > 0;
+      const isTotalOver = !item.is_unplanned && orderPrice > plannedBudget && plannedBudget > 0;
+      const isVarianceOver = !item.is_unplanned && variance < 0;
+      const isDeliveredOver =
+        (orderedVolume > 0 && deliveredVolume > orderedVolume) ||
+        (plannedVolume > 0 && deliveredVolume > plannedVolume);
+      const isDeliveryPctOver = deliveryPercentage > 1.0;
 
       row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
         cell.border = BORDER_ALL_LIGHT;
         cell.font = FONT_REGULAR;
-        cell.fill = rowFill;
+
+        // Pewarnaan per-sel (bukan row): hanya sel yang berlebih atau belanja di luar rencana
+        let cellFill = FILL_WHITE;
+
+        if (item.is_unplanned) {
+          // Kolom Pemesanan (11-15) dan Penerimaan (17, 19) pada item di luar rencana
+          if (
+            columnNumber === 11 ||
+            columnNumber === 12 ||
+            columnNumber === 13 ||
+            columnNumber === 14 ||
+            columnNumber === 15 ||
+            columnNumber === 17 ||
+            columnNumber === 19
+          ) {
+            cellFill = FILL_UNPLANNED_CELL;
+          }
+        } else {
+          // Sel over budget / over kuantitas
+          if (columnNumber === 11 && isPriceOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 12 && isVolumeOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 13 && isDppOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 14 && isTaxOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 15 && isTotalOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 16 && isVarianceOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 17 && isDeliveredOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 19 && isDeliveryPctOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          }
+        }
+
+        cell.fill = cellFill;
 
         const isCenterAligned = columnNumber === 1 || columnNumber === 2 || columnNumber === 4 || columnNumber === 5;
 
@@ -431,7 +469,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
   const totalRow = worksheet.getRow(totalRowIndex);
 
   const remainingVolumeTotal = totalOrderedVolume - totalDeliveredVolume;
-  const overallDeliveryPercentage = totalOrderedVolume > 0 ? totalDeliveredVolume / totalOrderedVolume : "-";
+  const overallDeliveryPercentage = calcRatio(totalDeliveredVolume, totalOrderedVolume) || "-";
 
   totalRow.values = [
     "",

@@ -170,32 +170,38 @@ export function calcGrandTotal(
   return grand;
 }
 
-// ─────────────────────────────────────────────────────────
-// Konversi has_tax (SQLite ↔ TypeScript)
-// ─────────────────────────────────────────────────────────
-
 /**
- * Mengkonversi nilai boolean `has_tax` menjadi integer SQLite (0 / 1).
- * Gunakan ini HANYA di repository / seed layer saat menulis ke database.
+ * Menghitung selisih varians biaya anggaran (anggaran - realisasi).
+ * Nilai positif menandakan surplus/hemat, negatif menandakan defisit/over-budget.
  *
- * @param hasTax - Nilai boolean
- * @returns `1` jika true, `0` jika false
+ * @param plannedBudget - Nilai pagu anggaran yang direncanakan
+ * @param actualCost    - Nilai realisasi biaya pesanan
+ * @returns Nilai varians (anggaran - realisasi)
  *
- * @example hasTaxToInt(true) // 1
+ * @example
+ * ```ts
+ * calcVariance(100000, 80000)  // 20000 (surplus)
+ * calcVariance(100000, 120000) // -20000 (defisit/over)
+ * ```
  */
-export function hasTaxToInt(hasTax: boolean | null | undefined): 0 | 1 {
-  return hasTax ? 1 : 0;
+export function calcVariance(plannedBudget: number | null | undefined, actualCost: number | null | undefined): number {
+  return (plannedBudget ?? 0) - (actualCost ?? 0);
 }
 
 /**
- * Mengkonversi nilai integer SQLite (0 / 1) menjadi boolean TypeScript.
- * Gunakan ini HANYA di repository layer saat membaca dari database.
+ * Menghitung rasio pemenuhan atau persentase realisasi.
  *
- * @param value - Nilai dari kolom SQLite
- * @returns `true` jika value truthy, `false` selainnya
+ * @param actual  - Nilai realisasi aktual (volume atau biaya)
+ * @param planned - Nilai rencana / pagu pembanding
+ * @returns Nilai rasio desimal (0 jika planned kosong/nol)
  *
- * @example hasTaxFromDb(1) // true
+ * @example
+ * ```ts
+ * calcRatio(50, 100) // 0.5 (50%)
+ * calcRatio(10, 0)   // 0
+ * ```
  */
-export function hasTaxFromDb(value: number | boolean | null | undefined): boolean {
-  return Boolean(value);
+export function calcRatio(actual: number | null | undefined, planned: number | null | undefined): number {
+  if (!planned || planned <= 0) return 0;
+  return (actual ?? 0) / planned;
 }
