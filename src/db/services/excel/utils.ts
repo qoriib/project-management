@@ -84,6 +84,7 @@ export function renderTableHeaderRow(worksheet: ExcelJS.Worksheet, columns: Shee
  * Applies standard body row cell styling (border, font, alignment, numFmt) driven by COLUMNS config.
  */
 export function styleBodyRow(row: ExcelJS.Row, columns: SheetColumnConfig[], backgroundFill?: ExcelJS.Fill): void {
+  row.height = EXCEL_ROW_HEIGHT.bodyRow;
   row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
     const columnConfig = columns[columnNumber - 1];
 
@@ -113,6 +114,7 @@ export function styleBodyRow(row: ExcelJS.Row, columns: SheetColumnConfig[], bac
  * Col 2 is always center-aligned (merged label cell convention).
  */
 export function styleTotalRow(row: ExcelJS.Row, columns: SheetColumnConfig[]): void {
+  row.height = EXCEL_ROW_HEIGHT.bodyRow;
   row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
     const columnConfig = columns[columnNumber - 1];
 

@@ -38,15 +38,19 @@ export const FORMAL_STYLE = {
 };
 
 /**
- * Row Height Standards
+ * Standar Tinggi Baris Excel
+ * Tinggi row header tabel diselaraskan sama dengan body row untuk kerapian dan proporsi yang seragam.
  */
+const BODY_ROW_HEIGHT = 18;
+
 export const EXCEL_ROW_HEIGHT = {
   kopTitle: 22,
   kopSubtitle: 18,
   kopSpacer: 10,
-  tableHeader: 26,
-  tableHeaderGroup: 24,
-  categoryHeader: 22,
+  bodyRow: BODY_ROW_HEIGHT,
+  tableHeader: BODY_ROW_HEIGHT,
+  tableHeaderGroup: BODY_ROW_HEIGHT,
+  categoryHeader: BODY_ROW_HEIGHT,
 };
 
 /**

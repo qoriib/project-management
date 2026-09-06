@@ -291,6 +291,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       currentRowIndex += 1;
 
       const row = worksheet.getRow(rowNumber);
+      row.height = EXCEL_ROW_HEIGHT.bodyRow;
 
       // Perhitungan unit price persis seperti pada tabel report aplikasi (useReportSummaryColumns.tsx)
       const plannedPrice = item.planned_volume > 0 ? item.planned_dpp / item.planned_volume : (item.price ?? 0);
@@ -467,6 +468,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
   currentRowIndex += 1;
 
   const totalRow = worksheet.getRow(totalRowIndex);
+  totalRow.height = EXCEL_ROW_HEIGHT.bodyRow;
 
   const remainingVolumeTotal = totalOrderedVolume - totalDeliveredVolume;
   const overallDeliveryPercentage = calcRatio(totalDeliveredVolume, totalOrderedVolume) || "-";
