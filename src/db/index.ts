@@ -16,10 +16,31 @@ let dbInstance: Database | null = null;
 async function getTauriDb(): Promise<DatabaseLike> {
   if (!dbInstance) {
     dbInstance = await Database.load(DB_SQLITE_URL);
-    // Enable WAL journal mode: allows concurrent readers + one writer without locking.
-    // Set busy_timeout: SQLite retries for up to 5s before throwing "database is locked".
+
+    // WAL (Write-Ahead Log): allows concurrent readers + one writer without
+    // blocking each other. Required for Tauri's connection pool.
     await dbInstance.execute("PRAGMA journal_mode = WAL;");
+
+    // How long SQLite retries before throwing "database is locked" (ms).
     await dbInstance.execute("PRAGMA busy_timeout = 5000;");
+
+    // NORMAL: fsync only at WAL checkpoints, not every write.
+    // Faster than FULL with negligible durability risk on desktop.
+    await dbInstance.execute("PRAGMA synchronous = NORMAL;");
+
+    // Page cache size in pages (negative = KiB). -32768 = 32 MiB.
+    // Reduces disk I/O for repeated reads of the same pages.
+    await dbInstance.execute("PRAGMA cache_size = -32768;");
+
+    // Store temp tables in memory instead of disk.
+    await dbInstance.execute("PRAGMA temp_store = MEMORY;");
+
+    // Memory-mapped I/O: let the OS map up to 256 MiB of the DB file.
+    // Speeds up large sequential reads.
+    await dbInstance.execute("PRAGMA mmap_size = 268435456;");
+
+    // Enforce FK constraints (SQLite disables them by default).
+    await dbInstance.execute("PRAGMA foreign_keys = ON;");
   }
 
   return {

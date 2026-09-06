@@ -117,12 +117,53 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
   }
 
   /**
-   * Create an Order with its items in a single atomic transaction.
+   * Create an Order with its items.
    */
   async createWithItems(order: CreateOrder, items: Omit<OrderItemInput, "order_item_id">[]): Promise<string> {
-    return this.transaction(async () => {
-      const orderId = await this.create(order);
-      const rows = items.map((item) => [
+    const orderId = await this.create(order);
+    const rows = items.map((item) => [
+      this.generateId(),
+      orderId,
+      item.item_id ?? null,
+      item.vendor_id ?? null,
+      item.item_price_id,
+      item.qty,
+      item.has_tax ? 1 : 0,
+    ]);
+
+    await this.bulkInsert(
+      "order_items",
+      ["order_item_id", "order_id", "item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
+      rows,
+    );
+
+    return orderId;
+  }
+
+  /**
+   * Update an Order and synchronize its items (upsert + delete diff).
+   */
+  async updateWithItems(orderId: string, order: UpdateOrder, items: OrderItemInput[]): Promise<void> {
+    await this.update(orderId, order);
+
+    const existingRows = await orderItemRepo
+      .query()
+      .select("order_item_id")
+      .where("order_id", "=", orderId)
+      .getMany<{ order_item_id: string }>();
+
+    const newItemIds = new Set(items.map((item) => item.order_item_id).filter(Boolean));
+    const idsToDelete = existingRows.map((existing) => existing.order_item_id).filter((id) => !newItemIds.has(id));
+
+    if (idsToDelete.length > 0) {
+      await orderItemRepo.deleteByIds(idsToDelete, false);
+    }
+
+    const newItems = items.filter((item) => !item.order_item_id);
+    const existingItems = items.filter((item) => item.order_item_id);
+
+    if (newItems.length > 0) {
+      const rows = newItems.map((item) => [
         this.generateId(),
         orderId,
         item.item_id ?? null,
@@ -131,67 +172,22 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
         item.qty,
         item.has_tax ? 1 : 0,
       ]);
-
       await this.bulkInsert(
         "order_items",
         ["order_item_id", "order_id", "item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
         rows,
       );
+    }
 
-      return orderId;
-    });
-  }
-
-  /**
-   * Update an Order and synchronize its items (upsert + delete diff).
-   */
-  async updateWithItems(orderId: string, order: UpdateOrder, items: OrderItemInput[]): Promise<void> {
-    return this.transaction(async () => {
-      await this.update(orderId, order);
-
-      const existingRows = await orderItemRepo
-        .query()
-        .select("order_item_id")
-        .where("order_id", "=", orderId)
-        .getMany<{ order_item_id: string }>();
-
-      const newItemIds = new Set(items.map((item) => item.order_item_id).filter(Boolean));
-      const idsToDelete = existingRows.map((existing) => existing.order_item_id).filter((id) => !newItemIds.has(id));
-
-      if (idsToDelete.length > 0) {
-        await orderItemRepo.deleteByIds(idsToDelete, false);
-      }
-
-      const newItems = items.filter((item) => !item.order_item_id);
-      const existingItems = items.filter((item) => item.order_item_id);
-
-      if (newItems.length > 0) {
-        const rows = newItems.map((item) => [
-          this.generateId(),
-          orderId,
-          item.item_id ?? null,
-          item.vendor_id ?? null,
-          item.item_price_id,
-          item.qty,
-          item.has_tax ? 1 : 0,
-        ]);
-        await this.bulkInsert(
-          "order_items",
-          ["order_item_id", "order_id", "item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
-          rows,
-        );
-      }
-
-      for (const item of existingItems) {
-        await orderItemRepo.update(item.order_item_id!, {
-          has_tax: item.has_tax,
-          item_id: item.item_id ?? undefined,
-          item_price_id: item.item_price_id,
-          qty: item.qty,
-          vendor_id: item.vendor_id ?? undefined,
-        });
-      }
-    });
+    for (const item of existingItems) {
+      await orderItemRepo.update(item.order_item_id!, {
+        has_tax: item.has_tax,
+        item_id: item.item_id ?? undefined,
+        item_price_id: item.item_price_id,
+        qty: item.qty,
+        vendor_id: item.vendor_id ?? undefined,
+      });
+    }
   }
 
   /**

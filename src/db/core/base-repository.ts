@@ -166,34 +166,32 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   }
 
   /**
-   * Insert multiple records in batch with generated UUIDs inside an atomic transaction.
+   * Insert multiple records in batch with generated UUIDs.
    * Returns an array of generated primary keys.
    */
   async createMany(dataList: TCreate[]): Promise<string[]> {
     if (dataList.length === 0) return [];
 
-    return this.transaction(async () => {
-      const columns: string[] = [this.model.primaryKey, ...this.model.createColumns];
-      const ids: string[] = [];
-      const rows: unknown[][] = [];
+    const columns: string[] = [this.model.primaryKey, ...this.model.createColumns];
+    const ids: string[] = [];
+    const rows: unknown[][] = [];
 
-      for (const data of dataList) {
-        const id = this.generateId();
-        ids.push(id);
-        const row: unknown[] = [id];
-        for (const col of this.model.createColumns) {
-          let val = (data as Record<string, unknown>)[col];
-          if (typeof val === "boolean") {
-            val = val ? 1 : 0;
-          }
-          row.push(val ?? null);
+    for (const data of dataList) {
+      const id = this.generateId();
+      ids.push(id);
+      const row: unknown[] = [id];
+      for (const col of this.model.createColumns) {
+        let val = (data as Record<string, unknown>)[col];
+        if (typeof val === "boolean") {
+          val = val ? 1 : 0;
         }
-        rows.push(row);
+        row.push(val ?? null);
       }
+      rows.push(row);
+    }
 
-      await this.bulkInsert(this.model.tableName, columns, rows);
-      return ids;
-    });
+    await this.bulkInsert(this.model.tableName, columns, rows);
+    return ids;
   }
 
   /**
@@ -332,35 +330,7 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
     }
   }
 
-  /**
-   * Execute operations within a database transaction using BEGIN/COMMIT/ROLLBACK.
-   * Automatically commits on success and rolls back on failure.
-   *
-   * Note: Does NOT support nesting. Avoid calling transaction() inside another
-   * transaction() — execute raw SQL directly instead to stay on the same connection.
-   */
-  public async transaction<T>(operation: () => Promise<T>): Promise<T> {
-    const db = await this.db();
-    dbLog.debug(`[${this.model.tableName}] Transaction START`);
 
-    try {
-      await db.execute("BEGIN");
-      const result = await operation();
-      await db.execute("COMMIT");
-      dbLog.debug(`[${this.model.tableName}] Transaction COMMIT`);
-      return result;
-    } catch (error) {
-      dbLog.error(
-        `[${this.model.tableName}] Transaction ROLLBACK: ${(error as Error)?.message ?? String(error)}`,
-      );
-      try {
-        await db.execute("ROLLBACK");
-      } catch {
-        // Ignore secondary rollback errors
-      }
-      throw wrapDbError(error, this.model.tableName);
-    }
-  }
 
   /**
    * Create a new QueryBuilder pre-configured for this model's table.

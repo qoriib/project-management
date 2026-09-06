@@ -217,7 +217,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
                       name="has_tax"
                       children={(field) => (
                         <Switch
-                          label={`Termasuk PPn (${TAX_RATIO_PERCENT}%)`}
+                          label={`Terkena PPn (${TAX_RATIO_PERCENT}%)`}
                           value={Boolean(field.state.value)}
                           onChange={(checked) => field.handleChange(checked)}
                         />

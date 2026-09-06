@@ -104,45 +104,53 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
   }
 
   /**
-   * Create a receipt with its items in a single transaction.
+   * Create a receipt with its items.
    */
   async createWithItems(
     header: { order_id: string; receipt_date: string; receipt_code: string },
     items: ReceiptItemInput[],
   ): Promise<void> {
-    return this.transaction(async () => {
-      const receiptId = await this.create({
-        receipt_code: header.receipt_code,
-        receipt_date: header.receipt_date,
-        order_id: header.order_id,
-      });
-
-      const validItems = items.filter((item) => item.qty > 0);
-      if (validItems.length > 0) {
-        const rows = validItems.map((item) => [this.generateId(), receiptId, item.order_item_id, item.qty]);
-        await this.bulkInsert("receipt_items", ["receipt_item_id", "receipt_id", "order_item_id", "qty"], rows);
-      }
+    const receiptId = await this.create({
+      receipt_code: header.receipt_code,
+      receipt_date: header.receipt_date,
+      order_id: header.order_id,
     });
+
+    const validItems = items.filter((item) => item.qty > 0);
+    if (validItems.length > 0) {
+      const rows = validItems.map((item) => [this.generateId(), receiptId, item.order_item_id, item.qty]);
+      await this.bulkInsert("receipt_items", ["receipt_item_id", "receipt_id", "order_item_id", "qty"], rows);
+    }
   }
 
   /**
    * Update a receipt and replace its items.
+   * Uses raw DELETE directly (no cross-repo call) to avoid inter-repo coupling.
    */
   async updateWithItems(
     receiptId: string,
     header: { receipt_date: string; receipt_code: string },
     items: ReceiptItemInput[],
   ): Promise<void> {
-    return this.transaction(async () => {
-      await this.update(receiptId, header);
-      await receiptItemRepo.deleteByReceipt(receiptId);
+    await this.update(receiptId, header);
 
-      const validItems = items.filter((item) => item.qty > 0);
-      if (validItems.length > 0) {
-        const rows = validItems.map((item) => [this.generateId(), receiptId, item.order_item_id, item.qty]);
-        await this.bulkInsert("receipt_items", ["receipt_item_id", "receipt_id", "order_item_id", "qty"], rows);
-      }
-    });
+    const db = await this.db();
+    await db.execute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [receiptId]);
+
+    const validItems = items.filter((item) => item.qty > 0);
+    if (validItems.length > 0) {
+      const rows = validItems.map((item) => [this.generateId(), receiptId, item.order_item_id, item.qty]);
+      await this.bulkInsert("receipt_items", ["receipt_item_id", "receipt_id", "order_item_id", "qty"], rows);
+    }
+  }
+
+  /**
+   * Soft-delete a receipt and hard-delete its receipt_items to prevent orphaned rows.
+   */
+  override async delete(id: string): Promise<void> {
+    const db = await this.db();
+    await db.execute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [id]);
+    await super.delete(id);
   }
 }
 
