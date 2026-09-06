@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { HStack } from "@astryxdesign/core";
+import { InputGroup, InputGroupText } from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { type ISODateString } from "@astryxdesign/core/Calendar";
 
@@ -16,7 +16,7 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
   });
 
   return (
-    <HStack gap={2} wrap="wrap">
+    <InputGroup label="Rentang Tanggal" isLabelHidden>
       <form.Field name="startDate">
         {(field) => (
           <DateInput
@@ -26,6 +26,7 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
             placeholder="Dari Tanggal"
             format="system_date"
             statusVariant="tooltip"
+            width={160}
             value={field.state.value as DateInputProps["value"]}
             onChange={(v) => {
               field.handleChange(v as ISODateString | undefined);
@@ -34,6 +35,7 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
           />
         )}
       </form.Field>
+      <InputGroupText>s/d</InputGroupText>
       <form.Field name="endDate">
         {(field) => (
           <DateInput
@@ -43,6 +45,7 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
             placeholder="Sampai Tanggal"
             format="system_date"
             statusVariant="tooltip"
+            width={160}
             min={form.getFieldValue("startDate") as ISODateString | undefined}
             value={field.state.value as DateInputProps["value"]}
             onChange={(v) => {
@@ -52,6 +55,6 @@ export function ReportFilterForm({ startDate, endDate, onFilterChange }: ReportF
           />
         )}
       </form.Field>
-    </HStack>
+    </InputGroup>
   );
 }
