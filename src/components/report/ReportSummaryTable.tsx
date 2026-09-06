@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { EmptyState, HStack, Table, Text } from "@astryxdesign/core";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { useTableGroupedRows } from "@astryxdesign/core/Table";
+import { useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
 import type { RequirementReportItem } from "@/db/services";
 import { type EnrichedReportItem, useReportSummaryColumns } from "./table/useReportSummaryColumns";
 
@@ -70,6 +70,10 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
     getRowKey: (item: EnrichedReportItem) => item.unique_id,
   });
 
+  const stickyColumns = useTableStickyColumns<EnrichedReportItem>({
+    startKeys: ["item"],
+  });
+
   const columns = useReportSummaryColumns({ onLogClick });
 
   if (report.length === 0 && !loading) {
@@ -83,7 +87,7 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
       columns={columns}
       data={groupedData}
       idKey={groupedIdKey}
-      plugins={{ grouping: groupedPlugin, rowIndex: rowIndexPlugin }}
+      plugins={{ grouping: groupedPlugin, rowIndex: rowIndexPlugin, stickyColumns }}
       emptyState={<EmptyState isCompact title="Belum ada laporan kebutuhan (BOM)" />}
     />
   );

@@ -4,7 +4,7 @@ import { Eye } from "lucide-react";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { ReportComparisonCell } from "@/components/shared/ReportComparisonCell";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel } from "@astryxdesign/core/Table";
 import type { RequirementReportItem } from "@/db/services";
 
 export interface EnrichedReportItem extends RequirementReportItem, Record<string, unknown> {
@@ -20,7 +20,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
     {
       header: "Item",
       key: "item",
-      width: proportional(1, { minWidth: 280 }),
+      width: pixel(280),
       renderCell: (r) => {
         const code = formatItemCode(r);
         return (

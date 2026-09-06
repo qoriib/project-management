@@ -2,94 +2,27 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { HStack, IconButton, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
-import { Download, FileText } from "lucide-react";
-import { save } from "@tauri-apps/plugin-dialog";
-import { writeFile } from "@tauri-apps/plugin-fs";
+import { Download } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ReportFilterForm } from "@/components/report/ReportFilterForm";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { useAppStore } from "@/store/useAppStore";
 import { ReportItemLogDialog } from "@/components/report/ReportItemLogDialog";
+import { ReportDownloadDialog } from "@/components/report/ReportDownloadDialog";
 import { ReportSummaryCards } from "@/components/report/ReportSummaryCards";
 import { ReportSummaryTable } from "@/components/report/ReportSummaryTable";
-import { getTimestampString, sanitizeFilename } from "@/utils/formatters";
-import { useToast } from "@astryxdesign/core/Toast";
 import { type ISODateString } from "@astryxdesign/core/Calendar";
-import {
-  type RequirementReportItem,
-  getRequirementReport,
-  generateReportExcel,
-  generateFulfillmentVolumePdf,
-} from "@/db/services";
-import { useMasterStore } from "@/store/useMasterStore";
+import { type RequirementReportItem, getRequirementReport } from "@/db/services";
 
 function DashboardPage() {
-  const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const [report, setReport] = useState<RequirementReportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<RequirementReportItem | null>(null);
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState<ISODateString | undefined>(undefined);
   const [endDate, setEndDate] = useState<ISODateString | undefined>(undefined);
-  const [exporting, setExporting] = useState(false);
-  const [exportingPdf, setExportingPdf] = useState(false);
-
-  const handleExport = async () => {
-    if (!selectedProjectId) return;
-    try {
-      setExporting(true);
-      const timestamp = getTimestampString();
-      const project = useMasterStore.getState().projects.find((p) => p.project_id === selectedProjectId);
-      const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
-      const filename = `${timestamp}_${projectName}.xlsx`;
-
-      const filePath = await save({
-        filters: [{ name: "Excel", extensions: ["xlsx"] }],
-        defaultPath: filename,
-        title: "Simpan Laporan Excel",
-      });
-
-      if (filePath) {
-        const buffer = await generateReportExcel(selectedProjectId, startDate, endDate);
-        await writeFile(filePath, buffer);
-        showToast({ body: "Laporan Excel berhasil diekspor!", type: "info" });
-      }
-    } catch (err) {
-      console.error("Export failed", err);
-      showToast({ body: "Gagal mengekspor laporan Excel.", type: "error" });
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const handleExportPdf = async () => {
-    if (!selectedProjectId) return;
-    try {
-      setExportingPdf(true);
-      const timestamp = getTimestampString();
-      const project = useMasterStore.getState().projects.find((p) => p.project_id === selectedProjectId);
-      const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
-      const filename = `${timestamp}_Laporan_Pemenuhan_Volume_${projectName}.pdf`;
-
-      const filePath = await save({
-        filters: [{ name: "PDF Document", extensions: ["pdf"] }],
-        defaultPath: filename,
-        title: "Simpan Laporan PDF (Volume)",
-      });
-
-      if (filePath) {
-        const buffer = await generateFulfillmentVolumePdf(selectedProjectId, startDate, endDate);
-        await writeFile(filePath, buffer);
-        showToast({ body: "Laporan PDF berhasil diekspor!", type: "info" });
-      }
-    } catch (err) {
-      console.error("PDF export failed", err);
-      showToast({ body: "Gagal mengekspor laporan PDF.", type: "error" });
-    } finally {
-      setExportingPdf(false);
-    }
-  };
 
   useEffect(() => {
     async function load() {
@@ -135,18 +68,10 @@ function DashboardPage() {
                         }}
                       />
                       <IconButton
+                        label="Unduh Laporan"
                         variant="secondary"
-                        label="Export Excel"
                         icon={<Download />}
-                        onClick={handleExport}
-                        isDisabled={exporting || exportingPdf}
-                      />
-                      <IconButton
-                        variant="secondary"
-                        label="Export PDF (Volume)"
-                        icon={<FileText />}
-                        onClick={handleExportPdf}
-                        isDisabled={exporting || exportingPdf}
+                        onClick={() => setDownloadDialogOpen(true)}
                       />
                     </HStack>
                   ) : undefined
@@ -166,6 +91,15 @@ function DashboardPage() {
           onClose={() => setSelectedItem(null)}
           projectId={selectedProjectId}
           item={selectedItem}
+        />
+      )}
+      {downloadDialogOpen && selectedProjectId && (
+        <ReportDownloadDialog
+          isOpen={true}
+          onClose={() => setDownloadDialogOpen(false)}
+          projectId={selectedProjectId}
+          startDate={startDate}
+          endDate={endDate}
         />
       )}
     </>
