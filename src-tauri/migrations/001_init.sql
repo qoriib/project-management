@@ -2,6 +2,11 @@
 -- Initialize core database schema with soft delete structure
 -- Primary keys use UUID v7 (TEXT), generated at application layer
 
+-- Enable WAL journal mode (persistent — stored in DB file header).
+-- Allows concurrent readers + one writer without blocking each other.
+-- Only needs to be set once; survives connection restarts.
+PRAGMA journal_mode = WAL;
+
 CREATE TABLE `projects` (
 	`project_id` text NOT NULL PRIMARY KEY,
 	`project_name` text NOT NULL,

@@ -17,9 +17,7 @@ async function getTauriDb(): Promise<DatabaseLike> {
   if (!dbInstance) {
     dbInstance = await Database.load(DB_SQLITE_URL);
 
-    // WAL (Write-Ahead Log): allows concurrent readers + one writer without
-    // blocking each other. Required for Tauri's connection pool.
-    await dbInstance.execute("PRAGMA journal_mode = WAL;");
+    // WAL journal_mode is set once in migration (001_init.sql) — persistent, no need to repeat here.
 
     // How long SQLite retries before throwing "database is locked" (ms).
     await dbInstance.execute("PRAGMA busy_timeout = 5000;");
