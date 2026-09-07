@@ -27,6 +27,7 @@ export function ReceiptTable() {
     try {
       await deleteReceipt(deletingId);
       setDeletingId(null);
+      showToast({ body: "Penerimaan berhasil dihapus", type: "info" });
     } catch (error: unknown) {
       handleFormError(error, showToast);
     } finally {

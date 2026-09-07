@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { EmptyState, Table } from "@astryxdesign/core";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
+import { useToast } from "@astryxdesign/core/Toast";
 import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { handleFormError } from "@/utils/form";
 import { type PORow, useOrderTableColumns } from "./table/useOrderTableColumns";
 
 interface OrderTableProps {
@@ -11,6 +13,7 @@ interface OrderTableProps {
 }
 
 export function OrderTable({ onEdit }: OrderTableProps) {
+  const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
   const [deletingId, setDeletingId] = useState<{ id: string; label: string } | null>(null);
@@ -32,6 +35,9 @@ export function OrderTable({ onEdit }: OrderTableProps) {
     try {
       await deleteOrder(deletingId.id);
       setDeletingId(null);
+      showToast({ body: "Pesanan berhasil dihapus", type: "info" });
+    } catch (error: unknown) {
+      handleFormError(error, showToast);
     } finally {
       setIsDeleting(false);
     }

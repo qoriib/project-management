@@ -1,18 +1,23 @@
+import { useNavigate } from "@tanstack/react-router";
 import { Button, Heading, HStack, Text, TextInput, VStack } from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { Selector } from "@astryxdesign/core/Selector";
-import { Banner } from "@astryxdesign/core/Banner";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
+import { useToast } from "@astryxdesign/core/Toast";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
+import { useReceiptStore } from "@/store/useReceiptStore";
 import { useReceiptForm } from "./form/useReceiptForm";
 import { ReceiptItemsTable } from "./ReceiptItemsTable";
-import { getFieldError } from "@/utils/form";
+import { getFieldError, handleFormError } from "@/utils/form";
 import type { ReceiptFormProps } from "./form/receipt.schema";
 
 export type { ReceiptFormProps };
 
 export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFormProps) {
-  const { form, orders, isEdit, handlePOChange } = useReceiptForm({ initialEditId, initialPoId, onSuccess });
+  const navigate = useNavigate();
+  const showToast = useToast();
+  const { updateReceiptHeader } = useReceiptStore();
+  const { form, orders, isEdit } = useReceiptForm({ initialEditId, initialPoId, onSuccess });
 
   const poOptions = orders.map((p) => ({ label: p.order_code ?? "-", value: String(p.order_id) }));
 
@@ -28,18 +33,19 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
                 {isEdit ? "Perbarui data penerimaan barang" : "Catat bukti penerimaan barang masuk"}
               </Text>
             </VStack>
-            <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting] as const}>
-              {([canSubmit, isSubmitting]) => (
-                <Button
-                  variant="primary"
-                  label={isEdit ? "Simpan Perubahan" : "Simpan Penerimaan"}
-                  type="button"
-                  onClick={() => form.handleSubmit()}
-                  isLoading={isSubmitting}
-                  isDisabled={!canSubmit}
-                />
-              )}
-            </form.Subscribe>
+            <Button
+              variant="secondary"
+              label="Kembali"
+              type="button"
+              onClick={() => {
+                const poId = form.getFieldValue("order_id");
+                if (poId) {
+                  navigate({ to: `/order/${poId}` });
+                } else {
+                  navigate({ to: "/receipt" });
+                }
+              }}
+            />
           </HStack>
         </LayoutHeader>
       }
@@ -55,7 +61,6 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
                       width={240}
                       label="Pilih Pesanan (PO)"
                       value={field.state.value}
-                      onChange={(v) => handlePOChange(v as string)}
                       onBlur={field.handleBlur}
                       hasSearch
                       searchPlaceholder="Cari nomor pesanan..."
@@ -75,7 +80,16 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
                       statusVariant="tooltip"
                       value={field.state.value}
                       onChange={(v) => field.handleChange(v)}
-                      onBlur={field.handleBlur}
+                      onBlur={async () => {
+                        field.handleBlur();
+                        if (initialEditId && field.state.value) {
+                          try {
+                            await updateReceiptHeader(initialEditId, { receipt_code: field.state.value });
+                          } catch (error: unknown) {
+                            handleFormError(error, showToast);
+                          }
+                        }
+                      }}
                       status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                     />
                   )}
@@ -89,24 +103,35 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
                       label="Tanggal Penerimaan"
                       statusVariant="tooltip"
                       value={field.state.value as DateInputProps["value"]}
-                      onChange={(v) => field.handleChange(v ?? "")}
-                      onBlur={field.handleBlur}
+                      onChange={async (v) => {
+                        const val = v ?? "";
+                        field.handleChange(val);
+                        if (initialEditId && val) {
+                          try {
+                            await updateReceiptHeader(initialEditId, { receipt_date: val });
+                          } catch (error: unknown) {
+                            handleFormError(error, showToast);
+                          }
+                        }
+                      }}
+                      onBlur={async () => {
+                        field.handleBlur();
+                        if (initialEditId && field.state.value) {
+                          try {
+                            await updateReceiptHeader(initialEditId, { receipt_date: field.state.value });
+                          } catch (error: unknown) {
+                            handleFormError(error, showToast);
+                          }
+                        }
+                      }}
                       status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                     />
                   )}
                 </form.Field>
               </HStack>
-              <form.Subscribe selector={(state) => [state.isSubmitted, state.values.items] as const}>
-                {([isSubmitted, items]) => (
-                  <VStack gap={3}>
-                    <form.Field name="items">
-                      {(field) => {
-                        const error = getFieldError(field.state.meta.errors, isSubmitted || field.state.meta.isTouched);
-                        return error ? <Banner status="error" title={error.message} /> : null;
-                      }}
-                    </form.Field>
-                    <ReceiptItemsTable items={items} form={form} />
-                  </VStack>
+              <form.Subscribe selector={(state) => [state.values.items, state.values.order_id] as const}>
+                {([items, orderId]) => (
+                  <ReceiptItemsTable items={items} form={form} receiptId={initialEditId} orderId={orderId} />
                 )}
               </form.Subscribe>
             </VStack>

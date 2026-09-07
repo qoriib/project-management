@@ -28,7 +28,7 @@ export function useOrderItemForm({ initialData, onSuccess, onSubmitItem }: Order
             has_tax: value.has_tax ? 1 : 0,
           };
 
-          onSubmitItem(payload);
+          await onSubmitItem(payload);
 
           if (!initialData) {
             form.reset();

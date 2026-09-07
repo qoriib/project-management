@@ -8,28 +8,38 @@ interface ReceiptStore {
 
   loadAllReceipts: (projectId?: string) => Promise<void>;
 
-  createReceipt: (
-    data: { order_id: string; receipt_date: string; receipt_code: string },
-    items: { order_item_id: string; qty: number }[],
-  ) => Promise<void>;
-  updateReceipt: (
-    id: string,
-    data: { order_id: string; receipt_date: string; receipt_code: string },
-    items: { order_item_id: string; qty: number }[],
-  ) => Promise<void>;
+  createEmptyReceipt: (data: { order_id: string; receipt_date: string; receipt_code: string }) => Promise<string>;
+  updateReceiptHeader: (id: string, data: { receipt_date?: string; receipt_code?: string }) => Promise<void>;
+  upsertReceiptItem: (receiptId: string, orderId: string, orderItemId: string, qty: number) => Promise<void>;
   deleteReceipt: (id: string) => Promise<void>;
 }
 
 export const useReceiptStore = create<ReceiptStore>((set, get) => ({
-  createReceipt: async (data, items) => {
-    await receiptRepo.createWithItems(data, items);
-    await get().loadAllReceipts();
-
-    // Sync Order Store
+  createEmptyReceipt: async (data) => {
+    const id = await receiptRepo.createEmpty(data);
+    await get().loadAllReceipts(useAppStore.getState().selectedProjectId || undefined);
     const orderStore = useOrderStore.getState();
     await orderStore.loadAllOrders(useAppStore.getState().selectedProjectId || undefined);
     if (orderStore.currentOrder?.order_id === data.order_id) {
       await orderStore.loadOrderDetail(data.order_id);
+    }
+    return id;
+  },
+
+  updateReceiptHeader: async (id, data) => {
+    await receiptRepo.update(id, data);
+    await get().loadAllReceipts(useAppStore.getState().selectedProjectId || undefined);
+  },
+
+  upsertReceiptItem: async (receiptId, orderId, orderItemId, qty) => {
+    await receiptRepo.upsertItem(receiptId, orderItemId, qty);
+    await get().loadAllReceipts(useAppStore.getState().selectedProjectId || undefined);
+
+    // Sync Order Store
+    const orderStore = useOrderStore.getState();
+    await orderStore.loadAllOrders(useAppStore.getState().selectedProjectId || undefined);
+    if (orderStore.currentOrder?.order_id === orderId) {
+      await orderStore.loadOrderDetail(orderId);
     }
   },
 
@@ -51,17 +61,5 @@ export const useReceiptStore = create<ReceiptStore>((set, get) => ({
   loadAllReceipts: async (projectId) => {
     const d = await receiptRepo.findAllWithSummary({ project_id: projectId });
     set({ receipts: d });
-  },
-
-  updateReceipt: async (id, data, items) => {
-    await receiptRepo.updateWithItems(id, data, items);
-    await get().loadAllReceipts();
-
-    // Sync Order Store
-    const orderStore = useOrderStore.getState();
-    await orderStore.loadAllOrders(useAppStore.getState().selectedProjectId || undefined);
-    if (orderStore.currentOrder?.order_id === data.order_id) {
-      await orderStore.loadOrderDetail(data.order_id);
-    }
   },
 }));

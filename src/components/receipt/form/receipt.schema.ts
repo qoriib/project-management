@@ -1,30 +1,11 @@
 import * as v from "valibot";
-import { parseDecimalInput, todayISO } from "@/utils/formatters";
-
-const itemRowSchema = v.object({
-  delivered: v.number(),
-  item_id: v.nullable(v.string()),
-  item_name: v.string(),
-  ordered: v.number(),
-  order_item_id: v.string(),
-  qty: v.pipe(
-    v.union([v.string(), v.number()]),
-    v.check((val) => parseDecimalInput(val) >= 0, "Volume tidak boleh negatif."),
-  ),
-  remaining: v.number(),
-  unit: v.string(),
-});
-
-function atLeastOneItemReceived(items: unknown): boolean {
-  const rows = items as { qty: string | number }[];
-  return rows.some((it) => parseDecimalInput(it.qty) > 0);
-}
+import { todayISO } from "@/utils/formatters";
 
 export const receiptSchema = v.object({
-  receipt_code: v.pipe(v.string(), v.nonEmpty("Kode Penerimaan harus diisi.")),
+  receipt_code: v.pipe(v.string(), v.nonEmpty("Nomor Penerimaan harus diisi.")),
   receipt_date: v.pipe(v.string(), v.nonEmpty("Tanggal Penerimaan harus diisi.")),
-  items: v.pipe(v.array(itemRowSchema), v.custom(atLeastOneItemReceived, "Minimal ada 1 item yang diterima.")),
-  order_id: v.pipe(v.string(), v.nonEmpty("Order harus dipilih.")),
+  order_id: v.string(),
+  items: v.array(v.any()),
 });
 
 /** Satu baris item receipt dalam form */

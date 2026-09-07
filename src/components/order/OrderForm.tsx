@@ -8,7 +8,6 @@ import { useTableStickyColumns } from "@astryxdesign/core/Table";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
-import { useMasterStore } from "@/store/useMasterStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { OrderItemDialog } from "@/components/order/OrderItemDialog";
@@ -19,7 +18,7 @@ import { calcGrandTotal } from "@/utils/calc";
 import { useKeyboardShortcut } from "@/utils/useKeyboardShortcut";
 import { type OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
 import type { OrderItemFormValues } from "@/components/order/form/orderItem.schema";
-import type { OrderItemDetail, OrderItemInput, OrderWithSummary } from "@/db/repositories";
+import type { OrderItemDetail, OrderWithSummary } from "@/db/repositories";
 
 export interface OrderFormProps {
   order?: OrderWithSummary;
@@ -31,12 +30,12 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 
-  const [items, setItems] = useState<OrderItemDetail[]>(initialItems);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<OrderItemDetail | undefined>(undefined);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
 
-  const { orders, createOrder, updateOrder } = useOrderStore();
+  const { orders, currentItems, addOrderItem, updateOrderItem, deleteOrderItem, updateOrderHeader } = useOrderStore();
+  const items = order ? currentItems : initialItems;
 
   const nextOrderCode = useMemo(() => {
     if (order) return order.order_code || "";
@@ -51,44 +50,6 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const form = useForm({
     defaultValues: buildDefaultValues(order, nextOrderCode),
     validators: { onChange: poSchema },
-    onSubmit: async ({ value }) => {
-      if (!selectedProjectId) return;
-
-      const itemInputs: OrderItemInput[] = items.map((item) => ({
-        order_item_id: item.order_item_id.startsWith("draft-") ? undefined : item.order_item_id,
-        item_id: item.item_id,
-        vendor_id: item.vendor_id,
-        item_price_id: item.item_price_id,
-        qty: item.qty,
-        has_tax: item.has_tax,
-      }));
-
-      try {
-        if (order) {
-          await updateOrder(
-            order.order_id,
-            {
-              order_date: value.order_date,
-              project_id: selectedProjectId,
-              order_code: value.order_code,
-            },
-            itemInputs,
-          );
-        } else {
-          await createOrder(
-            {
-              order_date: value.order_date,
-              project_id: selectedProjectId,
-              order_code: value.order_code,
-            },
-            itemInputs,
-          );
-        }
-        navigate({ to: "/order" });
-      } catch (error: unknown) {
-        handleFormError(error, showToast);
-      }
-    },
   });
 
   useEffect(() => {
@@ -112,19 +73,39 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
     enabled: Boolean(selectedProjectId),
   });
 
-  function handleSaveItem(payload: OrderItemFormValues) {
-    const newDetail = buildOrderItemDetail(payload, editingItem, order?.order_id);
-    if (editingItem) {
-      setItems((prev) => prev.map((i) => (i.order_item_id === editingItem.order_item_id ? newDetail : i)));
-    } else {
-      setItems((prev) => [...prev, newDetail]);
+  async function handleSaveItem(payload: OrderItemFormValues) {
+    if (!order) return;
+    const itemInput = {
+      item_id: payload.item_id,
+      vendor_id: payload.vendor_id,
+      item_price_id: payload.item_price_id,
+      qty: parseDecimalInput(payload.qty),
+      has_tax: payload.has_tax,
+    };
+
+    try {
+      if (editingItem) {
+        await updateOrderItem(order.order_id, editingItem.order_item_id, itemInput);
+        showToast({ body: "Item berhasil diperbarui", type: "info" });
+      } else {
+        await addOrderItem(order.order_id, itemInput);
+        showToast({ body: "Item berhasil ditambahkan", type: "info" });
+      }
+    } catch (error: unknown) {
+      handleFormError(error, showToast);
     }
   }
 
-  function handleDelete() {
-    if (!deletingId) return;
-    setItems((prev) => prev.filter((i) => i.order_item_id !== deletingId));
-    setDeletingId(null);
+  async function handleDelete() {
+    if (!deletingId || !order) return;
+    try {
+      await deleteOrderItem(order.order_id, deletingId);
+      showToast({ body: "Item berhasil dihapus", type: "info" });
+    } catch (error: unknown) {
+      handleFormError(error, showToast);
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   const columns = useOrderItemFormColumns({
@@ -154,18 +135,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
                   {order ? `Perbarui rincian pengadaan ${order.order_code}` : "Buat pengadaan pembelian baru"}
                 </Text>
               </VStack>
-              <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting] as const}>
-                {([canSubmit, isSubmitting]) => (
-                  <Button
-                    variant="primary"
-                    type="button"
-                    onClick={() => form.handleSubmit()}
-                    label={order ? "Simpan Perubahan" : "Simpan Pengadaan"}
-                    isLoading={isSubmitting}
-                    isDisabled={isItemDialogOpen || !canSubmit}
-                  />
-                )}
-              </form.Subscribe>
+              <Button variant="secondary" type="button" onClick={() => navigate({ to: "/order" })} label="Kembali" />
             </HStack>
           </LayoutHeader>
         }
@@ -184,7 +154,16 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
                           statusVariant="tooltip"
                           value={field.state.value}
                           onChange={(v) => field.handleChange(v ?? "")}
-                          onBlur={field.handleBlur}
+                          onBlur={async () => {
+                            field.handleBlur();
+                            if (order && field.state.value && field.state.value !== order.order_code) {
+                              try {
+                                await updateOrderHeader(order.order_id, { order_code: field.state.value });
+                              } catch (error: unknown) {
+                                handleFormError(error, showToast);
+                              }
+                            }
+                          }}
                           status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                         />
                       )}
@@ -198,8 +177,27 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
                           label="Tanggal Order"
                           statusVariant="tooltip"
                           value={field.state.value as DateInputProps["value"]}
-                          onChange={(v) => field.handleChange(v ?? "")}
-                          onBlur={field.handleBlur}
+                          onChange={async (v) => {
+                            const val = v ?? "";
+                            field.handleChange(val);
+                            if (order && val && val !== order.order_date) {
+                              try {
+                                await updateOrderHeader(order.order_id, { order_date: val });
+                              } catch (error: unknown) {
+                                handleFormError(error, showToast);
+                              }
+                            }
+                          }}
+                          onBlur={async () => {
+                            field.handleBlur();
+                            if (order && field.state.value && field.state.value !== order.order_date) {
+                              try {
+                                await updateOrderHeader(order.order_id, { order_date: field.state.value });
+                              } catch (error: unknown) {
+                                handleFormError(error, showToast);
+                              }
+                            }
+                          }}
                           status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                         />
                       )}
@@ -259,35 +257,4 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
       />
     </>
   );
-}
-
-export function buildOrderItemDetail(
-  payload: OrderItemFormValues,
-  editingItem?: OrderItemDetail,
-  orderId = "",
-): OrderItemDetail {
-  const { items: globalItems, itemPricesMap, vendors } = useMasterStore.getState();
-  const itemDef = globalItems.find((i) => i.item_id === payload.item_id);
-  const priceDef = (itemPricesMap.get(payload.item_id) ?? []).find((p) => p.item_price_id === payload.item_price_id);
-  const vendorDef = vendors.find((v) => v.vendor_id === payload.vendor_id);
-  const numQty = parseDecimalInput(payload.qty);
-
-  return {
-    category_code: itemDef?.category_code ?? "",
-    category_prefix: itemDef?.category_prefix ?? "",
-    item_code: itemDef?.item_code ?? "",
-    item_id: payload.item_id,
-    item_name: itemDef?.item_name ?? "",
-    item_price_id: payload.item_price_id,
-    order_id: orderId,
-    order_item_id: editingItem ? editingItem.order_item_id : `draft-${Date.now()}`,
-    price: priceDef?.price ?? 0,
-    qty: numQty,
-    has_tax: payload.has_tax,
-    remaining: numQty,
-    total_delivered: 0,
-    unit: itemDef?.unit_name ?? "",
-    vendor_id: payload.vendor_id,
-    vendor_name: vendorDef?.vendor_name ?? "",
-  };
 }

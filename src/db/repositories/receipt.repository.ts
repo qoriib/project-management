@@ -124,21 +124,42 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
   }
 
   /**
-   * Update a receipt and replace its items.
-   * Uses raw DELETE directly (no cross-repo call) to avoid inter-repo coupling.
+   * Create an empty receipt with header only.
    */
-  async updateWithItems(
-    receiptId: string,
-    header: { receipt_date: string; receipt_code: string },
-    items: ReceiptItemInput[],
-  ): Promise<void> {
-    await this.update(receiptId, header);
-    await this.rawExecute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [receiptId]);
+  async createEmpty(header: { order_id: string; receipt_date: string; receipt_code: string }): Promise<string> {
+    return this.create({
+      receipt_code: header.receipt_code,
+      receipt_date: header.receipt_date,
+      order_id: header.order_id,
+    });
+  }
 
-    const validItems = items.filter((item) => item.qty > 0);
-    if (validItems.length > 0) {
-      const rows = validItems.map((item) => [this.generateId(), receiptId, item.order_item_id, item.qty]);
-      await this.bulkInsert("receipt_items", ["receipt_item_id", "receipt_id", "order_item_id", "qty"], rows);
+  /**
+   * Upsert a single receipt item by order_item_id.
+   * If qty > 0, insert or update the record.
+   * If qty <= 0, delete the record.
+   */
+  async upsertItem(receiptId: string, orderItemId: string, qty: number): Promise<void> {
+    const existing = await this.rawSelect<{ receipt_item_id: string }>(
+      `SELECT receipt_item_id FROM receipt_items WHERE receipt_id = $1 AND order_item_id = $2 LIMIT 1`,
+      [receiptId, orderItemId],
+    );
+
+    if (qty > 0) {
+      if (existing.length > 0) {
+        await this.rawExecute(`UPDATE receipt_items SET qty = $1 WHERE receipt_item_id = $2`, [
+          qty,
+          existing[0].receipt_item_id,
+        ]);
+      } else {
+        const id = this.generateId();
+        await this.rawExecute(
+          `INSERT INTO receipt_items (receipt_item_id, receipt_id, order_item_id, qty) VALUES ($1, $2, $3, $4)`,
+          [id, receiptId, orderItemId, qty],
+        );
+      }
+    } else if (existing.length > 0) {
+      await this.rawExecute(`DELETE FROM receipt_items WHERE receipt_item_id = $1`, [existing[0].receipt_item_id]);
     }
   }
 

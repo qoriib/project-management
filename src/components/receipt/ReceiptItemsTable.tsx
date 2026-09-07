@@ -1,8 +1,10 @@
 import { Card, EmptyState, Table, Text, TextInput } from "@astryxdesign/core";
+import { useToast } from "@astryxdesign/core/Toast";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { formatItemCode, formatNumber, sanitizeDecimalInput } from "@/utils/formatters";
-import { getFieldError } from "@/utils/form";
+import { formatItemCode, formatNumber, parseDecimalInput, sanitizeDecimalInput } from "@/utils/formatters";
+import { getFieldError, handleFormError } from "@/utils/form";
+import { useReceiptStore } from "@/store/useReceiptStore";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import type { ReceiptItemRow } from "./form/receipt.schema";
 import type { useReceiptForm } from "./form/useReceiptForm";
@@ -10,9 +12,14 @@ import type { useReceiptForm } from "./form/useReceiptForm";
 export interface ReceiptItemsTableProps {
   items: ReceiptItemRow[];
   form: ReturnType<typeof useReceiptForm>["form"];
+  receiptId?: string;
+  orderId?: string;
 }
 
-export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
+export function ReceiptItemsTable({ items, form, receiptId, orderId }: ReceiptItemsTableProps) {
+  const showToast = useToast();
+  const { upsertReceiptItem } = useReceiptStore();
+
   const columns: TableColumn<ReceiptItemRow>[] = [
     {
       header: "Kode Item",
@@ -52,7 +59,17 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
                 statusVariant="tooltip"
                 value={String(qtyField.state.value ?? "")}
                 onChange={(v) => qtyField.handleChange(sanitizeDecimalInput(v))}
-                onBlur={qtyField.handleBlur}
+                onBlur={async () => {
+                  qtyField.handleBlur();
+                  if (receiptId && orderId) {
+                    try {
+                      const numQty = parseDecimalInput(qtyField.state.value as string);
+                      await upsertReceiptItem(receiptId, orderId, row.order_item_id, numQty);
+                    } catch (error: unknown) {
+                      handleFormError(error, showToast);
+                    }
+                  }
+                }}
                 status={getFieldError(qtyField.state.meta.errors, qtyField.state.meta.isTouched)}
               />
             )}

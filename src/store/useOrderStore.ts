@@ -18,15 +18,11 @@ interface OrderStore {
   loadOrderDetail: (id: string) => Promise<void>;
   clearOrderDetail: () => void;
 
-  createOrder: (
-    data: { order_date: string; project_id: string; order_code: string },
-    items: OrderItemInput[],
-  ) => Promise<string>;
-  updateOrder: (
-    id: string,
-    data: { order_date: string; project_id: string; order_code: string },
-    items: OrderItemInput[],
-  ) => Promise<void>;
+  createEmptyOrder: (data: { order_date: string; project_id: string; order_code: string }) => Promise<string>;
+  updateOrderHeader: (id: string, data: { order_date?: string; order_code?: string }) => Promise<void>;
+  addOrderItem: (orderId: string, item: Omit<OrderItemInput, "order_item_id">) => Promise<string>;
+  updateOrderItem: (orderId: string, orderItemId: string, item: OrderItemInput) => Promise<void>;
+  deleteOrderItem: (orderId: string, orderItemId: string) => Promise<void>;
   deleteOrder: (id: string) => Promise<void>;
 }
 
@@ -55,18 +51,48 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
     }
   },
 
-  createOrder: async (data, items) => {
-    const orderId = await orderRepo.createWithItems(data, items);
+  createEmptyOrder: async (data) => {
+    const orderId = await orderRepo.create(data);
     await get().loadAllOrders(data.project_id);
     return orderId;
   },
 
-  updateOrder: async (id, data, items) => {
-    await orderRepo.updateWithItems(id, data, items);
-    await get().loadAllOrders(data.project_id);
+  updateOrderHeader: async (id, data) => {
+    await orderRepo.update(id, data);
     const { currentOrder } = get();
     if (currentOrder?.order_id === id) {
       await get().loadOrderDetail(id);
+    }
+    if (currentOrder?.project_id) {
+      await get().loadAllOrders(currentOrder.project_id);
+    }
+  },
+
+  addOrderItem: async (orderId, item) => {
+    const id = await orderRepo.createItem(orderId, item);
+    await get().loadOrderDetail(orderId);
+    const { currentOrder } = get();
+    if (currentOrder?.project_id) {
+      await get().loadAllOrders(currentOrder.project_id);
+    }
+    return id;
+  },
+
+  updateOrderItem: async (orderId, orderItemId, item) => {
+    await orderRepo.updateItem(orderItemId, item);
+    await get().loadOrderDetail(orderId);
+    const { currentOrder } = get();
+    if (currentOrder?.project_id) {
+      await get().loadAllOrders(currentOrder.project_id);
+    }
+  },
+
+  deleteOrderItem: async (orderId, orderItemId) => {
+    await orderRepo.deleteItem(orderItemId);
+    await get().loadOrderDetail(orderId);
+    const { currentOrder } = get();
+    if (currentOrder?.project_id) {
+      await get().loadAllOrders(currentOrder.project_id);
     }
   },
 
