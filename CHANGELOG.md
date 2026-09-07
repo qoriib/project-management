@@ -5,6 +5,53 @@ Semua perubahan penting pada proyek ini akan dicatat dalam berkas ini.
 Format berkas ini berdasarkan [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 dan proyek ini mengadopsi [Semantic Versioning](https://semver.org/lang/id/).
 
+## [1.1.0] - 2026-09-08
+
+### Added
+
+- **Modul Penerimaan Barang (Nota Penerimaan / NP)**:
+  - Implementasi alur formulir penerimaan barang lengkap (`ReceiptForm` dan `ReceiptItemsTable`) dengan validasi skema Valibot (`receipt.schema.ts`).
+  - Tabel daftar penerimaan material (`ReceiptTable`) beserta kolom visual interaktif (`useReceiptColumns`).
+  - Dukungan aksi penghapusan nota penerimaan dengan sinkronisasi otomatis ke repositori dan pembaruan kuantitas terkirim.
+  - Store terpusat `useReceiptStore` untuk pengelolaan state penerimaan material secara reaktif.
+- **Ekspor Laporan Pemenuhan (Excel & PDF)**:
+  - Layanan ekspor laporan ke berkas Excel (`.xlsx`) melalui `fulfillment-sheet.ts` dengan styling sel kustom, format angka/mata uang Rupiah, dan baris kalkulasi total otomatis.
+  - Layanan cetak dan ekspor laporan ke dokumen PDF melalui `fulfillment-table.ts` (`jspdf` + `jspdf-autotable`) dengan tata letak dokumen formal, identitas proyek, dan ringkasan status pemenuhan.
+  - Komponen tabel ringkasan pemenuhan interaktif (`ReportSummaryTable`) terintegrasi dengan aksi unduh Excel & PDF.
+- **Master Harga Vendor & Dialog Pemilihan Item**:
+  - Dialog penetapan riwayat harga beli item per vendor (`MasterItemPriceDialog`) untuk mencatat daftar harga dari berbagai vendor rekanan.
+  - Dialog pemilihan item terintegrasi (`OrderItemDialog` dan `RequirementItemDialog`) dengan fitur pencarian instan dan seleksi harga vendor aktif.
+  - Peningkatan central store `useMasterStore` untuk pengelolaan workflow vendor dan penetapan harga beli item.
+- **Komponen Pelacakan & Visualisasi Pengadaan (PO)**:
+  - Tabel pelacakan item pesanan (`OrderItemTrackingTable`) untuk monitoring kuantitas dipesan vs kuantitas diterima per item material.
+  - Tabel riwayat penerimaan per pesanan (`OrderReceiptLogTable`).
+  - Kartu ringkasan finansial pesanan (`OrderSummaryCard`) dengan kalkulasi subtotal, estimasi PPN (12%), dan total nilai PO secara otomatis.
+  - Sel tabel kustom (`PriceSelectorCell` dan `SubtotalCell`) serta hook kolom tabel `useOrderItemFormColumns`.
+  - Kartu visual dialog laporan: `OrderVariantCard`, `RequirementVariantCard`, dan `TransactionHistoryCard`.
+- **Infrastruktur Database & Arsitektur Repository**:
+  - Penambahan metode `rawExecute` pada `BaseRepository` untuk eksekusi query SQL langsung dengan logging terstruktur.
+  - Layanan reset database (`DatabaseService.reset`) untuk pembersihan data terisolasi dan pengujian sistem.
+
+### Changed
+
+- **Refaktor & Peningkatan Modul Pengadaan (PO)**:
+  - Pembaruan formulir `OrderForm` agar lebih modular, responsif, dan terintegrasi dengan skema validasi `order.schema.ts`.
+  - Peningkatan komponen `OrderTable` dengan dukungan aksi penghapusan pesanan beserta konfirmasi dialog.
+  - Penyempurnaan `order.repository.ts` untuk pemuatan data relasional, kalkulasi status pemenuhan, dan penanganan transaksi data yang aman.
+  - Perampingan struktur rute pengadaan pada `src/routes/order/`.
+- **Refaktor & Peningkatan Modul Penerimaan (NP)**:
+  - Penyederhanaan alur form `useReceiptForm` dan optimasi utilitas pembantu pada `receipt.utils.ts`.
+  - Peningkatan `receipt.repository.ts` untuk mendukung pembaruan item, batch delete relasi, dan pencegahan data yatim (_orphan records_).
+  - Perampingan struktur rute penerimaan pada `src/routes/receipt/`.
+- **Laporan Pemenuhan**:
+  - Peningkatan hook `useReportSummaryColumns` untuk perhitungan progres pemenuhan, deviasi kuantitas, dan penyajian indikator status yang lebih presisi.
+- **Standarisasi Format & Desain UI**:
+  - Konfigurasi tema terpadu di `src/theme.tsx` dan `src/app.css` untuk konsistensi tipografi sistem dan font Inter.
+  - Utilitas pemformatan angka dan mata uang Rupiah yang distandarisasi di `src/utils/formatters.ts` beserta dokumentasi panduan di `src/utils/README.md`.
+  - Pembaruan komponen `PinInput` untuk alur keamanan autentikasi yang lebih bersih.
+- **Pembaruan Versi Rilis Aplikasi**:
+  - Peningkatan versi rilis sistem ke `1.1.0` secara menyeluruh pada `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`, `src-tauri/tauri.conf.json`, dan `src/configs/app.config.ts`.
+
 ## [1.0.0] - 2026-09-07
 
 ### Added
