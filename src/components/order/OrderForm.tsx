@@ -120,6 +120,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
 
   const stickyColumns = useTableStickyColumns<OrderItemRow>({
     startKeys: ["__rowIndex", "item_code", "item_name"],
+    endKeys: ["actions"],
   });
 
   return (

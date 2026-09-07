@@ -71,6 +71,7 @@ export function RequirementTable() {
 
   const stickyColumns = useTableStickyColumns<RequirementRow>({
     startKeys: ["__rowIndex", "item_code", "item_name"],
+    endKeys: isApproved ? undefined : ["actions"],
   });
 
   return (
