@@ -33,19 +33,14 @@ export interface ReceiptFormValues {
 }
 
 export interface ReceiptFormProps {
-  initialPoId?: string;
-  initialEditId?: string;
+  receiptId: string;
   onSuccess: (poId: string) => void;
 }
 
-export function buildDefaultValues(
-  data?: Partial<ReceiptFormValues> | null,
-  nextReceiptCode = "",
-  initialPoId = "",
-): ReceiptFormValues {
+export function buildDefaultValues(data?: Partial<ReceiptFormValues> | null): ReceiptFormValues {
   return {
-    order_id: data?.order_id ?? initialPoId ?? "",
-    receipt_code: data?.receipt_code ?? nextReceiptCode,
+    order_id: data?.order_id ?? "",
+    receipt_code: data?.receipt_code ?? "",
     receipt_date: data?.receipt_date ?? todayISO(),
     items: data?.items ?? [],
   };

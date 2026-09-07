@@ -1,5 +1,6 @@
 import { BaseRepository } from "@/db/core/base-repository";
 import { type CreateReceipt, type Receipt, ReceiptModel } from "@/db/models";
+import { generateNextCode } from "@/utils/formatters";
 import {
   receiptItemRepo,
   type ReceiptItemByOrder,
@@ -124,13 +125,26 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
   }
 
   /**
-   * Create an empty receipt with header only.
+   * Menghasilkan kode penerimaan berikutnya secara sekuensial (NP-00001, dsb).
    */
-  async createEmpty(header: { order_id: string; receipt_date: string; receipt_code: string }): Promise<string> {
+  async getNextCode(projectId?: string): Promise<string> {
+    const receipts = await this.findAllWithSummary({ project_id: projectId });
+    return generateNextCode(
+      receipts.map((r) => r.receipt_code),
+      "NP-",
+    );
+  }
+
+  /**
+   * Membuat penerimaan kosong langsung untuk pesanan (PO) terkait.
+   */
+  async createForOrder(orderId: string, projectId?: string): Promise<string> {
+    const nextCode = await this.getNextCode(projectId);
+    const today = new Date().toISOString().split("T")[0];
     return this.create({
-      receipt_code: header.receipt_code,
-      receipt_date: header.receipt_date,
-      order_id: header.order_id,
+      receipt_code: nextCode,
+      receipt_date: today,
+      order_id: orderId,
     });
   }
 

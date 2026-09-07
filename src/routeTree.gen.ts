@@ -19,9 +19,7 @@ import { Route as MasterProjectRouteImport } from './routes/master/project'
 import { Route as MasterUnitRouteImport } from './routes/master/unit'
 import { Route as MasterVendorRouteImport } from './routes/master/vendor'
 import { Route as OrderIndexRouteImport } from './routes/order/index'
-import { Route as OrderNewRouteImport } from './routes/order/new'
 import { Route as ReceiptIndexRouteImport } from './routes/receipt/index'
-import { Route as ReceiptNewRouteImport } from './routes/receipt/new'
 import { Route as RequirementIndexRouteImport } from './routes/requirement/index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
 import { Route as SettingsDatabaseRouteImport } from './routes/settings/database'
@@ -80,19 +78,9 @@ const OrderIndexRoute = OrderIndexRouteImport.update({
   path: '/order/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrderNewRoute = OrderNewRouteImport.update({
-  id: '/order/new',
-  path: '/order/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ReceiptIndexRoute = ReceiptIndexRouteImport.update({
   id: '/receipt/',
   path: '/receipt/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReceiptNewRoute = ReceiptNewRouteImport.update({
-  id: '/receipt/new',
-  path: '/receipt/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequirementIndexRoute = RequirementIndexRouteImport.update({
@@ -141,8 +129,6 @@ export interface FileRoutesByFullPath {
   '/master/project': typeof MasterProjectRoute
   '/master/unit': typeof MasterUnitRoute
   '/master/vendor': typeof MasterVendorRoute
-  '/order/new': typeof OrderNewRoute
-  '/receipt/new': typeof ReceiptNewRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/database': typeof SettingsDatabaseRoute
   '/settings/security': typeof SettingsSecurityRoute
@@ -163,8 +149,6 @@ export interface FileRoutesByTo {
   '/master/project': typeof MasterProjectRoute
   '/master/unit': typeof MasterUnitRoute
   '/master/vendor': typeof MasterVendorRoute
-  '/order/new': typeof OrderNewRoute
-  '/receipt/new': typeof ReceiptNewRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/database': typeof SettingsDatabaseRoute
   '/settings/security': typeof SettingsSecurityRoute
@@ -186,8 +170,6 @@ export interface FileRoutesById {
   '/master/project': typeof MasterProjectRoute
   '/master/unit': typeof MasterUnitRoute
   '/master/vendor': typeof MasterVendorRoute
-  '/order/new': typeof OrderNewRoute
-  '/receipt/new': typeof ReceiptNewRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/database': typeof SettingsDatabaseRoute
   '/settings/security': typeof SettingsSecurityRoute
@@ -210,8 +192,6 @@ export interface FileRouteTypes {
     | '/master/project'
     | '/master/unit'
     | '/master/vendor'
-    | '/order/new'
-    | '/receipt/new'
     | '/settings/appearance'
     | '/settings/database'
     | '/settings/security'
@@ -232,8 +212,6 @@ export interface FileRouteTypes {
     | '/master/project'
     | '/master/unit'
     | '/master/vendor'
-    | '/order/new'
-    | '/receipt/new'
     | '/settings/appearance'
     | '/settings/database'
     | '/settings/security'
@@ -254,8 +232,6 @@ export interface FileRouteTypes {
     | '/master/project'
     | '/master/unit'
     | '/master/vendor'
-    | '/order/new'
-    | '/receipt/new'
     | '/settings/appearance'
     | '/settings/database'
     | '/settings/security'
@@ -272,8 +248,6 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MasterRoute: typeof MasterRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
-  OrderNewRoute: typeof OrderNewRoute
-  ReceiptNewRoute: typeof ReceiptNewRoute
   OrderIndexRoute: typeof OrderIndexRoute
   ReceiptIndexRoute: typeof ReceiptIndexRoute
   RequirementIndexRoute: typeof RequirementIndexRoute
@@ -354,25 +328,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrderIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/order/new': {
-      id: '/order/new'
-      path: '/order/new'
-      fullPath: '/order/new'
-      preLoaderRoute: typeof OrderNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/receipt/': {
       id: '/receipt/'
       path: '/receipt'
       fullPath: '/receipt/'
       preLoaderRoute: typeof ReceiptIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/receipt/new': {
-      id: '/receipt/new'
-      path: '/receipt/new'
-      fullPath: '/receipt/new'
-      preLoaderRoute: typeof ReceiptNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/requirement/': {
@@ -467,8 +427,6 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MasterRoute: MasterRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
-  OrderNewRoute: OrderNewRoute,
-  ReceiptNewRoute: ReceiptNewRoute,
   OrderIndexRoute: OrderIndexRoute,
   ReceiptIndexRoute: ReceiptIndexRoute,
   RequirementIndexRoute: RequirementIndexRoute,

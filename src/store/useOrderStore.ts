@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { useAppStore } from "@/store/useAppStore";
+import { useReceiptStore } from "@/store/useReceiptStore";
 import {
   type ReceiptItemByOrder,
   type OrderItemDetail,
@@ -18,7 +20,7 @@ interface OrderStore {
   loadOrderDetail: (id: string) => Promise<void>;
   clearOrderDetail: () => void;
 
-  createEmptyOrder: (data: { order_date: string; project_id: string; order_code: string }) => Promise<string>;
+  createOrderForProject: (projectId: string) => Promise<string>;
   updateOrderHeader: (id: string, data: { order_date?: string; order_code?: string }) => Promise<void>;
   addOrderItem: (orderId: string, item: Omit<OrderItemInput, "order_item_id">) => Promise<string>;
   updateOrderItem: (orderId: string, orderItemId: string, item: OrderItemInput) => Promise<void>;
@@ -51,9 +53,9 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
     }
   },
 
-  createEmptyOrder: async (data) => {
-    const orderId = await orderRepo.create(data);
-    await get().loadAllOrders(data.project_id);
+  createOrderForProject: async (projectId) => {
+    const orderId = await orderRepo.createForProject(projectId);
+    await get().loadAllOrders(projectId);
     return orderId;
   },
 
@@ -63,43 +65,30 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
     if (currentOrder?.order_id === id) {
       await get().loadOrderDetail(id);
     }
-    if (currentOrder?.project_id) {
-      await get().loadAllOrders(currentOrder.project_id);
-    }
   },
 
   addOrderItem: async (orderId, item) => {
     const id = await orderRepo.createItem(orderId, item);
     await get().loadOrderDetail(orderId);
-    const { currentOrder } = get();
-    if (currentOrder?.project_id) {
-      await get().loadAllOrders(currentOrder.project_id);
-    }
     return id;
   },
 
   updateOrderItem: async (orderId, orderItemId, item) => {
     await orderRepo.updateItem(orderItemId, item);
     await get().loadOrderDetail(orderId);
-    const { currentOrder } = get();
-    if (currentOrder?.project_id) {
-      await get().loadAllOrders(currentOrder.project_id);
-    }
   },
 
   deleteOrderItem: async (orderId, orderItemId) => {
     await orderRepo.deleteItem(orderItemId);
     await get().loadOrderDetail(orderId);
-    const { currentOrder } = get();
-    if (currentOrder?.project_id) {
-      await get().loadAllOrders(currentOrder.project_id);
-    }
   },
 
   deleteOrder: async (id) => {
     const { orders } = get();
     const order = orders.find((o) => o.order_id === id);
+    const projectId = order?.project_id || useAppStore.getState().selectedProjectId || undefined;
     await orderRepo.delete(id);
-    await get().loadAllOrders(order?.project_id);
+    await get().loadAllOrders(projectId);
+    await useReceiptStore.getState().loadAllReceipts(projectId);
   },
 }));

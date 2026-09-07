@@ -2,17 +2,22 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect, useState } from "react";
 import { Button, Card, HStack, Heading, Text, Toolbar, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
+import { useToast } from "@astryxdesign/core/Toast";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { useOrderStore } from "@/store/useOrderStore";
+import { useReceiptStore } from "@/store/useReceiptStore";
 import { OrderSummaryCard } from "@/components/order/OrderSummaryCard";
 import { OrderItemTrackingTable } from "@/components/order/OrderItemTrackingTable";
 import { OrderReceiptLogTable } from "@/components/order/OrderReceiptLogTable";
+import { handleFormError } from "@/utils/form";
 
 function OrderDetailPage() {
   const navigate = useNavigate();
+  const showToast = useToast();
   const { id } = useParams({ strict: false });
   const { currentOrder: order, loadOrderDetail, clearOrderDetail } = useOrderStore();
   const [loading, setLoading] = useState(true);
+  const [isCreatingReceipt, setIsCreatingReceipt] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -24,6 +29,20 @@ function OrderDetailPage() {
     load();
     return () => clearOrderDetail();
   }, [id, loadOrderDetail, clearOrderDetail]);
+
+  async function handleCreateReceipt() {
+    if (!order || isCreatingReceipt) return;
+    try {
+      setIsCreatingReceipt(true);
+      const newId = await useReceiptStore.getState().createReceiptForOrder(order.order_id, order.project_id);
+      showToast({ body: "Penerimaan baru berhasil dibuat", type: "info" });
+      navigate({ to: `/receipt/${newId}/edit` });
+    } catch (error: unknown) {
+      handleFormError(error, showToast);
+    } finally {
+      setIsCreatingReceipt(false);
+    }
+  }
 
   if (loading) return <LoadingState message="Memuat data Order…" />;
 
@@ -97,7 +116,8 @@ function OrderDetailPage() {
                           variant="secondary"
                           size="sm"
                           label="Buat Penerimaan"
-                          onClick={() => navigate({ search: { order: String(order.order_id) }, to: "/receipt/new" })}
+                          onClick={handleCreateReceipt}
+                          isDisabled={isCreatingReceipt}
                         />
                       }
                     />

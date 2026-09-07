@@ -8,6 +8,7 @@ import type { ReceiptItemRow } from "./receipt.schema";
  */
 export async function loadReceiptEditData(receiptId: string): Promise<{
   order_id: string;
+  order_code?: string;
   receipt_date: string;
   receipt_code: string;
   items: ReceiptItemRow[];
@@ -16,7 +17,8 @@ export async function loadReceiptEditData(receiptId: string): Promise<{
 
   if (!receipt) return null;
 
-  const [orderItems, delivItems] = await Promise.all([
+  const [order, orderItems, delivItems] = await Promise.all([
+    orderRepo.findById(receipt.order_id),
     orderRepo.findItems(receipt.order_id),
     receiptRepo.findItems(receiptId),
   ]);
@@ -52,5 +54,6 @@ export async function loadReceiptEditData(receiptId: string): Promise<{
     receipt_date: receipt.receipt_date,
     items,
     order_id: receipt.order_id,
+    order_code: order?.order_code ?? undefined,
   };
 }

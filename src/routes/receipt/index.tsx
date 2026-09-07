@@ -1,27 +1,10 @@
-import { useCallback } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Button, Heading, HStack, Text, VStack } from "@astryxdesign/core";
+import { createFileRoute } from "@tanstack/react-router";
+import { Heading, HStack, Text, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { ReceiptTable } from "@/components/receipt/ReceiptTable";
-import { useAppStore } from "@/store/useAppStore";
-import { useKeyboardShortcut } from "@/utils/useKeyboardShortcut";
 
 function ReceiptPage() {
-  const navigate = useNavigate();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-
-  const openNew = useCallback(() => {
-    navigate({ to: "/receipt/new" });
-  }, [navigate]);
-
-  useKeyboardShortcut({
-    key: "n",
-    ctrl: true,
-    handler: openNew,
-    enabled: Boolean(selectedProjectId),
-  });
-
   return (
     <Layout
       height="fill"
@@ -34,7 +17,6 @@ function ReceiptPage() {
                 Kelola dan pantau riwayat penerimaan barang
               </Text>
             </VStack>
-            {selectedProjectId ? <Button variant="primary" label="Buat Baru" onClick={openNew} /> : null}
           </HStack>
         </LayoutHeader>
       }

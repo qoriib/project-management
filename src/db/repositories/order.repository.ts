@@ -1,5 +1,6 @@
 import { BaseRepository } from "@/db/core/base-repository";
 import { type CreateOrder, type Order, OrderModel, type UpdateOrder } from "@/db/models";
+import { generateNextCode } from "@/utils/formatters";
 import { orderItemRepo, type OrderItemDetail, type OrderItemInput } from "./order-item.repository";
 
 export type OrderWithSummary = Order & {
@@ -67,7 +68,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
       LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
       ${whereSql}
       GROUP BY orders.order_id
-      ORDER BY orders.order_id ASC
+      ORDER BY orders.order_date DESC, orders.order_id DESC
     `;
 
     const rows = await this.rawSelect<RawOrderSummaryRow>(sql, params);
@@ -89,7 +90,8 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
              orders.created_at,
              projects.project_name,
              GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names,
-             COALESCE(SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price
+             COALESCE(SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price,
+             COUNT(order_items.order_item_id) as item_count
       FROM orders
       LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
       LEFT JOIN order_items ON order_items.order_id = orders.order_id
@@ -168,10 +170,60 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
   }
 
   /**
-   * Delete a single item.
+   * Delete a single item from an Order and any referencing receipt items.
    */
   async deleteItem(orderItemId: string): Promise<void> {
+    await this.rawExecute(`DELETE FROM receipt_items WHERE order_item_id = $1`, [orderItemId]);
     await orderItemRepo.delete(orderItemId);
+  }
+
+  /**
+   * Menghasilkan kode pesanan (PO) berikutnya secara sekuensial (PO-00001, dsb).
+   */
+  async getNextCode(projectId?: string): Promise<string> {
+    const orders = await this.findAllWithSummary({ project_id: projectId });
+    return generateNextCode(
+      orders.map((o) => o.order_code),
+      "PO-",
+    );
+  }
+
+  /**
+   * Membuat pesanan (PO) kosong baru untuk proyek terkait.
+   */
+  async createForProject(projectId: string): Promise<string> {
+    const nextCode = await this.getNextCode(projectId);
+    const today = new Date().toISOString().split("T")[0];
+    return this.create({
+      project_id: projectId,
+      order_code: nextCode,
+      order_date: today,
+    });
+  }
+
+  /**
+   * Hapus pesanan (PO) beserta seluruh item dan penerimaan (NP) terkait secara cascading.
+   */
+  override async delete(id: string): Promise<void> {
+    // 1. Ambil seluruh receipt terkait order ini
+    const receipts = await this.rawSelect<{ receipt_id: string }>(
+      `SELECT receipt_id FROM receipts WHERE order_id = $1`,
+      [id],
+    );
+
+    // 2. Hapus item penerimaan dan soft-delete dokumen penerimaan
+    if (receipts.length > 0) {
+      for (const r of receipts) {
+        await this.rawExecute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [r.receipt_id]);
+      }
+      await this.rawExecute(`UPDATE receipts SET deleted_at = datetime('now') WHERE order_id = $1`, [id]);
+    }
+
+    // 3. Hapus seluruh item pesanan
+    await orderItemRepo.deleteByOrder(id);
+
+    // 4. Soft-delete pesanan
+    await super.delete(id);
   }
 }
 

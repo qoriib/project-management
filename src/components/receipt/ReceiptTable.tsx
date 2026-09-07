@@ -51,7 +51,13 @@ export function ReceiptTable() {
         columns={columns}
         data={receipts as ReceiptRow[]}
         plugins={{ rowIndex: rowIndexPlugin }}
-        emptyState={<EmptyState isCompact title="Belum ada penerimaan (NP)" />}
+        emptyState={
+          <EmptyState
+            isCompact
+            title="Belum ada penerimaan (NP)"
+            description="Penerimaan barang dibuat melalui halaman Detail Pengadaan (PO)."
+          />
+        }
       />
       <AlertDialog
         title="Hapus Penerimaan"

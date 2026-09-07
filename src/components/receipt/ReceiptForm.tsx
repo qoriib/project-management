@@ -1,7 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Button, Heading, HStack, Text, TextInput, VStack } from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
-import { Selector } from "@astryxdesign/core/Selector";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
@@ -13,13 +12,11 @@ import type { ReceiptFormProps } from "./form/receipt.schema";
 
 export type { ReceiptFormProps };
 
-export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFormProps) {
+export function ReceiptForm({ receiptId }: ReceiptFormProps) {
   const navigate = useNavigate();
   const showToast = useToast();
   const { updateReceiptHeader } = useReceiptStore();
-  const { form, orders, isEdit } = useReceiptForm({ initialEditId, initialPoId, onSuccess });
-
-  const poOptions = orders.map((p) => ({ label: p.order_code ?? "-", value: String(p.order_id) }));
+  const { form, orderCode } = useReceiptForm({ receiptId });
 
   return (
     <Layout
@@ -28,9 +25,9 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
         <LayoutHeader hasDivider padding={6}>
           <HStack gap={2} vAlign="center" hAlign="between">
             <VStack gap={0.5}>
-              <Heading level={3}>{isEdit ? "Edit Penerimaan" : "Penerimaan Baru"}</Heading>
+              <Heading level={3}>Edit Penerimaan</Heading>
               <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                {isEdit ? "Perbarui data penerimaan barang" : "Catat bukti penerimaan barang masuk"}
+                Perbarui data penerimaan barang
               </Text>
             </VStack>
             <Button
@@ -54,23 +51,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
           <ProjectRequired>
             <VStack gap={4}>
               <HStack gap={3} wrap="wrap">
-                <form.Field name="order_id">
-                  {(field) => (
-                    <Selector
-                      isRequired
-                      width={240}
-                      label="Pilih Pesanan (PO)"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      hasSearch
-                      searchPlaceholder="Cari nomor pesanan..."
-                      statusVariant="tooltip"
-                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                      isDisabled={isEdit}
-                      options={poOptions}
-                    />
-                  )}
-                </form.Field>
+                <TextInput isReadOnly width={240} label="Nomor Pesanan (PO)" value={orderCode || "-"} />
                 <form.Field name="receipt_code">
                   {(field) => (
                     <TextInput
@@ -82,9 +63,9 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
                       onChange={(v) => field.handleChange(v)}
                       onBlur={async () => {
                         field.handleBlur();
-                        if (initialEditId && field.state.value) {
+                        if (field.state.value) {
                           try {
-                            await updateReceiptHeader(initialEditId, { receipt_code: field.state.value });
+                            await updateReceiptHeader(receiptId, { receipt_code: field.state.value });
                           } catch (error: unknown) {
                             handleFormError(error, showToast);
                           }
@@ -106,9 +87,9 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
                       onChange={async (v) => {
                         const val = v ?? "";
                         field.handleChange(val);
-                        if (initialEditId && val) {
+                        if (val) {
                           try {
-                            await updateReceiptHeader(initialEditId, { receipt_date: val });
+                            await updateReceiptHeader(receiptId, { receipt_date: val });
                           } catch (error: unknown) {
                             handleFormError(error, showToast);
                           }
@@ -116,9 +97,9 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
                       }}
                       onBlur={async () => {
                         field.handleBlur();
-                        if (initialEditId && field.state.value) {
+                        if (field.state.value) {
                           try {
-                            await updateReceiptHeader(initialEditId, { receipt_date: field.state.value });
+                            await updateReceiptHeader(receiptId, { receipt_date: field.state.value });
                           } catch (error: unknown) {
                             handleFormError(error, showToast);
                           }
@@ -131,7 +112,7 @@ export function ReceiptForm({ initialPoId, initialEditId, onSuccess }: ReceiptFo
               </HStack>
               <form.Subscribe selector={(state) => [state.values.items, state.values.order_id] as const}>
                 {([items, orderId]) => (
-                  <ReceiptItemsTable items={items} form={form} receiptId={initialEditId} orderId={orderId} />
+                  <ReceiptItemsTable items={items} form={form} receiptId={receiptId} orderId={orderId} />
                 )}
               </form.Subscribe>
             </VStack>
