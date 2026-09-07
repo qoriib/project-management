@@ -6,6 +6,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { handleFormError } from "@/utils/form";
+import { useTableStickyColumns } from "@astryxdesign/core/Table";
 import { type ReceiptRow, useReceiptColumns } from "./table/useReceiptColumns";
 
 export function ReceiptTable() {
@@ -42,6 +43,11 @@ export function ReceiptTable() {
     getRowKey: (item) => item.receipt_id,
   });
 
+  const stickyColumns = useTableStickyColumns<ReceiptRow>({
+    startKeys: ["__rowIndex", "receipt_code"],
+    endKeys: ["actions"],
+  });
+
   return (
     <>
       <Table
@@ -50,7 +56,7 @@ export function ReceiptTable() {
         textOverflow="truncate"
         columns={columns}
         data={receipts as ReceiptRow[]}
-        plugins={{ rowIndex: rowIndexPlugin }}
+        plugins={{ rowIndex: rowIndexPlugin, stickyColumns }}
         emptyState={<EmptyState isCompact title="Belum ada penerimaan (NP)" />}
       />
       <AlertDialog

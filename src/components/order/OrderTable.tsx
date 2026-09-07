@@ -6,6 +6,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { handleFormError } from "@/utils/form";
+import { useTableStickyColumns } from "@astryxdesign/core/Table";
 import { type PORow, useOrderTableColumns } from "./table/useOrderTableColumns";
 
 interface OrderTableProps {
@@ -53,6 +54,11 @@ export function OrderTable({ onEdit }: OrderTableProps) {
     getRowKey: (item) => item.order_id,
   });
 
+  const stickyColumns = useTableStickyColumns<PORow>({
+    startKeys: ["__rowIndex", "order_code"],
+    endKeys: ["actions"],
+  });
+
   return (
     <>
       <Table
@@ -61,7 +67,7 @@ export function OrderTable({ onEdit }: OrderTableProps) {
         textOverflow="truncate"
         columns={columns}
         data={orders as PORow[]}
-        plugins={{ rowIndex: rowIndexPlugin }}
+        plugins={{ rowIndex: rowIndexPlugin, stickyColumns }}
         emptyState={<EmptyState isCompact title="Belum ada pesanan (PO)" />}
       />
       <AlertDialog
