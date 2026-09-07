@@ -67,7 +67,7 @@ function RequirementPage() {
                   Total:
                 </Text>
                 <Text type="code" weight="bold" size="lg" color="primary">
-                  Rp {formatNumber(grandTotal)}
+                  Rp {formatNumber(grandTotal, 2)}
                 </Text>
               </HStack>
             </HStack>

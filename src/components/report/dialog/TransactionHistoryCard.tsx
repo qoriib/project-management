@@ -94,7 +94,7 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
       header: "Volume",
       key: "qty",
       width: pixel(80),
-      renderCell: (r) => <Text type="code">{formatNumber(r.qty)}</Text>,
+      renderCell: (r) => <Text type="code">{formatNumber(r.qty, 5)}</Text>,
     },
     {
       header: "Vendor",

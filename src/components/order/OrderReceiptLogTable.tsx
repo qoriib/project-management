@@ -47,7 +47,7 @@ export function OrderReceiptLogTable() {
       width: pixel(140),
       renderCell: (row) => (
         <Text type="code" weight="medium">
-          {formatNumber(row.qty)}
+          {formatNumber(row.qty, 5)}
         </Text>
       ),
     },

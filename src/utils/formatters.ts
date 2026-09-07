@@ -9,17 +9,18 @@
  * Memformat angka ke dalam format pemisah ribuan dan desimal standar lokal Indonesia (`id-ID`).
  *
  * @param value - Angka yang akan diformat
- * @param decimals - Jumlah maksimum digit desimal (default: 5)
+ * @param decimals - Jumlah maksimum digit desimal (wajib ditentukan)
  * @returns String angka terformat (e.g. "1.500.000,5")
  *
  * @example
  * ```ts
- * formatNumber(1500000); // "1.500.000"
+ * formatNumber(1500000, 2); // "1.500.000"
  * formatNumber(12.345678, 2); // "12,35"
- * formatNumber(null); // "0"
+ * formatNumber(12.345678, 5); // "12,34568"
+ * formatNumber(null, 2); // "0"
  * ```
  */
-export function formatNumber(value: number | undefined | null, decimals = 5): string {
+export function formatNumber(value: number | undefined | null, decimals: number): string {
   if (value === undefined || value === null || isNaN(value)) {
     return "0";
   }

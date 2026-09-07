@@ -60,28 +60,28 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
       header: "Harga (Rp)",
       key: "price",
       width: pixel(160),
-      renderCell: (r) => <Text type="code">{formatNumber(r.price)}</Text>,
+      renderCell: (r) => <Text type="code">{formatNumber(r.price, 2)}</Text>,
     },
     {
       align: "end",
       header: "Volume",
       key: "qty",
       width: pixel(80),
-      renderCell: (r) => <Text type="code">{formatNumber(r.qty)}</Text>,
+      renderCell: (r) => <Text type="code">{formatNumber(r.qty, 5)}</Text>,
     },
     {
       align: "end",
       header: "Subtotal (Rp)",
       key: "dpp",
       width: pixel(160),
-      renderCell: (r) => <Text type="code">{formatNumber(r.dpp)}</Text>,
+      renderCell: (r) => <Text type="code">{formatNumber(r.dpp, 2)}</Text>,
     },
     {
       align: "end",
       header: `PPn (${TAX_RATIO_PERCENT}%)`,
       key: "has_tax",
       width: pixel(160),
-      renderCell: (r) => <Text type="code">{r.has_tax ? formatNumber(r.tax_amount) : "-"}</Text>,
+      renderCell: (r) => <Text type="code">{r.has_tax ? formatNumber(r.tax_amount, 2) : "-"}</Text>,
     },
     {
       align: "end",
@@ -90,7 +90,7 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
       width: proportional(1, { minWidth: 180 }),
       renderCell: (r) => (
         <Text type="code" weight="bold">
-          {formatNumber(r.subtotal)}
+          {formatNumber(r.subtotal, 2)}
         </Text>
       ),
     },
@@ -136,7 +136,7 @@ export function RequirementVariantCard({ item }: RequirementVariantCardProps) {
                                   <TableCell>
                                     <HStack justify="end">
                                       <Text weight="bold" type="code" size="lg">
-                                        {formatNumber(item.planned_budget)}
+                                        {formatNumber(item.planned_budget, 2)}
                                       </Text>
                                     </HStack>
                                   </TableCell>

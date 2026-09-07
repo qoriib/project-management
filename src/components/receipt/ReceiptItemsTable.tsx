@@ -34,7 +34,7 @@ export function ReceiptItemsTable({ items, form }: ReceiptItemsTableProps) {
       header: "Harga (Rp)",
       key: "price",
       width: pixel(180),
-      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0)}</Text>,
+      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0, 2)}</Text>,
     },
     {
       align: "end",

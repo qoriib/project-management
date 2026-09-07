@@ -20,7 +20,7 @@ export function PriceSelectorCell({ form, onAddNewPrice }: PriceSelectorCellProp
         if (itemId) {
           const prices = itemPricesMap.get(itemId) || [];
           priceOptions = prices.map((p) => ({
-            label: formatNumber(p.price),
+            label: formatNumber(p.price, 2),
             value: String(p.item_price_id),
           }));
         }

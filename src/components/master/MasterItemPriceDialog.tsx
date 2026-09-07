@@ -134,7 +134,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       width: proportional(1),
       renderCell: (row: ItemPriceWithRelation) => (
         <HStack gap={2} align="center" justify="end">
-          <Text type="code">{formatNumber(row.price)}</Text>
+          <Text type="code">{formatNumber(row.price, 2)}</Text>
         </HStack>
       ),
     },
@@ -265,7 +265,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
       </Dialog>
       <AlertDialog
         title="Hapus Harga"
-        description={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price) : ""}? Tindakan ini tidak dapat dibatalkan.`}
+        description={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price, 2) : ""}? Tindakan ini tidak dapat dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isOpen={Boolean(deleteTarget)}

@@ -26,7 +26,7 @@ export function SubtotalCell({ form }: BaseCellProps) {
         }
 
         const numQty = parseDecimalInput(qty);
-        return <>{formatNumber(numQty * priceNum)}</>;
+        return <>{formatNumber(numQty * priceNum, 2)}</>;
       }}
     </form.Subscribe>
   );

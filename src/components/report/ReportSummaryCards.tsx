@@ -19,7 +19,7 @@ export function ReportSummaryCards({ totalBudget, totalPO, loading }: ReportSumm
           <Text size="sm" color="secondary" weight="medium" type="label">
             Nilai Rencana (BOQ)
           </Text>
-          <Heading level={3}>{loading ? "…" : `Rp ${formatNumber(totalBudget)}`}</Heading>
+          <Heading level={3}>{loading ? "…" : `Rp ${formatNumber(totalBudget, 2)}`}</Heading>
         </Card>
       </GridSpan>
       <GridSpan columns={1}>
@@ -27,7 +27,7 @@ export function ReportSummaryCards({ totalBudget, totalPO, loading }: ReportSumm
           <Text size="sm" color="secondary" weight="medium" type="label">
             Nilai Pesanan (PO)
           </Text>
-          <Heading level={3}>{loading ? "…" : `Rp ${formatNumber(totalPO)}`}</Heading>
+          <Heading level={3}>{loading ? "…" : `Rp ${formatNumber(totalPO, 2)}`}</Heading>
         </Card>
       </GridSpan>
       <GridSpan columns={1}>
@@ -36,7 +36,7 @@ export function ReportSummaryCards({ totalBudget, totalPO, loading }: ReportSumm
             Nilai Selisih
           </Text>
           <Heading level={3} style={deltaColor ? { color: deltaColor } : undefined}>
-            {loading ? "…" : `Rp ${formatNumber(absDelta)}`}
+            {loading ? "…" : `Rp ${formatNumber(absDelta, 2)}`}
           </Heading>
         </Card>
       </GridSpan>

@@ -44,7 +44,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       width: pixel(140),
       renderCell: (row) => (
         <Text type="code" weight="medium">
-          {formatNumber(row.qty)}
+          {formatNumber(row.qty, 5)}
         </Text>
       ),
     },
@@ -53,7 +53,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       header: "Harga (Rp)",
       key: "price",
       width: pixel(180),
-      renderCell: (row) => <Text type="code">{formatNumber(row.price)}</Text>,
+      renderCell: (row) => <Text type="code">{formatNumber(row.price, 2)}</Text>,
     },
     {
       align: "end",
@@ -62,7 +62,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       width: pixel(180),
       renderCell: (row) => {
         const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        return <Text type="code">{formatNumber(subtotal)}</Text>;
+        return <Text type="code">{formatNumber(subtotal, 2)}</Text>;
       },
     },
     {
@@ -74,7 +74,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
         const dpp = calcDPP(row.qty, row.price);
         const taxAmount = calcTax(dpp, row.has_tax);
         return row.has_tax ? (
-          <Text type="code">{formatNumber(taxAmount)}</Text>
+          <Text type="code">{formatNumber(taxAmount, 2)}</Text>
         ) : (
           <Text size="sm" color="secondary">
             -
@@ -92,7 +92,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
         const total = calcLineTotal(dpp, row.has_tax);
         return (
           <Text type="code" weight="bold">
-            {formatNumber(total)}
+            {formatNumber(total, 2)}
           </Text>
         );
       },

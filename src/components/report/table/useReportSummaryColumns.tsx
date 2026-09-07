@@ -50,8 +50,8 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
 
         return (
           <ReportComparisonCell
-            poValue={r.total_ordered > 0 ? formatNumber(poPrice) : "-"}
-            bomValue={r.is_unplanned ? "-" : formatNumber(plannedPrice)}
+            poValue={r.total_ordered > 0 ? formatNumber(poPrice, 2) : "-"}
+            bomValue={r.is_unplanned ? "-" : formatNumber(plannedPrice, 2)}
             poStatus={isOver ? "over" : isUnder ? "under" : undefined}
           />
         );
@@ -64,8 +64,8 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       width: pixel(140),
       renderCell: (r) => (
         <ReportComparisonCell
-          poValue={formatNumber(r.total_ordered)}
-          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_volume)}
+          poValue={formatNumber(r.total_ordered, 5)}
+          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_volume, 5)}
         />
       ),
     },
@@ -76,8 +76,8 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       width: pixel(180),
       renderCell: (r) => (
         <ReportComparisonCell
-          poValue={formatNumber(r.total_order_dpp)}
-          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_dpp)}
+          poValue={formatNumber(r.total_order_dpp, 2)}
+          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_dpp, 2)}
         />
       ),
     },
@@ -88,8 +88,8 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       width: pixel(180),
       renderCell: (r) => (
         <ReportComparisonCell
-          poValue={formatNumber(r.total_order_tax)}
-          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_tax)}
+          poValue={formatNumber(r.total_order_tax, 2)}
+          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_tax, 2)}
         />
       ),
     },
@@ -106,8 +106,8 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
 
         return (
           <ReportComparisonCell
-            poValue={formatNumber(poTotal)}
-            bomValue={r.is_unplanned ? "-" : formatNumber(plannedTotal)}
+            poValue={formatNumber(poTotal, 2)}
+            bomValue={r.is_unplanned ? "-" : formatNumber(plannedTotal, 2)}
             poStatus={isOver ? "over" : isUnder ? "under" : undefined}
           />
         );
@@ -122,7 +122,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         if (r.is_unplanned) {
           return (
             <Text type="code" color="secondary" weight="medium">
-              {formatNumber(r.total_ordered)}
+              {formatNumber(r.total_ordered, 5)}
             </Text>
           );
         }
@@ -138,7 +138,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
             max={planned || 1}
             label={`${percent.toFixed(0)}%`}
             hasValueLabel
-            formatValueLabel={() => `${formatNumber(ordered)} / ${formatNumber(planned)}`}
+            formatValueLabel={() => `${formatNumber(ordered, 5)} / ${formatNumber(planned, 5)}`}
             variant={variant}
           />
         );
@@ -153,7 +153,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         if (r.is_unplanned) {
           return (
             <Text type="code" color="secondary" weight="medium">
-              {formatNumber(r.total_delivered)}
+              {formatNumber(r.total_delivered, 5)}
             </Text>
           );
         }
@@ -169,7 +169,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
             max={ordered || 1}
             label={`${percent.toFixed(0)}%`}
             hasValueLabel
-            formatValueLabel={() => `${formatNumber(delivered)} / ${formatNumber(ordered)}`}
+            formatValueLabel={() => `${formatNumber(delivered, 5)} / ${formatNumber(ordered, 5)}`}
             variant={variant}
           />
         );

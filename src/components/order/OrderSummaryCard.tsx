@@ -31,7 +31,7 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
           <Text size="sm" color="secondary" weight="medium" type="label">
             Total Nilai Pesanan
           </Text>
-          <Heading level={3}>Rp {formatNumber(totalOrderPrice)}</Heading>
+          <Heading level={3}>Rp {formatNumber(totalOrderPrice, 2)}</Heading>
         </Card>
       </GridSpan>
       <GridSpan columns={1}>
@@ -40,7 +40,7 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
             Total Item & Volume
           </Text>
           <Heading level={3}>
-            {items.length} Item ({formatNumber(totalOrderedQty)} Vol)
+            {items.length} Item ({formatNumber(totalOrderedQty, 5)} Vol)
           </Heading>
         </Card>
       </GridSpan>

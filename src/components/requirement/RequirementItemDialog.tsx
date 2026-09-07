@@ -58,7 +58,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
   const selectedItem = items.find((i) => i.item_id === selectedItemId);
   const selectedItemCode = selectedItem ? formatItemCode(selectedItem) : "";
   const priceOptions = (itemPricesMap.get(selectedItemId ?? "") ?? []).map((p) => ({
-    label: `Rp ${formatNumber(p.price)}`,
+    label: `Rp ${formatNumber(p.price, 2)}`,
     value: String(p.item_price_id),
   }));
 
@@ -215,19 +215,19 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                               <Text size="sm" color="secondary">
                                 Subtotal:
                               </Text>
-                              <Text type="code">Rp {formatNumber(dpp)}</Text>
+                              <Text type="code">Rp {formatNumber(dpp, 2)}</Text>
                             </HStack>
                             <HStack justify="between">
                               <Text size="sm" color="secondary">
                                 PPn ({TAX_RATIO_PERCENT}%):
                               </Text>
-                              <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount)}` : "-"}</Text>
+                              <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount, 2)}` : "-"}</Text>
                             </HStack>
                             <Divider />
                             <HStack justify="between">
                               <Text weight="bold">Total:</Text>
                               <Text type="code" weight="bold" color="primary">
-                                Rp {formatNumber(total)}
+                                Rp {formatNumber(total, 2)}
                               </Text>
                             </HStack>
                           </VStack>

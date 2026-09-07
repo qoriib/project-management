@@ -58,7 +58,7 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
       header: "Total (Rp)",
       key: "total_price",
       width: pixel(180),
-      renderCell: (row: PORow) => <Text type="code">{formatNumber(row.total_price)}</Text>,
+      renderCell: (row: PORow) => <Text type="code">{formatNumber(row.total_price, 2)}</Text>,
     },
     {
       align: "end",

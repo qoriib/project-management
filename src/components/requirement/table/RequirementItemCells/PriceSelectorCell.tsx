@@ -18,7 +18,7 @@ export function PriceSelectorCell({ form, onAddNewPrice, editingId: _ }: PriceSe
       {({ itemId }) => {
         const prices = itemId ? (itemPricesMap.get(itemId) ?? []) : [];
         const priceOptions = prices.map((p) => ({
-          label: formatNumber(p.price),
+          label: formatNumber(p.price, 2),
           value: p.item_price_id,
         }));
 
