@@ -62,36 +62,60 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (r) => (
-        <ReportComparisonCell
-          poValue={formatNumber(r.total_ordered, 5)}
-          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_volume, 5)}
-        />
-      ),
+      renderCell: (r) => {
+        const poQty = r.total_ordered ?? 0;
+        const plannedQty = r.planned_volume ?? 0;
+        const isOver = !r.is_unplanned && poQty > plannedQty && r.total_ordered > 0;
+        const isUnder = !r.is_unplanned && poQty > 0 && poQty < plannedQty;
+
+        return (
+          <ReportComparisonCell
+            poValue={formatNumber(poQty, 5)}
+            bomValue={r.is_unplanned ? "-" : formatNumber(plannedQty, 5)}
+            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+          />
+        );
+      },
     },
     {
       align: "end",
       header: "Subtotal (Rp)",
       key: "subtotal",
       width: pixel(180),
-      renderCell: (r) => (
-        <ReportComparisonCell
-          poValue={formatNumber(r.total_order_dpp, 2)}
-          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_dpp, 2)}
-        />
-      ),
+      renderCell: (r) => {
+        const poSubtotal = r.total_order_dpp ?? 0;
+        const plannedSubtotal = r.planned_dpp ?? 0;
+        const isOver = !r.is_unplanned && poSubtotal > plannedSubtotal && r.total_ordered > 0;
+        const isUnder = !r.is_unplanned && poSubtotal > 0 && poSubtotal < plannedSubtotal;
+
+        return (
+          <ReportComparisonCell
+            poValue={formatNumber(poSubtotal, 2)}
+            bomValue={r.is_unplanned ? "-" : formatNumber(plannedSubtotal, 2)}
+            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+          />
+        );
+      },
     },
     {
       align: "end",
       header: "PPn (12%)",
       key: "has_tax",
       width: pixel(180),
-      renderCell: (r) => (
-        <ReportComparisonCell
-          poValue={formatNumber(r.total_order_tax, 2)}
-          bomValue={r.is_unplanned ? "-" : formatNumber(r.planned_tax, 2)}
-        />
-      ),
+      renderCell: (r) => {
+        const poTax = r.total_order_tax ?? 0;
+        const plannedTax = r.planned_tax ?? 0;
+        const isOver = !r.is_unplanned && poTax > plannedTax && r.total_ordered > 0;
+        const isUnder = !r.is_unplanned && poTax > 0 && poTax < plannedTax;
+
+        return (
+          <ReportComparisonCell
+            poValue={formatNumber(poTax, 2)}
+            bomValue={r.is_unplanned ? "-" : formatNumber(plannedTax, 2)}
+            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+          />
+        );
+      },
     },
     {
       align: "end",
