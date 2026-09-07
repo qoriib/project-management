@@ -1,5 +1,4 @@
 import * as v from "valibot";
-import { todayISO } from "@/utils/formatters";
 import type { OrderWithSummary } from "@/db/repositories";
 
 export const poSchema = v.object({
@@ -12,9 +11,9 @@ export interface OrderFormValues {
   order_date: string;
 }
 
-export function buildDefaultValues(order?: OrderWithSummary | null, nextOrderCode = ""): OrderFormValues {
+export function buildDefaultValues(order: OrderWithSummary): OrderFormValues {
   return {
-    order_code: order?.order_code ?? nextOrderCode,
-    order_date: order?.order_date ?? todayISO(),
+    order_code: order.order_code ?? "",
+    order_date: order.order_date ?? "",
   };
 }

@@ -13,7 +13,7 @@ import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { OrderItemDialog } from "@/components/order/OrderItemDialog";
 import { buildDefaultValues, poSchema } from "@/components/order/form/order.schema";
 import { getFieldError, handleFormError } from "@/utils/form";
-import { generateNextCode, formatNumber, parseDecimalInput } from "@/utils/formatters";
+import { formatNumber, parseDecimalInput } from "@/utils/formatters";
 import { calcGrandTotal } from "@/utils/calc";
 import { useKeyboardShortcut } from "@/utils/useKeyboardShortcut";
 import { type OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
@@ -21,11 +21,10 @@ import type { OrderItemFormValues } from "@/components/order/form/orderItem.sche
 import type { OrderItemDetail, OrderWithSummary } from "@/db/repositories";
 
 export interface OrderFormProps {
-  order?: OrderWithSummary;
-  initialItems?: OrderItemDetail[];
+  order: OrderWithSummary;
 }
 
-export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
+export function OrderForm({ order }: OrderFormProps) {
   const navigate = useNavigate();
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
@@ -34,27 +33,19 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   const [editingItem, setEditingItem] = useState<OrderItemDetail | undefined>(undefined);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
 
-  const { orders, currentItems, addOrderItem, updateOrderItem, deleteOrderItem, updateOrderHeader } = useOrderStore();
-  const items = order ? currentItems : initialItems;
-
-  const nextOrderCode = useMemo(() => {
-    if (order) return order.order_code || "";
-    return generateNextCode(
-      orders.map((o) => o.order_code),
-      "PO-",
-    );
-  }, [orders, order]);
+  const { currentItems, addOrderItem, updateOrderItem, deleteOrderItem, updateOrderHeader } = useOrderStore();
+  const items = currentItems;
 
   const grandTotal = useMemo(() => calcGrandTotal(items), [items]);
 
   const form = useForm({
-    defaultValues: buildDefaultValues(order, nextOrderCode),
+    defaultValues: buildDefaultValues(order),
     validators: { onChange: poSchema },
   });
 
   useEffect(() => {
-    form.reset(buildDefaultValues(order, nextOrderCode));
-  }, [order, nextOrderCode]);
+    form.reset(buildDefaultValues(order));
+  }, [order, form]);
 
   function handleOpenAdd() {
     setEditingItem(undefined);
@@ -74,7 +65,6 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   });
 
   async function handleSaveItem(payload: OrderItemFormValues) {
-    if (!order) return;
     const itemInput = {
       item_id: payload.item_id,
       vendor_id: payload.vendor_id,
@@ -97,7 +87,7 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
   }
 
   async function handleDelete() {
-    if (!deletingId || !order) return;
+    if (!deletingId) return;
     try {
       await deleteOrderItem(order.order_id, deletingId);
       showToast({ body: "Item berhasil dihapus", type: "info" });
@@ -131,12 +121,17 @@ export function OrderForm({ order, initialItems = [] }: OrderFormProps) {
           <LayoutHeader hasDivider padding={6}>
             <HStack gap={2} vAlign="center" hAlign="between">
               <VStack gap={0.5}>
-                <Heading level={3}>{order ? "Edit Pengadaan" : "Pengadaan Baru"}</Heading>
+                <Heading level={3}>Edit Pengadaan</Heading>
                 <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                  {order ? `Perbarui rincian pengadaan ${order.order_code}` : "Buat pengadaan pembelian baru"}
+                  Perbarui rincian pengadaan {order.order_code}
                 </Text>
               </VStack>
-              <Button variant="secondary" type="button" onClick={() => navigate({ to: "/order" })} label="Kembali" />
+              <Button
+                variant="secondary"
+                type="button"
+                onClick={() => navigate({ to: `/order/${order.order_id}` })}
+                label="Kembali"
+              />
             </HStack>
           </LayoutHeader>
         }

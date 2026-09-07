@@ -12,7 +12,7 @@ import type { ReceiptFormProps } from "./form/receipt.schema";
 
 export type { ReceiptFormProps };
 
-export function ReceiptForm({ receiptId }: ReceiptFormProps) {
+export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
   const navigate = useNavigate();
   const showToast = useToast();
   const { updateReceiptHeader } = useReceiptStore();
@@ -36,7 +36,9 @@ export function ReceiptForm({ receiptId }: ReceiptFormProps) {
               type="button"
               onClick={() => {
                 const poId = form.getFieldValue("order_id");
-                if (poId) {
+                if (onSuccess && poId) {
+                  onSuccess(poId);
+                } else if (poId) {
                   navigate({ to: `/order/${poId}` });
                 } else {
                   navigate({ to: "/receipt" });

@@ -5,15 +5,15 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { formatItemCode, formatNumber, parseDecimalInput, sanitizeDecimalInput } from "@/utils/formatters";
 import { getFieldError, handleFormError } from "@/utils/form";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
 import type { ReceiptItemRow } from "./form/receipt.schema";
 import type { useReceiptForm } from "./form/useReceiptForm";
 
 export interface ReceiptItemsTableProps {
   items: ReceiptItemRow[];
   form: ReturnType<typeof useReceiptForm>["form"];
-  receiptId?: string;
-  orderId?: string;
+  receiptId: string;
+  orderId: string;
 }
 
 export function ReceiptItemsTable({ items, form, receiptId, orderId }: ReceiptItemsTableProps) {
@@ -61,13 +61,11 @@ export function ReceiptItemsTable({ items, form, receiptId, orderId }: ReceiptIt
                 onChange={(v) => qtyField.handleChange(sanitizeDecimalInput(v))}
                 onBlur={async () => {
                   qtyField.handleBlur();
-                  if (receiptId && orderId) {
-                    try {
-                      const numQty = parseDecimalInput(qtyField.state.value as string);
-                      await upsertReceiptItem(receiptId, orderId, row.order_item_id, numQty);
-                    } catch (error: unknown) {
-                      handleFormError(error, showToast);
-                    }
+                  try {
+                    const numQty = parseDecimalInput(qtyField.state.value as string);
+                    await upsertReceiptItem(receiptId, orderId, row.order_item_id, numQty);
+                  } catch (error: unknown) {
+                    handleFormError(error, showToast);
                   }
                 }}
                 status={getFieldError(qtyField.state.meta.errors, qtyField.state.meta.isTouched)}
@@ -90,6 +88,10 @@ export function ReceiptItemsTable({ items, form, receiptId, orderId }: ReceiptIt
     getRowKey: (item) => item.order_item_id,
   });
 
+  const stickyColumns = useTableStickyColumns<ReceiptItemRow>({
+    startKeys: ["__rowIndex", "item_code", "item_name"],
+  });
+
   return (
     <Card>
       <Table
@@ -98,7 +100,7 @@ export function ReceiptItemsTable({ items, form, receiptId, orderId }: ReceiptIt
         textOverflow="truncate"
         columns={columns}
         data={items}
-        plugins={{ rowIndex: rowIndexPlugin }}
+        plugins={{ rowIndex: rowIndexPlugin, stickyColumns }}
         emptyState={<EmptyState isCompact title="Tidak ada item untuk diterima" />}
       />
     </Card>

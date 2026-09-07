@@ -8,7 +8,7 @@ import { useOrderStore } from "@/store/useOrderStore";
 
 function OrderEditPage() {
   const { id } = useParams({ strict: false });
-  const { currentOrder: order, currentItems, loadOrderDetail, clearOrderDetail } = useOrderStore();
+  const { currentOrder: order, loadOrderDetail, clearOrderDetail } = useOrderStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ function OrderEditPage() {
       />
     );
 
-  return <OrderForm order={order} initialItems={currentItems} />;
+  return <OrderForm order={order} />;
 }
 
 export const Route = createFileRoute("/order/$id/edit")({

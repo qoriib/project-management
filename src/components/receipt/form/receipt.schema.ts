@@ -34,7 +34,7 @@ export interface ReceiptFormValues {
 
 export interface ReceiptFormProps {
   receiptId: string;
-  onSuccess: (poId: string) => void;
+  onSuccess?: (poId: string) => void;
 }
 
 export function buildDefaultValues(data?: Partial<ReceiptFormValues> | null): ReceiptFormValues {

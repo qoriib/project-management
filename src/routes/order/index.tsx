@@ -20,7 +20,6 @@ function OrderListPage() {
     if (!selectedProjectId) return;
     try {
       const newOrderId = await createOrderForProject(selectedProjectId);
-      showToast({ body: "Pengadaan baru berhasil dibuat", type: "info" });
       navigate({ to: `/order/${newOrderId}/edit` });
     } catch (error: unknown) {
       handleFormError(error, showToast);
