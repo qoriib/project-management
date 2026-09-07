@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Badge, Button } from "@astryxdesign/core";
+import { Token, Button } from "@astryxdesign/core";
 import { useToast } from "@astryxdesign/core/Toast";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -25,7 +25,11 @@ export function RequirementApprovalActions() {
 
   if (!isManager) {
     return (
-      <Badge variant={isApproved ? "success" : "warning"} label={isApproved ? "Sudah Disetujui" : "Belum Disetujui"} />
+      <Token
+        size="lg"
+        color={isApproved ? "green" : "yellow"}
+        label={isApproved ? "Sudah Disetujui" : "Belum Disetujui"}
+      />
     );
   }
 

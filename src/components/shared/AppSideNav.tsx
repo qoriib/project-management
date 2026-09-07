@@ -1,5 +1,14 @@
 import { useNavigate } from "@tanstack/react-router";
-import { HStack, SideNav, SideNavHeading, SideNavItem, SideNavSection, Text, VStack } from "@astryxdesign/core";
+import {
+  HStack,
+  ListItem,
+  SideNav,
+  SideNavHeading,
+  SideNavItem,
+  SideNavSection,
+  Text,
+  VStack,
+} from "@astryxdesign/core";
 import { useShallow } from "zustand/react/shallow";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
@@ -25,11 +34,27 @@ export function AppSideNav() {
     <SideNav
       header={
         <SideNavHeading
-          heading={activeProject ? activeProject.project_name : APP.title}
+          heading={activeProject ? activeProject.project_name : "Pilih Proyek"}
           subheading={
-            activeProject
-              ? `${activeProject.company_name} - ${activeProject.fiscal_year}`
-              : "Pilih Proyek di Master Data"
+            activeProject ? `${activeProject.company_name} - ${activeProject.fiscal_year}` : "Belum ada proyek terpilih"
+          }
+          menu={
+            <>
+              <ListItem
+                label="Kelola Proyek"
+                onClick={() => {
+                  setActiveNav("/master/project");
+                  navigate({ to: "/master/project" });
+                }}
+              />
+              <ListItem
+                label="Export / Import"
+                onClick={() => {
+                  setActiveNav("/settings/database");
+                  navigate({ to: "/settings/database" });
+                }}
+              />
+            </>
           }
         />
       }
