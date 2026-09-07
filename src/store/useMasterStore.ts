@@ -27,27 +27,21 @@ import {
 } from "@/db/repositories";
 
 interface MasterStore {
-  // ── States ─────────────────────────────────────────────────────────────────
   isLoaded: boolean;
   items: ItemWithDetails[];
   categories: ItemCategoryWithRelation[];
   projects: ProjectWithRelations[];
   units: UnitWithRelation[];
   vendors: VendorWithRelation[];
-  /** Item_price_id → ItemPrice[], keyed by item_id for fast lookup */
   itemPricesMap: Map<string, ItemPrice[]>;
 
-  // ── Load Actions ───────────────────────────────────────────────────────────
   loadAllMasters: () => Promise<void>;
   reloadItems: () => Promise<void>;
   reloadCategories: () => Promise<void>;
   reloadProjects: () => Promise<void>;
   reloadUnits: () => Promise<void>;
   reloadVendors: () => Promise<void>;
-  /** Load/reload price variants for a specific item */
   loadItemPrices: (itemId: string) => Promise<ItemPrice[]>;
-
-  // ── CRUD Wrappers ──────────────────────────────────────────────────────────
 
   // Items
   createItem: (data: CreateItem) => Promise<void>;
@@ -140,7 +134,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     return prices;
   },
 
-  // ── Items CRUD ──
+  // Items CRUD
   createItem: async (data) => {
     await itemRepo.create(data);
     await get().reloadItems();
@@ -154,7 +148,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     await get().reloadItems();
   },
 
-  // ── Item Prices CRUD ──
+  // Item Prices CRUD
   createItemPrice: async (data) => {
     await itemPriceRepo.create(data);
     await get().loadItemPrices(data.item_id);
@@ -175,7 +169,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     await get().loadItemPrices(itemId);
   },
 
-  // ── Categories CRUD ──
+  // Categories CRUD
   createCategory: async (data) => {
     await itemCategoryRepo.create(data);
     await get().reloadCategories();
@@ -189,7 +183,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     await get().reloadCategories();
   },
 
-  // ── Projects CRUD ──
+  // Projects CRUD
   createProject: async (data) => {
     await projectRepo.create(data);
     await get().reloadProjects();
@@ -211,7 +205,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     await get().reloadProjects();
   },
 
-  // ── Units CRUD ──
+  // Units CRUD
   createUnit: async (data) => {
     await unitRepo.create(data);
     await get().reloadUnits();
@@ -225,7 +219,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     await get().reloadUnits();
   },
 
-  // ── Vendors CRUD ──
+  // Vendors CRUD
   createVendor: async (data) => {
     await vendorRepo.create(data);
     await get().reloadVendors();

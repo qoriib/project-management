@@ -54,7 +54,9 @@ pub fn run() {
             db_sync::export_csv_zip,
             db_sync::import_csv_zip,
             auth::check_pin,
-            auth::change_pin
+            auth::change_pin,
+            auth::get_auth_status,
+            auth::logout
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

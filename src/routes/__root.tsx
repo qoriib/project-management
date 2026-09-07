@@ -83,10 +83,18 @@ function AppLayout() {
 
 export const Route = createRootRoute({
   component: RootComponent,
-  beforeLoad: ({ location }) => {
-    if (!checkIsAuthenticated() && location.pathname !== "/login") {
+  beforeLoad: async ({ location }) => {
+    const isAuthed = await checkIsAuthenticated();
+
+    if (!isAuthed && location.pathname !== "/login") {
       throw redirect({
         to: "/login",
+      });
+    }
+
+    if (isAuthed && location.pathname === "/login") {
+      throw redirect({
+        to: "/",
       });
     }
   },

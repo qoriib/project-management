@@ -1,16 +1,13 @@
 import { create } from "zustand";
-import { type ReceiptSummary, receiptRepo } from "@/db/repositories";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
+import { type ReceiptSummary, receiptRepo } from "@/db/repositories";
 
 interface ReceiptStore {
-  // ── States ─────────────────────────────────────────────────────────────────
   receipts: ReceiptSummary[];
 
-  // ── Load Actions ───────────────────────────────────────────────────────────
   loadAllReceipts: (projectId?: string) => Promise<void>;
 
-  // ── CRUD Wrappers ──────────────────────────────────────────────────────────
   createReceipt: (
     data: { order_id: string; receipt_date: string; receipt_code: string },
     items: { order_item_id: string; qty: number }[],

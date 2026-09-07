@@ -9,18 +9,15 @@ import {
 } from "@/db/repositories";
 
 interface OrderStore {
-  // ── States ─────────────────────────────────────────────────────────────────
   orders: OrderWithSummary[];
   currentOrder: OrderWithSummary | null;
   currentItems: OrderItemDetail[];
   currentReceiptItems: ReceiptItemByOrder[];
 
-  // ── Load Actions ───────────────────────────────────────────────────────────
   loadAllOrders: (projectId?: string) => Promise<void>;
   loadOrderDetail: (id: string) => Promise<void>;
   clearOrderDetail: () => void;
 
-  // ── CRUD Wrappers ──────────────────────────────────────────────────────────
   createOrder: (
     data: { order_date: string; project_id: string; order_code: string },
     items: OrderItemInput[],

@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { type RequirementDetail, requirementRepo } from "@/db/repositories";
 import { useMasterStore } from "./useMasterStore";
+import { type RequirementDetail, requirementRepo } from "@/db/repositories";
 
 interface RequirementStore {
   requirements: RequirementDetail[];

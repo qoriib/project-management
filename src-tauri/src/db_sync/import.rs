@@ -1,6 +1,6 @@
 use super::schema::{SyncManifest, MASTER_TABLES, PROJECT_TABLES};
 use super::utils::get_db_path;
-use crate::constants::SYNC_ARCHIVE_KEY;
+use crate::constants::{SYNC_ARCHIVE_KEY, SYNC_MANIFEST_NAME};
 use rusqlite::{params, Connection};
 use std::fs::File;
 use std::io::Read;
@@ -13,7 +13,7 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
     let mut archive = ZipArchive::new(file).map_err(|e| format!("Format file backup tidak valid: {e}"))?;
 
     // 1. Baca manifest untuk mendapatkan project_id yang diimpor
-    let manifest_content = match archive.by_name_decrypt("manifest.json", SYNC_ARCHIVE_KEY.as_bytes()) {
+    let manifest_content = match archive.by_name_decrypt(SYNC_MANIFEST_NAME, SYNC_ARCHIVE_KEY.as_bytes()) {
         Ok(mut zip_entry) => {
             let mut content = String::new();
             zip_entry

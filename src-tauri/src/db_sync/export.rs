@@ -1,6 +1,6 @@
 use super::schema::{get_project_export_query, SyncManifest, MASTER_TABLES, PROJECT_TABLES};
 use super::utils::get_db_path;
-use crate::constants::SYNC_ARCHIVE_KEY;
+use crate::constants::{SYNC_ARCHIVE_KEY, SYNC_MANIFEST_NAME};
 use rusqlite::types::ValueRef;
 use rusqlite::{params, Connection};
 use std::fs::File;
@@ -39,7 +39,7 @@ pub fn export_csv_zip(
         exported_at: chrono::Local::now().to_rfc3339(),
         app_version: env!("CARGO_PKG_VERSION").to_string(),
     };
-    zip.start_file("manifest.json", options)
+    zip.start_file(SYNC_MANIFEST_NAME, options)
         .map_err(|e| e.to_string())?;
     let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?;
     std::io::Write::write_all(&mut zip, &manifest_bytes).map_err(|e| e.to_string())?;

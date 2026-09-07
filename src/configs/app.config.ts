@@ -10,6 +10,7 @@ export const APP = {
   companyName: "PT SANG BIMA RATU",
   taxRatio: 0.12,
   projectExtension: "project",
+  sessionKey: "menpro_auth_session",
   sidenav: [
     {
       label: "Laporan Pemenuhan",
