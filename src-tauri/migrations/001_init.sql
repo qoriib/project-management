@@ -129,35 +129,6 @@ CREATE TABLE `receipt_items` (
 	FOREIGN KEY (`order_item_id`) REFERENCES `order_items`(`order_item_id`) ON UPDATE no action ON DELETE restrict
 );
 
--- Tambahkan database triggers untuk mengunci tabel requirements secara mutlak jika proyek sudah di-ACC
-
--- 1. Mencegah INSERT
-CREATE TRIGGER prevent_requirement_insert
-BEFORE INSERT ON requirements
-FOR EACH ROW
-WHEN (SELECT requirements_is_approved FROM projects WHERE project_id = NEW.project_id) = 1
-BEGIN
-    SELECT RAISE(ABORT, 'Gagal: Kebutuhan untuk proyek ini telah dikunci.');
-END;
-
--- 2. Mencegah UPDATE
-CREATE TRIGGER prevent_requirement_update
-BEFORE UPDATE ON requirements
-FOR EACH ROW
-WHEN (SELECT requirements_is_approved FROM projects WHERE project_id = NEW.project_id) = 1
-BEGIN
-    SELECT RAISE(ABORT, 'Gagal: Kebutuhan untuk proyek ini telah dikunci.');
-END;
-
--- 3. Mencegah DELETE
-CREATE TRIGGER prevent_requirement_delete
-BEFORE DELETE ON requirements
-FOR EACH ROW
-WHEN (SELECT requirements_is_approved FROM projects WHERE project_id = OLD.project_id) = 1
-BEGIN
-    SELECT RAISE(ABORT, 'Gagal: Kebutuhan untuk proyek ini telah dikunci.');
-END;
-
 -- Indexes for performance (FK lookups, EXISTS subqueries, and table JOINs)
 CREATE INDEX IF NOT EXISTS idx_items_category_id ON items(category_id);
 CREATE INDEX IF NOT EXISTS idx_items_unit_id ON items(unit_id);

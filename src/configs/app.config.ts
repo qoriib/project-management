@@ -9,6 +9,7 @@ export const APP = {
   defaultRole: AppRole.MANAGER,
   companyName: "PT SANG BIMA RATU",
   taxRatio: 0.12,
+  projectExtension: "project",
   sidenav: [
     {
       label: "Laporan Pemenuhan",

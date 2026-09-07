@@ -67,6 +67,41 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
       has_tax: Boolean(r.has_tax),
     }));
   }
+
+  /**
+   * Validasi di sisi aplikasi bahwa proyek belum di-approve sebelum melakukan perubahan kebutuhan.
+   */
+  async ensureNotApproved(projectId: string): Promise<void> {
+    const db = await this.db();
+    const rows = await db.select<{ requirements_is_approved: number }[]>(
+      "SELECT requirements_is_approved FROM projects WHERE project_id = $1 AND deleted_at IS NULL",
+      [projectId],
+    );
+    if (rows[0]?.requirements_is_approved === 1) {
+      throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
+    }
+  }
+
+  override async create(data: CreateRequirement): Promise<string> {
+    await this.ensureNotApproved(data.project_id);
+    return super.create(data);
+  }
+
+  override async update(id: string, data: Partial<UpdateRequirement>): Promise<void> {
+    const existing = await this.findById(id);
+    if (existing) {
+      await this.ensureNotApproved(existing.project_id);
+    }
+    return super.update(id, data);
+  }
+
+  override async delete(id: string): Promise<void> {
+    const existing = await this.findById(id);
+    if (existing) {
+      await this.ensureNotApproved(existing.project_id);
+    }
+    return super.delete(id);
+  }
 }
 
 export const requirementRepo = new RequirementRepository();

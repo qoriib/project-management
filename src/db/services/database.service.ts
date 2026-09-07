@@ -27,9 +27,6 @@ export async function resetDatabase(): Promise<void> {
     // 1. Disable foreign keys temporarily for clean wipe
     await db.execute("PRAGMA foreign_keys = OFF;");
 
-    // Unlock projects to avoid requirement triggers
-    await db.execute("UPDATE projects SET requirements_is_approved = 0 WHERE requirements_is_approved = 1;");
-
     // 2. Clear all tables
     const tables = [
       "receipt_items",

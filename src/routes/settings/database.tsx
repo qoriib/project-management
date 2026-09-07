@@ -9,6 +9,7 @@ import { getTimestampString, sanitizeFilename } from "@/utils/formatters";
 import { handleFormError } from "@/utils/form";
 import { resetDatabase } from "@/db/services";
 import { resetAllStores, useMasterStore } from "@/store";
+import { APP } from "@/configs/app.config";
 
 function SettingsDatabase() {
   const showToast = useToast();
@@ -30,11 +31,11 @@ function SettingsDatabase() {
       const timestamp = getTimestampString();
       const project = useMasterStore.getState().projects.find((p) => p.project_id === projectId);
       const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
-      const filename = `${timestamp}_${projectName}.proyek`;
+      const filename = `${timestamp}_${projectName}.${APP.projectExtension}`;
 
       const targetPath = await save({
         defaultPath: filename,
-        filters: [{ name: "Manajemen Proyek Archive", extensions: ["proyek"] }],
+        filters: [{ name: "Manajemen Proyek Archive", extensions: [APP.projectExtension] }],
         title: "Simpan Backup Project",
       });
 
@@ -55,7 +56,7 @@ function SettingsDatabase() {
   const handleImportSelect = async () => {
     try {
       const sourcePath = await open({
-        filters: [{ name: "Manajemen Proyek Archive", extensions: ["proyek"] }],
+        filters: [{ name: "Manajemen Proyek Archive", extensions: [APP.projectExtension] }],
         multiple: false,
         title: "Pilih File Backup Project",
       });

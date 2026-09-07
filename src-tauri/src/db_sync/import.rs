@@ -59,49 +59,50 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
 
     let tx = conn.transaction().map_err(|e| e.to_string())?;
 
-    // 2. Bersihkan data proyek lama untuk project_id terkait
-    let _ = tx.execute(
-        "UPDATE projects SET requirements_is_approved = 0 WHERE project_id = ?1",
-        params![&project_id],
-    );
-
-    let _ = tx.execute(
+    // 2. Bersihkan data proyek lama untuk project_id terkait (Clean wipe khusus proyek ini)
+    tx.execute(
         "DELETE FROM receipt_items WHERE receipt_id IN (
             SELECT receipt_id FROM receipts WHERE order_id IN (
                 SELECT order_id FROM orders WHERE project_id = ?1
             )
         )",
         params![&project_id],
-    );
+    )
+    .map_err(|e| format!("Gagal membersihkan data receipt_items lama: {e}"))?;
 
-    let _ = tx.execute(
+    tx.execute(
         "DELETE FROM receipts WHERE order_id IN (
             SELECT order_id FROM orders WHERE project_id = ?1
         )",
         params![&project_id],
-    );
+    )
+    .map_err(|e| format!("Gagal membersihkan data receipts lama: {e}"))?;
 
-    let _ = tx.execute(
+    tx.execute(
         "DELETE FROM order_items WHERE order_id IN (
             SELECT order_id FROM orders WHERE project_id = ?1
         )",
         params![&project_id],
-    );
+    )
+    .map_err(|e| format!("Gagal membersihkan data order_items lama: {e}"))?;
 
-    let _ = tx.execute(
+    tx.execute(
         "DELETE FROM orders WHERE project_id = ?1",
         params![&project_id],
-    );
+    )
+    .map_err(|e| format!("Gagal membersihkan data orders lama: {e}"))?;
 
-    let _ = tx.execute(
+    tx.execute(
         "DELETE FROM requirements WHERE project_id = ?1",
         params![&project_id],
-    );
+    )
+    .map_err(|e| format!("Gagal membersihkan data requirements lama: {e}"))?;
 
-    let _ = tx.execute(
+    tx.execute(
         "DELETE FROM projects WHERE project_id = ?1",
         params![&project_id],
-    );
+    )
+    .map_err(|e| format!("Gagal membersihkan data project lama: {e}"))?;
 
     // 3. Impor & merge data Master (menggunakan INSERT OR REPLACE agar aman & idempotent)
     for &(table, _pk, _update_cols) in MASTER_TABLES {
@@ -136,8 +137,6 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
     }
 
     // 4. Impor tabel Proyek & Transaksi (menggunakan INSERT OR REPLACE)
-    let mut approved_status: Option<i64> = None;
-
     for &table in PROJECT_TABLES {
         let zip_entry = match archive.by_name_decrypt(&format!("{table}.csv"), SYNC_ARCHIVE_KEY.as_bytes()) {
             Ok(entry) => entry,
@@ -157,12 +156,6 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
 
         let mut stmt = tx.prepare(&insert_sql).map_err(|e| format!("Gagal prepare SQL proyek {table}: {e}"))?;
 
-        let approved_col_idx = if table == "projects" {
-            headers.iter().position(|h| h == "requirements_is_approved")
-        } else {
-            None
-        };
-
         for record in rdr.records() {
             let rec = record.map_err(|e| format!("Gagal membaca CSV proyek {table}: {e}"))?;
             let params: Vec<Option<String>> = rec
@@ -170,24 +163,9 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
                 .map(|f| if f.is_empty() { None } else { Some(f.to_string()) })
                 .collect();
 
-            // Simpan status persetujuan asli jika sedang mengimpor tabel projects
-            if let Some(idx) = approved_col_idx {
-                if let Some(val) = params.get(idx).and_then(|v| v.as_deref()) {
-                    approved_status = val.parse::<i64>().ok();
-                }
-            }
-
             stmt.execute(rusqlite::params_from_iter(params))
                 .map_err(|e| format!("Gagal mengimpor baris pada tabel {table}: {e}"))?;
         }
-    }
-
-    // 5. Kembalikan status requirements_is_approved asli pada proyek jika ada
-    if let Some(status) = approved_status {
-        let _ = tx.execute(
-            "UPDATE projects SET requirements_is_approved = ?1 WHERE project_id = ?2",
-            params![status, &project_id],
-        );
     }
 
     tx.commit().map_err(|e| format!("Gagal menyimpan perubahan database: {e}"))?;
