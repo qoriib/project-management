@@ -9,7 +9,6 @@ import { getDB } from "@/db/index";
 import { QueryBuilder } from "./query-builder";
 import { DbError, wrapDbError } from "./errors";
 import { v7 as uuidv7 } from "uuid";
-import { dbLog } from "./db-logger";
 import type { FindOptions, ModelDefinition, OrderByClause, SimpleWhere } from "./types";
 
 export abstract class BaseRepository<TEntity extends object, TCreate extends object, TUpdate extends object> {
@@ -28,7 +27,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Find all records, optionally filtered, sorted, and paginated.
    */
   async findAll(options?: FindOptions): Promise<TEntity[]> {
-    dbLog.debug(`[${this.model.tableName}] findAll options=${JSON.stringify(options ?? {})}`);
     try {
       const qb = this.query();
 
@@ -56,11 +54,8 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
 
       const { sql, params } = qb.build();
       const db = await this.db();
-      const rows = await db.select<TEntity[]>(sql, params);
-      dbLog.debug(`[${this.model.tableName}] findAll → ${rows.length} row(s)`);
-      return rows;
+      return await db.select<TEntity[]>(sql, params);
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] findAll ERROR: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -70,7 +65,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Returns null if not found (or if soft-deleted).
    */
   async findById(id: string, includeDeleted = false): Promise<TEntity | null> {
-    dbLog.debug(`[${this.model.tableName}] findById id=${id}`);
     try {
       const qb = this.query().where(this.model.primaryKey, "=", id);
       if (includeDeleted) qb.includeDeleted();
@@ -78,11 +72,8 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       const { sql, params } = qb.build();
       const db = await this.db();
       const rows = await db.select<TEntity[]>(sql, params);
-      const result = rows[0] ?? null;
-      dbLog.debug(`[${this.model.tableName}] findById id=${id} → ${result ? "found" : "not found"}`);
-      return result;
+      return rows[0] ?? null;
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] findById ERROR: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -103,7 +94,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Count records matching optional where conditions.
    */
   async count(where?: SimpleWhere, includeDeleted = false): Promise<number> {
-    dbLog.debug(`[${this.model.tableName}] count where=${JSON.stringify(where ?? {})}`);
     try {
       const qb = this.query().selectRaw("COUNT(*) as count");
       if (includeDeleted) qb.includeDeleted();
@@ -112,11 +102,8 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       const { sql, params } = qb.build();
       const db = await this.db();
       const rows = await db.select<{ count: number }[]>(sql, params);
-      const total = rows[0]?.count ?? 0;
-      dbLog.debug(`[${this.model.tableName}] count → ${total}`);
-      return total;
+      return rows[0]?.count ?? 0;
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] count ERROR: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -134,7 +121,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Returns the UUID string of the newly created record.
    */
   async create(data: TCreate): Promise<string> {
-    dbLog.debug(`[${this.model.tableName}] create data=${JSON.stringify(data)}`);
     try {
       const id = this.generateId();
       const columns: string[] = [this.model.primaryKey];
@@ -157,10 +143,8 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       const sql = `INSERT INTO ${this.model.tableName} (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
       const db = await this.db();
       await db.execute(sql, params);
-      dbLog.info(`[${this.model.tableName}] create OK → id=${id}`);
       return id;
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] create ERROR: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -199,7 +183,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Only updates columns that are present in the data object and allowed by the model.
    */
   async update(id: string, data: Partial<TUpdate>): Promise<void> {
-    dbLog.debug(`[${this.model.tableName}] update id=${id} data=${JSON.stringify(data)}`);
     try {
       const setClauses: string[] = [];
       const params: unknown[] = [];
@@ -217,7 +200,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       }
 
       if (setClauses.length === 0) {
-        dbLog.debug(`[${this.model.tableName}] update id=${id} → no columns to update, skipped`);
         return;
       }
 
@@ -227,9 +209,7 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       const sql = `UPDATE ${this.model.tableName} SET ${setClauses.join(", ")} WHERE ${this.model.primaryKey} = $${paramIdx}`;
       const db = await this.db();
       await db.execute(sql, params);
-      dbLog.info(`[${this.model.tableName}] update OK id=${id}`);
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] update ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -239,8 +219,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Falls back to hard delete if the model doesn't support soft delete.
    */
   async delete(id: string): Promise<void> {
-    const mode = this.model.softDelete ? "soft" : "hard";
-    dbLog.debug(`[${this.model.tableName}] delete (${mode}) id=${id}`);
     try {
       const db = await this.db();
 
@@ -249,12 +227,10 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
           `UPDATE ${this.model.tableName} SET deleted_at = datetime('now', 'localtime'), updated_at = datetime('now', 'localtime') WHERE ${this.model.primaryKey} = $1`,
           [id],
         );
-        dbLog.info(`[${this.model.tableName}] delete (soft) OK id=${id}`);
       } else {
         await this.hardDelete(id);
       }
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] delete ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -297,13 +273,10 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Permanently delete a record from the database.
    */
   async hardDelete(id: string): Promise<void> {
-    dbLog.warn(`[${this.model.tableName}] hardDelete id=${id}`);
     try {
       const db = await this.db();
       await db.execute(`DELETE FROM ${this.model.tableName} WHERE ${this.model.primaryKey} = $1`, [id]);
-      dbLog.info(`[${this.model.tableName}] hardDelete OK id=${id}`);
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] hardDelete ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -312,7 +285,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Restore a soft-deleted record by clearing `deleted_at`.
    */
   async restore(id: string): Promise<void> {
-    dbLog.debug(`[${this.model.tableName}] restore id=${id}`);
     if (!this.model.softDelete) {
       throw new DbError(`Tabel ${this.model.tableName} tidak mendukung soft delete`);
     }
@@ -323,9 +295,7 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
         `UPDATE ${this.model.tableName} SET deleted_at = NULL, updated_at = datetime('now', 'localtime') WHERE ${this.model.primaryKey} = $1`,
         [id],
       );
-      dbLog.info(`[${this.model.tableName}] restore OK id=${id}`);
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] restore ERROR id=${id}: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -345,30 +315,22 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Execute a raw SELECT query and return typed results.
    */
   protected async rawSelect<T>(sql: string, params?: unknown[]): Promise<T[]> {
-    dbLog.debug(`[${this.model.tableName}] rawSelect sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
     try {
       const db = await this.db();
-      const rows = await db.select<T[]>(sql, params);
-      dbLog.debug(`[${this.model.tableName}] rawSelect → ${rows.length} row(s)`);
-      return rows;
+      return await db.select<T[]>(sql, params);
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] rawSelect ERROR: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
 
   /**
-   * Execute a raw SQL statement (UPDATE, DELETE, DDL, etc.) with structured logging.
+   * Execute a raw SQL statement (UPDATE, DELETE, DDL, etc.).
    */
   protected async rawExecute(sql: string, params?: unknown[]): Promise<{ lastInsertId: number; rowsAffected: number }> {
-    dbLog.debug(`[${this.model.tableName}] rawExecute sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
     try {
       const db = await this.db();
-      const res = await db.execute(sql, params as any[]);
-      dbLog.info(`[${this.model.tableName}] rawExecute OK affected=${res.rowsAffected}`);
-      return res;
+      return await db.execute(sql, params as any[]);
     } catch (error) {
-      dbLog.error(`[${this.model.tableName}] rawExecute ERROR: ${(error as Error)?.message ?? String(error)}`);
       throw wrapDbError(error, this.model.tableName);
     }
   }
@@ -378,7 +340,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Reduces IPC calls from O(N) to O(1).
    */
   protected async bulkInsert(table: string, columns: string[], data: unknown[][]): Promise<void> {
-    dbLog.info(`[${this.model.tableName}] bulkInsert into=${table} rows=${data.length}`);
     if (data.length === 0) return;
 
     const chunkSize = 200;
@@ -402,7 +363,6 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
       const sql = `INSERT INTO ${table} (${columns.join(", ")}) VALUES ${placeholders.join(", ")}`;
       await db.execute(sql, params);
     }
-    dbLog.info(`[${this.model.tableName}] bulkInsert OK total=${data.length} row(s)`);
   }
 
   /**

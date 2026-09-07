@@ -6,7 +6,6 @@
  */
 
 import { getDB } from "@/db/index";
-import { dbLog } from "@/db/core/db-logger";
 import { wrapDbError } from "@/db/core/errors";
 
 /**
@@ -20,7 +19,6 @@ import { wrapDbError } from "@/db/core/errors";
  * 4. Re-enables foreign keys and runs VACUUM to reclaim disk space.
  */
 export async function resetDatabase(): Promise<void> {
-  dbLog.info("[DatabaseService] Starting database reset (clean hard wipe)...");
   try {
     const db = await getDB();
 
@@ -44,16 +42,12 @@ export async function resetDatabase(): Promise<void> {
 
     for (const table of tables) {
       await db.execute(`DELETE FROM ${table};`);
-      dbLog.debug(`[DatabaseService] Cleared table '${table}'`);
     }
 
     // 3. Re-enable foreign keys and run VACUUM
     await db.execute("PRAGMA foreign_keys = ON;");
     await db.execute("VACUUM;");
-
-    dbLog.info("[DatabaseService] Database reset (clean wipe) completed successfully.");
   } catch (error) {
-    dbLog.error(`[DatabaseService] Database reset ERROR: ${(error as Error)?.message ?? String(error)}`);
     throw wrapDbError(error, "database_reset");
   }
 }
