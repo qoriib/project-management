@@ -25,7 +25,8 @@ export const FORMAL_STYLE = {
   // Data Cell Colors
   bodyCellBg: "FFFFFFFF",
   unplannedCellBg: "FFFFE0B2", // Kontras amber/orange untuk item belanja di luar rencana (unplanned)
-  budgetOverCellBg: "FFFFCDD2", // Kontras soft red untuk item over budget
+  budgetOverCellBg: "FFFFCDD2", // Kontras soft red untuk item over budget / selisih lebih
+  budgetUnderCellBg: "FFC8E6C9", // Kontras soft green untuk item under budget / selisih kurang (hemat)
 
   // Border Colors
   borderDark: "FF000000",
@@ -186,6 +187,12 @@ export const FILL_UNPLANNED_CELL: ExcelJS.Fill = {
 
 export const FILL_BUDGET_OVER_CELL: ExcelJS.Fill = {
   fgColor: { argb: FORMAL_STYLE.budgetOverCellBg },
+  pattern: "solid",
+  type: "pattern",
+};
+
+export const FILL_BUDGET_UNDER_CELL: ExcelJS.Fill = {
+  fgColor: { argb: FORMAL_STYLE.budgetUnderCellBg },
   pattern: "solid",
   type: "pattern",
 };

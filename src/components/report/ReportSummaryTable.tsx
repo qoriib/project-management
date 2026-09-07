@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { EmptyState, HStack, Table, Text } from "@astryxdesign/core";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { type TablePlugin, useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
 import type { RequirementReportItem } from "@/db/services";
 import { type EnrichedReportItem, useReportSummaryColumns } from "./table/useReportSummaryColumns";
 
@@ -74,6 +74,43 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
     startKeys: ["__rowIndex", "item"],
   });
 
+  const unplannedRowPlugin = useMemo<TablePlugin<EnrichedReportItem>>(
+    () => ({
+      transformBodyRow: (props, item) => {
+        if (item && Boolean(item.is_unplanned)) {
+          return {
+            ...props,
+            htmlProps: {
+              ...props.htmlProps,
+              style: {
+                ...props.htmlProps?.style,
+                backgroundColor: "var(--color-background-yellow)",
+                "--table-sticky-background": "var(--color-background-yellow)",
+              },
+            },
+          };
+        }
+        return props;
+      },
+      transformBodyCell: (props, _column, item) => {
+        if (item && Boolean(item.is_unplanned)) {
+          return {
+            ...props,
+            htmlProps: {
+              ...props.htmlProps,
+              style: {
+                ...props.htmlProps?.style,
+                backgroundColor: "var(--color-background-yellow)",
+              },
+            },
+          };
+        }
+        return props;
+      },
+    }),
+    [],
+  );
+
   const columns = useReportSummaryColumns({ onLogClick });
 
   if (report.length === 0 && !loading) {
@@ -87,7 +124,12 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
       columns={columns}
       data={groupedData}
       idKey={groupedIdKey}
-      plugins={{ grouping: groupedPlugin, rowIndex: rowIndexPlugin, stickyColumns }}
+      plugins={{
+        grouping: groupedPlugin,
+        rowIndex: rowIndexPlugin,
+        stickyColumns,
+        unplannedRow: unplannedRowPlugin,
+      }}
       emptyState={<EmptyState isCompact title="Belum ada laporan kebutuhan (BOQ)" />}
     />
   );

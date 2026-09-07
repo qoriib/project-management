@@ -122,11 +122,18 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
       totalPeriodDeliveredVolume += periodDelivered;
 
       const isVolumeOver = !item.is_unplanned && orderedVolume > plannedVolume && plannedVolume > 0;
+      const isVolumeUnder = !item.is_unplanned && orderedVolume > 0 && orderedVolume < plannedVolume;
+
       const isOrderPctOver = !item.is_unplanned && orderPercentage > 1.0;
+      const isOrderPctUnder = !item.is_unplanned && orderPercentage < 1.0 && orderedVolume > 0;
+
       const isDeliveredOver =
         (orderedVolume > 0 && deliveredVolume > orderedVolume) ||
         (plannedVolume > 0 && deliveredVolume > plannedVolume);
+      const isDeliveredUnder = orderedVolume > 0 && deliveredVolume > 0 && deliveredVolume < orderedVolume;
+
       const isDeliveryPctOver = deliveryPercentage > 1.0;
+      const isDeliveryPctUnder = deliveryPercentage < 1.0 && deliveredVolume > 0;
 
       const itemCode = formatItemCode(item) || item.item_code || "-";
       const unit = item.unit || "-";
@@ -136,9 +143,13 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         tableBody.push({
           _isUnplanned: Boolean(item.is_unplanned),
           _isVolumeOver: isVolumeOver,
+          _isVolumeUnder: isVolumeUnder,
           _isOrderPctOver: isOrderPctOver,
+          _isOrderPctUnder: isOrderPctUnder,
           _isDeliveredOver: isDeliveredOver,
+          _isDeliveredUnder: isDeliveredUnder,
           _isDeliveryPctOver: isDeliveryPctOver,
+          _isDeliveryPctUnder: isDeliveryPctUnder,
           0: itemCounter,
           1: itemCode,
           2: item.item_name,
@@ -155,9 +166,13 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         tableBody.push({
           _isUnplanned: Boolean(item.is_unplanned),
           _isVolumeOver: isVolumeOver,
+          _isVolumeUnder: isVolumeUnder,
           _isOrderPctOver: isOrderPctOver,
+          _isOrderPctUnder: isOrderPctUnder,
           _isDeliveredOver: isDeliveredOver,
+          _isDeliveredUnder: isDeliveredUnder,
           _isDeliveryPctOver: isDeliveryPctOver,
+          _isDeliveryPctUnder: isDeliveryPctUnder,
           0: itemCounter,
           1: itemCode,
           2: item.item_name,
@@ -319,60 +334,59 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         const rawRow = data.row.raw as Record<string, unknown>;
         const isUnplanned = Boolean(rawRow?._isUnplanned);
         const isVolumeOver = Boolean(rawRow?._isVolumeOver);
+        const isVolumeUnder = Boolean(rawRow?._isVolumeUnder);
         const isOrderPctOver = Boolean(rawRow?._isOrderPctOver);
+        const isOrderPctUnder = Boolean(rawRow?._isOrderPctUnder);
         const isDeliveredOver = Boolean(rawRow?._isDeliveredOver);
+        const isDeliveredUnder = Boolean(rawRow?._isDeliveredUnder);
         const isDeliveryPctOver = Boolean(rawRow?._isDeliveryPctOver);
+        const isDeliveryPctUnder = Boolean(rawRow?._isDeliveryPctUnder);
 
         const columnIndex = data.column.index;
 
-        if (hasDateRange) {
-          if (isUnplanned) {
-            if (
-              columnIndex === 5 ||
-              columnIndex === 6 ||
-              columnIndex === 7 ||
-              columnIndex === 8 ||
-              columnIndex === 9 ||
-              columnIndex === 10
-            ) {
-              data.cell.styles.fillColor = PDF_COLORS.unplannedCellBg;
-            } else {
-              data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
-            }
+        if (isUnplanned) {
+          // Seluruh baris diwarnai kuning untuk item di luar rencana (unplanned)
+          data.cell.styles.fillColor = PDF_COLORS.unplannedCellBg;
+        } else if (hasDateRange) {
+          if (columnIndex === 6) {
+            if (isVolumeOver) data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
+            else if (isVolumeUnder) data.cell.styles.fillColor = PDF_COLORS.budgetUnderCellBg;
+            else data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
+          } else if (columnIndex === 7) {
+            if (isOrderPctOver) data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
+            else if (isOrderPctUnder) data.cell.styles.fillColor = PDF_COLORS.budgetUnderCellBg;
+            else data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
+          } else if (columnIndex === 9) {
+            if (isDeliveredOver) data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
+            else if (isDeliveredUnder) data.cell.styles.fillColor = PDF_COLORS.budgetUnderCellBg;
+            else data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
+          } else if (columnIndex === 10) {
+            if (isDeliveryPctOver) data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
+            else if (isDeliveryPctUnder) data.cell.styles.fillColor = PDF_COLORS.budgetUnderCellBg;
+            else data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
           } else {
-            if (columnIndex === 6 && isVolumeOver) {
-              data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else if (columnIndex === 7 && isOrderPctOver) {
-              data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else if (columnIndex === 9 && isDeliveredOver) {
-              data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else if (columnIndex === 10 && isDeliveryPctOver) {
-              data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else {
-              data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
-            }
+            data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
           }
         } else {
-          if (isUnplanned) {
-            // Kolom Pengadaan (5, 6) dan Penerimaan (7, 8) pada item belanja di luar rencana
-            if (columnIndex === 5 || columnIndex === 6 || columnIndex === 7 || columnIndex === 8) {
-              data.cell.styles.fillColor = PDF_COLORS.unplannedCellBg;
-            } else {
-              data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
-            }
+          // Sel PO & NP: merah jika over (> 100%), hijau jika under (< 100% / parsial)
+          if (columnIndex === 5) {
+            if (isVolumeOver) data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
+            else if (isVolumeUnder) data.cell.styles.fillColor = PDF_COLORS.budgetUnderCellBg;
+            else data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
+          } else if (columnIndex === 6) {
+            if (isOrderPctOver) data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
+            else if (isOrderPctUnder) data.cell.styles.fillColor = PDF_COLORS.budgetUnderCellBg;
+            else data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
+          } else if (columnIndex === 7) {
+            if (isDeliveredOver) data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
+            else if (isDeliveredUnder) data.cell.styles.fillColor = PDF_COLORS.budgetUnderCellBg;
+            else data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
+          } else if (columnIndex === 8) {
+            if (isDeliveryPctOver) data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
+            else if (isDeliveryPctUnder) data.cell.styles.fillColor = PDF_COLORS.budgetUnderCellBg;
+            else data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
           } else {
-            // Hanya sel yang berlebih (> 100% / over) yang diwarnai merah muda
-            if (columnIndex === 5 && isVolumeOver) {
-              data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else if (columnIndex === 6 && isOrderPctOver) {
-              data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else if (columnIndex === 7 && isDeliveredOver) {
-              data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else if (columnIndex === 8 && isDeliveryPctOver) {
-              data.cell.styles.fillColor = PDF_COLORS.budgetOverCellBg;
-            } else {
-              data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
-            }
+            data.cell.styles.fillColor = PDF_COLORS.bodyCellBg;
           }
         }
       }
