@@ -119,7 +119,7 @@ export const appTheme = defineTheme({
     },
   },
 
-  motion: { fast: 125, medium: 300, slow: 700, ratio: 0.75 },
+  motion: { fast: 0, medium: 0, slow: 0, ratio: 1 },
 
   syntax: appSyntax,
 
@@ -237,6 +237,16 @@ export const appTheme = defineTheme({
     "--shadow-inset-success": "inset 0px 0px 0px 1.5px #2e7d3233",
     "--shadow-inset-warning": "inset 0px 0px 0px 1.5px #b4781833",
     "--shadow-inset-error": "inset 0px 0px 0px 1.5px #c6282833",
+
+    "--duration-fast-min": "0ms",
+    "--duration-fast": "0ms",
+    "--duration-fast-max": "0ms",
+    "--duration-medium-min": "0ms",
+    "--duration-medium": "0ms",
+    "--duration-medium-max": "0ms",
+    "--duration-slow-min": "0ms",
+    "--duration-slow": "0ms",
+    "--duration-slow-max": "0ms",
   },
 
   components: {

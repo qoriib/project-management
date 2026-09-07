@@ -126,7 +126,6 @@ export function PinInput({
             fontWeight: 700,
             textAlign: "center",
             outline: "none",
-            transition: "border-color 0.15s ease, box-shadow 0.15s ease",
           }}
         />
       ))}
