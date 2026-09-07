@@ -133,9 +133,7 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
     items: ReceiptItemInput[],
   ): Promise<void> {
     await this.update(receiptId, header);
-
-    const db = await this.db();
-    await db.execute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [receiptId]);
+    await this.rawExecute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [receiptId]);
 
     const validItems = items.filter((item) => item.qty > 0);
     if (validItems.length > 0) {
@@ -148,8 +146,7 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
    * Soft-delete a receipt and hard-delete its receipt_items to prevent orphaned rows.
    */
   override async delete(id: string): Promise<void> {
-    const db = await this.db();
-    await db.execute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [id]);
+    await this.rawExecute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [id]);
     await super.delete(id);
   }
 }

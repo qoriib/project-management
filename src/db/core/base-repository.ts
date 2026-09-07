@@ -358,6 +358,22 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   }
 
   /**
+   * Execute a raw SQL statement (UPDATE, DELETE, DDL, etc.) with structured logging.
+   */
+  protected async rawExecute(sql: string, params?: unknown[]): Promise<{ lastInsertId: number; rowsAffected: number }> {
+    dbLog.debug(`[${this.model.tableName}] rawExecute sql=${sql.replaceAll(/\s+/g, " ").trim()}`);
+    try {
+      const db = await this.db();
+      const res = await db.execute(sql, params as any[]);
+      dbLog.info(`[${this.model.tableName}] rawExecute OK affected=${res.rowsAffected}`);
+      return res;
+    } catch (error) {
+      dbLog.error(`[${this.model.tableName}] rawExecute ERROR: ${(error as Error)?.message ?? String(error)}`);
+      throw wrapDbError(error, this.model.tableName);
+    }
+  }
+
+  /**
    * Bulk insert multiple rows in a single query.
    * Reduces IPC calls from O(N) to O(1).
    */

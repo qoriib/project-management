@@ -22,7 +22,6 @@ pub fn run() {
             tauri_plugin_log::Builder::new()
                 .level(log_level)
                 .targets([
-                    Target::new(TargetKind::Stdout),
                     Target::new(TargetKind::LogDir {
                         file_name: Some("project-management".into()),
                     }),
