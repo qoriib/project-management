@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { HStack, IconButton, Text, Timestamp, Token } from "@astryxdesign/core";
+import { HStack, IconButton, Timestamp, Token } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { type ReceiptSummary } from "@/db/repositories";
@@ -34,26 +34,42 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
       renderCell: (row) => <EntityCode id={row.order_code} />,
     },
     {
-      header: "Vendor",
-      key: "vendor_names",
-      width: proportional(1, { minWidth: 240 }),
-      renderCell: (row: ReceiptRow) =>
-        row?.vendor_names && row.vendor_names.length > 0 ? (
+      header: "Item",
+      key: "item_names",
+      width: proportional(1, { minWidth: 260 }),
+      renderCell: (row: ReceiptRow) => {
+        const items = row.item_names || [];
+        const topItems = items.slice(0, 3);
+        const remaining = items.length - 3;
+        if (topItems.length === 0) return "-";
+        return (
           <HStack gap={1} wrap="wrap">
-            {row.vendor_names.map((v, idx) => (
-              <Token key={idx} label={v} />
+            {topItems.map((item, idx) => (
+              <Token key={idx} label={item} />
             ))}
+            {remaining > 0 ? <Token label={`+${remaining}`} /> : null}
           </HStack>
-        ) : (
-          "-"
-        ),
+        );
+      },
     },
     {
-      align: "end",
-      header: "Total Item",
-      key: "item_count",
-      width: pixel(100),
-      renderCell: (row) => <Text type="code">{row.item_count}</Text>,
+      header: "Vendor",
+      key: "vendor_names",
+      width: proportional(1, { minWidth: 220 }),
+      renderCell: (row: ReceiptRow) => {
+        const vendors = row.vendor_names || [];
+        const topVendors = vendors.slice(0, 3);
+        const remaining = vendors.length - 3;
+        if (topVendors.length === 0) return "-";
+        return (
+          <HStack gap={1} wrap="wrap">
+            {topVendors.map((v, idx) => (
+              <Token key={idx} label={v} />
+            ))}
+            {remaining > 0 ? <Token label={`+${remaining}`} /> : null}
+          </HStack>
+        );
+      },
     },
     {
       align: "end",

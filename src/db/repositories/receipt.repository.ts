@@ -11,6 +11,7 @@ import {
 export type ReceiptSummary = Receipt & {
   item_count?: number;
   vendor_names?: string[];
+  item_names?: string[];
   project_name?: string;
   order_code?: string;
 };
@@ -25,6 +26,7 @@ export interface ReceiptFilters {
 interface RawReceiptSummaryRow extends Receipt {
   item_count?: number;
   vendor_names?: string | null;
+  item_names?: string | null;
   project_name?: string;
   order_code?: string;
 }
@@ -39,7 +41,7 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
   }
 
   /**
-   * Get all receipts with summary info (item count, vendor names, project, order code).
+   * Get all receipts with summary info (item_count, vendor_names, item_names, project_name, order_code).
    */
   async findAllWithSummary(filters?: ReceiptFilters): Promise<ReceiptSummary[]> {
     const params: unknown[] = [];
@@ -71,22 +73,25 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
              receipts.receipt_date,
              projects.project_name,
              COUNT(receipt_items.receipt_item_id) as item_count,
-             GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names
+             GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names,
+             GROUP_CONCAT(DISTINCT items.item_name) as item_names
       FROM receipts
       LEFT JOIN orders ON orders.order_id = receipts.order_id AND orders.deleted_at IS NULL
       LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
       LEFT JOIN receipt_items ON receipt_items.receipt_id = receipts.receipt_id
       LEFT JOIN order_items ON order_items.order_item_id = receipt_items.order_item_id
+      LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
       LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
       ${whereSql}
       GROUP BY receipts.receipt_id
-      ORDER BY receipts.receipt_id ASC
+      ORDER BY receipts.receipt_date DESC, receipts.receipt_id DESC
     `;
 
     const rows = await this.rawSelect<RawReceiptSummaryRow>(sql, params);
     return rows.map((row) => ({
       ...row,
       vendor_names: row.vendor_names ? row.vendor_names.split(",").map((name) => name.trim()) : [],
+      item_names: row.item_names ? row.item_names.split(",").map((name) => name.trim()) : [],
     }));
   }
 

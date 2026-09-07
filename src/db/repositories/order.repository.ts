@@ -8,6 +8,7 @@ export type OrderWithSummary = Order & {
   total_price?: number;
   item_count?: number;
   vendor_names?: string[];
+  item_names?: string[];
 };
 
 export interface OrderFilters {
@@ -21,6 +22,7 @@ interface RawOrderSummaryRow extends Order {
   total_price?: number;
   item_count?: number;
   vendor_names?: string | null;
+  item_names?: string | null;
 }
 
 export type { OrderItemDetail, OrderItemInput };
@@ -31,7 +33,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
   }
 
   /**
-   * Get all Orders with summary (project name, total price, item count, vendor names).
+   * Get all Orders with summary (project name, total price, item count, vendor names, item names).
    */
   async findAllWithSummary(filters?: OrderFilters): Promise<OrderWithSummary[]> {
     const params: unknown[] = [];
@@ -59,11 +61,13 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
              orders.created_at,
              projects.project_name,
              GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names,
+             GROUP_CONCAT(DISTINCT items.item_name) as item_names,
              COALESCE(SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price,
              COUNT(order_items.order_item_id) as item_count
       FROM orders
       LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
       LEFT JOIN order_items ON order_items.order_id = orders.order_id
+      LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
       LEFT JOIN item_prices ON item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL
       LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
       ${whereSql}
@@ -75,6 +79,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
     return rows.map((row) => ({
       ...row,
       vendor_names: row.vendor_names ? row.vendor_names.split(",").map((name) => name.trim()) : [],
+      item_names: row.item_names ? row.item_names.split(",").map((name) => name.trim()) : [],
     }));
   }
 
@@ -90,11 +95,13 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
              orders.created_at,
              projects.project_name,
              GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names,
+             GROUP_CONCAT(DISTINCT items.item_name) as item_names,
              COALESCE(SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price,
              COUNT(order_items.order_item_id) as item_count
       FROM orders
       LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
       LEFT JOIN order_items ON order_items.order_id = orders.order_id
+      LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
       LEFT JOIN item_prices ON item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL
       LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
       WHERE orders.order_id = $1 AND orders.deleted_at IS NULL
@@ -108,6 +115,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
     return {
       ...firstRow,
       vendor_names: firstRow.vendor_names ? firstRow.vendor_names.split(",").map((name) => name.trim()) : [],
+      item_names: firstRow.item_names ? firstRow.item_names.split(",").map((name) => name.trim()) : [],
     };
   }
 

@@ -32,26 +32,42 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
       renderCell: (row: PORow) => <Timestamp value={row.order_date} format="system_date" size="base" />,
     },
     {
-      header: "Vendor",
-      key: "vendor_names",
-      width: proportional(1, { minWidth: 240 }),
-      renderCell: (row: PORow) =>
-        row?.vendor_names && row.vendor_names.length > 0 ? (
+      header: "Item",
+      key: "item_names",
+      width: proportional(1, { minWidth: 260 }),
+      renderCell: (row: PORow) => {
+        const items = row.item_names || [];
+        const topItems = items.slice(0, 3);
+        const remaining = items.length - 3;
+        if (topItems.length === 0) return "-";
+        return (
           <HStack gap={1} wrap="wrap">
-            {row.vendor_names.map((v, idx) => (
-              <Token key={idx} label={v} />
+            {topItems.map((item, idx) => (
+              <Token key={idx} label={item} />
             ))}
+            {remaining > 0 ? <Token label={`+${remaining}`} /> : null}
           </HStack>
-        ) : (
-          "-"
-        ),
+        );
+      },
     },
     {
-      align: "end",
-      header: "Total Item",
-      key: "item_count",
-      width: pixel(100),
-      renderCell: (row: PORow) => <Text type="code">{row.item_count}</Text>,
+      header: "Vendor",
+      key: "vendor_names",
+      width: proportional(1, { minWidth: 220 }),
+      renderCell: (row: PORow) => {
+        const vendors = row.vendor_names || [];
+        const topVendors = vendors.slice(0, 3);
+        const remaining = vendors.length - 3;
+        if (topVendors.length === 0) return "-";
+        return (
+          <HStack gap={1} wrap="wrap">
+            {topVendors.map((v, idx) => (
+              <Token key={idx} label={v} />
+            ))}
+            {remaining > 0 ? <Token label={`+${remaining}`} /> : null}
+          </HStack>
+        );
+      },
     },
     {
       align: "end",
