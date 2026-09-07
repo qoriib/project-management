@@ -29,25 +29,29 @@ interface MasterVendorFormProps {
   isOpen: boolean;
   onClose: () => void;
   initialData: Vendor | null;
+  onSuccess?: (newVendorId: string) => void;
 }
 
-export function MasterVendorForm({ isOpen, onClose, initialData }: MasterVendorFormProps) {
+export function MasterVendorForm({ isOpen, onClose, initialData, onSuccess }: MasterVendorFormProps) {
   const showToast = useToast();
   const { createVendor, updateVendor } = useMasterStore();
 
   const form = useForm({
     defaultValues: buildDefaultValues(initialData),
     onSubmit: async ({ value }) => {
+      let createdId: string | undefined;
       try {
         if (initialData) {
           await updateVendor(initialData.vendor_id, value);
         } else {
-          await createVendor(value);
+          createdId = await createVendor(value);
+        }
+        onClose();
+        if (createdId && onSuccess) {
+          onSuccess(createdId);
         }
       } catch (error: any) {
         handleFormError(error, showToast);
-      } finally {
-        onClose();
       }
     },
     validators: {

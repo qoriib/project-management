@@ -42,9 +42,10 @@ interface MasterItemPriceDialogProps {
   isOpen: boolean;
   onClose: () => void;
   item: ItemWithDetails | null;
+  onSuccess?: (newPriceId: string) => void;
 }
 
-export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPriceDialogProps) {
+export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: MasterItemPriceDialogProps) {
   const showToast = useToast();
   const { createItemPrice, deleteItemPrice } = useMasterStore();
   const [deleteTarget, setDeleteTarget] = useState<ItemPriceWithRelation | null>(null);
@@ -76,7 +77,11 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
         }
 
         try {
-          await createItemPrice({ item_id: item.item_id, price: numPrice });
+          const createdId = await createItemPrice({ item_id: item.item_id, price: numPrice });
+          if (onSuccess && createdId) {
+            onClose();
+            onSuccess(createdId);
+          }
           return null;
         } catch (error: any) {
           handleFormError(error, showToast);
@@ -86,7 +91,9 @@ export function MasterItemPriceDialog({ isOpen, onClose, item }: MasterItemPrice
     },
     onSubmit: async () => {
       form.reset({ price: "" });
-      await loadPrices();
+      if (!onSuccess) {
+        await loadPrices();
+      }
     },
   });
 

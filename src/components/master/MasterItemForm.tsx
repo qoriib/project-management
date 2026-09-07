@@ -36,9 +36,10 @@ interface MasterItemFormProps {
   isOpen: boolean;
   onClose: () => void;
   initialData: ItemWithDetails | null;
+  onSuccess?: (newItemId: string) => void;
 }
 
-export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormProps) {
+export function MasterItemForm({ isOpen, onClose, initialData, onSuccess }: MasterItemFormProps) {
   const showToast = useToast();
   const { items, categories, units, createItem, updateItem } = useMasterStore();
 
@@ -59,6 +60,7 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
   const form = useForm({
     defaultValues: buildDefaultValues(initialData, fallbackDefaults),
     onSubmit: async ({ value }) => {
+      let createdId: string | undefined;
       try {
         const data = {
           item_code: value.item_code,
@@ -70,12 +72,14 @@ export function MasterItemForm({ isOpen, onClose, initialData }: MasterItemFormP
         if (initialData) {
           await updateItem(initialData.item_id, data);
         } else {
-          await createItem(data);
+          createdId = await createItem(data);
+        }
+        onClose();
+        if (createdId && onSuccess) {
+          onSuccess(createdId);
         }
       } catch (error: any) {
         handleFormError(error, showToast);
-      } finally {
-        onClose();
       }
     },
     validators: {

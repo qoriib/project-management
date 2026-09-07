@@ -44,12 +44,12 @@ interface MasterStore {
   loadItemPrices: (itemId: string) => Promise<ItemPrice[]>;
 
   // Items
-  createItem: (data: CreateItem) => Promise<void>;
+  createItem: (data: CreateItem) => Promise<string>;
   updateItem: (id: string, data: UpdateItem) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
 
   // Item Prices
-  createItemPrice: (data: CreateItemPrice) => Promise<void>;
+  createItemPrice: (data: CreateItemPrice) => Promise<string>;
   updateItemPrice: (id: string, data: UpdateItemPrice) => Promise<void>;
   deleteItemPrice: (id: string, itemId: string) => Promise<void>;
 
@@ -71,7 +71,7 @@ interface MasterStore {
   deleteUnit: (id: string) => Promise<void>;
 
   // Vendors
-  createVendor: (data: CreateVendor) => Promise<void>;
+  createVendor: (data: CreateVendor) => Promise<string>;
   updateVendor: (id: string, data: UpdateVendor) => Promise<void>;
   deleteVendor: (id: string) => Promise<void>;
 }
@@ -136,8 +136,9 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
 
   // Items CRUD
   createItem: async (data) => {
-    await itemRepo.create(data);
+    const id = await itemRepo.create(data);
     await get().reloadItems();
+    return id;
   },
   updateItem: async (id, data) => {
     await itemRepo.update(id, data);
@@ -150,8 +151,9 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
 
   // Item Prices CRUD
   createItemPrice: async (data) => {
-    await itemPriceRepo.create(data);
+    const id = await itemPriceRepo.create(data);
     await get().loadItemPrices(data.item_id);
+    return id;
   },
   updateItemPrice: async (id, data) => {
     await itemPriceRepo.update(id, data);
@@ -221,8 +223,9 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
 
   // Vendors CRUD
   createVendor: async (data) => {
-    await vendorRepo.create(data);
+    const id = await vendorRepo.create(data);
     await get().reloadVendors();
+    return id;
   },
   updateVendor: async (id, data) => {
     await vendorRepo.update(id, data);

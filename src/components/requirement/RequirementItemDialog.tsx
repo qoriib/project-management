@@ -260,7 +260,14 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
           />
         </form>
       </Dialog>
-      <MasterItemForm isOpen={isItemFormOpen} onClose={() => setIsItemFormOpen(false)} initialData={null} />
+      <MasterItemForm
+        isOpen={isItemFormOpen}
+        onClose={() => setIsItemFormOpen(false)}
+        initialData={null}
+        onSuccess={async (newItemId) => {
+          await handleItemChange(newItemId);
+        }}
+      />
       <MasterItemPriceDialog
         isOpen={isPriceFormOpen}
         item={selectedItem ?? null}
@@ -269,6 +276,9 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
           if (selectedItemId) {
             await loadItemPrices(selectedItemId);
           }
+        }}
+        onSuccess={(newPriceId) => {
+          form.setFieldValue("item_price_id", newPriceId);
         }}
       />
     </>

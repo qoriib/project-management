@@ -299,8 +299,22 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
         </form>
       </Dialog>
 
-      <MasterItemForm isOpen={isItemFormOpen} onClose={() => setIsItemFormOpen(false)} initialData={null} />
-      <MasterVendorForm isOpen={isVendorFormOpen} onClose={() => setIsVendorFormOpen(false)} initialData={null} />
+      <MasterItemForm
+        isOpen={isItemFormOpen}
+        onClose={() => setIsItemFormOpen(false)}
+        initialData={null}
+        onSuccess={async (newItemId) => {
+          await handleItemChange(newItemId);
+        }}
+      />
+      <MasterVendorForm
+        isOpen={isVendorFormOpen}
+        onClose={() => setIsVendorFormOpen(false)}
+        initialData={null}
+        onSuccess={(newVendorId) => {
+          form.setFieldValue("vendor_id", newVendorId);
+        }}
+      />
       <MasterItemPriceDialog
         isOpen={isPriceFormOpen}
         item={selectedItem ?? null}
@@ -309,6 +323,9 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
           if (selectedItemId) {
             await loadItemPrices(selectedItemId);
           }
+        }}
+        onSuccess={(newPriceId) => {
+          form.setFieldValue("item_price_id", newPriceId);
         }}
       />
     </>
