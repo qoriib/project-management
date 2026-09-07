@@ -6,6 +6,7 @@ export enum AppRole {
 }
 
 export const APP = {
+  version: "1.0.0",
   defaultRole: AppRole.MANAGER,
   companyName: "PT SANG BIMA RATU",
   taxRatio: 0.12,
