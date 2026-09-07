@@ -46,7 +46,6 @@ export const PDF_COLORS = {
   bodyCellBg: [255, 255, 255] as [number, number, number],
   unplannedCellBg: [255, 224, 178] as [number, number, number],
   budgetOverCellBg: [255, 205, 210] as [number, number, number],
-  budgetUnderCellBg: [200, 230, 201] as [number, number, number],
   borderDark: [0, 0, 0] as [number, number, number],
   tableBorder: [0, 0, 0] as [number, number, number],
   textDark: [0, 0, 0] as [number, number, number],

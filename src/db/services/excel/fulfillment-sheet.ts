@@ -370,75 +370,51 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       ];
       itemNumber += 1;
 
-      // Evaluasi status over & under per-cell (seperti pada useReportSummaryColumns aplikasi)
+      // Evaluasi status over per-cell (seperti pada useReportSummaryColumns aplikasi)
       const isPriceOver = !item.is_unplanned && poPrice > plannedPrice && orderedVolume > 0;
       const isPriceUnder = !item.is_unplanned && poPrice > 0 && poPrice < plannedPrice;
-
       const isVolumeOver = !item.is_unplanned && orderedVolume > plannedVolume && plannedVolume > 0;
-      const isVolumeUnder = !item.is_unplanned && orderedVolume > 0 && orderedVolume < plannedVolume;
-
       const isDppOver = !item.is_unplanned && orderDpp > plannedDpp && plannedDpp > 0;
-      const isDppUnder = !item.is_unplanned && orderDpp > 0 && orderDpp < plannedDpp;
-
       const isTaxOver = !item.is_unplanned && orderTax > plannedTax && plannedTax > 0;
-      const isTaxUnder = !item.is_unplanned && orderTax > 0 && orderTax < plannedTax;
-
       const isTotalOver = !item.is_unplanned && orderPrice > plannedBudget && plannedBudget > 0;
-      const isTotalUnder = !item.is_unplanned && orderPrice > 0 && orderPrice < plannedBudget;
-
       const isVarianceOver = !item.is_unplanned && variance < 0;
-      const isVarianceUnder = !item.is_unplanned && variance > 0 && orderPrice > 0;
-
       const isDeliveredOver =
         (orderedVolume > 0 && deliveredVolume > orderedVolume) ||
         (plannedVolume > 0 && deliveredVolume > plannedVolume);
-      const isDeliveredUnder = orderedVolume > 0 && deliveredVolume > 0 && deliveredVolume < orderedVolume;
-
       const isRemainingOver = remainingVolume < 0;
-      const isRemainingUnder = remainingVolume > 0 && deliveredVolume > 0;
-
       const isDeliveryPctOver = deliveryPercentage > 1.0;
-      const isDeliveryPctUnder = deliveryPercentage < 1.0 && deliveredVolume > 0;
 
       row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
         cell.border = BORDER_ALL_LIGHT;
         cell.font = FONT_REGULAR;
 
-        // Pewarnaan: seluruh baris kuning jika tidak ada di BOQ (unplanned), atau per-sel merah/hijau jika ada selisih
+        // Pewarnaan: seluruh baris kuning jika tidak ada di BOQ (unplanned), merah jika over, hanya harga yang hijau jika under
         let cellFill = FILL_WHITE;
 
         if (item.is_unplanned) {
           // Seluruh baris diwarnai kuning untuk item di luar rencana (unplanned)
           cellFill = FILL_UNPLANNED_CELL;
         } else {
-          // Sel PO & NP: merah jika over/melebihi, hijau jika under/kurang (hemat/parsial)
+          // Hanya harga yang bisa hijau jika under. Kolom lain merah jika over.
           if (columnNumber === 11) {
             if (isPriceOver) cellFill = FILL_BUDGET_OVER_CELL;
             else if (isPriceUnder) cellFill = FILL_BUDGET_UNDER_CELL;
-          } else if (columnNumber === 12) {
-            if (isVolumeOver) cellFill = FILL_BUDGET_OVER_CELL;
-            else if (isVolumeUnder) cellFill = FILL_BUDGET_UNDER_CELL;
-          } else if (columnNumber === 13) {
-            if (isDppOver) cellFill = FILL_BUDGET_OVER_CELL;
-            else if (isDppUnder) cellFill = FILL_BUDGET_UNDER_CELL;
-          } else if (columnNumber === 14) {
-            if (isTaxOver) cellFill = FILL_BUDGET_OVER_CELL;
-            else if (isTaxUnder) cellFill = FILL_BUDGET_UNDER_CELL;
-          } else if (columnNumber === 15) {
-            if (isTotalOver) cellFill = FILL_BUDGET_OVER_CELL;
-            else if (isTotalUnder) cellFill = FILL_BUDGET_UNDER_CELL;
-          } else if (columnNumber === 16) {
-            if (isVarianceOver) cellFill = FILL_BUDGET_OVER_CELL;
-            else if (isVarianceUnder) cellFill = FILL_BUDGET_UNDER_CELL;
-          } else if (columnNumber === 17) {
-            if (isDeliveredOver) cellFill = FILL_BUDGET_OVER_CELL;
-            else if (isDeliveredUnder) cellFill = FILL_BUDGET_UNDER_CELL;
-          } else if (columnNumber === 18) {
-            if (isRemainingOver) cellFill = FILL_BUDGET_OVER_CELL;
-            else if (isRemainingUnder) cellFill = FILL_BUDGET_UNDER_CELL;
-          } else if (columnNumber === 19) {
-            if (isDeliveryPctOver) cellFill = FILL_BUDGET_OVER_CELL;
-            else if (isDeliveryPctUnder) cellFill = FILL_BUDGET_UNDER_CELL;
+          } else if (columnNumber === 12 && isVolumeOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 13 && isDppOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 14 && isTaxOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 15 && isTotalOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 16 && isVarianceOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 17 && isDeliveredOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 18 && isRemainingOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
+          } else if (columnNumber === 19 && isDeliveryPctOver) {
+            cellFill = FILL_BUDGET_OVER_CELL;
           }
         }
 

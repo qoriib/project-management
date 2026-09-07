@@ -66,13 +66,12 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         const poQty = r.total_ordered ?? 0;
         const plannedQty = r.planned_volume ?? 0;
         const isOver = !r.is_unplanned && poQty > plannedQty && r.total_ordered > 0;
-        const isUnder = !r.is_unplanned && poQty > 0 && poQty < plannedQty;
 
         return (
           <ReportComparisonCell
             poValue={formatNumber(poQty, 5)}
             bomValue={r.is_unplanned ? "-" : formatNumber(plannedQty, 5)}
-            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+            poStatus={isOver ? "over" : undefined}
           />
         );
       },
@@ -86,13 +85,12 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         const poSubtotal = r.total_order_dpp ?? 0;
         const plannedSubtotal = r.planned_dpp ?? 0;
         const isOver = !r.is_unplanned && poSubtotal > plannedSubtotal && r.total_ordered > 0;
-        const isUnder = !r.is_unplanned && poSubtotal > 0 && poSubtotal < plannedSubtotal;
 
         return (
           <ReportComparisonCell
             poValue={formatNumber(poSubtotal, 2)}
             bomValue={r.is_unplanned ? "-" : formatNumber(plannedSubtotal, 2)}
-            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+            poStatus={isOver ? "over" : undefined}
           />
         );
       },
@@ -106,13 +104,12 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         const poTax = r.total_order_tax ?? 0;
         const plannedTax = r.planned_tax ?? 0;
         const isOver = !r.is_unplanned && poTax > plannedTax && r.total_ordered > 0;
-        const isUnder = !r.is_unplanned && poTax > 0 && poTax < plannedTax;
 
         return (
           <ReportComparisonCell
             poValue={formatNumber(poTax, 2)}
             bomValue={r.is_unplanned ? "-" : formatNumber(plannedTax, 2)}
-            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+            poStatus={isOver ? "over" : undefined}
           />
         );
       },
@@ -126,13 +123,12 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         const poTotal = r.total_order_price ?? 0;
         const plannedTotal = r.planned_budget ?? 0;
         const isOver = !r.is_unplanned && poTotal > plannedTotal && r.total_ordered > 0;
-        const isUnder = !r.is_unplanned && poTotal > 0 && poTotal < plannedTotal;
 
         return (
           <ReportComparisonCell
             poValue={formatNumber(poTotal, 2)}
             bomValue={r.is_unplanned ? "-" : formatNumber(plannedTotal, 2)}
-            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+            poStatus={isOver ? "over" : undefined}
           />
         );
       },

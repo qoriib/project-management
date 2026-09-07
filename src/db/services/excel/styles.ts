@@ -26,7 +26,7 @@ export const FORMAL_STYLE = {
   bodyCellBg: "FFFFFFFF",
   unplannedCellBg: "FFFFE0B2", // Kontras amber/orange untuk item belanja di luar rencana (unplanned)
   budgetOverCellBg: "FFFFCDD2", // Kontras soft red untuk item over budget / selisih lebih
-  budgetUnderCellBg: "FFC8E6C9", // Kontras soft green untuk item under budget / selisih kurang (hemat)
+  budgetUnderCellBg: "FFC8E6C9", // Kontras soft green untuk harga under / hemat
 
   // Border Colors
   borderDark: "FF000000",
