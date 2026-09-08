@@ -15,7 +15,7 @@ function OrderDetailPage() {
   const navigate = useNavigate();
   const showToast = useToast();
   const { id } = useParams({ strict: false });
-  const { currentOrder: order, loadOrderDetail, clearOrderDetail } = useOrderStore();
+  const { currentOrder: order, currentItems: items, loadOrderDetail, clearOrderDetail } = useOrderStore();
   const [loading, setLoading] = useState(true);
   const [isCreatingReceipt, setIsCreatingReceipt] = useState(false);
 
@@ -117,7 +117,7 @@ function OrderDetailPage() {
                           size="sm"
                           label="Buat Penerimaan"
                           onClick={handleCreateReceipt}
-                          isDisabled={isCreatingReceipt}
+                          isDisabled={isCreatingReceipt || items.length === 0}
                         />
                       }
                     />

@@ -127,10 +127,10 @@ export function OrderForm({ order }: OrderFormProps) {
                 </Text>
               </VStack>
               <Button
-                variant="secondary"
+                variant="primary"
                 type="button"
                 onClick={() => navigate({ to: `/order/${order.order_id}` })}
-                label="Kembali"
+                label="Simpan"
               />
             </HStack>
           </LayoutHeader>

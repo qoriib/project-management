@@ -18,7 +18,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
     {
       header: "No. NP",
       key: "receipt_code",
-      width: pixel(140),
+      width: pixel(180),
       renderCell: (row) => <EntityCode id={row.receipt_code} />,
     },
     {
@@ -30,7 +30,7 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
     {
       header: "No. PO",
       key: "order_code",
-      width: pixel(140),
+      width: pixel(180),
       renderCell: (row) => <EntityCode id={row.order_code} />,
     },
     {

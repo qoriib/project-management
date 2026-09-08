@@ -3,12 +3,13 @@ import { Button, Heading, HStack, Text, TextInput, VStack } from "@astryxdesign/
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
+import { LoadingState } from "@/components/shared/LoadingState";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import { useReceiptForm } from "./form/useReceiptForm";
-import { ReceiptItemsTable } from "./ReceiptItemsTable";
 import { getFieldError, handleFormError } from "@/utils/form";
 import type { ReceiptFormProps } from "./form/receipt.schema";
+import { useReceiptForm } from "./form/useReceiptForm";
+import { ReceiptItemsTable } from "./ReceiptItemsTable";
 
 export type { ReceiptFormProps };
 
@@ -16,7 +17,11 @@ export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
   const navigate = useNavigate();
   const showToast = useToast();
   const { updateReceiptHeader } = useReceiptStore();
-  const { form, orderCode } = useReceiptForm({ receiptId });
+  const { form, orderCode, orderId, items, loading, reloadData } = useReceiptForm({ receiptId });
+
+  if (loading) {
+    return <LoadingState message="Memuat data penerimaan..." />;
+  }
 
   return (
     <Layout
@@ -31,11 +36,11 @@ export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
               </Text>
             </VStack>
             <Button
-              variant="secondary"
-              label="Kembali"
+              variant="primary"
+              label="Simpan"
               type="button"
               onClick={() => {
-                const poId = form.getFieldValue("order_id");
+                const poId = orderId || form.getFieldValue("order_id");
                 if (onSuccess && poId) {
                   onSuccess(poId);
                 } else if (poId) {
@@ -112,11 +117,7 @@ export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
                   )}
                 </form.Field>
               </HStack>
-              <form.Subscribe selector={(state) => [state.values.items, state.values.order_id] as const}>
-                {([items, orderId]) => (
-                  <ReceiptItemsTable items={items} form={form} receiptId={receiptId} orderId={orderId} />
-                )}
-              </form.Subscribe>
+              <ReceiptItemsTable items={items} receiptId={receiptId} orderId={orderId} onItemUpdated={reloadData} />
             </VStack>
           </ProjectRequired>
         </LayoutContent>

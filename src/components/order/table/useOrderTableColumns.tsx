@@ -22,7 +22,7 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
     {
       header: "No. PO",
       key: "order_code",
-      width: pixel(140),
+      width: pixel(180),
       renderCell: (row: PORow) => <EntityCode id={row.order_code} />,
     },
     {
