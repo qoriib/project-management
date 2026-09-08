@@ -35,7 +35,6 @@ function OrderDetailPage() {
     try {
       setIsCreatingReceipt(true);
       const newId = await useReceiptStore.getState().createReceiptForOrder(order.order_id, order.project_id);
-      showToast({ body: "Penerimaan baru berhasil dibuat", type: "info" });
       navigate({ to: `/receipt/${newId}/edit` });
     } catch (error: unknown) {
       handleFormError(error, showToast);
