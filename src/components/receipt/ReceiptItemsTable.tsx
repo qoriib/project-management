@@ -2,11 +2,16 @@ import { useEffect, useState } from "react";
 import { Card, EmptyState, Table, Text, TextInput } from "@astryxdesign/core";
 import { useToast } from "@astryxdesign/core/Toast";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { formatItemCode, formatNumber, parseDecimalInput, sanitizeDecimalInput } from "@/utils/formatters";
 import { handleFormError } from "@/utils/form";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+  useTableStickyColumns,
+  useTableRowIndex,
+} from "@astryxdesign/core/Table";
 import type { ReceiptItemRow } from "./form/receipt.schema";
 
 export interface ReceiptItemsTableProps {
@@ -37,7 +42,7 @@ export function ReceiptItemsTable({ items, receiptId, orderId, onItemUpdated }: 
       width: pixel(140),
       renderCell: (row) => {
         const code = formatItemCode(row);
-        return code ? <EntityCode id={code} /> : "-";
+        return <EntityCode id={code} />;
       },
     },
     {

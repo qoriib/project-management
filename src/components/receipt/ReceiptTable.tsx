@@ -4,9 +4,8 @@ import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useAppStore } from "@/store/useAppStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { handleFormError } from "@/utils/form";
-import { useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useTableRowIndex, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { handleFormError } from "@/utils";
 import { type ReceiptRow, useReceiptColumns } from "./table/useReceiptColumns";
 
 export function ReceiptTable() {

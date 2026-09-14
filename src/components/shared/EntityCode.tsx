@@ -22,5 +22,9 @@ export function EntityCode({ id }: EntityCodeProps) {
   if (id === null || id === undefined || id === "") {
     return <Text type="code">-</Text>;
   }
-  return <Text type="code">{String(id)}</Text>;
+  return (
+    <Text type="code" size="sm">
+      {String(id)}
+    </Text>
+  );
 }

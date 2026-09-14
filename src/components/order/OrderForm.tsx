@@ -15,12 +15,11 @@ import {
 } from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { Card, Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
-import { useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useTableRowIndex, useTableStickyColumns } from "@astryxdesign/core/Table";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
 import { useRequirementGroupStore } from "@/store/useRequirementGroupStore";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { OrderItemDialog } from "@/components/order/OrderItemDialog";
 import { buildDefaultValues, poSchema } from "@/components/order/form/order.schema";

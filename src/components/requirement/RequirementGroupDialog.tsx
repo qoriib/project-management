@@ -23,11 +23,17 @@ import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError, handleFormError } from "@/utils/form";
 import { formatNumber, parseDecimalInput, sanitizeDecimalInput } from "@/utils/formatters";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useRequirementGroupStore } from "@/store/useRequirementGroupStore";
-import { type TableColumn, pixel, proportional, useTablePagination, paginateData } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+  useTablePagination,
+  paginateData,
+  useTableRowIndex,
+} from "@astryxdesign/core/Table";
 import type { RequirementGroup } from "@/db/repositories";
 import * as v from "valibot";
 

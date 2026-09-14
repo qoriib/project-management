@@ -3,9 +3,14 @@ import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useOrderStore } from "@/store/useOrderStore";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
-import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+  useTableStickyColumns,
+  useTableRowIndex,
+} from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
 
 type TrackingRow = OrderItemDetail & Record<string, unknown>;
@@ -20,7 +25,7 @@ export function OrderItemTrackingTable() {
       width: pixel(140),
       renderCell: (row) => {
         const code = formatItemCode(row);
-        return code ? <EntityCode id={code} /> : "-";
+        return <EntityCode id={code} />;
       },
     },
     {

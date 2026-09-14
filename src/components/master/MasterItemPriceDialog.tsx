@@ -22,8 +22,14 @@ import { formatNumber, sanitizeDecimalInput, parseDecimalInput } from "@/utils/f
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError, handleFormError } from "@/utils/form";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { type TableColumn, pixel, proportional, useTablePagination, paginateData } from "@astryxdesign/core/Table";
+import {
+  type TableColumn,
+  pixel,
+  proportional,
+  useTablePagination,
+  paginateData,
+  useTableRowIndex,
+} from "@astryxdesign/core/Table";
 import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";

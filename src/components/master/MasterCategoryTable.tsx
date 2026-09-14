@@ -6,8 +6,7 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
 import type { ItemCategoryWithRelation } from "@/db/repositories";
 
 interface MasterCategoryTableProps {
@@ -48,13 +47,13 @@ export function MasterCategoryTable({ onEdit }: MasterCategoryTableProps) {
       header: "Prefix",
       key: "prefix",
       width: pixel(80),
-      renderCell: (row: CategoryRow) => (row.prefix ? <EntityCode id={row.prefix} /> : "-"),
+      renderCell: (row: CategoryRow) => <EntityCode id={row.prefix} />,
     },
     {
       header: "Kode Kategori",
       key: "category_code",
       width: pixel(140),
-      renderCell: (row: CategoryRow) => (row.category_code ? <EntityCode id={row.category_code} /> : "-"),
+      renderCell: (row: CategoryRow) => <EntityCode id={row.category_code} />,
     },
     {
       header: "Nama Kategori",

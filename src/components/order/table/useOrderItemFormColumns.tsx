@@ -27,7 +27,7 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       width: pixel(140),
       renderCell: (row) => {
         const code = formatItemCode(row);
-        return code ? <EntityCode id={code} /> : "-";
+        return <EntityCode id={code} />;
       },
     },
     {
