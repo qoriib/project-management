@@ -1,4 +1,4 @@
-import { requirementRepo, itemPriceRepo, itemRepo, projectRepo } from "@/db/repositories";
+import { requirementRepo, requirementGroupRepo, itemPriceRepo, itemRepo, projectRepo } from "@/db/repositories";
 
 interface SeedRequirementRaw {
   projectName: string;
@@ -224,6 +224,8 @@ export async function seedRequirements(): Promise<void> {
   const itemMap = new Map<string, string>(items.map((i) => [i.item_name, i.item_id]));
   const itemPriceCache = new Map<string, { item_price_id: string; price: number }[]>();
 
+  const groupCache = new Map<string, { requirement_group_id: string }>();
+
   for (const b of rawReqs) {
     const projectId = projMap.get(b.projectName);
     const itemId = itemMap.get(b.itemName);
@@ -231,6 +233,22 @@ export async function seedRequirements(): Promise<void> {
     if (!projectId || !itemId) {
       console.warn(`Could not find project '${b.projectName}' or item '${b.itemName}'. Skipping Requirement.`);
       continue;
+    }
+
+    // Ensure a requirement group exists for the project
+    let group = groupCache.get(projectId);
+    if (!group) {
+      const existingGroups = await requirementGroupRepo.findByProject(projectId);
+      if (existingGroups.length > 0) {
+        group = existingGroups[0];
+      } else {
+        const newGroupId = await requirementGroupRepo.create({
+          project_id: projectId,
+          group_name: "Pekerjaan Struktur & Konstruksi",
+        });
+        group = (await requirementGroupRepo.findById(newGroupId))!;
+      }
+      groupCache.set(projectId, group);
     }
 
     // Get item prices, use cache
@@ -266,6 +284,7 @@ export async function seedRequirements(): Promise<void> {
         item_id: itemId,
         item_price_id: matchedPrice.item_price_id,
         project_id: projectId,
+        requirement_group_id: group.requirement_group_id,
         qty: b.qty,
         has_tax: Boolean(b.hasTax),
       });

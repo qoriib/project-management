@@ -1,4 +1,4 @@
-import { itemPriceRepo, itemRepo, projectRepo, orderRepo, vendorRepo } from "@/db/repositories";
+import { itemPriceRepo, itemRepo, projectRepo, orderRepo, vendorRepo, requirementGroupRepo } from "@/db/repositories";
 
 interface SeedOrderItemRaw {
   itemName: string;
@@ -321,11 +321,23 @@ export async function seedOrders(): Promise<void> {
     });
 
     if (existingOrders.length === 0) {
+      let groups = await requirementGroupRepo.findByProject(project.project_id);
+      if (groups.length === 0) {
+        const newGid = await requirementGroupRepo.create({
+          project_id: project.project_id,
+          group_name: "Pekerjaan Struktur & Konstruksi",
+        });
+        const g = await requirementGroupRepo.findById(newGid);
+        if (g) groups = [g];
+      }
+      const requirementGroupId = groups[0].requirement_group_id;
+
       await orderRepo.createWithItems(
         {
           order_code: ord.orderCode,
           order_date: ord.orderDate,
           project_id: project.project_id,
+          requirement_group_id: requirementGroupId,
         },
         orderItems,
       );

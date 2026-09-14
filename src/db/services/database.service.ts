@@ -32,6 +32,7 @@ export async function resetDatabase(): Promise<void> {
       "order_items",
       "orders",
       "requirements",
+      "requirement_groups",
       "item_prices",
       "items",
       "item_categories",

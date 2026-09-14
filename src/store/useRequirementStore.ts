@@ -8,16 +8,20 @@ interface RequirementStore {
   loadRequirements: (projectId: string) => Promise<void>;
   createRequirement: (data: {
     project_id: string;
+    requirement_group_id: string;
     item_id: string;
     qty: number;
     item_price_id: string;
+    has_tax?: boolean;
   }) => Promise<void>;
   updateRequirement: (
     id: string,
     data: {
+      requirement_group_id?: string;
       item_id?: string;
       qty?: number;
       item_price_id?: string;
+      has_tax?: boolean;
     },
   ) => Promise<void>;
   deleteRequirement: (id: string) => Promise<void>;
@@ -26,6 +30,10 @@ interface RequirementStore {
 export const useRequirementStore = create<RequirementStore>((set, get) => ({
   requirements: [],
   createRequirement: async (data) => {
+    if (!data.requirement_group_id) {
+      throw new Error("Kelompok pekerjaan wajib dipilih.");
+    }
+
     const project = useMasterStore.getState().projects.find((p) => p.project_id === data.project_id);
 
     if (project?.requirements_is_approved === 1) {

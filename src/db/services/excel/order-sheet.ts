@@ -25,6 +25,12 @@ const COLUMNS: SheetColumnConfig[] = [
     align: "left",
   },
   {
+    header: "PEKERJAAN",
+    key: "group_name",
+    width: EXCEL_COL_WIDTH.category,
+    align: "left",
+  },
+  {
     header: "VENDOR",
     key: "vendor_name",
     width: EXCEL_COL_WIDTH.vendor,
@@ -104,8 +110,8 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   }));
 
   createFormalKop(worksheet, {
-    endCol: "M",
-    endColIdx: 13,
+    endCol: "N",
+    endColIdx: 14,
     startCol: "A",
     startColIdx: 1,
     subtitle: `${project_name} | ${company_name} | ${period}`,
@@ -132,6 +138,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
 
     const orderDate = toISODate(item.order_date);
     const orderCode = item.order_code ?? "-";
+    const groupName = item.group_name ?? "-";
     const vendorName = item.vendor_name ?? "-";
     const itemCode = formatItemCode(item) ?? item.item_code;
     const categoryName = item.category_name ?? "-";
@@ -141,6 +148,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
       index + 1,
       orderDate,
       orderCode,
+      groupName,
       vendorName,
       itemCode,
       item.item_name,
@@ -168,6 +176,7 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     "",
     "",
     "",
+    "",
     totalOrderedQuantity,
     "",
     totalDpp,
@@ -175,8 +184,8 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     totalOrderPrice,
   ];
 
-  worksheet.mergeCells(`B${totalRowIndex}:H${totalRowIndex}`);
+  worksheet.mergeCells(`B${totalRowIndex}:I${totalRowIndex}`);
   styleTotalRow(totalRow, COLUMNS);
 
-  worksheet.autoFilter = "A4:M4";
+  worksheet.autoFilter = "A4:N4";
 }

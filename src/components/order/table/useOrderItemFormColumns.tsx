@@ -16,6 +16,12 @@ interface UseOrderItemFormColumnsProps {
 export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderItemFormColumnsProps) {
   const columns: TableColumn<OrderItemRow>[] = [
     {
+      header: "Pekerjaan",
+      key: "group_name",
+      width: pixel(160),
+      renderCell: (row) => <Text color={row.group_name ? "primary" : "secondary"}>{row.group_name || "-"}</Text>,
+    },
+    {
       header: "Kode Item",
       key: "item_code",
       width: pixel(140),

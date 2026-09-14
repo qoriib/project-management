@@ -8,6 +8,8 @@ export interface Order {
   order_id: string;
   /** Relasi ID proyek tempat pemesanan dilakukan */
   project_id: string;
+  /** Relasi ID kelompok kebutuhan default untuk item baru (opsional) */
+  requirement_group_id?: string | null;
   /** Nomor / kode unik dokumen PO (contoh: 'PO-2026-0001') */
   order_code: string | null;
   /** Tanggal pesanan diterbitkan (format: YYYY-MM-DD) */
@@ -30,9 +32,9 @@ export type UpdateOrder = Partial<CreateOrder>;
  * Metadata definisi tabel basis data untuk model Order
  */
 export const OrderModel: ModelDefinition = {
-  createColumns: ["project_id", "order_code", "order_date"],
+  createColumns: ["project_id", "requirement_group_id", "order_code", "order_date"],
   primaryKey: "order_id",
   softDelete: true,
   tableName: "orders",
-  updateColumns: ["project_id", "order_code", "order_date"],
+  updateColumns: ["project_id", "requirement_group_id", "order_code", "order_date"],
 };

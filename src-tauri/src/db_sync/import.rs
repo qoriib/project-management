@@ -99,6 +99,12 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
     .map_err(|e| format!("Gagal membersihkan data requirements lama: {e}"))?;
 
     tx.execute(
+        "DELETE FROM requirement_groups WHERE project_id = ?1",
+        params![&project_id],
+    )
+    .map_err(|e| format!("Gagal membersihkan data requirement_groups lama: {e}"))?;
+
+    tx.execute(
         "DELETE FROM projects WHERE project_id = ?1",
         params![&project_id],
     )

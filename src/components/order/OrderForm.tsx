@@ -1,23 +1,35 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertDialog, Button, EmptyState, Heading, HStack, Table, Text, TextInput, VStack } from "@astryxdesign/core";
+import {
+  AlertDialog,
+  Button,
+  EmptyState,
+  Heading,
+  HStack,
+  Selector,
+  Table,
+  Text,
+  TextInput,
+  VStack,
+} from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { Card, Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useTableStickyColumns } from "@astryxdesign/core/Table";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
+import { useRequirementGroupStore } from "@/store/useRequirementGroupStore";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { OrderItemDialog } from "@/components/order/OrderItemDialog";
 import { buildDefaultValues, poSchema } from "@/components/order/form/order.schema";
 import { getFieldError, handleFormError } from "@/utils/form";
-import { formatNumber, parseDecimalInput } from "@/utils/formatters";
+import { formatNumber } from "@/utils/formatters";
 import { calcGrandTotal } from "@/utils/calc";
 import { useKeyboardShortcut } from "@/utils/useKeyboardShortcut";
 import { type OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
-import type { OrderItemFormValues } from "@/components/order/form/orderItem.schema";
+import type { OrderItemInputPayload } from "@/components/order/form/useOrderItemForm";
 import type { OrderItemDetail, OrderWithSummary } from "@/db/repositories";
 
 export interface OrderFormProps {
@@ -34,7 +46,19 @@ export function OrderForm({ order }: OrderFormProps) {
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
 
   const { currentItems, addOrderItem, updateOrderItem, deleteOrderItem, updateOrderHeader } = useOrderStore();
+  const { groups, loadGroups } = useRequirementGroupStore();
   const items = currentItems;
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadGroups(selectedProjectId);
+    }
+  }, [selectedProjectId, loadGroups]);
+
+  const groupOptions = groups.map((g) => ({
+    label: g.group_name,
+    value: String(g.requirement_group_id),
+  }));
 
   const grandTotal = useMemo(() => calcGrandTotal(items), [items]);
 
@@ -64,21 +88,13 @@ export function OrderForm({ order }: OrderFormProps) {
     enabled: Boolean(selectedProjectId),
   });
 
-  async function handleSaveItem(payload: OrderItemFormValues) {
-    const itemInput = {
-      item_id: payload.item_id,
-      vendor_id: payload.vendor_id,
-      item_price_id: payload.item_price_id,
-      qty: parseDecimalInput(payload.qty),
-      has_tax: payload.has_tax,
-    };
-
+  async function handleSaveItem(payload: OrderItemInputPayload) {
     try {
       if (editingItem) {
-        await updateOrderItem(order.order_id, editingItem.order_item_id, itemInput);
+        await updateOrderItem(order.order_id, editingItem.order_item_id, payload);
         showToast({ body: "Item berhasil diperbarui", type: "info" });
       } else {
-        await addOrderItem(order.order_id, itemInput);
+        await addOrderItem(order.order_id, payload);
         showToast({ body: "Item berhasil ditambahkan", type: "info" });
       }
     } catch (error: unknown) {
@@ -109,7 +125,7 @@ export function OrderForm({ order }: OrderFormProps) {
   });
 
   const stickyColumns = useTableStickyColumns<OrderItemRow>({
-    startKeys: ["__rowIndex", "item_code", "item_name"],
+    startKeys: ["__rowIndex", "group_name", "item_code", "item_name"],
     endKeys: ["actions"],
   });
 
@@ -198,6 +214,31 @@ export function OrderForm({ order }: OrderFormProps) {
                         />
                       )}
                     </form.Field>
+                    <form.Field name="requirement_group_id">
+                      {(field) => (
+                        <Selector
+                          hasSearch
+                          width={260}
+                          label="Kelompok Pekerjaan"
+                          searchPlaceholder="Pilih pekerjaan default..."
+                          statusVariant="tooltip"
+                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                          options={groupOptions}
+                          value={field.state.value || undefined}
+                          onChange={async (val) => {
+                            const v = (val as string) || null;
+                            field.handleChange(v);
+                            if (order && v !== order.requirement_group_id) {
+                              try {
+                                await updateOrderHeader(order.order_id, { requirement_group_id: v ?? undefined });
+                              } catch (error: unknown) {
+                                handleFormError(error, showToast);
+                              }
+                            }
+                          }}
+                        />
+                      )}
+                    </form.Field>
                   </HStack>
                   <Card>
                     <Table
@@ -249,6 +290,7 @@ export function OrderForm({ order }: OrderFormProps) {
           setEditingItem(undefined);
         }}
         initialData={editingItem}
+        defaultRequirementGroupId={order.requirement_group_id || undefined}
         onSubmitItem={handleSaveItem}
       />
     </>

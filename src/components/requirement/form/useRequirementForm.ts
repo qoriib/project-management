@@ -14,14 +14,14 @@ import { type RequirementFormProps, requirementSchema, buildDefaultValues } from
  * - Load price options when item changes
  * - Submit handler (create / update)
  */
-export function useRequirementForm({ initialData, onSuccess }: RequirementFormProps) {
+export function useRequirementForm({ initialData, initialGroupId, onSuccess }: RequirementFormProps) {
   const showToast = useToast();
   const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const { items } = useMasterStore();
   const { createRequirement, updateRequirement } = useRequirementStore();
 
   const form = useForm({
-    defaultValues: buildDefaultValues(initialData),
+    defaultValues: buildDefaultValues(initialData, initialGroupId),
     validators: { onChange: requirementSchema },
     onSubmit: async ({ value }) => {
       try {
@@ -29,10 +29,11 @@ export function useRequirementForm({ initialData, onSuccess }: RequirementFormPr
 
         const payload = {
           project_id: selectedProjectId,
+          requirement_group_id: value.requirement_group_id,
           item_id: value.item_id,
           qty: parseDecimalInput(value.qty),
           item_price_id: value.item_price_id,
-          has_tax: value.has_tax ? 1 : 0,
+          has_tax: Boolean(value.has_tax),
         };
 
         if (initialData) {

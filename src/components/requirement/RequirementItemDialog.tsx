@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Button,
-  Card,
   Dialog,
-  Divider,
   HStack,
   Heading,
   IconButton,
@@ -11,7 +9,6 @@ import {
   InputGroupText,
   Selector,
   Switch,
-  Text,
   TextInput,
   VStack,
 } from "@astryxdesign/core";
@@ -20,9 +17,13 @@ import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign
 import { MoreHorizontal, Plus } from "lucide-react";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
+import { RequirementGroupDialog } from "./RequirementGroupDialog";
+import { ItemPriceSummaryCard } from "@/components/shared/ItemPriceSummaryCard";
 import { useMasterStore } from "@/store/useMasterStore";
-import { formatNumber, formatItemCode, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
-import { calcDPP, calcTax, TAX_RATIO_PERCENT } from "@/utils/calc";
+import { useAppStore } from "@/store/useAppStore";
+import { useRequirementGroupStore } from "@/store/useRequirementGroupStore";
+import { formatNumber, formatItemCode, sanitizeDecimalInput } from "@/utils/formatters";
+import { TAX_RATIO_PERCENT } from "@/utils/calc";
 import { getFieldError } from "@/utils/form";
 import { useRequirementForm } from "./form/useRequirementForm";
 import { useSelector } from "@tanstack/react-form";
@@ -32,20 +33,38 @@ interface RequirementItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
   initialData?: RequirementDetail | null;
+  initialGroupId?: string | null;
 }
 
-export function RequirementItemDialog({ isOpen, onClose, initialData }: RequirementItemDialogProps) {
+export function RequirementItemDialog({ isOpen, onClose, initialData, initialGroupId }: RequirementItemDialogProps) {
+  const [isGroupFormOpen, setIsGroupFormOpen] = useState(false);
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
   const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
 
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
   const { items, itemPricesMap, loadItemPrices } = useMasterStore();
+  const { groups, loadGroups } = useRequirementGroupStore();
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadGroups(selectedProjectId);
+    }
+  }, [selectedProjectId, loadGroups]);
 
   const { form, handleItemChange } = useRequirementForm({
     initialData: initialData ?? undefined,
+    initialGroupId: initialGroupId ?? undefined,
     onSuccess: () => {
       onClose();
     },
   });
+
+  const groupOptions = groups
+    .filter((g) => !g.budget || g.budget <= 0 || g.requirement_group_id === initialData?.requirement_group_id)
+    .map((g) => ({
+      label: g.group_name,
+      value: String(g.requirement_group_id),
+    }));
 
   const selectedItemId = useSelector(form.store, (s) => s.values.item_id);
 
@@ -87,6 +106,36 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
               <LayoutContent padding={4}>
                 <VStack gap={4}>
                   <FormLayout>
+                    {/* Kelompok Pekerjaan */}
+                    <HStack gap={2} align="end" width="100%">
+                      <VStack width="100%">
+                        <form.Field
+                          name="requirement_group_id"
+                          children={(field) => (
+                            <Selector
+                              hasSearch
+                              isRequired
+                              searchPlaceholder="Cari kelompok pekerjaan..."
+                              statusVariant="tooltip"
+                              label="Kelompok Pekerjaan"
+                              options={groupOptions}
+                              value={field.state.value || undefined}
+                              onChange={(val) => field.handleChange((val as string) || "")}
+                              onBlur={field.handleBlur}
+                              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                            />
+                          )}
+                        />
+                      </VStack>
+                      <IconButton
+                        variant="secondary"
+                        icon={<Plus />}
+                        label="Kelola Pekerjaan"
+                        onClick={() => setIsGroupFormOpen(true)}
+                        type="button"
+                      />
+                    </HStack>
+
                     {/* Item */}
                     <HStack gap={2} align="end" width="100%">
                       <VStack width="100%">
@@ -203,36 +252,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
                         const pObj = prices.find((p) => String(p.item_price_id) === String(priceId));
                         if (pObj) priceNum = pObj.price;
                       }
-                      const numQty = parseDecimalInput(String(qty ?? ""));
-                      const dpp = calcDPP(numQty, priceNum);
-                      const taxAmount = calcTax(dpp, hasTax);
-                      const total = dpp + taxAmount;
-
-                      return (
-                        <Card padding={3}>
-                          <VStack gap={1.5}>
-                            <HStack justify="between">
-                              <Text size="sm" color="secondary">
-                                Subtotal:
-                              </Text>
-                              <Text type="code">Rp {formatNumber(dpp, 2)}</Text>
-                            </HStack>
-                            <HStack justify="between">
-                              <Text size="sm" color="secondary">
-                                PPn ({TAX_RATIO_PERCENT}%):
-                              </Text>
-                              <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount, 2)}` : "-"}</Text>
-                            </HStack>
-                            <Divider />
-                            <HStack justify="between">
-                              <Text weight="bold">Total:</Text>
-                              <Text type="code" weight="bold" color="primary">
-                                Rp {formatNumber(total, 2)}
-                              </Text>
-                            </HStack>
-                          </VStack>
-                        </Card>
-                      );
+                      return <ItemPriceSummaryCard price={priceNum} qty={qty} hasTax={hasTax} />;
                     }}
                   </form.Subscribe>
                 </VStack>
@@ -279,6 +299,13 @@ export function RequirementItemDialog({ isOpen, onClose, initialData }: Requirem
         }}
         onSuccess={(newPriceId) => {
           form.setFieldValue("item_price_id", newPriceId);
+        }}
+      />
+      <RequirementGroupDialog
+        isOpen={isGroupFormOpen}
+        onClose={() => setIsGroupFormOpen(false)}
+        onSuccess={(newGroupId) => {
+          form.setFieldValue("requirement_group_id", newGroupId);
         }}
       />
     </>

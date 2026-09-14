@@ -21,7 +21,10 @@ interface OrderStore {
   clearOrderDetail: () => void;
 
   createOrderForProject: (projectId: string) => Promise<string>;
-  updateOrderHeader: (id: string, data: { order_date?: string; order_code?: string }) => Promise<void>;
+  updateOrderHeader: (
+    id: string,
+    data: { order_date?: string; order_code?: string; requirement_group_id?: string },
+  ) => Promise<void>;
   addOrderItem: (orderId: string, item: Omit<OrderItemInput, "order_item_id">) => Promise<string>;
   updateOrderItem: (orderId: string, orderItemId: string, item: OrderItemInput) => Promise<void>;
   deleteOrderItem: (orderId: string, orderItemId: string) => Promise<void>;

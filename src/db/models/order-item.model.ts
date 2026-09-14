@@ -8,6 +8,8 @@ export interface OrderItem {
   order_item_id: string;
   /** Relasi ID dokumen order induk */
   order_id: string;
+  /** Relasi ID kelompok kebutuhan / item pekerjaan */
+  requirement_group_id: string;
   /** Relasi ID item yang dipesan */
   item_id: string;
   /** Relasi ID vendor tempat barang dipesan */
@@ -30,9 +32,9 @@ export type UpdateOrderItem = Partial<CreateOrderItem>;
  * Metadata definisi tabel basis data untuk model OrderItem
  */
 export const OrderItemModel: ModelDefinition = {
-  createColumns: ["order_id", "item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
+  createColumns: ["order_id", "requirement_group_id", "item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
   primaryKey: "order_item_id",
   softDelete: false,
   tableName: "order_items",
-  updateColumns: ["item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
+  updateColumns: ["requirement_group_id", "item_id", "vendor_id", "item_price_id", "qty", "has_tax"],
 };

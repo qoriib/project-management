@@ -42,6 +42,7 @@ pub const MASTER_TABLES: &[(&str, &str, &str)] = &[
 // Project-scoped tables: Scoped to the selected project_id
 pub const PROJECT_TABLES: &[&str] = &[
     "projects",
+    "requirement_groups",
     "requirements",
     "orders",
     "order_items",

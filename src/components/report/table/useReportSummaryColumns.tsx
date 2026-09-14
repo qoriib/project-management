@@ -9,6 +9,7 @@ import type { RequirementReportItem } from "@/db/services";
 
 export interface EnrichedReportItem extends RequirementReportItem, Record<string, unknown> {
   unique_id: string;
+  is_group_subtotal?: boolean;
 }
 
 interface UseReportSummaryColumnsProps {
@@ -22,6 +23,15 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "item",
       width: proportional(1, { minWidth: 280 }),
       renderCell: (r) => {
+        if (r.is_group_subtotal) {
+          return <Text weight="bold">Subtotal {r.group_name}</Text>;
+        }
+        if (r.is_empty_group) {
+          return null;
+        }
+        if (r.is_pagu_account) {
+          return <Text weight="medium">Pagu Anggaran (Rekening)</Text>;
+        }
         const code = formatItemCode(r);
         return (
           <VStack gap={0.5} align="start">
@@ -35,7 +45,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       header: "Satuan",
       key: "unit",
       width: pixel(80),
-      renderCell: (r) => r.unit || "-",
+      renderCell: (r) => (r.is_group_subtotal || r.is_empty_group ? "-" : r.unit || "-"),
     },
     {
       align: "end",
@@ -43,6 +53,12 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "price",
       width: pixel(180),
       renderCell: (r) => {
+        if (r.is_group_subtotal || r.is_empty_group) {
+          return <ReportComparisonCell poValue="-" bomValue="-" />;
+        }
+        if (r.is_pagu_account) {
+          return <ReportComparisonCell poValue="-" bomValue={formatNumber(r.planned_budget, 2)} />;
+        }
         const poPrice = r.total_ordered > 0 ? r.total_order_dpp / r.total_ordered : 0;
         const plannedPrice = r.planned_volume > 0 ? r.planned_dpp / r.planned_volume : (r.price ?? 0);
         const isOver = !r.is_unplanned && poPrice > plannedPrice && r.total_ordered > 0;
@@ -63,6 +79,20 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "qty",
       width: pixel(140),
       renderCell: (r) => {
+        if (r.is_group_subtotal || r.is_empty_group) {
+          return r.is_group_subtotal ? (
+            <ReportComparisonCell
+              poValue={formatNumber(r.total_ordered, 5)}
+              bomValue={formatNumber(r.planned_volume, 5)}
+              poStatus={r.total_ordered > r.planned_volume && r.planned_volume > 0 ? "over" : undefined}
+            />
+          ) : (
+            <ReportComparisonCell poValue="-" bomValue="-" />
+          );
+        }
+        if (r.is_pagu_account) {
+          return <ReportComparisonCell poValue="-" bomValue="1" />;
+        }
         const poQty = r.total_ordered ?? 0;
         const plannedQty = r.planned_volume ?? 0;
         const isOver = !r.is_unplanned && poQty > plannedQty && r.total_ordered > 0;
@@ -82,6 +112,20 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "subtotal",
       width: pixel(180),
       renderCell: (r) => {
+        if (r.is_group_subtotal || r.is_empty_group) {
+          return r.is_group_subtotal ? (
+            <ReportComparisonCell
+              poValue={formatNumber(r.total_order_dpp, 2)}
+              bomValue={formatNumber(r.planned_dpp, 2)}
+              poStatus={r.total_order_dpp > r.planned_dpp && r.planned_dpp > 0 ? "over" : undefined}
+            />
+          ) : (
+            <ReportComparisonCell poValue="-" bomValue="-" />
+          );
+        }
+        if (r.is_pagu_account) {
+          return <ReportComparisonCell poValue="-" bomValue={formatNumber(r.planned_budget, 2)} />;
+        }
         const poSubtotal = r.total_order_dpp ?? 0;
         const plannedSubtotal = r.planned_dpp ?? 0;
         const isOver = !r.is_unplanned && poSubtotal > plannedSubtotal && r.total_ordered > 0;
@@ -101,6 +145,18 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "has_tax",
       width: pixel(180),
       renderCell: (r) => {
+        if (r.is_group_subtotal) {
+          return (
+            <ReportComparisonCell
+              poValue={formatNumber(r.total_order_tax, 2)}
+              bomValue={formatNumber(r.planned_tax, 2)}
+              poStatus={r.total_order_tax > r.planned_tax && r.planned_tax > 0 ? "over" : undefined}
+            />
+          );
+        }
+        if (r.is_empty_group || r.is_pagu_account) {
+          return <ReportComparisonCell poValue="-" bomValue="-" />;
+        }
         const poTax = r.total_order_tax ?? 0;
         const plannedTax = r.planned_tax ?? 0;
         const isOver = !r.is_unplanned && poTax > plannedTax && r.total_ordered > 0;
@@ -120,6 +176,20 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "total_price",
       width: pixel(180),
       renderCell: (r) => {
+        if (r.is_group_subtotal || r.is_empty_group) {
+          return r.is_group_subtotal ? (
+            <ReportComparisonCell
+              poValue={formatNumber(r.total_order_price, 2)}
+              bomValue={formatNumber(r.planned_budget, 2)}
+              poStatus={r.total_order_price > r.planned_budget && r.planned_budget > 0 ? "over" : undefined}
+            />
+          ) : (
+            <ReportComparisonCell poValue="-" bomValue="-" />
+          );
+        }
+        if (r.is_pagu_account) {
+          return <ReportComparisonCell poValue="-" bomValue={formatNumber(r.planned_budget, 2)} />;
+        }
         const poTotal = r.total_order_price ?? 0;
         const plannedTotal = r.planned_budget ?? 0;
         const isOver = !r.is_unplanned && poTotal > plannedTotal && r.total_ordered > 0;
@@ -139,6 +209,13 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "ordered",
       width: pixel(200),
       renderCell: (r) => {
+        if (r.is_empty_group || r.is_pagu_account || r.is_group_subtotal) {
+          return (
+            <Text size="sm" color="secondary">
+              -
+            </Text>
+          );
+        }
         if (r.is_unplanned) {
           return (
             <Text type="code" color="secondary" weight="medium">
@@ -170,6 +247,13 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "delivered",
       width: pixel(200),
       renderCell: (r) => {
+        if (r.is_empty_group || r.is_pagu_account || r.is_group_subtotal) {
+          return (
+            <Text size="sm" color="secondary">
+              -
+            </Text>
+          );
+        }
         if (r.is_unplanned) {
           return (
             <Text type="code" color="secondary" weight="medium">
@@ -200,9 +284,10 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       header: "Aksi",
       key: "actions",
       width: pixel(80),
-      renderCell: (r) => (
-        <IconButton icon={<Eye />} variant="secondary" onClick={() => onLogClick(r)} label="Lihat Rincian & Log" />
-      ),
+      renderCell: (r) =>
+        r.is_empty_group || r.is_pagu_account || r.is_group_subtotal ? null : (
+          <IconButton icon={<Eye />} variant="secondary" onClick={() => onLogClick(r)} label="Lihat Rincian & Log" />
+        ),
     },
   ];
 

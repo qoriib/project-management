@@ -45,6 +45,12 @@ pub fn run() {
                             sql: include_str!("../migrations/001_init.sql"),
                             kind: MigrationKind::Up,
                         },
+                        Migration {
+                            version: 2,
+                            description: "requirement_groups",
+                            sql: include_str!("../migrations/002_requirement_groups.sql"),
+                            kind: MigrationKind::Up,
+                        },
                     ],
                 )
                 .build(),

@@ -18,6 +18,8 @@ export interface RequirementReportVariant {
 }
 
 export interface RequirementReportItem {
+  requirement_group_id?: string | null;
+  group_name?: string | null;
   item_id: string;
   item_code: string;
   category_id?: string;
@@ -40,6 +42,8 @@ export interface RequirementReportItem {
   total_order_price: number;
   total_delivered: number;
   is_unplanned?: boolean;
+  is_empty_group?: boolean;
+  is_pagu_account?: boolean;
 }
 
 export interface ItemLogEntry {
@@ -52,6 +56,8 @@ export interface ItemLogEntry {
 }
 
 export interface OrderReportItem {
+  requirement_group_id?: string | null;
+  group_name?: string | null;
   order_code: string;
   order_date: string;
   vendor_name: string | null;
@@ -82,6 +88,8 @@ export interface ReceiptReportItem {
 }
 
 export interface RequirementReportDetailItem {
+  requirement_group_id?: string | null;
+  group_name?: string | null;
   item_code: string;
   category_prefix?: string;
   category_code?: string;
@@ -97,6 +105,8 @@ export interface RequirementReportDetailItem {
 }
 
 interface RawRequirementRow {
+  requirement_group_id?: string | null;
+  group_name?: string | null;
   item_id: string;
   item_price_id: string;
   item_code: string;
@@ -112,6 +122,8 @@ interface RawRequirementRow {
 }
 
 interface RawOrderRow {
+  requirement_group_id?: string | null;
+  group_name?: string | null;
   item_id: string;
   item_price_id: string;
   price: number;
@@ -128,12 +140,15 @@ interface RawOrderRow {
 }
 
 interface RawReceiptRow {
+  requirement_group_id?: string | null;
   item_id: string;
   total_delivered: number;
 }
 
 function createDefaultReportItem(row: RawRequirementRow | RawOrderRow, isUnplanned: boolean): RequirementReportItem {
   return {
+    requirement_group_id: row.requirement_group_id ?? null,
+    group_name: row.group_name ?? null,
     category: row.category || "LAINNYA",
     category_id: row.category_id,
     category_code: row.category_code,
@@ -158,9 +173,11 @@ function createDefaultReportItem(row: RawRequirementRow | RawOrderRow, isUnplann
   };
 }
 
+const makeKey = (groupId: string | null | undefined, itemId: string) => `${groupId || "none"}__${itemId}`;
+
 /**
  * Generates the full Requirement fulfillment report for a project.
- * Items in Requirements and Orders are grouped strictly by item_id (one row per item).
+ * Items in Requirements and Orders are grouped per (requirement_group_id, item_id).
  * If an item has multiple prices/variants in BOQ or PO, all variants are preserved in planned_variants / order_variants.
  */
 export async function getRequirementReport(
@@ -172,6 +189,8 @@ export async function getRequirementReport(
     // 1. Build Requirements (BOQ) Query
     const requirementQuery = new QueryBuilder()
       .select(
+        "requirements.requirement_group_id",
+        "groups.group_name",
         "requirements.item_id",
         "requirements.item_price_id",
         "items.item_code",
@@ -186,6 +205,11 @@ export async function getRequirementReport(
         "requirements.has_tax",
       )
       .from("requirements", "requirements")
+      .leftJoin(
+        "requirement_groups",
+        "groups",
+        "requirements.requirement_group_id = groups.requirement_group_id AND groups.deleted_at IS NULL",
+      )
       .join("items", "items", "items.item_id = requirements.item_id AND items.deleted_at IS NULL")
       .join(
         "item_prices",
@@ -200,11 +224,14 @@ export async function getRequirementReport(
       .leftJoin("units", "units", "items.unit_id = units.unit_id AND units.deleted_at IS NULL")
       .where("requirements.project_id", "=", projectId)
       .withSoftDelete("requirements")
+      .orderBy("groups.requirement_group_id", "ASC")
       .orderBy("items.item_id", "ASC");
 
     // 2. Build Orders (PO) Query
     const orderQuery = new QueryBuilder()
       .select(
+        "COALESCE(order_items.requirement_group_id, orders.requirement_group_id) as requirement_group_id",
+        "groups.group_name",
         "order_items.item_id",
         "order_items.item_price_id",
         "item_prices.price",
@@ -221,6 +248,11 @@ export async function getRequirementReport(
       )
       .from("order_items", "order_items")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
+      .leftJoin(
+        "requirement_groups",
+        "groups",
+        "COALESCE(order_items.requirement_group_id, orders.requirement_group_id) = groups.requirement_group_id AND groups.deleted_at IS NULL",
+      )
       .join("items", "items", "items.item_id = order_items.item_id AND items.deleted_at IS NULL")
       .join(
         "item_prices",
@@ -239,8 +271,9 @@ export async function getRequirementReport(
       .when(Boolean(startDate), (q) => q.where("orders.order_date", ">=", startDate!))
       .when(Boolean(endDate), (q) => q.where("orders.order_date", "<=", endDate!));
 
-    // 3. Build Receipts (NP) Query grouped by item_id (only counting active non-deleted receipts and orders)
+    // 3. Build Receipts (NP) Query grouped by requirement_group_id and item_id
     const receiptQuery = new QueryBuilder()
+      .select("COALESCE(order_items.requirement_group_id, orders.requirement_group_id) as requirement_group_id")
       .select("order_items.item_id")
       .selectSum("receipt_items.qty", "total_delivered", 0)
       .from("receipt_items", "receipt_items")
@@ -251,29 +284,40 @@ export async function getRequirementReport(
       .withSoftDelete("receipts", "orders")
       .when(Boolean(startDate), (q) => q.where("receipts.receipt_date", ">=", startDate!))
       .when(Boolean(endDate), (q) => q.where("receipts.receipt_date", "<=", endDate!))
-      .groupBy("order_items.item_id");
+      .groupBy("COALESCE(order_items.requirement_group_id, orders.requirement_group_id), order_items.item_id");
 
-    // Execute all 3 queries in parallel via QueryBuilder getMany
-    const [rawRequirements, rawOrders, rawReceipts] = await Promise.all([
+    // 4. Build Groups Query to ensure empty groups appear
+    const groupsQuery = new QueryBuilder()
+      .select("requirement_group_id", "group_name", "budget")
+      .from("requirement_groups")
+      .where("project_id", "=", projectId)
+      .withSoftDelete("requirement_groups")
+      .orderBy("requirement_group_id", "ASC");
+
+    // Execute all queries in parallel via QueryBuilder getMany
+    const [rawRequirements, rawOrders, rawReceipts, rawGroups] = await Promise.all([
       requirementQuery.getMany<RawRequirementRow>(),
       orderQuery.getMany<RawOrderRow>(),
       receiptQuery.getMany<RawReceiptRow>(),
+      groupsQuery.getMany<{ requirement_group_id: string; group_name: string; budget: number }>(),
     ]);
 
     const receiptMap = new Map<string, number>();
     for (const r of rawReceipts) {
-      receiptMap.set(r.item_id, r.total_delivered || 0);
+      const key = makeKey(r.requirement_group_id, r.item_id);
+      receiptMap.set(key, (receiptMap.get(key) || 0) + (r.total_delivered || 0));
     }
 
-    // 4. Group strictly by item_id
+    // 4. Group by (requirement_group_id, item_id)
     const itemMap = new Map<string, RequirementReportItem>();
 
     // Process Requirements (BOQ)
     for (const req of rawRequirements) {
-      let item = itemMap.get(req.item_id);
+      const key = makeKey(req.requirement_group_id, req.item_id);
+      let item = itemMap.get(key);
       if (!item) {
         item = createDefaultReportItem(req, false);
-        itemMap.set(req.item_id, item);
+        itemMap.set(key, item);
       }
 
       const dpp = calcDPP(req.qty, req.price);
@@ -298,10 +342,11 @@ export async function getRequirementReport(
 
     // Process Orders (PO)
     for (const ord of rawOrders) {
-      let item = itemMap.get(ord.item_id);
+      const key = makeKey(ord.requirement_group_id, ord.item_id);
+      let item = itemMap.get(key);
       if (!item) {
         item = createDefaultReportItem(ord, true);
-        itemMap.set(ord.item_id, item);
+        itemMap.set(key, item);
       }
 
       const dpp = calcDPP(ord.qty, ord.price);
@@ -324,23 +369,73 @@ export async function getRequirementReport(
       item.total_order_price += subtotal;
     }
 
-    // 5. Populate delivery & sort by category_id (ASC), then planned status, then item_name
+    // Process Groups without any items in itemMap
+    const groupsWithItems = new Set<string>();
+    for (const item of itemMap.values()) {
+      if (item.requirement_group_id) {
+        groupsWithItems.add(item.requirement_group_id);
+      }
+    }
+
+    for (const g of rawGroups) {
+      if (!groupsWithItems.has(g.requirement_group_id)) {
+        const key = makeKey(g.requirement_group_id, `empty_${g.requirement_group_id}`);
+        const hasBudget = Boolean(g.budget && g.budget > 0);
+        itemMap.set(key, {
+          requirement_group_id: g.requirement_group_id,
+          group_name: g.group_name,
+          category: "-",
+          category_id: undefined,
+          category_code: undefined,
+          category_prefix: undefined,
+          is_unplanned: false,
+          is_empty_group: !hasBudget,
+          is_pagu_account: hasBudget,
+          item_code: "-",
+          item_id: `empty_${g.requirement_group_id}`,
+          item_name: hasBudget ? "Pagu Anggaran (Rekening)" : "(Belum ada rincian item)",
+          order_variants: [],
+          planned_budget: hasBudget ? g.budget : 0,
+          planned_dpp: hasBudget ? g.budget : 0,
+          planned_tax: 0,
+          planned_variants: [],
+          planned_volume: hasBudget ? 1 : 0,
+          price: hasBudget ? g.budget : 0,
+          total_delivered: 0,
+          total_order_dpp: 0,
+          total_order_price: 0,
+          total_order_tax: 0,
+          total_ordered: 0,
+          unit: hasBudget ? "LS" : "-",
+        });
+      }
+    }
+
+    // 5. Populate delivery & sort by group_name, planned status, category_id, item_name
     const allItems = Array.from(itemMap.values());
     for (const item of allItems) {
-      item.total_delivered = receiptMap.get(item.item_id) || 0;
+      const key = makeKey(item.requirement_group_id, item.item_id);
+      item.total_delivered = receiptMap.get(key) || 0;
       if (!item.price && item.order_variants.length > 0) {
         item.price = item.order_variants[0].price;
       }
     }
 
     allItems.sort((a, b) => {
-      const catA = a.category_id || "\uffff";
-      const catB = b.category_id || "\uffff";
-      const cmp = catA.localeCompare(catB);
-      if (cmp !== 0) return cmp;
+      const groupA = a.requirement_group_id || "";
+      const groupB = b.requirement_group_id || "";
+      const groupCmp = groupA.localeCompare(groupB);
+      if (groupCmp !== 0) return groupCmp;
+
       if (Boolean(a.is_unplanned) !== Boolean(b.is_unplanned)) {
         return a.is_unplanned ? 1 : -1;
       }
+
+      const catA = a.category_id || "\uffff";
+      const catB = b.category_id || "\uffff";
+      const catCmp = catA.localeCompare(catB);
+      if (catCmp !== 0) return catCmp;
+
       return (a.item_name || "").localeCompare(b.item_name || "");
     });
 
@@ -423,6 +518,8 @@ export async function getProjectOrderReport(
   try {
     const query = new QueryBuilder()
       .select(
+        "orders.requirement_group_id",
+        "COALESCE(item_groups.group_name, order_groups.group_name) as group_name",
         "orders.order_code",
         "orders.order_date",
         "vendors.vendor_name",
@@ -441,6 +538,16 @@ export async function getProjectOrderReport(
       )
       .from("order_items", "order_items")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
+      .leftJoin(
+        "requirement_groups",
+        "order_groups",
+        "order_groups.requirement_group_id = orders.requirement_group_id AND order_groups.deleted_at IS NULL",
+      )
+      .leftJoin(
+        "requirement_groups",
+        "item_groups",
+        "item_groups.requirement_group_id = order_items.requirement_group_id AND item_groups.deleted_at IS NULL",
+      )
       .join("items", "items", "items.item_id = order_items.item_id AND items.deleted_at IS NULL")
       .join(
         "item_prices",
@@ -524,6 +631,8 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
   try {
     const query = new QueryBuilder()
       .select(
+        "requirements.requirement_group_id",
+        "requirement_groups.group_name",
         "items.item_code",
         "categories.prefix as category_prefix",
         "categories.category_code",
@@ -535,6 +644,11 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
         "requirements.has_tax",
       )
       .from("requirements", "requirements")
+      .leftJoin(
+        "requirement_groups",
+        "requirement_groups",
+        "requirement_groups.requirement_group_id = requirements.requirement_group_id AND requirement_groups.deleted_at IS NULL",
+      )
       .join("items", "items", "items.item_id = requirements.item_id AND items.deleted_at IS NULL")
       .join(
         "item_prices",
@@ -549,10 +663,12 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
       .leftJoin("units", "units", "units.unit_id = items.unit_id AND units.deleted_at IS NULL")
       .where("requirements.project_id", "=", projectId)
       .withSoftDelete("requirements")
-      .orderBy("categories.category_id", "ASC")
+      .orderBy("COALESCE(requirement_groups.requirement_group_id, '')", "ASC")
       .orderBy("items.item_name", "ASC");
 
     const raw = await query.getMany<{
+      requirement_group_id?: string | null;
+      group_name?: string | null;
       item_code: string;
       category_prefix?: string;
       category_code?: string;
@@ -564,7 +680,16 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
       has_tax: number;
     }>();
 
-    return raw.map((r) => {
+    const groupsQuery = new QueryBuilder()
+      .select("requirement_group_id", "group_name", "budget")
+      .from("requirement_groups")
+      .where("project_id", "=", projectId)
+      .withSoftDelete("requirement_groups")
+      .orderBy("requirement_group_id", "ASC");
+
+    const rawGroups = await groupsQuery.getMany<{ requirement_group_id: string; group_name: string; budget: number }>();
+
+    const mapped = raw.map((r) => {
       const dpp = calcDPP(r.qty, r.price);
       const taxAmount = calcTax(dpp, Boolean(r.has_tax));
       return {
@@ -575,6 +700,45 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
         total_price: dpp + taxAmount,
       };
     });
+
+    const groupsWithItems = new Set<string>();
+    for (const r of mapped) {
+      if (r.requirement_group_id) {
+        groupsWithItems.add(r.requirement_group_id);
+      }
+    }
+
+    for (const g of rawGroups) {
+      if (!groupsWithItems.has(g.requirement_group_id)) {
+        const hasBudget = Boolean(g.budget && g.budget > 0);
+        mapped.push({
+          requirement_group_id: g.requirement_group_id,
+          group_name: g.group_name,
+          item_code: "-",
+          category_prefix: undefined,
+          category_code: undefined,
+          item_name: hasBudget ? "Pagu Anggaran (Rekening)" : "(Belum ada rincian item)",
+          category_name: "-",
+          unit_name: hasBudget ? "LS" : "-",
+          qty: hasBudget ? 1 : 0,
+          price: hasBudget ? g.budget : 0,
+          has_tax: false,
+          dpp: hasBudget ? g.budget : 0,
+          tax_amount: 0,
+          total_price: hasBudget ? g.budget : 0,
+        });
+      }
+    }
+
+    mapped.sort((a, b) => {
+      const groupA = a.requirement_group_id || "";
+      const groupB = b.requirement_group_id || "";
+      const groupCmp = groupA.localeCompare(groupB);
+      if (groupCmp !== 0) return groupCmp;
+      return (a.item_name || "").localeCompare(b.item_name || "");
+    });
+
+    return mapped;
   } catch (error) {
     throw wrapDbError(error, "requirement_report");
   }

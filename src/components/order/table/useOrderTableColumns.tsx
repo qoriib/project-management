@@ -32,6 +32,12 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
       renderCell: (row: PORow) => <Timestamp value={row.order_date} format="system_date" size="base" />,
     },
     {
+      header: "Pekerjaan",
+      key: "group_name",
+      width: pixel(180),
+      renderCell: (row: PORow) => <Text color={row.group_name ? "primary" : "secondary"}>{row.group_name || "-"}</Text>,
+    },
+    {
       header: "Item",
       key: "item_names",
       width: proportional(1, { minWidth: 260 }),

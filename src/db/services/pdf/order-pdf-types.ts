@@ -24,6 +24,7 @@ export interface PurchaseOrderPdfContext {
   order_date_display: string;
   vendor_name: string;
   package_name: string;
+  group_name?: string;
   year: number | string;
   company_name: string;
   items: OrderPdfItem[];
@@ -40,6 +41,7 @@ export interface AssetRequestPdfContext {
   company_line: string;
   company_name?: string;
   project_name: string;
+  group_name?: string;
   fiscal_year: number | string;
   document_code: string;
   items: OrderPdfItem[];
