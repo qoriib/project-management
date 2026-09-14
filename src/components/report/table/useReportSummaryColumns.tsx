@@ -53,7 +53,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       width: pixel(180),
       renderCell: (r) => {
         if (r.is_group_footer || r.is_empty_group) {
-          return <Text color="secondary">-</Text>;
+          return "-";
         }
 
         const poPrice = r.total_ordered > 0 ? r.total_order_dpp / r.total_ordered : (r.price ?? 0);
@@ -84,7 +84,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       renderCell: (r) => {
         if (r.is_group_footer) {
           if (r.group_budget && r.group_budget > 0) {
-            return <Text color="secondary">-</Text>;
+            return "-";
           }
           return (
             <ReportComparisonCell
@@ -125,7 +125,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       renderCell: (r) => {
         if (r.is_group_footer) {
           if (r.group_budget && r.group_budget > 0) {
-            return <Text color="secondary">-</Text>;
+            return "-";
           }
           return (
             <ReportComparisonCell
@@ -166,7 +166,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       renderCell: (r) => {
         if (r.is_group_footer) {
           if (r.group_budget && r.group_budget > 0) {
-            return <Text color="secondary">-</Text>;
+            return "-";
           }
           return (
             <ReportComparisonCell
@@ -255,11 +255,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       width: pixel(200),
       renderCell: (r) => {
         if (r.is_empty_group || r.is_group_footer) {
-          return (
-            <Text size="sm" color="secondary">
-              -
-            </Text>
-          );
+          return "-";
         }
 
         // Untuk kelompok pagu atau unplanned item, tampilkan jumlah ordered langsung tanpa % per item
@@ -295,11 +291,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       width: pixel(200),
       renderCell: (r) => {
         if (r.is_empty_group || r.is_group_footer) {
-          return (
-            <Text size="sm" color="secondary">
-              -
-            </Text>
-          );
+          return "-";
         }
 
         const delivered = r.total_delivered ?? 0;
@@ -326,6 +318,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       width: pixel(80),
       renderCell: (r) => {
         if (r.is_empty_group || r.is_group_footer) return null;
+
         return (
           <IconButton icon={<Eye />} variant="secondary" onClick={() => onLogClick(r)} label="Lihat Rincian & Log" />
         );

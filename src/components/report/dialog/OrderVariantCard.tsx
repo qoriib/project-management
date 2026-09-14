@@ -80,7 +80,7 @@ export function OrderVariantCard({ item }: OrderVariantCardProps) {
       header: "PPn (12%)",
       key: "has_tax",
       width: pixel(160),
-      renderCell: (r) => <Text type="code">{r.has_tax ? formatNumber(r.tax_amount, 2) : "-"}</Text>,
+      renderCell: (r) => (r.has_tax ? <Text type="code">{formatNumber(r.tax_amount, 2)}</Text> : "-"),
     },
     {
       align: "end",

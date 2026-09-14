@@ -51,9 +51,9 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
           return <Text color="secondary">(Belum ada rincian item)</Text>;
         }
         if (row.is_pagu_account) {
-          return <Text weight="bold">{row.item_name || "-"}</Text>;
+          return row.item_name ? <Text weight="bold">{row.item_name}</Text> : "-";
         }
-        return <Text weight="medium">{row.item_name || "-"}</Text>;
+        return row.item_name ? <Text weight="medium">{row.item_name}</Text> : "-";
       },
     },
     {
@@ -132,7 +132,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
               {formatNumber(row.subtotal_tax ?? 0, 2)}
             </Text>
           ) : (
-            <Text color="secondary">-</Text>
+            "-"
           );
         }
         if (row.is_empty_group || row.is_pagu_account) {
@@ -140,13 +140,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
         }
         const dpp = calcDPP(row.qty, row.price);
         const taxAmount = calcTax(dpp, row.has_tax);
-        return row.has_tax ? (
-          <Text type="code">{formatNumber(taxAmount, 2)}</Text>
-        ) : (
-          <Text size="sm" color="secondary">
-            -
-          </Text>
-        );
+        return row.has_tax ? <Text type="code">{formatNumber(taxAmount, 2)}</Text> : "-";
       },
     },
     {

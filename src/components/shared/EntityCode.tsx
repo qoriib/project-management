@@ -21,11 +21,7 @@ export function formatEntityCode(id: string | number | null | undefined): string
  */
 export function EntityCode({ id, size }: EntityCodeProps) {
   if (id === null || id === undefined || id === "") {
-    return (
-      <Text size={size} type="code">
-        -
-      </Text>
-    );
+    return "-";
   }
   return (
     <Text size={size} type="code">

@@ -35,7 +35,7 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
       header: "Pekerjaan",
       key: "group_name",
       width: pixel(180),
-      renderCell: (row: PORow) => <Text color={row.group_name ? "primary" : "secondary"}>{row.group_name || "-"}</Text>,
+      renderCell: (row: PORow) => (row.group_name ? <Text>{row.group_name}</Text> : "-"),
     },
     {
       header: "Item",

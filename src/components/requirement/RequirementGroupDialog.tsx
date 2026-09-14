@@ -168,11 +168,7 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
       key: "budget",
       width: pixel(180),
       renderCell: (row: RequirementGroup) =>
-        row.budget && row.budget > 0 ? (
-          <Text type="code">Rp {formatNumber(row.budget, 2)}</Text>
-        ) : (
-          <Text color="secondary">-</Text>
-        ),
+        row.budget && row.budget > 0 ? <Text type="code">Rp {formatNumber(row.budget, 2)}</Text> : "-",
     },
     {
       align: "end",

@@ -19,7 +19,7 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       header: "Pekerjaan",
       key: "group_name",
       width: pixel(160),
-      renderCell: (row) => <Text color={row.group_name ? "primary" : "secondary"}>{row.group_name || "-"}</Text>,
+      renderCell: (row) => (row.group_name ? <Text>{row.group_name}</Text> : "-"),
     },
     {
       header: "Kode Item",
