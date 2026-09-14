@@ -16,12 +16,6 @@ interface UseOrderItemFormColumnsProps {
 export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderItemFormColumnsProps) {
   const columns: TableColumn<OrderItemRow>[] = [
     {
-      header: "Pekerjaan",
-      key: "group_name",
-      width: pixel(160),
-      renderCell: (row) => (row.group_name ? <Text>{row.group_name}</Text> : "-"),
-    },
-    {
       header: "Kode Item",
       key: "item_code",
       width: pixel(140),
@@ -35,6 +29,12 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       key: "item_name",
       width: proportional(1, { minWidth: 280 }),
       renderCell: (row) => row.item_name || "-",
+    },
+    {
+      header: "Pekerjaan",
+      key: "group_name",
+      width: pixel(160),
+      renderCell: (row) => row.group_name ?? "-",
     },
     {
       header: "Satuan",
@@ -84,13 +84,7 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       renderCell: (row) => {
         const dpp = calcDPP(row.qty, row.price);
         const taxAmount = calcTax(dpp, row.has_tax);
-        return row.has_tax ? (
-          <Text type="code">{formatNumber(taxAmount, 2)}</Text>
-        ) : (
-          <Text size="sm" color="secondary">
-            -
-          </Text>
-        );
+        return row.has_tax ? <Text type="code">{formatNumber(taxAmount, 2)}</Text> : "-";
       },
     },
     {
