@@ -100,7 +100,7 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
       header: "Vendor",
       key: "vendor",
       width: proportional(1),
-      renderCell: (r) => (r.vendor_name ? <Text>{r.vendor_name}</Text> : "-"),
+      renderCell: (r) => r.vendor_name ?? "-",
     },
   ];
 

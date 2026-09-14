@@ -157,9 +157,9 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
       key: "group_name",
       width: proportional(1),
       renderCell: (row: RequirementGroup) => (
-        <HStack gap={2} align="center">
-          <Text weight="medium">{row.group_name}</Text>
-        </HStack>
+        <Text weight="medium" maxLines={1}>
+          {row.group_name}
+        </Text>
       ),
     },
     {
@@ -261,9 +261,9 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
               <VStack gap={4}>
                 <Table
                   idKey="requirement_group_id"
-                  plugins={{ rowIndex: rowIndexPlugin, pagination: paginationPlugin }}
                   textOverflow="truncate"
                   columns={columns}
+                  plugins={{ rowIndex: rowIndexPlugin, pagination: paginationPlugin }}
                   data={paginatedGroups as GroupRow[]}
                   emptyState={<EmptyState isCompact title="Belum ada kelompok pekerjaan" />}
                 />
@@ -276,25 +276,16 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
                 >
                   <Card>
                     <VStack gap={3}>
-                      <HStack justify="between" align="center" width="100%">
-                        <Text weight="bold" size="sm">
-                          {editingGroup ? "Ubah Data Pekerjaan" : "Tambah Pekerjaan Baru"}
-                        </Text>
-                        {editingGroup ? (
-                          <Button size="sm" variant="secondary" label="Batal" onClick={handleCancelEdit} />
-                        ) : null}
-                      </HStack>
                       <FormLayout>
                         <form.Field
                           name="group_name"
                           children={(field) => (
                             <TextInput
+                              isRequired
                               label="Nama Pekerjaan"
-                              placeholder="Contoh: Pekerjaan Pasang Fondasi"
                               value={field.state.value}
                               onChange={(val) => field.handleChange(val ?? "")}
                               onBlur={field.handleBlur}
-                              isRequired
                               isDisabled={isApproved}
                               statusVariant="tooltip"
                               status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
@@ -304,10 +295,10 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
                         <form.Field
                           name="budget"
                           children={(field) => (
-                            <InputGroup label="Pagu Anggaran (Opsional)">
+                            <InputGroup label="Pagu Anggaran">
                               <InputGroupText>Rp</InputGroupText>
                               <TextInput
-                                label="Pagu Anggaran (Opsional)"
+                                label="Pagu Anggaran"
                                 isLabelHidden
                                 placeholder="Kosongkan jika dihitung dari item"
                                 value={field.state.value}
@@ -320,6 +311,7 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
                         />
                       </FormLayout>
                       <HStack justify="end" gap={2} width="100%">
+                        {editingGroup ? <Button variant="secondary" label="Batal" onClick={handleCancelEdit} /> : null}
                         <form.Subscribe
                           selector={(state) => [state.canSubmit, state.isSubmitting] as const}
                           children={([canSubmit, isSubmitting]) => (

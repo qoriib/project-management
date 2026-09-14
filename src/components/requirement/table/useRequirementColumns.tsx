@@ -22,6 +22,21 @@ interface UseRequirementColumnsProps {
   isApproved: boolean;
 }
 
+/**
+ * Helper guard: merender sel yang hanya aktif pada item BOQ biasa.
+ * Untuk baris pagu dan empty group, mengembalikan "-".
+ * Untuk baris footer, menjalankan renderFooter jika ada, atau "-".
+ */
+function withBoqItemOnly(
+  row: RequirementRow,
+  renderNormal: () => React.ReactNode,
+  renderFooter?: () => React.ReactNode,
+) {
+  if (row.is_group_footer) return renderFooter ? renderFooter() : "-";
+  if (row.is_empty_group || row.is_pagu_account) return "-";
+  return renderNormal();
+}
+
 export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: UseRequirementColumnsProps) {
   const baseColumns: TableColumn<RequirementRow>[] = [
     {
@@ -29,12 +44,8 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       key: "item_code",
       width: pixel(140),
       renderCell: (row) => {
-        if (row.is_group_footer || row.is_empty_group) {
-          return null;
-        }
-        if (row.is_pagu_account) {
-          return <Badge variant="warning" label="Pagu" />;
-        }
+        if (row.is_group_footer || row.is_empty_group) return null;
+        if (row.is_pagu_account) return <Badge variant="warning" label="Pagu" />;
         const code = formatItemCode(row);
         return <EntityCode id={code} />;
       },
@@ -44,15 +55,9 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       key: "item_name",
       width: proportional(1, { minWidth: 280 }),
       renderCell: (row) => {
-        if (row.is_group_footer) {
-          return <Text weight="bold">Subtotal {row.group_name}</Text>;
-        }
-        if (row.is_empty_group) {
-          return <Text color="secondary">(Belum ada rincian item)</Text>;
-        }
-        if (row.is_pagu_account) {
-          return row.item_name ? <Text weight="bold">{row.item_name}</Text> : "-";
-        }
+        if (row.is_group_footer) return <Text weight="bold">Subtotal {row.group_name}</Text>;
+        if (row.is_empty_group) return <Text color="secondary">(Belum ada rincian item)</Text>;
+        if (row.is_pagu_account) return row.item_name ? <Text weight="bold">{row.item_name}</Text> : "-";
         return row.item_name ? <Text weight="medium">{row.item_name}</Text> : "-";
       },
     },
@@ -67,81 +72,66 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => {
-        if (row.is_group_footer) {
-          return (
+      renderCell: (row) =>
+        withBoqItemOnly(
+          row,
+          () => (
+            <Text type="code" weight="medium">
+              {formatNumber(row.qty, 5)}
+            </Text>
+          ),
+          () => (
             <Text type="code" weight="bold">
               {formatNumber(row.subtotal_volume ?? 0, 5)}
             </Text>
-          );
-        }
-        if (row.is_empty_group) {
-          return null;
-        }
-        if (row.is_pagu_account) {
-          return "-";
-        }
-        return (
-          <Text type="code" weight="medium">
-            {formatNumber(row.qty, 5)}
-          </Text>
-        );
-      },
+          ),
+        ),
     },
     {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
       width: pixel(180),
-      renderCell: (row) => {
-        if (row.is_empty_group || row.is_group_footer || row.is_pagu_account) {
-          return "-";
-        }
-        return <Text type="code">{formatNumber(row.price, 2)}</Text>;
-      },
+      renderCell: (row) => withBoqItemOnly(row, () => <Text type="code">{formatNumber(row.price, 2)}</Text>),
     },
     {
       align: "end",
       header: "Subtotal (Rp)",
       key: "subtotal",
       width: pixel(180),
-      renderCell: (row) => {
-        if (row.is_group_footer) {
-          return (
+      renderCell: (row) =>
+        withBoqItemOnly(
+          row,
+          () => <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0), 2)}</Text>,
+          () => (
             <Text type="code" weight="bold">
               {formatNumber(row.subtotal_dpp ?? 0, 2)}
             </Text>
-          );
-        }
-        if (row.is_empty_group || row.is_pagu_account) {
-          return "-";
-        }
-        const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        return <Text type="code">{formatNumber(subtotal, 2)}</Text>;
-      },
+          ),
+        ),
     },
     {
       align: "end",
       header: `PPn (${TAX_RATIO_PERCENT}%)`,
       key: "has_tax",
       width: pixel(180),
-      renderCell: (row) => {
-        if (row.is_group_footer) {
-          return (row.subtotal_tax ?? 0) > 0 ? (
-            <Text type="code" weight="bold">
-              {formatNumber(row.subtotal_tax ?? 0, 2)}
-            </Text>
-          ) : (
-            "-"
-          );
-        }
-        if (row.is_empty_group || row.is_pagu_account) {
-          return "-";
-        }
-        const dpp = calcDPP(row.qty, row.price);
-        const taxAmount = calcTax(dpp, row.has_tax);
-        return row.has_tax ? <Text type="code">{formatNumber(taxAmount, 2)}</Text> : "-";
-      },
+      renderCell: (row) =>
+        withBoqItemOnly(
+          row,
+          () => {
+            const dpp = calcDPP(row.qty, row.price);
+            const taxAmount = calcTax(dpp, row.has_tax);
+            return row.has_tax ? <Text type="code">{formatNumber(taxAmount, 2)}</Text> : "-";
+          },
+          () =>
+            (row.subtotal_tax ?? 0) > 0 ? (
+              <Text type="code" weight="bold">
+                {formatNumber(row.subtotal_tax ?? 0, 2)}
+              </Text>
+            ) : (
+              "-"
+            ),
+        ),
     },
     {
       align: "end",
@@ -156,9 +146,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
             </Text>
           );
         }
-        if (row.is_empty_group) {
-          return null;
-        }
+        if (row.is_empty_group) return null;
         if (row.is_pagu_account) {
           return (
             <Text type="code" weight="bold">
@@ -166,8 +154,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
             </Text>
           );
         }
-        const dpp = calcDPP(row.qty, row.price);
-        const total = calcLineTotal(dpp, row.has_tax);
+        const total = calcLineTotal(calcDPP(row.qty, row.price), row.has_tax);
         return (
           <Text type="code" weight="bold">
             {formatNumber(total, 2)}

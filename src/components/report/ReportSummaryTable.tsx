@@ -59,7 +59,10 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
   const unplannedRowPlugin = useMemo<TablePlugin<EnrichedReportItem>>(
     () => ({
       transformBodyRow: (props, item) => {
-        if (item && item.is_unplanned) {
+        const isPagu = Boolean(
+          (item?.group_budget && item.group_budget > 0) || (item?.group_name && paguGroupSet.has(item.group_name)),
+        );
+        if (item && item.is_unplanned && !isPagu) {
           return {
             ...props,
             htmlProps: {
@@ -76,7 +79,10 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
         return props;
       },
       transformBodyCell: (props, _column, item) => {
-        if (item && item.is_unplanned) {
+        const isPagu = Boolean(
+          (item?.group_budget && item.group_budget > 0) || (item?.group_name && paguGroupSet.has(item.group_name)),
+        );
+        if (item && item.is_unplanned && !isPagu) {
           return {
             ...props,
             htmlProps: {
@@ -93,7 +99,7 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
         return props;
       },
     }),
-    [],
+    [paguGroupSet],
   );
 
   const columns = useReportSummaryColumns({ onLogClick });

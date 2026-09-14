@@ -16,6 +16,69 @@ interface UseReportSummaryColumnsProps {
   onLogClick: (item: RequirementReportItem) => void;
 }
 
+interface ComparisonOptions {
+  poValue: number;
+  plannedValue: number;
+  decimals?: number;
+  highlightUnder?: boolean;
+}
+
+/**
+ * Helper terpusat untuk merender sel komparasi BOQ vs PO pada baris item biasa.
+ * Untuk kelompok pagu, hanya menampilkan nilai PO murni.
+ * Untuk item unplanned, menampilkan "-" pada nilai BOQ.
+ */
+function renderReportComparison(
+  r: EnrichedReportItem,
+  { poValue, plannedValue, decimals = 2, highlightUnder = false }: ComparisonOptions,
+) {
+  const isPagu = Boolean(r.group_budget && r.group_budget > 0);
+
+  if (isPagu) {
+    return <Text type="code">{poValue > 0 ? formatNumber(poValue, decimals) : "-"}</Text>;
+  }
+
+  const isOver = !r.is_unplanned && poValue > plannedValue && r.total_ordered > 0;
+  const isUnder = Boolean(highlightUnder && !r.is_unplanned && poValue > 0 && poValue < plannedValue);
+
+  return (
+    <ReportComparisonCell
+      poValue={r.total_ordered > 0 ? formatNumber(poValue, decimals) : "-"}
+      bomValue={r.is_unplanned ? "-" : formatNumber(plannedValue, decimals)}
+      poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+    />
+  );
+}
+
+/**
+ * Helper terpusat untuk merender sel komparasi pada baris subtotal footer kelompok.
+ * Untuk kelompok pagu: kolom volume, dpp, tax mengembalikan "-",
+ * sedangkan total_price mendukung perbandingan over/under vs nilai pagu.
+ */
+function renderFooterComparison(
+  r: EnrichedReportItem,
+  poVal: number,
+  planVal: number,
+  decimals = 2,
+  supportUnder = false,
+) {
+  const isPagu = Boolean(r.group_budget && r.group_budget > 0);
+  if (isPagu && !supportUnder) {
+    return "-";
+  }
+
+  const isOver = poVal > planVal && planVal > 0;
+  const isUnder = Boolean(supportUnder && isPagu && poVal > 0 && poVal < planVal);
+
+  return (
+    <ReportComparisonCell
+      poValue={formatNumber(poVal, decimals)}
+      bomValue={formatNumber(planVal, decimals)}
+      poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+    />
+  );
+}
+
 export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsProps) {
   const columns: TableColumn<EnrichedReportItem>[] = [
     {
@@ -23,18 +86,20 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "item",
       width: proportional(1, { minWidth: 280 }),
       renderCell: (r) => {
-        if (r.is_group_footer) {
-          return <Text weight="bold">Subtotal {r.group_name}</Text>;
-        }
-
-        if (r.is_empty_group) {
-          return <Text color="secondary">(Belum ada rincian item)</Text>;
-        }
+        if (r.is_group_footer)
+          return (
+            <Text weight="bold" maxLines={1}>
+              Subtotal {r.group_name}
+            </Text>
+          );
+        if (r.is_empty_group) return <Text color="secondary">(Belum ada rincian item)</Text>;
 
         const code = formatItemCode(r);
         return (
           <VStack gap={0.5} align="start">
-            <Text weight="medium">{r.item_name}</Text>
+            <Text weight="medium" maxLines={1}>
+              {r.item_name}
+            </Text>
             <EntityCode size="sm" id={code} />
           </VStack>
         );
@@ -52,28 +117,10 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "price",
       width: pixel(180),
       renderCell: (r) => {
-        if (r.is_group_footer || r.is_empty_group) {
-          return "-";
-        }
-
+        if (r.is_group_footer || r.is_empty_group) return "-";
         const poPrice = r.total_ordered > 0 ? r.total_order_dpp / r.total_ordered : (r.price ?? 0);
-
-        // Untuk kelompok pagu, tiap row item cukup tampilkan data PO saja
-        if (r.group_budget && r.group_budget > 0) {
-          return <Text type="code">{poPrice > 0 ? formatNumber(poPrice, 2) : "-"}</Text>;
-        }
-
         const plannedPrice = r.planned_volume > 0 ? r.planned_dpp / r.planned_volume : (r.price ?? 0);
-        const isOver = !r.is_unplanned && poPrice > plannedPrice && r.total_ordered > 0;
-        const isUnder = !r.is_unplanned && poPrice > 0 && poPrice < plannedPrice;
-
-        return (
-          <ReportComparisonCell
-            poValue={r.total_ordered > 0 ? formatNumber(poPrice, 2) : "-"}
-            bomValue={r.is_unplanned ? "-" : formatNumber(plannedPrice, 2)}
-            poStatus={isOver ? "over" : isUnder ? "under" : undefined}
-          />
-        );
+        return renderReportComparison(r, { poValue: poPrice, plannedValue: plannedPrice, highlightUnder: true });
       },
     },
     {
@@ -82,39 +129,9 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "qty",
       width: pixel(140),
       renderCell: (r) => {
-        if (r.is_group_footer) {
-          if (r.group_budget && r.group_budget > 0) {
-            return "-";
-          }
-          return (
-            <ReportComparisonCell
-              poValue={formatNumber(r.total_ordered, 5)}
-              bomValue={formatNumber(r.planned_volume, 5)}
-              poStatus={r.total_ordered > r.planned_volume && r.planned_volume > 0 ? "over" : undefined}
-            />
-          );
-        }
-
-        if (r.is_empty_group) {
-          return <ReportComparisonCell poValue="-" bomValue="-" />;
-        }
-
-        // Untuk kelompok pagu, cukup data PO saja
-        if (r.group_budget && r.group_budget > 0) {
-          return <Text type="code">{formatNumber(r.total_ordered, 5)}</Text>;
-        }
-
-        const poQty = r.total_ordered ?? 0;
-        const plannedQty = r.planned_volume ?? 0;
-        const isOver = !r.is_unplanned && poQty > plannedQty && r.total_ordered > 0;
-
-        return (
-          <ReportComparisonCell
-            poValue={formatNumber(poQty, 5)}
-            bomValue={r.is_unplanned ? "-" : formatNumber(plannedQty, 5)}
-            poStatus={isOver ? "over" : undefined}
-          />
-        );
+        if (r.is_group_footer) return renderFooterComparison(r, r.total_ordered, r.planned_volume, 5);
+        if (r.is_empty_group) return <ReportComparisonCell poValue="-" bomValue="-" />;
+        return renderReportComparison(r, { poValue: r.total_ordered, plannedValue: r.planned_volume, decimals: 5 });
       },
     },
     {
@@ -123,39 +140,9 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "subtotal",
       width: pixel(180),
       renderCell: (r) => {
-        if (r.is_group_footer) {
-          if (r.group_budget && r.group_budget > 0) {
-            return "-";
-          }
-          return (
-            <ReportComparisonCell
-              poValue={formatNumber(r.total_order_dpp, 2)}
-              bomValue={formatNumber(r.planned_dpp, 2)}
-              poStatus={r.total_order_dpp > r.planned_dpp && r.planned_dpp > 0 ? "over" : undefined}
-            />
-          );
-        }
-
-        if (r.is_empty_group) {
-          return <ReportComparisonCell poValue="-" bomValue="-" />;
-        }
-
-        // Untuk kelompok pagu, cukup data PO saja
-        if (r.group_budget && r.group_budget > 0) {
-          return <Text type="code">{formatNumber(r.total_order_dpp, 2)}</Text>;
-        }
-
-        const poSubtotal = r.total_order_dpp ?? 0;
-        const plannedSubtotal = r.planned_dpp ?? 0;
-        const isOver = !r.is_unplanned && poSubtotal > plannedSubtotal && r.total_ordered > 0;
-
-        return (
-          <ReportComparisonCell
-            poValue={formatNumber(poSubtotal, 2)}
-            bomValue={r.is_unplanned ? "-" : formatNumber(plannedSubtotal, 2)}
-            poStatus={isOver ? "over" : undefined}
-          />
-        );
+        if (r.is_group_footer) return renderFooterComparison(r, r.total_order_dpp, r.planned_dpp);
+        if (r.is_empty_group) return <ReportComparisonCell poValue="-" bomValue="-" />;
+        return renderReportComparison(r, { poValue: r.total_order_dpp, plannedValue: r.planned_dpp });
       },
     },
     {
@@ -164,39 +151,9 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "has_tax",
       width: pixel(180),
       renderCell: (r) => {
-        if (r.is_group_footer) {
-          if (r.group_budget && r.group_budget > 0) {
-            return "-";
-          }
-          return (
-            <ReportComparisonCell
-              poValue={formatNumber(r.total_order_tax, 2)}
-              bomValue={formatNumber(r.planned_tax, 2)}
-              poStatus={r.total_order_tax > r.planned_tax && r.planned_tax > 0 ? "over" : undefined}
-            />
-          );
-        }
-
-        if (r.is_empty_group) {
-          return <ReportComparisonCell poValue="-" bomValue="-" />;
-        }
-
-        // Untuk kelompok pagu, cukup data PO saja
-        if (r.group_budget && r.group_budget > 0) {
-          return <Text type="code">{formatNumber(r.total_order_tax, 2)}</Text>;
-        }
-
-        const poTax = r.total_order_tax ?? 0;
-        const plannedTax = r.planned_tax ?? 0;
-        const isOver = !r.is_unplanned && poTax > plannedTax && r.total_ordered > 0;
-
-        return (
-          <ReportComparisonCell
-            poValue={formatNumber(poTax, 2)}
-            bomValue={r.is_unplanned ? "-" : formatNumber(plannedTax, 2)}
-            poStatus={isOver ? "over" : undefined}
-          />
-        );
+        if (r.is_group_footer) return renderFooterComparison(r, r.total_order_tax, r.planned_tax);
+        if (r.is_empty_group) return <ReportComparisonCell poValue="-" bomValue="-" />;
+        return renderReportComparison(r, { poValue: r.total_order_tax, plannedValue: r.planned_tax });
       },
     },
     {
@@ -206,46 +163,10 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       width: pixel(180),
       renderCell: (r) => {
         if (r.is_group_footer) {
-          if (r.group_budget && r.group_budget > 0) {
-            const isOver = r.total_order_price > r.planned_budget;
-            const isUnder = r.total_order_price > 0 && r.total_order_price < r.planned_budget;
-            return (
-              <ReportComparisonCell
-                poValue={formatNumber(r.total_order_price, 2)}
-                bomValue={formatNumber(r.planned_budget, 2)}
-                poStatus={isOver ? "over" : isUnder ? "under" : undefined}
-              />
-            );
-          }
-          return (
-            <ReportComparisonCell
-              poValue={formatNumber(r.total_order_price, 2)}
-              bomValue={formatNumber(r.planned_budget, 2)}
-              poStatus={r.total_order_price > r.planned_budget && r.planned_budget > 0 ? "over" : undefined}
-            />
-          );
+          return renderFooterComparison(r, r.total_order_price, r.planned_budget, 2, true);
         }
-
-        if (r.is_empty_group) {
-          return <ReportComparisonCell poValue="-" bomValue="-" />;
-        }
-
-        // Untuk kelompok pagu, cukup data PO saja
-        if (r.group_budget && r.group_budget > 0) {
-          return <Text type="code">{formatNumber(r.total_order_price, 2)}</Text>;
-        }
-
-        const poTotal = r.total_order_price ?? 0;
-        const plannedTotal = r.planned_budget ?? 0;
-        const isOver = !r.is_unplanned && poTotal > plannedTotal && r.total_ordered > 0;
-
-        return (
-          <ReportComparisonCell
-            poValue={formatNumber(poTotal, 2)}
-            bomValue={r.is_unplanned ? "-" : formatNumber(plannedTotal, 2)}
-            poStatus={isOver ? "over" : undefined}
-          />
-        );
+        if (r.is_empty_group) return <ReportComparisonCell poValue="-" bomValue="-" />;
+        return renderReportComparison(r, { poValue: r.total_order_price, plannedValue: r.planned_budget });
       },
     },
     {
@@ -254,11 +175,8 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "ordered",
       width: pixel(200),
       renderCell: (r) => {
-        if (r.is_empty_group || r.is_group_footer) {
-          return "-";
-        }
+        if (r.is_empty_group || r.is_group_footer) return "-";
 
-        // Untuk kelompok pagu atau unplanned item, tampilkan jumlah ordered langsung tanpa % per item
         if ((r.group_budget && r.group_budget > 0) || r.is_unplanned) {
           return (
             <Text type="code" color="secondary" weight="medium">
@@ -290,9 +208,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
       key: "delivered",
       width: pixel(200),
       renderCell: (r) => {
-        if (r.is_empty_group || r.is_group_footer) {
-          return "-";
-        }
+        if (r.is_empty_group || r.is_group_footer) return "-";
 
         const delivered = r.total_delivered ?? 0;
         const ordered = r.total_ordered ?? 0;
