@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Badge, EmptyState, HStack, Table, Text } from "@astryxdesign/core";
-import { useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { type TablePlugin, useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
 import type { RequirementReportItem } from "@/db/services";
 import { type EnrichedReportItem, useReportSummaryColumns } from "./table/useReportSummaryColumns";
 import { useReportSummaryGroupedData } from "./table/useReportSummaryGroupedData";
@@ -56,6 +56,46 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
     startKeys: ["item"],
   });
 
+  const unplannedRowPlugin = useMemo<TablePlugin<EnrichedReportItem>>(
+    () => ({
+      transformBodyRow: (props, item) => {
+        if (item && item.is_unplanned) {
+          return {
+            ...props,
+            htmlProps: {
+              ...props.htmlProps,
+              style: {
+                ...props.htmlProps?.style,
+                backgroundColor: "var(--color-warning-muted)",
+                "--table-row-overlay": "var(--color-warning-muted)",
+                borderBottom: "1px solid var(--color-border)",
+              },
+            },
+          };
+        }
+        return props;
+      },
+      transformBodyCell: (props, _column, item) => {
+        if (item && item.is_unplanned) {
+          return {
+            ...props,
+            htmlProps: {
+              ...props.htmlProps,
+              style: {
+                ...props.htmlProps?.style,
+                backgroundColor: "var(--color-warning-muted)",
+                "--table-row-overlay": "var(--color-warning-muted)",
+                borderBottom: "1px solid var(--color-border)",
+              },
+            },
+          };
+        }
+        return props;
+      },
+    }),
+    [],
+  );
+
   const columns = useReportSummaryColumns({ onLogClick });
 
   if (report.length === 0 && !loading) {
@@ -72,6 +112,7 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
       plugins={{
         stickyColumns,
         grouping: groupedPlugin,
+        unplannedRows: unplannedRowPlugin,
       }}
       emptyState={<EmptyState isCompact title="Belum ada laporan kebutuhan (BOQ)" />}
     />
