@@ -1,4 +1,4 @@
-import { Badge, HStack, IconButton, Text, VStack } from "@astryxdesign/core";
+import { IconButton, Text, VStack } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { Eye } from "lucide-react";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
@@ -34,11 +34,8 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         const code = formatItemCode(r);
         return (
           <VStack gap={0.5} align="start">
-            <HStack gap={2} align="center">
-              <Text weight="medium">{r.item_name}</Text>
-              {r.is_unplanned ? <Badge variant="warning" label="Luar BOQ" /> : null}
-            </HStack>
-            {code ? <EntityCode size="sm" id={code} /> : null}
+            <Text weight="medium">{r.item_name}</Text>
+            <EntityCode size="sm" id={code} />
           </VStack>
         );
       },
