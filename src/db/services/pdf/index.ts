@@ -6,11 +6,13 @@ import type { RequirementReportItem } from "../report.service";
 import type { FulfillmentPdfItem, ItemTransactionHistory } from "./types";
 
 export * from "./types";
+export * from "./order-pdf-types";
 export * from "./styles";
 export * from "./utils";
 export * from "./fulfillment-table";
 export * from "./transaction-history-table";
 export * from "./report-pdf";
+export * from "./order-pdf.service";
 
 /**
  * Menghasilkan dokumen PDF laporan formal (Lanskap: Pemenuhan Volume, Potret: Riwayat Transaksi per Item).

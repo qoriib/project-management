@@ -50,6 +50,17 @@ export const PDF_COLORS = {
   tableBorder: [0, 0, 0] as [number, number, number],
   textDark: [0, 0, 0] as [number, number, number],
   textMuted: [89, 89, 89] as [number, number, number],
+
+  // Warna Khusus Purchase Order (Header putih/transparan, border hitam tegas)
+  poHeaderBg: [255, 255, 255] as [number, number, number],
+  poHeaderText: [0, 0, 0] as [number, number, number],
+
+  // Warna Khusus Asset Control (Sesuai referensi visual dokumen fisik)
+  assetOrange: [227, 108, 10] as [number, number, number], // #E36C0A untuk tulisan "ASSET"
+  assetControlDark: [38, 50, 56] as [number, number, number], // #263238 untuk tulisan "CONTROL"
+  assetTitleRed: [192, 57, 43] as [number, number, number], // #C0392B untuk "FORM PERMINTAAN BARANG/ALAT"
+  assetTableOlive: [198, 216, 149] as [number, number, number], // #C6D895 hijau muda/olive untuk header tabel
+  assetTableOliveText: [0, 0, 0] as [number, number, number],
 };
 
 export const PDF_TABLE_STYLE = {
@@ -185,4 +196,74 @@ export const PDF_TRANSACTION_HISTORY_COL_STYLES: Record<number, PdfColumnConfig>
   3: { cellWidth: 42, halign: "center" },
   4: { cellWidth: 56, halign: "left" },
   5: { cellWidth: 30, halign: "right" },
+};
+
+// ============================================================
+// KONFIGURASI LAYOUT & TABEL PURCHASE ORDER
+// ============================================================
+export const PO_LAYOUT = {
+  titleFontSize: 16,
+  titleUnderlineWidth: 0.4,
+  headerInfoStartX: 112,
+  headerInfoColonX: 138,
+  headerInfoValueX: 141,
+  minGridRows: 10,
+  signatureHeight: 22,
+};
+
+export const PDF_PURCHASE_ORDER_COL_STYLES: Record<number, PdfColumnConfig> = {
+  0: { cellWidth: 14, halign: "center" },
+  1: { cellWidth: 70, halign: "left" },
+  2: { cellWidth: 42, halign: "center" },
+  3: { cellWidth: 56, halign: "center" },
+};
+
+export const PDF_PURCHASE_ORDER_HEAD_STYLES = {
+  ...PDF_TABLE_HEAD_STYLES,
+  fillColor: PDF_COLORS.poHeaderBg,
+  textColor: PDF_COLORS.poHeaderText,
+  fontSize: 9,
+  fontStyle: "bold" as const,
+  cellPadding: { top: 2.5, bottom: 2.5, left: 2, right: 2 },
+};
+
+export const PDF_PURCHASE_ORDER_BODY_STYLES = {
+  ...PDF_TABLE_BODY_STYLES,
+  fontSize: 8.5,
+  cellPadding: { top: 2.2, bottom: 2.2, left: 2, right: 2 },
+};
+
+// ============================================================
+// KONFIGURASI LAYOUT & TABEL ASSET CONTROL / FORM PERMINTAAN
+// ============================================================
+export const ASSET_LAYOUT = {
+  leftBlockColonX: 42,
+  leftBlockValueX: 45,
+  rightBlockX: 150,
+  minGridRows: 8,
+  signatureHeight: 18,
+};
+
+export const PDF_ASSET_REQUEST_COL_STYLES: Record<number, PdfColumnConfig> = {
+  0: { cellWidth: 12, halign: "center" },
+  1: { cellWidth: 63, halign: "left" },
+  2: { cellWidth: 24, halign: "center" },
+  3: { cellWidth: 18, halign: "center" },
+  4: { cellWidth: 18, halign: "center" },
+  5: { cellWidth: 47, halign: "left" },
+};
+
+export const PDF_ASSET_REQUEST_HEAD_STYLES = {
+  ...PDF_TABLE_HEAD_STYLES,
+  fillColor: PDF_COLORS.assetTableOlive,
+  textColor: PDF_COLORS.assetTableOliveText,
+  fontSize: 8.5,
+  fontStyle: "bold" as const,
+  cellPadding: { top: 2.5, bottom: 2.5, left: 2, right: 2 },
+};
+
+export const PDF_ASSET_REQUEST_BODY_STYLES = {
+  ...PDF_TABLE_BODY_STYLES,
+  fontSize: 8,
+  cellPadding: { top: 2.2, bottom: 2.2, left: 2, right: 2 },
 };

@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { Button, Card, HStack, Heading, Text, Toolbar, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
+import { FileDown } from "lucide-react";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
 import { OrderSummaryCard } from "@/components/order/OrderSummaryCard";
 import { OrderItemTrackingTable } from "@/components/order/OrderItemTrackingTable";
 import { OrderReceiptLogTable } from "@/components/order/OrderReceiptLogTable";
+import { OrderDownloadDialog } from "@/components/order/OrderDownloadDialog";
 import { handleFormError } from "@/utils/form";
 
 function OrderDetailPage() {
@@ -18,6 +20,7 @@ function OrderDetailPage() {
   const { currentOrder: order, currentItems: items, loadOrderDetail, clearOrderDetail } = useOrderStore();
   const [loading, setLoading] = useState(true);
   const [isCreatingReceipt, setIsCreatingReceipt] = useState(false);
+  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -58,81 +61,97 @@ function OrderDetailPage() {
     );
 
   return (
-    <Layout
-      height="fill"
-      header={
-        <LayoutHeader hasDivider padding={6}>
-          <HStack gap={2} vAlign="center" hAlign="between">
-            <VStack gap={0.5}>
-              <Heading level={3}>Detail Pengadaan</Heading>
-              <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                {`Informasi dan pelacakan pengadaan ${order.order_code}`}
-              </Text>
-            </VStack>
-            <HStack gap={2} wrap="wrap">
-              <Button
-                variant="primary"
-                size="sm"
-                label="Edit Pengadaan"
-                onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
-              />
+    <>
+      <Layout
+        height="fill"
+        header={
+          <LayoutHeader hasDivider padding={6}>
+            <HStack gap={2} vAlign="center" hAlign="between">
+              <VStack gap={0.5}>
+                <Heading level={3}>Detail Pengadaan</Heading>
+                <Text color="secondary" wordBreak="break-word" textWrap="wrap">
+                  {`Informasi dan pelacakan pengadaan ${order.order_code}`}
+                </Text>
+              </VStack>
+              <HStack gap={2} wrap="wrap">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  label="Unduh PDF"
+                  icon={<FileDown />}
+                  onClick={() => setIsDownloadOpen(true)}
+                  isDisabled={items.length === 0}
+                />
+                <Button
+                  variant="primary"
+                  size="sm"
+                  label="Edit Pengadaan"
+                  onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
+                />
+              </HStack>
             </HStack>
-          </HStack>
-        </LayoutHeader>
-      }
-      content={
-        <LayoutContent padding={6}>
-          <VStack gap={4}>
-            <OrderSummaryCard />
-            <Card>
-              <Layout
-                height="auto"
-                header={
-                  <LayoutHeader hasDivider>
-                    <Toolbar
-                      label="Rincian Item & Pemenuhan"
-                      startContent={<Heading level={4}>Rincian Item & Pemenuhan</Heading>}
-                    />
-                  </LayoutHeader>
-                }
-                content={
-                  <LayoutContent padding={0}>
-                    <OrderItemTrackingTable />
-                  </LayoutContent>
-                }
-              />
-            </Card>
-            <Card>
-              <Layout
-                height="auto"
-                header={
-                  <LayoutHeader hasDivider>
-                    <Toolbar
-                      label="Log Penerimaan"
-                      startContent={<Heading level={4}>Log Penerimaan Terkait</Heading>}
-                      endContent={
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          label="Buat Penerimaan"
-                          onClick={handleCreateReceipt}
-                          isDisabled={isCreatingReceipt || items.length === 0}
-                        />
-                      }
-                    />
-                  </LayoutHeader>
-                }
-                content={
-                  <LayoutContent padding={0}>
-                    <OrderReceiptLogTable />
-                  </LayoutContent>
-                }
-              />
-            </Card>
-          </VStack>
-        </LayoutContent>
-      }
-    />
+          </LayoutHeader>
+        }
+        content={
+          <LayoutContent padding={6}>
+            <VStack gap={4}>
+              <OrderSummaryCard />
+              <Card>
+                <Layout
+                  height="auto"
+                  header={
+                    <LayoutHeader hasDivider>
+                      <Toolbar
+                        label="Rincian Item & Pemenuhan"
+                        startContent={<Heading level={4}>Rincian Item & Pemenuhan</Heading>}
+                      />
+                    </LayoutHeader>
+                  }
+                  content={
+                    <LayoutContent padding={0}>
+                      <OrderItemTrackingTable />
+                    </LayoutContent>
+                  }
+                />
+              </Card>
+              <Card>
+                <Layout
+                  height="auto"
+                  header={
+                    <LayoutHeader hasDivider>
+                      <Toolbar
+                        label="Log Penerimaan"
+                        startContent={<Heading level={4}>Log Penerimaan Terkait</Heading>}
+                        endContent={
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            label="Buat Penerimaan"
+                            onClick={handleCreateReceipt}
+                            isDisabled={isCreatingReceipt || items.length === 0}
+                          />
+                        }
+                      />
+                    </LayoutHeader>
+                  }
+                  content={
+                    <LayoutContent padding={0}>
+                      <OrderReceiptLogTable />
+                    </LayoutContent>
+                  }
+                />
+              </Card>
+            </VStack>
+          </LayoutContent>
+        }
+      />
+      <OrderDownloadDialog
+        isOpen={isDownloadOpen}
+        onClose={() => setIsDownloadOpen(false)}
+        order={order}
+        items={items}
+      />
+    </>
   );
 }
 

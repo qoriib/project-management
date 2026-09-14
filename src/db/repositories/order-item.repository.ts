@@ -69,6 +69,7 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
       LEFT JOIN receipts ON receipts.receipt_id = receipt_items.receipt_id AND receipts.deleted_at IS NULL
       WHERE order_items.order_id = $1
       GROUP BY order_items.order_item_id
+      ORDER BY order_items.order_item_id ASC
     `;
 
     const rows = await this.rawSelect<OrderItemDetail>(sql, [orderId]);
