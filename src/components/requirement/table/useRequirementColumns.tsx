@@ -48,11 +48,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
           return <Text weight="bold">Subtotal {row.group_name}</Text>;
         }
         if (row.is_empty_group) {
-          return (
-            <Text size="sm" color="secondary" style={{ fontStyle: "italic" }}>
-              (Belum ada rincian item material)
-            </Text>
-          );
+          return <Text color="secondary">(Belum ada rincian item)</Text>;
         }
         if (row.is_pagu_account) {
           return <Text weight="bold">{row.item_name || "-"}</Text>;

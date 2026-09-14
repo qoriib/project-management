@@ -71,7 +71,7 @@ export function useRequirementGroupedData(
           item_id: `empty_${group.requirement_group_id}`,
           item_price_id: "",
           item_code: "",
-          item_name: "(Belum ada rincian item material)",
+          item_name: "(Belum ada rincian item)",
           unit: "-",
           price: 0,
           qty: 0,

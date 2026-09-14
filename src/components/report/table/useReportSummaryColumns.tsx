@@ -28,11 +28,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         }
 
         if (r.is_empty_group) {
-          return (
-            <Text size="sm" color="secondary" style={{ fontStyle: "italic" }}>
-              (Belum ada rincian item material)
-            </Text>
-          );
+          return <Text color="secondary">(Belum ada rincian item)</Text>;
         }
 
         const code = formatItemCode(r);
@@ -308,28 +304,18 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
 
         const delivered = r.total_delivered ?? 0;
         const ordered = r.total_ordered ?? 0;
-
-        // Jika ada pesanan, tampilkan pemenuhan penerimaan (NP vs PO)
-        if (ordered > 0) {
-          const percent = (delivered / ordered) * 100;
-          const variant = percent > 100 ? "error" : "success";
-
-          return (
-            <ProgressBar
-              value={delivered}
-              max={ordered || 1}
-              label={`${percent.toFixed(0)}%`}
-              hasValueLabel
-              formatValueLabel={() => `${formatNumber(delivered, 5)} / ${formatNumber(ordered, 5)}`}
-              variant={variant}
-            />
-          );
-        }
+        const percent = ordered > 0 ? (delivered / ordered) * 100 : 0;
+        const variant = percent > 100 ? "error" : "success";
 
         return (
-          <Text type="code" color="secondary" weight="medium">
-            {formatNumber(delivered, 5)}
-          </Text>
+          <ProgressBar
+            value={delivered}
+            max={ordered || 1}
+            label={`${percent.toFixed(0)}%`}
+            hasValueLabel
+            formatValueLabel={() => `${formatNumber(delivered, 5)} / ${formatNumber(ordered, 5)}`}
+            variant={variant}
+          />
         );
       },
     },
