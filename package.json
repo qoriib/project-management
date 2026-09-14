@@ -22,8 +22,8 @@
     "format:check": "oxfmt -c oxfmt.config.json --check src"
   },
   "dependencies": {
-    "@astryxdesign/core": "^0.4.5",
-    "@astryxdesign/theme-neutral": "^0.4.5",
+    "@astryxdesign/core": "^0.6.1",
+    "@astryxdesign/theme-neutral": "^0.6.1",
     "@fontsource/figtree": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/montserrat": "^5.3.0",
