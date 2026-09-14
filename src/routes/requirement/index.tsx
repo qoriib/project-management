@@ -24,8 +24,6 @@ function RequirementPage() {
   const { requirements } = useRequirementStore();
   const { groups } = useRequirementGroupStore();
   const grandTotal = useMemo(() => calcBoqGrandTotal(requirements, groups), [requirements, groups]);
-  const totalItems = requirements.length;
-  const totalVolume = useMemo(() => requirements.reduce((sum, r) => sum + (r.qty || 0), 0), [requirements]);
 
   const dispatchCreate = useCallback(() => {
     window.dispatchEvent(new CustomEvent("openRequirementCreate"));
@@ -74,24 +72,8 @@ function RequirementPage() {
                 </HStack>
                 <HStack gap={6} vAlign="center">
                   <HStack gap={2} vAlign="center">
-                    <Text weight="medium" size="sm" color="secondary">
-                      Total Item:
-                    </Text>
-                    <Text type="code" weight="bold" size="sm">
-                      {totalItems}
-                    </Text>
-                  </HStack>
-                  <HStack gap={2} vAlign="center">
-                    <Text weight="medium" size="sm" color="secondary">
-                      Total Volume:
-                    </Text>
-                    <Text type="code" weight="bold" size="sm">
-                      {formatNumber(totalVolume, 2)}
-                    </Text>
-                  </HStack>
-                  <HStack gap={2} vAlign="center">
                     <Text weight="medium" size="base" color="secondary">
-                      Total BOQ:
+                      Nilai BOQ:
                     </Text>
                     <Text type="code" weight="bold" size="lg" color="primary">
                       Rp {formatNumber(grandTotal, 2)}
