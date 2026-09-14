@@ -6,6 +6,18 @@ import { routeTree } from "@/routeTree.gen";
 import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
 import { InternationalizationProvider } from "@astryxdesign/core/i18n";
+
+import "@fontsource/figtree/400.css";
+import "@fontsource/figtree/500.css";
+import "@fontsource/figtree/600.css";
+import "@fontsource/figtree/700.css";
+import "@fontsource/montserrat/600.css";
+import "@fontsource/montserrat/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/600.css";
+import "@fontsource/jetbrains-mono/700.css";
+
 import "@astryxdesign/core/reset.css";
 import "@astryxdesign/core/astryx.css";
 import "./app.css";

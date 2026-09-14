@@ -11,6 +11,24 @@
 html,
 body {
   overscroll-behavior: none;
+  font-family: var(--font-family-body, "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+}
+
+/* Monospace font & tabular numbers consistency for offline desktop */
+:root {
+  --font-family-body: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-family-heading:
+    "Montserrat", "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-family-code: "JetBrains Mono", "SF Mono", Monaco, Consolas, monospace;
+}
+
+code,
+pre,
+kbd,
+samp,
+[data-text-type="code"] {
+  font-family: var(--font-family-code);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ============================================================================
