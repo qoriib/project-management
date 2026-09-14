@@ -8,7 +8,6 @@ import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { useAppStore } from "@/store/useAppStore";
 import { ReportItemLogDialog } from "@/components/report/ReportItemLogDialog";
 import { ReportDownloadDialog } from "@/components/report/ReportDownloadDialog";
-import { ReportSummaryCards } from "@/components/report/ReportSummaryCards";
 import { ReportSummaryTable } from "@/components/report/ReportSummaryTable";
 import { type ISODateString } from "@astryxdesign/core/Calendar";
 import { type RequirementReportItem, getRequirementReport } from "@/db/services";
@@ -43,9 +42,25 @@ function DashboardPage() {
     load();
   }, [selectedProjectId, startDate, endDate]);
 
-  const totalBudget = report.reduce((sum, r) => sum + r.planned_budget, 0);
+  // Hitung total BOQ: untuk kelompok yang memiliki pagu, gunakan nilai pagunya. Untuk kelompok tanpa pagu, gunakan akumulasi item BOQ.
+  const groupBudgets = new Map<string, number>();
+  let itemsBudgetNonPagu = 0;
+
+  for (const r of report) {
+    if (r.requirement_group_id && r.group_budget && r.group_budget > 0) {
+      groupBudgets.set(r.requirement_group_id, r.group_budget);
+    } else {
+      itemsBudgetNonPagu += r.planned_budget;
+    }
+  }
+
+  let totalPaguBudget = 0;
+  for (const b of groupBudgets.values()) {
+    totalPaguBudget += b;
+  }
+
+  const totalBudget = itemsBudgetNonPagu + totalPaguBudget;
   const totalPO = report.reduce((sum, r) => sum + r.total_order_price, 0);
-  const totalItems = report.filter((r) => !r.is_empty_group && !r.is_pagu_account).length;
   const totalVariance = totalBudget - totalPO;
   const isOverBudget = totalPO > totalBudget && totalBudget > 0;
 
@@ -87,7 +102,6 @@ function DashboardPage() {
           <LayoutContent padding={6}>
             <VStack gap={4}>
               <ProjectRequired>
-                <ReportSummaryCards totalBudget={totalBudget} totalPO={totalPO} loading={loading} />
                 <ReportSummaryTable report={report} loading={loading} onLogClick={(item) => setSelectedItem(item)} />
               </ProjectRequired>
             </VStack>
@@ -96,50 +110,40 @@ function DashboardPage() {
         footer={
           selectedProjectId ? (
             <LayoutFooter hasDivider padding={6}>
-              <HStack gap={6} vAlign="center" hAlign="between">
+              <HStack gap={6} vAlign="center" hAlign="end">
                 <HStack gap={2} vAlign="center">
-                  <Text weight="medium" size="sm" color="secondary">
-                    Total Item:
+                  <Text weight="medium" size="base" color="secondary">
+                    Total BOQ:
                   </Text>
-                  <Text type="code" weight="bold" size="sm">
-                    {totalItems}
+                  <Text type="code" weight="bold" size="base">
+                    Rp {formatNumber(totalBudget, 2)}
                   </Text>
                 </HStack>
-                <HStack gap={6} vAlign="center">
-                  <HStack gap={2} vAlign="center">
-                    <Text weight="medium" size="base" color="secondary">
-                      Total BOQ:
-                    </Text>
-                    <Text type="code" weight="bold" size="base">
-                      Rp {formatNumber(totalBudget, 2)}
-                    </Text>
-                  </HStack>
-                  <HStack gap={2} vAlign="center">
-                    <Text weight="medium" size="base" color="secondary">
-                      Total PO:
-                    </Text>
-                    <Text
-                      type="code"
-                      weight="bold"
-                      size="base"
-                      style={isOverBudget ? { color: "var(--color-error)" } : undefined}
-                    >
-                      Rp {formatNumber(totalPO, 2)}
-                    </Text>
-                  </HStack>
-                  <HStack gap={2} vAlign="center">
-                    <Text weight="medium" size="base" color="secondary">
-                      Deviasi:
-                    </Text>
-                    <Text
-                      type="code"
-                      weight="bold"
-                      size="lg"
-                      style={{ color: totalVariance < 0 ? "var(--color-error)" : "var(--color-success)" }}
-                    >
-                      Rp {formatNumber(totalVariance, 2)}
-                    </Text>
-                  </HStack>
+                <HStack gap={2} vAlign="center">
+                  <Text weight="medium" size="base" color="secondary">
+                    Total PO:
+                  </Text>
+                  <Text
+                    type="code"
+                    weight="bold"
+                    size="base"
+                    style={isOverBudget ? { color: "var(--color-error)" } : undefined}
+                  >
+                    Rp {formatNumber(totalPO, 2)}
+                  </Text>
+                </HStack>
+                <HStack gap={2} vAlign="center">
+                  <Text weight="medium" size="base" color="secondary">
+                    Deviasi:
+                  </Text>
+                  <Text
+                    type="code"
+                    weight="bold"
+                    size="lg"
+                    style={{ color: totalVariance < 0 ? "var(--color-error)" : "var(--color-success)" }}
+                  >
+                    Rp {formatNumber(totalVariance, 2)}
+                  </Text>
                 </HStack>
               </HStack>
             </LayoutFooter>

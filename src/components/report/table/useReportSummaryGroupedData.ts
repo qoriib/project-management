@@ -27,10 +27,9 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
 
     for (const gId of sortedGroupIds) {
       const items = groupMap.get(gId) || [];
-      const isSingleEmptyOrPagu =
-        items.length === 1 && (Boolean(items[0].is_empty_group) || Boolean(items[0].is_pagu_account));
+      const isSingleEmpty = items.length === 1 && Boolean(items[0].is_empty_group);
 
-      if (isSingleEmptyOrPagu) {
+      if (isSingleEmpty) {
         result.push({
           ...items[0],
           unique_id: `${items[0].requirement_group_id ?? "none"}__${items[0].item_id}`,
@@ -65,18 +64,24 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
         subBudgetPlan += item.planned_budget || 0;
       }
 
+      const groupBudget = items.find((it) => it.group_budget && it.group_budget > 0)?.group_budget ?? null;
+      const plannedBudgetForSubtotal = groupBudget && groupBudget > 0 ? groupBudget : subBudgetPlan;
+      const plannedDppForSubtotal = groupBudget && groupBudget > 0 ? groupBudget : subDppPlan;
+      const plannedTaxForSubtotal = groupBudget && groupBudget > 0 ? 0 : subTaxPlan;
+
       // Subtotal footer row per kelompok pekerjaan
       result.push({
         category: "-",
         group_name: groupName,
-        is_group_subtotal: true,
+        group_budget: groupBudget,
+        is_group_footer: true,
         item_code: "",
         item_id: `subtotal_${gId}`,
         item_name: `Subtotal ${groupName}`,
         order_variants: [],
-        planned_budget: subBudgetPlan,
-        planned_dpp: subDppPlan,
-        planned_tax: subTaxPlan,
+        planned_budget: plannedBudgetForSubtotal,
+        planned_dpp: plannedDppForSubtotal,
+        planned_tax: plannedTaxForSubtotal,
         planned_variants: [],
         planned_volume: subVolumePlan,
         requirement_group_id: gId,

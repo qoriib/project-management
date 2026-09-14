@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
-import { EmptyState, HStack, Table, Text } from "@astryxdesign/core";
-import { type TablePlugin, useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
-import { useTableGroupRowPlugin } from "@/components/shared/useTableGroupRowPlugin";
+import { Badge, EmptyState, HStack, Table, Text } from "@astryxdesign/core";
+import { useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
 import type { RequirementReportItem } from "@/db/services";
 import { type EnrichedReportItem, useReportSummaryColumns } from "./table/useReportSummaryColumns";
 import { useReportSummaryGroupedData } from "./table/useReportSummaryGroupedData";
@@ -16,6 +15,16 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const { enrichedReport, groupOrder } = useReportSummaryGroupedData(report);
+
+  const paguGroupSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of report) {
+      if (r.group_name && r.group_budget && r.group_budget > 0) {
+        set.add(r.group_name);
+      }
+    }
+    return set;
+  }, [report]);
 
   const {
     data: groupedData,
@@ -36,7 +45,8 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
       });
     },
     renderGroupHeader: (key: string) => (
-      <HStack paddingInline={2} align="center">
+      <HStack paddingInline={2} align="center" gap={2}>
+        {paguGroupSet.has(key) ? <Badge variant="warning" label="Pagu" /> : null}
         <Text weight="bold">{key}</Text>
       </HStack>
     ),
@@ -45,45 +55,6 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
   const stickyColumns = useTableStickyColumns<EnrichedReportItem>({
     startKeys: ["item"],
   });
-
-  const groupRowPlugin = useTableGroupRowPlugin<EnrichedReportItem>();
-
-  const unplannedRowPlugin = useMemo<TablePlugin<EnrichedReportItem>>(
-    () => ({
-      transformBodyRow: (props, item) => {
-        if (item && Boolean(item.is_unplanned)) {
-          return {
-            ...props,
-            htmlProps: {
-              ...props.htmlProps,
-              style: {
-                ...props.htmlProps?.style,
-                backgroundColor: "var(--color-background-yellow)",
-                "--table-sticky-background": "var(--color-background-yellow)",
-              },
-            },
-          };
-        }
-        return props;
-      },
-      transformBodyCell: (props, _column, item) => {
-        if (item && Boolean(item.is_unplanned)) {
-          return {
-            ...props,
-            htmlProps: {
-              ...props.htmlProps,
-              style: {
-                ...props.htmlProps?.style,
-                backgroundColor: "var(--color-background-yellow)",
-              },
-            },
-          };
-        }
-        return props;
-      },
-    }),
-    [],
-  );
 
   const columns = useReportSummaryColumns({ onLogClick });
 
@@ -99,10 +70,8 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
       data={groupedData}
       idKey={groupedIdKey}
       plugins={{
-        grouping: groupedPlugin,
         stickyColumns,
-        groupRow: groupRowPlugin,
-        unplannedRow: unplannedRowPlugin,
+        grouping: groupedPlugin,
       }}
       emptyState={<EmptyState isCompact title="Belum ada laporan kebutuhan (BOQ)" />}
     />
