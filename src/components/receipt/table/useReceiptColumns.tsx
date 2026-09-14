@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { HStack, IconButton, Timestamp, Token } from "@astryxdesign/core";
+import { HStack, IconButton, Timestamp, Token, OverflowList } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
 import { type ReceiptSummary } from "@/db/repositories";
@@ -39,16 +39,17 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
       width: proportional(1, { minWidth: 260 }),
       renderCell: (row: ReceiptRow) => {
         const items = row.item_names || [];
-        const topItems = items.slice(0, 3);
-        const remaining = items.length - 3;
-        if (topItems.length === 0) return "-";
+        if (items.length === 0) return "-";
         return (
-          <HStack gap={1} wrap="wrap">
-            {topItems.map((item, idx) => (
+          <OverflowList
+            gap={1}
+            minVisibleItems={1}
+            overflowRenderer={(overflowItems) => <Token label={`+${overflowItems.length}`} />}
+          >
+            {items.map((item, idx) => (
               <Token key={idx} label={item} />
             ))}
-            {remaining > 0 ? <Token label={`+${remaining}`} /> : null}
-          </HStack>
+          </OverflowList>
         );
       },
     },
@@ -58,16 +59,17 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
       width: proportional(1, { minWidth: 220 }),
       renderCell: (row: ReceiptRow) => {
         const vendors = row.vendor_names || [];
-        const topVendors = vendors.slice(0, 3);
-        const remaining = vendors.length - 3;
-        if (topVendors.length === 0) return "-";
+        if (vendors.length === 0) return "-";
         return (
-          <HStack gap={1} wrap="wrap">
-            {topVendors.map((v, idx) => (
+          <OverflowList
+            gap={1}
+            minVisibleItems={1}
+            overflowRenderer={(overflowItems) => <Token label={`+${overflowItems.length}`} />}
+          >
+            {vendors.map((v, idx) => (
               <Token key={idx} label={v} />
             ))}
-            {remaining > 0 ? <Token label={`+${remaining}`} /> : null}
-          </HStack>
+          </OverflowList>
         );
       },
     },
