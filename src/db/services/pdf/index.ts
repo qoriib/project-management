@@ -1,8 +1,7 @@
 import { projectRepo } from "@/db/repositories";
 import { formatPeriod } from "@/utils/formatters";
-import { getItemLog, getRequirementReport } from "../report.service";
+import { getItemLog, getRequirementReport, type RequirementReportItem } from "../report";
 import { createReportPdf } from "./report-pdf";
-import type { RequirementReportItem } from "../report.service";
 import type { FulfillmentPdfItem, ItemTransactionHistory } from "./types";
 
 export * from "./types";

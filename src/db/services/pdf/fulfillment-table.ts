@@ -126,7 +126,16 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
 
       const itemCode = formatItemCode(item) || item.item_code || "-";
       const unit = item.unit || "-";
-      const plannedVolDisplay = !item.is_unplanned && plannedVolume > 0 ? formatQty(plannedVolume) : "-";
+      const isPagu = Boolean(item.is_pagu_account);
+      const plannedVolDisplay = isPagu ? "1" : !item.is_unplanned && plannedVolume > 0 ? formatQty(plannedVolume) : "-";
+      const periodOrderedDisplay = isPagu ? "-" : formatQty(periodOrdered);
+      const cumulativeOrderedDisplay = isPagu ? "-" : formatQty(cumulativeOrdered);
+      const orderPercentageDisplay = isPagu ? "-" : formatPercentage(orderPercentage);
+      const periodDeliveredDisplay = isPagu ? "-" : formatQty(periodDelivered);
+      const cumulativeDeliveredDisplay = isPagu ? "-" : formatQty(cumulativeDelivered);
+      const deliveryPercentageDisplay = isPagu ? "-" : formatPercentage(deliveryPercentage);
+      const orderedVolumeDisplay = isPagu ? "-" : formatQty(orderedVolume);
+      const deliveredVolumeDisplay = isPagu ? "-" : formatQty(deliveredVolume);
 
       if (hasDateRange) {
         tableBody.push({
@@ -140,12 +149,12 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           2: item.item_name,
           3: unit,
           4: plannedVolDisplay,
-          5: formatQty(periodOrdered),
-          6: formatQty(cumulativeOrdered),
-          7: formatPercentage(orderPercentage),
-          8: formatQty(periodDelivered),
-          9: formatQty(cumulativeDelivered),
-          10: formatPercentage(deliveryPercentage),
+          5: periodOrderedDisplay,
+          6: cumulativeOrderedDisplay,
+          7: orderPercentageDisplay,
+          8: periodDeliveredDisplay,
+          9: cumulativeDeliveredDisplay,
+          10: deliveryPercentageDisplay,
         });
       } else {
         tableBody.push({
@@ -159,15 +168,22 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           2: item.item_name,
           3: unit,
           4: plannedVolDisplay,
-          5: formatQty(orderedVolume),
-          6: formatPercentage(orderPercentage),
-          7: formatQty(deliveredVolume),
-          8: formatPercentage(deliveryPercentage),
+          5: orderedVolumeDisplay,
+          6: orderPercentageDisplay,
+          7: deliveredVolumeDisplay,
+          8: deliveryPercentageDisplay,
         });
       }
 
       itemCounter += 1;
     });
+
+    const isSingleEmptyOrPagu =
+      groupItems.length === 1 && (Boolean(groupItems[0].is_empty_group) || Boolean(groupItems[0].is_pagu_account));
+
+    if (isSingleEmptyOrPagu) {
+      continue;
+    }
 
     // Baris Subtotal per Kelompok Pekerjaan
     const subtotalOrderPercentage = calcRatio(subtotalOrderedVolume, subtotalPlannedVolume);

@@ -4,7 +4,7 @@ import {
   getProjectRequirementReport,
   getProjectOrderReport,
   getProjectReceiptReport,
-} from "../report.service";
+} from "../report";
 import { projectRepo } from "@/db/repositories";
 import { createFulfillmentSheet } from "./fulfillment-sheet";
 import { createRequirementSheet } from "./requirement-sheet";

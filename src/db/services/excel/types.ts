@@ -1,9 +1,4 @@
-import type {
-  RequirementReportItem,
-  RequirementReportDetailItem,
-  OrderReportItem,
-  ReceiptReportItem,
-} from "../report.service";
+import type { RequirementReportItem, RequirementReportDetailItem, OrderReportItem, ReceiptReportItem } from "../report";
 
 export interface ExcelProjectMeta {
   project_name: string;

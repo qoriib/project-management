@@ -339,6 +339,8 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       const categoryDisplay = item.category || "-";
       const unitDisplay = item.unit || "-";
 
+      const isPagu = Boolean(item.is_pagu_account);
+
       // Nilai tampilan terformat konsisten dengan tabel report web:
       // Jika item unplanned, seluruh kolom BOQ berharga "-"
       const displayPriceBom = !item.is_unplanned && plannedPrice > 0 ? plannedPrice : "-";
@@ -346,15 +348,15 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       const displayPlannedDpp = !item.is_unplanned && plannedDpp > 0 ? plannedDpp : "-";
       const displayPlannedTax = !item.is_unplanned && plannedTax > 0 ? plannedTax : "-";
       const displayPlannedBudget = !item.is_unplanned && plannedBudget > 0 ? plannedBudget : "-";
-      const displayPricePo = poPrice > 0 ? poPrice : "-";
-      const displayOrderedVol = orderedVolume > 0 ? orderedVolume : "-";
+      const displayPricePo = !isPagu && poPrice > 0 ? poPrice : "-";
+      const displayOrderedVol = !isPagu && orderedVolume > 0 ? orderedVolume : "-";
       const displayOrderDpp = orderDpp > 0 ? orderDpp : "-";
       const displayOrderTax = orderTax > 0 ? orderTax : "-";
       const displayOrderPrice = orderPrice > 0 ? orderPrice : "-";
       const displayVariance = variance !== 0 ? variance : "-";
-      const displayDelivered = deliveredVolume > 0 ? deliveredVolume : "-";
-      const displayRemaining = remainingVolume > 0 ? remainingVolume : "-";
-      const displayDeliveryPct = deliveryPercentage > 0 ? deliveryPercentage : "-";
+      const displayDelivered = !isPagu && deliveredVolume > 0 ? deliveredVolume : "-";
+      const displayRemaining = !isPagu && remainingVolume > 0 ? remainingVolume : "-";
+      const displayDeliveryPct = !isPagu && deliveryPercentage > 0 ? deliveryPercentage : "-";
 
       row.values = [
         itemNumber,
@@ -463,6 +465,13 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
         }
       });
     });
+
+    const isSingleEmptyOrPagu =
+      groupItems.length === 1 && (Boolean(groupItems[0].is_empty_group) || Boolean(groupItems[0].is_pagu_account));
+
+    if (isSingleEmptyOrPagu) {
+      continue;
+    }
 
     // 4. Render Baris Subtotal per Kelompok Pekerjaan
     const subtotalRowIndex = currentRowIndex;
