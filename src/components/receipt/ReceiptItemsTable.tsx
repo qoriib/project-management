@@ -5,13 +5,8 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { formatItemCode, formatNumber, parseDecimalInput, sanitizeDecimalInput } from "@/utils/formatters";
 import { handleFormError } from "@/utils/form";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-  useTableStickyColumns,
-  useTableRowIndex,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { ReceiptItemRow } from "./form/receipt.schema";
 
 export interface ReceiptItemsTableProps {

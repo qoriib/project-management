@@ -26,14 +26,8 @@ import { formatNumber, parseDecimalInput, sanitizeDecimalInput } from "@/utils/f
 import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useRequirementGroupStore } from "@/store/useRequirementGroupStore";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-  useTablePagination,
-  paginateData,
-  useTableRowIndex,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTablePagination, paginateData } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { RequirementGroup } from "@/db/repositories";
 import * as v from "valibot";
 

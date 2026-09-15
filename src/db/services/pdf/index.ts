@@ -65,7 +65,7 @@ export async function generateReportPdf(projectId: string, startDate?: string, e
   const rawItemLogs = await Promise.all(
     itemsWithActivity.map(async (item) => {
       try {
-        const logs = await getItemLog(projectId, item.item_id);
+        const logs = await getItemLog(projectId, item.item_id, item.requirement_group_id ?? null);
 
         let filteredLogs = logs;
 

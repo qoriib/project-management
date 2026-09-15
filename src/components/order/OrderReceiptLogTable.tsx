@@ -5,7 +5,8 @@ import { Pencil } from "lucide-react";
 import { formatNumber } from "@/utils/formatters";
 import { useOrderStore } from "@/store/useOrderStore";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { Table, type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
+import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { ReceiptItemByOrder } from "@/db/repositories";
 
 type LogRow = ReceiptItemByOrder & Record<string, unknown>;

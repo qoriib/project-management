@@ -4,13 +4,8 @@ import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useOrderStore } from "@/store/useOrderStore";
 import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
-import {
-  type TableColumn,
-  pixel,
-  proportional,
-  useTableStickyColumns,
-  useTableRowIndex,
-} from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { OrderItemDetail } from "@/db/repositories";
 
 type TrackingRow = OrderItemDetail & Record<string, unknown>;

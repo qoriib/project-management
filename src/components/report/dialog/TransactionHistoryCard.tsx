@@ -9,8 +9,8 @@ import {
   proportional,
   useTablePagination,
   paginateData,
-  useTableRowIndex,
 } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { formatNumber } from "@/utils/formatters";
 import { type ItemLogEntry, type RequirementReportItem, getItemLog } from "@/db/services";
 
@@ -31,7 +31,7 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
   useEffect(() => {
     if (isOpen && item) {
       setPage(1);
-      getItemLog(projectId, item.item_id)
+      getItemLog(projectId, item.item_id, item.requirement_group_id ?? null)
         .then(setLogs)
         .catch(() => setLogs([]));
     }

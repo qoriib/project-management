@@ -3,9 +3,14 @@ import { DbError, wrapDbError } from "@/db/core/errors";
 import type { ItemLogEntry } from "./types";
 
 /**
- * Gets chronological log of Orders and Receipts for a specific item in a project.
+ * Gets chronological log of Orders and Receipts for a specific item in a project,
+ * filtered by requirement group (pekerjaan).
  */
-export async function getItemLog(projectId: string, itemId: string, itemPriceId?: string): Promise<ItemLogEntry[]> {
+export async function getItemLog(
+  projectId: string,
+  itemId: string,
+  requirementGroupId: string | null,
+): Promise<ItemLogEntry[]> {
   try {
     const orderQuery = new QueryBuilder()
       .select("orders.order_id as id", "orders.order_date as date")
@@ -17,10 +22,17 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
       .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
       .where("order_items.item_id", "=", itemId)
-      .withSoftDelete("orders")
-      .when(Boolean(itemPriceId && itemPriceId.trim() !== ""), (q) =>
-        q.where("order_items.item_price_id", "=", itemPriceId!),
+      .withSoftDelete("orders");
+
+    if (requirementGroupId === null) {
+      orderQuery.whereNull("COALESCE(order_items.requirement_group_id, orders.requirement_group_id)");
+    } else {
+      orderQuery.where(
+        "COALESCE(order_items.requirement_group_id, orders.requirement_group_id)",
+        "=",
+        requirementGroupId,
       );
+    }
 
     const receiptQuery = new QueryBuilder()
       .select("receipts.receipt_id as id", "receipts.receipt_date as date")
@@ -35,10 +47,17 @@ export async function getItemLog(projectId: string, itemId: string, itemPriceId?
       .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
       .where("order_items.item_id", "=", itemId)
-      .withSoftDelete("receipts", "orders")
-      .when(Boolean(itemPriceId && itemPriceId.trim() !== ""), (q) =>
-        q.where("order_items.item_price_id", "=", itemPriceId!),
+      .withSoftDelete("receipts", "orders");
+
+    if (requirementGroupId === null) {
+      receiptQuery.whereNull("COALESCE(order_items.requirement_group_id, orders.requirement_group_id)");
+    } else {
+      receiptQuery.where(
+        "COALESCE(order_items.requirement_group_id, orders.requirement_group_id)",
+        "=",
+        requirementGroupId,
       );
+    }
 
     const [orderLogs, receiptLogs] = await Promise.all([
       orderQuery.getMany<ItemLogEntry>(),

@@ -1,5 +1,7 @@
-import { Button, Dialog, HStack, Heading, VStack } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, Text, Token, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { EntityCode } from "@/components/shared/EntityCode";
+import { formatItemCode } from "@/utils/formatters";
 import { RequirementVariantCard } from "./dialog/RequirementVariantCard";
 import { OrderVariantCard } from "./dialog/OrderVariantCard";
 import { TransactionHistoryCard } from "./dialog/TransactionHistoryCard";
@@ -13,12 +15,26 @@ interface ReportItemLogDialogProps {
 }
 
 export function ReportItemLogDialog({ isOpen, onClose, projectId, item }: ReportItemLogDialogProps) {
+  const formattedCode = formatItemCode(item);
+
   return (
     <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={850} maxHeight="85vh">
       <Layout
         header={
-          <LayoutHeader hasDivider>
-            <Heading level={3}>{item.item_name}</Heading>
+          <LayoutHeader hasDivider padding={4}>
+            <VStack gap={1} width="100%">
+              <HStack justify="between" align="center" width="100%">
+                <HStack gap={2} align="center">
+                  <Heading level={3}>{item.item_name}</Heading>
+                  {formattedCode ? <EntityCode id={formattedCode} size="sm" /> : null}
+                </HStack>
+                {item.group_name ? <Token label={item.group_name} /> : null}
+              </HStack>
+              <Text color="secondary" size="sm">
+                Rincian perbandingan kebutuhan, pengadaan, dan riwayat transaksi untuk pekerjaan{" "}
+                {item.group_name ? `"${item.group_name}"` : "ini"}
+              </Text>
+            </VStack>
           </LayoutHeader>
         }
         content={

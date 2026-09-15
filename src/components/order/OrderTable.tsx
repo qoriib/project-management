@@ -4,7 +4,8 @@ import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
-import { useTableRowIndex, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { handleFormError } from "@/utils";
 import { type PORow, useOrderTableColumns } from "./table/useOrderTableColumns";
 

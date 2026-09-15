@@ -6,7 +6,8 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
 import { handleFormError } from "@/utils/form";
-import { type TableColumn, pixel, proportional, useTableRowIndex } from "@astryxdesign/core/Table";
+import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { Project, ProjectWithRelations } from "@/db/repositories";
 
 interface MasterProjectTableProps {

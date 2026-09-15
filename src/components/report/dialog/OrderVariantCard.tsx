@@ -10,8 +10,8 @@ import {
   TableRow,
   TableCell,
   proportional,
-  useTableRowIndex,
 } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { formatNumber } from "@/utils/formatters";
 import type { RequirementReportItem, RequirementReportVariant } from "@/db/services";
 

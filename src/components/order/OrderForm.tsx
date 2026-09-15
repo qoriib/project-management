@@ -15,7 +15,8 @@ import {
 } from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { Card, Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
-import { useTableRowIndex, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";

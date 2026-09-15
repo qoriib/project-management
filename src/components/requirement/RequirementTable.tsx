@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { EmptyState, HStack, Table, Text } from "@astryxdesign/core";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { EmptyState, Table } from "@astryxdesign/core";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { RequirementItemDialog } from "@/components/requirement/RequirementItemDialog";
 import { useAppStore } from "@/store/useAppStore";
@@ -7,6 +7,8 @@ import { useRequirementStore } from "@/store/useRequirementStore";
 import { useRequirementGroupStore } from "@/store/useRequirementGroupStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useRequirementGroupedData } from "./table/useRequirementGroupedData";
+import { buildPaguItemMap, mergeMixedTableData, usePaguRowPlugin } from "./table/requirementTableUtils";
+import { RequirementGroupHeader } from "./table/RequirementGroupHeader";
 import { type TablePlugin, useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
 import { type RequirementRow, useRequirementColumns } from "./table/useRequirementColumns";
 import type { RequirementDetail } from "@/db/repositories";
@@ -27,14 +29,46 @@ export function RequirementTable() {
   const currentProject = projects.find((p) => p.project_id === selectedProjectId);
   const isApproved = currentProject?.requirements_is_approved === 1;
 
-  // Listen for Ctrl+N shortcut dispatched by the parent route page.
+  const handleOpenAdd = useCallback((groupId?: string) => {
+    setEditingItem(undefined);
+    setPreselectedGroupId(groupId);
+    setIsDialogOpen(true);
+  }, []);
+
+  const handleOpenEdit = useCallback((item: RequirementDetail) => {
+    setEditingItem(item);
+    setPreselectedGroupId(item.requirement_group_id || undefined);
+    setIsDialogOpen(true);
+  }, []);
+
+  const handleCloseDialog = useCallback(() => {
+    setIsDialogOpen(false);
+    setEditingItem(undefined);
+    setPreselectedGroupId(undefined);
+  }, []);
+
+  const handleToggleGroup = useCallback((groupKey: string) => {
+    setCollapsedGroups((previousCollapsed) => {
+      const updatedCollapsed = new Set(previousCollapsed);
+      if (updatedCollapsed.has(groupKey)) {
+        updatedCollapsed.delete(groupKey);
+      } else {
+        updatedCollapsed.add(groupKey);
+      }
+      return updatedCollapsed;
+    });
+  }, []);
+
+  // Listen for Ctrl+N shortcut dispatched by the parent route page
   useEffect(() => {
-    function handleOpen() {
-      if (!isApproved) handleOpenAdd();
+    function handleShortcutOpen() {
+      if (!isApproved) {
+        handleOpenAdd();
+      }
     }
-    window.addEventListener("openRequirementCreate", handleOpen);
-    return () => window.removeEventListener("openRequirementCreate", handleOpen);
-  }, [isApproved]);
+    window.addEventListener("openRequirementCreate", handleShortcutOpen);
+    return () => window.removeEventListener("openRequirementCreate", handleShortcutOpen);
+  }, [isApproved, handleOpenAdd]);
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -43,7 +77,7 @@ export function RequirementTable() {
     }
   }, [selectedProjectId, loadRequirements, loadRequirementGroups]);
 
-  async function handleDelete() {
+  async function handleDeleteConfirm() {
     if (!deletingId) return;
     setIsDeleting(true);
     try {
@@ -52,18 +86,6 @@ export function RequirementTable() {
     } finally {
       setIsDeleting(false);
     }
-  }
-
-  function handleOpenAdd(groupId?: string) {
-    setEditingItem(undefined);
-    setPreselectedGroupId(groupId);
-    setIsDialogOpen(true);
-  }
-
-  function handleOpenEdit(item: RequirementDetail) {
-    setEditingItem(item);
-    setPreselectedGroupId(item.requirement_group_id || undefined);
-    setIsDialogOpen(true);
   }
 
   const columns = useRequirementColumns({
@@ -77,17 +99,12 @@ export function RequirementTable() {
     groups,
   );
 
-  const nonPaguItems = useMemo(() => displayRequirements.filter((r) => !r.is_pagu_account), [displayRequirements]);
+  const nonPaguItems = useMemo(
+    () => displayRequirements.filter((item) => !item.is_pagu_account),
+    [displayRequirements],
+  );
 
-  const paguItemMap = useMemo(() => {
-    const map = new Map<string, RequirementRow>();
-    for (const r of displayRequirements) {
-      if (r.is_pagu_account && r.requirement_group_id) {
-        map.set(r.requirement_group_id, r);
-      }
-    }
-    return map;
-  }, [displayRequirements]);
+  const paguItemMap = useMemo(() => buildPaguItemMap(displayRequirements), [displayRequirements]);
 
   const {
     data: groupedData,
@@ -99,103 +116,28 @@ export function RequirementTable() {
     getRowKey: (item) => String(item.requirement_id),
     groupBy: (item) => item.group_name ?? "",
     groupOrder,
-    onToggleGroup: (key: string) => {
-      setCollapsedGroups((prev) => {
-        const next = new Set(prev);
-        if (next.has(key)) next.delete(key);
-        else next.add(key);
-        return next;
-      });
-    },
-    renderGroupHeader: (groupName: string) => (
-      <HStack paddingInline={2} align="center">
-        <Text weight="bold">{groupName}</Text>
-      </HStack>
-    ),
+    onToggleGroup: handleToggleGroup,
+    renderGroupHeader: (groupName) => <RequirementGroupHeader groupName={groupName} />,
   });
 
-  const finalTableData = useMemo(() => {
-    // Jika tidak ada kelompok non-pagu sama sekali (seperti proyek All Pagu)
-    if (!hasNonPaguGroups) {
-      return displayRequirements;
-    }
-
-    // Jika proyek mixed (campuran kelompok BOQ dan Pagu)
-    const result: RequirementRow[] = [];
-    const addedPaguIds = new Set<string>();
-
-    for (const group of sortedGroups) {
-      if (group.budget && group.budget > 0) {
-        const paguRow = paguItemMap.get(group.requirement_group_id);
-        if (paguRow && !addedPaguIds.has(paguRow.requirement_id)) {
-          result.push(paguRow);
-          addedPaguIds.add(paguRow.requirement_id);
-        }
-      } else {
-        for (const r of groupedData) {
-          const groupKey = (r as unknown as { groupKey?: string }).groupKey;
-          if (groupKey === group.group_name || r.group_name === group.group_name) {
-            result.push(r);
-          }
-        }
-      }
-    }
-
-    // Tambahkan item ungrouped jika ada
-    for (const r of groupedData) {
-      const groupKey = (r as unknown as { groupKey?: string }).groupKey;
-      if (!groupKey && !r.group_name && !result.includes(r)) {
-        result.push(r);
-      }
-    }
-
-    return result;
-  }, [hasNonPaguGroups, displayRequirements, sortedGroups, paguItemMap, groupedData]);
+  const finalTableData = useMemo(
+    () =>
+      mergeMixedTableData({
+        hasNonPaguGroups,
+        displayRequirements,
+        sortedGroups,
+        paguItemMap,
+        groupedData,
+      }),
+    [hasNonPaguGroups, displayRequirements, sortedGroups, paguItemMap, groupedData],
+  );
 
   const stickyColumns = useTableStickyColumns<RequirementRow>({
     startKeys: ["item_code", "item_name"],
     endKeys: isApproved ? undefined : ["actions"],
   });
 
-  const paguRowPlugin = useMemo<TablePlugin<RequirementRow>>(
-    () => ({
-      transformBodyRow: (props, item) => {
-        if (item && item.is_pagu_account) {
-          return {
-            ...props,
-            htmlProps: {
-              ...props.htmlProps,
-              style: {
-                ...props.htmlProps?.style,
-                backgroundColor: "var(--color-background-muted)",
-                "--table-row-overlay": "var(--color-background-muted)",
-                borderBottom: "1px solid var(--color-border)",
-              },
-            },
-          };
-        }
-        return props;
-      },
-      transformBodyCell: (props, _column, item) => {
-        if (item && item.is_pagu_account) {
-          return {
-            ...props,
-            htmlProps: {
-              ...props.htmlProps,
-              style: {
-                ...props.htmlProps?.style,
-                backgroundColor: "var(--color-background-muted)",
-                "--table-row-overlay": "var(--color-background-muted)",
-                borderBottom: "1px solid var(--color-border)",
-              },
-            },
-          };
-        }
-        return props;
-      },
-    }),
-    [],
-  );
+  const paguRowPlugin = usePaguRowPlugin();
 
   const tablePlugins = useMemo<Record<string, TablePlugin<RequirementRow>>>(() => {
     const plugins: Record<string, TablePlugin<RequirementRow>> = {
@@ -224,7 +166,7 @@ export function RequirementTable() {
       <AlertDialog
         isOpen={Boolean(deletingId)}
         onOpenChange={(open) => !open && setDeletingId(null)}
-        onAction={handleDelete}
+        onAction={handleDeleteConfirm}
         title="Hapus Kebutuhan"
         description="Hapus item ini dari rencana kebutuhan? Tindakan ini tidak dapat dibatalkan."
         actionLabel="Hapus"
@@ -233,11 +175,7 @@ export function RequirementTable() {
       />
       <RequirementItemDialog
         isOpen={isDialogOpen}
-        onClose={() => {
-          setIsDialogOpen(false);
-          setEditingItem(undefined);
-          setPreselectedGroupId(undefined);
-        }}
+        onClose={handleCloseDialog}
         initialData={editingItem}
         initialGroupId={preselectedGroupId}
       />
