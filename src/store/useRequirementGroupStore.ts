@@ -29,7 +29,7 @@ export const useRequirementGroupStore = create<RequirementGroupStore>((set, get)
   },
 
   createGroup: async (projectId: string, groupName: string, budget?: number | null) => {
-    const project = useMasterStore.getState().projects.find((p) => p.project_id === projectId);
+    const project = useMasterStore.getState().projects.find((proj) => proj.project_id === projectId);
     if (project?.requirements_is_approved === 1) {
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
     }
@@ -43,10 +43,10 @@ export const useRequirementGroupStore = create<RequirementGroupStore>((set, get)
   },
 
   updateGroup: async (id: string, groupName: string, budget?: number | null) => {
-    const existing = get().groups.find((g) => g.requirement_group_id === id);
+    const existing = get().groups.find((grp) => grp.requirement_group_id === id);
     if (!existing) return;
 
-    const project = useMasterStore.getState().projects.find((p) => p.project_id === existing.project_id);
+    const project = useMasterStore.getState().projects.find((proj) => proj.project_id === existing.project_id);
     if (project?.requirements_is_approved === 1) {
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
     }
@@ -61,10 +61,10 @@ export const useRequirementGroupStore = create<RequirementGroupStore>((set, get)
   },
 
   deleteGroup: async (id: string) => {
-    const existing = get().groups.find((g) => g.requirement_group_id === id);
+    const existing = get().groups.find((grp) => grp.requirement_group_id === id);
     if (!existing) return;
 
-    const project = useMasterStore.getState().projects.find((p) => p.project_id === existing.project_id);
+    const project = useMasterStore.getState().projects.find((proj) => proj.project_id === existing.project_id);
     if (project?.requirements_is_approved === 1) {
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
     }

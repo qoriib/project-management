@@ -135,7 +135,7 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
   async getNextCode(projectId?: string): Promise<string> {
     const receipts = await this.findAllWithSummary({ project_id: projectId });
     return generateNextCode(
-      receipts.map((r) => r.receipt_code),
+      receipts.map((receipt) => receipt.receipt_code),
       "NP-",
     );
   }

@@ -34,7 +34,7 @@ export const useRequirementStore = create<RequirementStore>((set, get) => ({
       throw new Error("Kelompok pekerjaan wajib dipilih.");
     }
 
-    const project = useMasterStore.getState().projects.find((p) => p.project_id === data.project_id);
+    const project = useMasterStore.getState().projects.find((proj) => proj.project_id === data.project_id);
 
     if (project?.requirements_is_approved === 1) {
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
@@ -44,11 +44,11 @@ export const useRequirementStore = create<RequirementStore>((set, get) => ({
     await get().loadRequirements(data.project_id);
   },
   deleteRequirement: async (id) => {
-    const existing = get().requirements.find((r) => r.requirement_id === id);
+    const existing = get().requirements.find((req) => req.requirement_id === id);
 
     if (!existing) return;
 
-    const project = useMasterStore.getState().projects.find((p) => p.project_id === existing.project_id);
+    const project = useMasterStore.getState().projects.find((proj) => proj.project_id === existing.project_id);
 
     if (project?.requirements_is_approved === 1) {
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
@@ -72,11 +72,11 @@ export const useRequirementStore = create<RequirementStore>((set, get) => ({
     }
   },
   updateRequirement: async (id, data) => {
-    const existing = get().requirements.find((r) => r.requirement_id === id);
+    const existing = get().requirements.find((req) => req.requirement_id === id);
 
     if (!existing) return;
 
-    const project = useMasterStore.getState().projects.find((p) => p.project_id === existing.project_id);
+    const project = useMasterStore.getState().projects.find((proj) => proj.project_id === existing.project_id);
 
     if (project?.requirements_is_approved === 1) {
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");

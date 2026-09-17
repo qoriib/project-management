@@ -36,14 +36,14 @@ export async function generateReportPdf(projectId: string, startDate?: string, e
   const baseList = cumulativeData || periodData;
 
   const fulfillmentData: FulfillmentPdfItem[] = baseList.map((item) => {
-    const pItem = periodData.find((p) => p.item_id === item.item_id);
-    const cItem = cumulativeData ? cumulativeMap.get(item.item_id) : item;
+    const periodItem = periodData.find((periodRow) => periodRow.item_id === item.item_id);
+    const cumulativeItem = cumulativeData ? cumulativeMap.get(item.item_id) : item;
 
-    const periodOrdered = pItem?.total_ordered ?? 0;
-    const cumulativeOrdered = cItem?.total_ordered ?? periodOrdered;
+    const periodOrdered = periodItem?.total_ordered ?? 0;
+    const cumulativeOrdered = cumulativeItem?.total_ordered ?? periodOrdered;
 
-    const periodDelivered = pItem?.total_delivered ?? 0;
-    const cumulativeDelivered = cItem?.total_delivered ?? periodDelivered;
+    const periodDelivered = periodItem?.total_delivered ?? 0;
+    const cumulativeDelivered = cumulativeItem?.total_delivered ?? periodDelivered;
 
     return {
       ...item,

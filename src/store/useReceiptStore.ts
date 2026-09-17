@@ -18,8 +18,8 @@ export const useReceiptStore = create<ReceiptStore>((set, get) => ({
   receipts: [],
 
   loadAllReceipts: async (projectId) => {
-    const d = await receiptRepo.findAllWithSummary({ project_id: projectId });
-    set({ receipts: d });
+    const receiptList = await receiptRepo.findAllWithSummary({ project_id: projectId });
+    set({ receipts: receiptList });
   },
 
   createReceiptForOrder: async (orderId, projectId) => {
@@ -48,10 +48,10 @@ export const useReceiptStore = create<ReceiptStore>((set, get) => ({
   },
 
   deleteReceipt: async (id) => {
-    const receipt = get().receipts.find((d) => d.receipt_id === id);
+    const receipt = get().receipts.find((item) => item.receipt_id === id);
     await receiptRepo.delete(id);
-    const pId = useAppStore.getState().selectedProjectId || undefined;
-    await get().loadAllReceipts(pId);
+    const projectId = useAppStore.getState().selectedProjectId || undefined;
+    await get().loadAllReceipts(projectId);
 
     const orderStore = useOrderStore.getState();
     if (receipt && orderStore.currentOrder?.order_id === receipt.order_id) {

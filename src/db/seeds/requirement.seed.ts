@@ -326,45 +326,45 @@ export async function seedRequirements(): Promise<void> {
 
   const projects = await projectRepo.findAll();
   const items = await itemRepo.findAll();
-  const projMap = new Map<string, string>(projects.map((p) => [p.project_name, p.project_id]));
-  const itemMap = new Map<string, string>(items.map((i) => [i.item_name, i.item_id]));
+  const projMap = new Map<string, string>(projects.map((project) => [project.project_name, project.project_id]));
+  const itemMap = new Map<string, string>(items.map((item) => [item.item_name, item.item_id]));
   const itemPriceCache = new Map<string, { item_price_id: string; price: number }[]>();
 
   // Inisialisasi atau temukan kelompok pekerjaan
   const groupKeyMap = new Map<string, string>(); // `${projectId}|${groupName}` -> requirement_group_id
 
-  for (const g of groupDefs) {
-    const projectId = projMap.get(g.projectName);
+  for (const groupDef of groupDefs) {
+    const projectId = projMap.get(groupDef.projectName);
     if (!projectId) continue;
 
     const existingGroups = await requirementGroupRepo.findByProject(projectId);
-    let matchedGroup = existingGroups.find((eg) => eg.group_name === g.groupName);
+    let matchedGroup = existingGroups.find((existingGroup) => existingGroup.group_name === groupDef.groupName);
 
     if (!matchedGroup) {
       const newGroupId = await requirementGroupRepo.create({
         project_id: projectId,
-        group_name: g.groupName,
-        budget: g.budget ?? null,
+        group_name: groupDef.groupName,
+        budget: groupDef.budget ?? null,
       });
       matchedGroup = (await requirementGroupRepo.findById(newGroupId))!;
-    } else if (g.budget !== undefined && matchedGroup.budget !== (g.budget ?? null)) {
+    } else if (groupDef.budget !== undefined && matchedGroup.budget !== (groupDef.budget ?? null)) {
       await requirementGroupRepo.update(matchedGroup.requirement_group_id, {
-        budget: g.budget ?? null,
+        budget: groupDef.budget ?? null,
       });
     }
 
-    groupKeyMap.set(`${projectId}|${g.groupName}`, matchedGroup.requirement_group_id);
+    groupKeyMap.set(`${projectId}|${groupDef.groupName}`, matchedGroup.requirement_group_id);
   }
 
   // Masukkan rincian BOQ
-  for (const b of rawReqs) {
-    const projectId = projMap.get(b.projectName);
-    const itemId = itemMap.get(b.itemName);
-    const requirementGroupId = projectId ? groupKeyMap.get(`${projectId}|${b.groupName}`) : undefined;
+  for (const rawReq of rawReqs) {
+    const projectId = projMap.get(rawReq.projectName);
+    const itemId = itemMap.get(rawReq.itemName);
+    const requirementGroupId = projectId ? groupKeyMap.get(`${projectId}|${rawReq.groupName}`) : undefined;
 
     if (!projectId || !itemId || !requirementGroupId) {
       console.warn(
-        `Could not resolve dependencies for requirement '${b.itemName}' in '${b.projectName}' / '${b.groupName}'.`,
+        `Could not resolve dependencies for requirement '${rawReq.itemName}' in '${rawReq.projectName}' / '${rawReq.groupName}'.`,
       );
       continue;
     }
@@ -374,14 +374,14 @@ export async function seedRequirements(): Promise<void> {
       const prices = await itemPriceRepo.findByItem(itemId);
       itemPriceCache.set(
         itemId,
-        prices.map((p) => ({ item_price_id: p.item_price_id, price: p.price })),
+        prices.map((priceItem) => ({ item_price_id: priceItem.item_price_id, price: priceItem.price })),
       );
     }
 
     const prices = itemPriceCache.get(itemId)!;
-    const matchedPrice = prices.find((p) => p.price === b.price) ?? prices[0];
+    const matchedPrice = prices.find((priceItem) => priceItem.price === rawReq.price) ?? prices[0];
     if (!matchedPrice) {
-      console.warn(`No item_prices found for item '${b.itemName}'. Skipping.`);
+      console.warn(`No item_prices found for item '${rawReq.itemName}'. Skipping.`);
       continue;
     }
 
@@ -401,8 +401,8 @@ export async function seedRequirements(): Promise<void> {
         item_price_id: matchedPrice.item_price_id,
         project_id: projectId,
         requirement_group_id: requirementGroupId,
-        qty: b.qty,
-        has_tax: Boolean(b.hasTax),
+        qty: rawReq.qty,
+        has_tax: Boolean(rawReq.hasTax),
       });
     }
   }

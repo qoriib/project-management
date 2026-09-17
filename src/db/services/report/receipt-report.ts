@@ -39,8 +39,8 @@ export async function getProjectReceiptReport(
       .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
       .withSoftDelete("receipts", "orders")
-      .when(Boolean(startDate), (q) => q.where("receipts.receipt_date", ">=", startDate!))
-      .when(Boolean(endDate), (q) => q.where("receipts.receipt_date", "<=", endDate!))
+      .when(Boolean(startDate), (builder) => builder.where("receipts.receipt_date", ">=", startDate!))
+      .when(Boolean(endDate), (builder) => builder.where("receipts.receipt_date", "<=", endDate!))
       .orderBy("receipts.receipt_id", "ASC");
 
     return await query.getMany<ReceiptReportItem>();

@@ -183,8 +183,8 @@ export async function getRequirementReport(
       .leftJoin("vendors", "vendors", "vendors.vendor_id = oi.vendor_id AND vendors.deleted_at IS NULL")
       .where("ord.project_id", "=", projectId)
       .withSoftDelete("ord")
-      .when(Boolean(startDate), (q) => q.where("ord.order_date", ">=", startDate!))
-      .when(Boolean(endDate), (q) => q.where("ord.order_date", "<=", endDate!));
+      .when(Boolean(startDate), (builder) => builder.where("ord.order_date", ">=", startDate!))
+      .when(Boolean(endDate), (builder) => builder.where("ord.order_date", "<=", endDate!));
 
     // 3. Receipts Query
     const receiptQuery = new QueryBuilder()
@@ -197,8 +197,8 @@ export async function getRequirementReport(
       .join("orders", "ord", "ord.order_id = oi.order_id")
       .where("ord.project_id", "=", projectId)
       .withSoftDelete("rec", "ord")
-      .when(Boolean(startDate), (q) => q.where("rec.receipt_date", ">=", startDate!))
-      .when(Boolean(endDate), (q) => q.where("rec.receipt_date", "<=", endDate!))
+      .when(Boolean(startDate), (builder) => builder.where("rec.receipt_date", ">=", startDate!))
+      .when(Boolean(endDate), (builder) => builder.where("rec.receipt_date", "<=", endDate!))
       .groupBy("COALESCE(oi.requirement_group_id, ord.requirement_group_id), oi.item_id");
 
     // 4. Groups Query
@@ -218,16 +218,16 @@ export async function getRequirementReport(
     ]);
 
     const groupBudgetMap = new Map<string, number>();
-    for (const g of groupRows) {
-      if (g.budget && g.budget > 0) {
-        groupBudgetMap.set(g.requirement_group_id, g.budget);
+    for (const group of groupRows) {
+      if (group.budget && group.budget > 0) {
+        groupBudgetMap.set(group.requirement_group_id, group.budget);
       }
     }
 
     const receiptMap = new Map<string, number>();
-    for (const r of receiptRows) {
-      const key = makeKey(r.requirement_group_id, r.item_id);
-      receiptMap.set(key, (receiptMap.get(key) || 0) + (r.total_delivered || 0));
+    for (const receipt of receiptRows) {
+      const key = makeKey(receipt.requirement_group_id, receipt.item_id);
+      receiptMap.set(key, (receiptMap.get(key) || 0) + (receipt.total_delivered || 0));
     }
 
     const itemMap = new Map<string, RequirementReportItem>();
@@ -296,25 +296,25 @@ export async function getRequirementReport(
 
     // Include groups that have no items
     const existingGroupIds = new Set<string>();
-    for (const it of itemMap.values()) {
-      if (it.requirement_group_id) existingGroupIds.add(it.requirement_group_id);
+    for (const reportItem of itemMap.values()) {
+      if (reportItem.requirement_group_id) existingGroupIds.add(reportItem.requirement_group_id);
     }
 
-    for (const g of groupRows) {
-      if (!existingGroupIds.has(g.requirement_group_id)) {
-        const key = makeKey(g.requirement_group_id, `empty_${g.requirement_group_id}`);
+    for (const group of groupRows) {
+      if (!existingGroupIds.has(group.requirement_group_id)) {
+        const key = makeKey(group.requirement_group_id, `empty_${group.requirement_group_id}`);
         itemMap.set(key, {
-          requirement_group_id: g.requirement_group_id,
-          group_name: g.group_name,
+          requirement_group_id: group.requirement_group_id,
+          group_name: group.group_name,
           category: "-",
           category_id: undefined,
           category_code: undefined,
           category_prefix: undefined,
           is_unplanned: false,
           is_empty_group: true,
-          group_budget: g.budget ?? null,
+          group_budget: group.budget ?? null,
           item_code: "-",
-          item_id: `empty_${g.requirement_group_id}`,
+          item_id: `empty_${group.requirement_group_id}`,
           item_name: "(Belum ada rincian item)",
           order_variants: [],
           planned_budget: 0,

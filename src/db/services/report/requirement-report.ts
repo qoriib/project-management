@@ -68,12 +68,12 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
 
     const rawGroups = await groupsQuery.getMany<{ requirement_group_id: string; group_name: string; budget: number }>();
 
-    const mapped: RequirementReportDetailItem[] = raw.map((r) => {
-      const dpp = calcDPP(r.qty, r.price);
-      const taxAmount = calcTax(dpp, Boolean(r.has_tax));
+    const mapped: RequirementReportDetailItem[] = raw.map((row) => {
+      const dpp = calcDPP(row.qty, row.price);
+      const taxAmount = calcTax(dpp, Boolean(row.has_tax));
       return {
-        ...r,
-        has_tax: Boolean(r.has_tax),
+        ...row,
+        has_tax: Boolean(row.has_tax),
         dpp,
         tax_amount: taxAmount,
         total_price: dpp + taxAmount,
@@ -81,17 +81,17 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
     });
 
     const groupsWithItems = new Set<string>();
-    for (const r of mapped) {
-      if (r.requirement_group_id) {
-        groupsWithItems.add(r.requirement_group_id);
+    for (const item of mapped) {
+      if (item.requirement_group_id) {
+        groupsWithItems.add(item.requirement_group_id);
       }
     }
 
-    for (const g of rawGroups) {
-      if (!groupsWithItems.has(g.requirement_group_id)) {
+    for (const group of rawGroups) {
+      if (!groupsWithItems.has(group.requirement_group_id)) {
         mapped.push({
-          requirement_group_id: g.requirement_group_id,
-          group_name: g.group_name,
+          requirement_group_id: group.requirement_group_id,
+          group_name: group.group_name,
           item_code: "-",
           category_prefix: undefined,
           category_code: undefined,

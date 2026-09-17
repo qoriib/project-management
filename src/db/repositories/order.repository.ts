@@ -100,7 +100,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
             ...new Set(
               row.group_names
                 .split(",")
-                .map((n) => n.trim())
+                .map((name) => name.trim())
                 .filter(Boolean),
             ),
           ]
@@ -151,7 +151,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
             ...new Set(
               firstRow.group_names
                 .split(",")
-                .map((n) => n.trim())
+                .map((name) => name.trim())
                 .filter(Boolean),
             ),
           ]
@@ -235,7 +235,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
   async getNextCode(projectId?: string): Promise<string> {
     const orders = await this.findAllWithSummary({ project_id: projectId });
     return generateNextCode(
-      orders.map((o) => o.order_code),
+      orders.map((order) => order.order_code),
       "PO-",
     );
   }

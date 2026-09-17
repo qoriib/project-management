@@ -58,14 +58,14 @@ export async function getProjectOrderReport(
       .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
       .where("orders.project_id", "=", projectId)
       .withSoftDelete("orders")
-      .when(Boolean(startDate), (q) => q.where("orders.order_date", ">=", startDate!))
-      .when(Boolean(endDate), (q) => q.where("orders.order_date", "<=", endDate!))
+      .when(Boolean(startDate), (builder) => builder.where("orders.order_date", ">=", startDate!))
+      .when(Boolean(endDate), (builder) => builder.where("orders.order_date", "<=", endDate!))
       .orderBy("orders.order_id", "ASC");
 
     const rows = await query.getMany<OrderReportItem>();
-    return rows.map((r) => ({
-      ...r,
-      has_tax: Boolean(r.has_tax),
+    return rows.map((row) => ({
+      ...row,
+      has_tax: Boolean(row.has_tax),
     }));
   } catch (error) {
     throw wrapDbError(error, "order_report");

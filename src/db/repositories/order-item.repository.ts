@@ -81,9 +81,9 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
     `;
 
     const rows = await this.rawSelect<OrderItemDetail>(sql, [orderId]);
-    return rows.map((r) => ({
-      ...r,
-      has_tax: Boolean(r.has_tax),
+    return rows.map((row) => ({
+      ...row,
+      has_tax: Boolean(row.has_tax),
     }));
   }
 

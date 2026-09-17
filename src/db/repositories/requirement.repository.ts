@@ -66,9 +66,9 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
     `;
 
     const rows = await this.rawSelect<RequirementDetail>(sql, params);
-    return rows.map((r) => ({
-      ...r,
-      has_tax: Boolean(r.has_tax),
+    return rows.map((row) => ({
+      ...row,
+      has_tax: Boolean(row.has_tax),
     }));
   }
 

@@ -27,10 +27,10 @@ export async function seedReceipts(): Promise<void> {
     JOIN items i ON i.item_id = oi.item_id
   `);
 
-  const orderMap = new Map<string, string>(orderRows.map((r) => [r.order_code, r.order_id]));
+  const orderMap = new Map<string, string>(orderRows.map((row) => [row.order_code, row.order_id]));
 
   const orderItemMap = new Map<string, string>(
-    orderItemRows.map((r) => [`${r.order_id}|${r.item_name}`, r.order_item_id]),
+    orderItemRows.map((row) => [`${row.order_id}|${row.item_name}`, row.order_item_id]),
   );
 
   const receipts: SeedReceipt[] = [

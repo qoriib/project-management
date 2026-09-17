@@ -232,7 +232,7 @@ export async function seedOrders(): Promise<void> {
     }
 
     const groups = await requirementGroupRepo.findByProject(project.project_id);
-    const matchedGroup = groups.find((g) => g.group_name === ord.groupName);
+    const matchedGroup = groups.find((group) => group.group_name === ord.groupName);
     const requirementGroupId = matchedGroup ? matchedGroup.requirement_group_id : groups[0]?.requirement_group_id;
 
     if (!requirementGroupId) {
@@ -250,7 +250,7 @@ export async function seedOrders(): Promise<void> {
       }
 
       const prices = await itemPriceRepo.findByItem(itemRecord.item_id);
-      const matchedPrice = prices.find((p) => p.price === item.price) ?? prices[0];
+      const matchedPrice = prices.find((priceItem) => priceItem.price === item.price) ?? prices[0];
 
       if (!matchedPrice) {
         console.warn(`[order.seed] Price variant not found for: ${item.itemName} @ ${item.price}`);

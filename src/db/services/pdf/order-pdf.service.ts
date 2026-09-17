@@ -64,7 +64,7 @@ export async function generatePurchaseOrderPdf(
       return {
         no: index + 1,
         name_with_price: `${item.item_name ?? "-"}${formatPriceSuffix(item.price)}`,
-        qty_display: `${formatNumber(item.qty, 2)}${unitStr}`.trim(),
+        qty_display: `${formatNumber(item.qty, "volume")}${unitStr}`.trim(),
         unit: item.unit ?? "",
       };
     });
@@ -120,7 +120,7 @@ export async function generateAssetRequestPdf(
     const pdfItems: OrderPdfItem[] = items.map((item, index) => ({
       no: index + 1,
       name_with_price: item.item_name ?? "-",
-      qty_display: formatNumber(item.qty, 2),
+      qty_display: formatNumber(item.qty, "volume"),
       unit: item.unit ?? "-",
       item_code: item.item_code ?? "-",
     }));

@@ -160,7 +160,7 @@ export const useMasterStore = create<MasterStore>((set, get) => ({
     // Reload prices for all items currently in map that might match
     const { itemPricesMap } = get();
     for (const [itemId, prices] of itemPricesMap) {
-      if (prices.some((p) => p.item_price_id === id)) {
+      if (prices.some((priceItem) => priceItem.item_price_id === id)) {
         await get().loadItemPrices(itemId);
         break;
       }
