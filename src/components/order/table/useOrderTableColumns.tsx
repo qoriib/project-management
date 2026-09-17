@@ -32,10 +32,29 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
       renderCell: (row: PORow) => <Timestamp value={row.order_date} format="system_date" size="base" />,
     },
     {
-      header: "Pekerjaan",
+      header: "Kelompok Pekerjaan",
       key: "group_name",
-      width: pixel(180),
-      renderCell: (row: PORow) => row.group_name ?? "-",
+      width: pixel(200),
+      renderCell: (row: PORow) => {
+        const groups = row.group_names || (row.group_name ? [row.group_name] : []);
+        if (groups.length === 0)
+          return (
+            <Text size="sm" color="secondary">
+              -
+            </Text>
+          );
+        return (
+          <OverflowList
+            gap={1}
+            minVisibleItems={1}
+            overflowRenderer={(overflowItems) => <Token label={`+${overflowItems.length}`} />}
+          >
+            {groups.map((g, idx) => (
+              <Token key={idx} label={g} />
+            ))}
+          </OverflowList>
+        );
+      },
     },
     {
       header: "Item",

@@ -219,7 +219,7 @@ export function OrderForm({ order }: OrderFormProps) {
                         <Selector
                           hasSearch
                           width={260}
-                          label="Kelompok Pekerjaan"
+                          label="Kelompok Pekerjaan (Default)"
                           searchPlaceholder="Pilih pekerjaan default..."
                           statusVariant="tooltip"
                           status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}

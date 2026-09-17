@@ -1,11 +1,11 @@
-import { EmptyState, Table, Text } from "@astryxdesign/core";
+import { EmptyState, Table, Text, Token } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { useOrderStore } from "@/store/useOrderStore";
 import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
-import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
 import type { OrderItemDetail } from "@/db/repositories";
 
 type TrackingRow = OrderItemDetail & Record<string, unknown>;
@@ -26,8 +26,21 @@ export function OrderItemTrackingTable() {
     {
       header: "Nama Item",
       key: "item_name",
-      width: proportional(1, { minWidth: 280 }),
+      width: proportional(1, { minWidth: 200 }),
       renderCell: (row) => row.item_name || "-",
+    },
+    {
+      header: "Kelompok Pekerjaan",
+      key: "group_name",
+      width: pixel(180),
+      renderCell: (row) =>
+        row.group_name ? (
+          <Token label={row.group_name} />
+        ) : (
+          <Text size="sm" color="secondary">
+            -
+          </Text>
+        ),
     },
     {
       header: "Satuan",

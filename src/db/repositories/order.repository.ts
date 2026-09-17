@@ -7,6 +7,7 @@ import { requirementGroupRepo } from "./requirement-group.repository";
 export type OrderWithSummary = Order & {
   project_name?: string;
   group_name?: string | null;
+  group_names?: string[];
   total_price?: number;
   item_count?: number;
   vendor_names?: string[];
@@ -23,6 +24,7 @@ export interface OrderFilters {
 interface RawOrderSummaryRow extends Order {
   project_name?: string;
   group_name?: string | null;
+  group_names?: string | null;
   total_price?: number;
   item_count?: number;
   vendor_names?: string | null;
@@ -72,12 +74,14 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
              projects.project_name,
              GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names,
              GROUP_CONCAT(DISTINCT items.item_name) as item_names,
+             GROUP_CONCAT(DISTINCT COALESCE(item_rg.group_name, requirement_groups.group_name)) as group_names,
              COALESCE(SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price,
              COUNT(order_items.order_item_id) as item_count
       FROM orders
       LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
       LEFT JOIN requirement_groups ON requirement_groups.requirement_group_id = orders.requirement_group_id AND requirement_groups.deleted_at IS NULL
       LEFT JOIN order_items ON order_items.order_id = orders.order_id
+      LEFT JOIN requirement_groups AS item_rg ON item_rg.requirement_group_id = order_items.requirement_group_id AND item_rg.deleted_at IS NULL
       LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
       LEFT JOIN item_prices ON item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL
       LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
@@ -91,6 +95,16 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
       ...row,
       vendor_names: row.vendor_names ? row.vendor_names.split(",").map((name) => name.trim()) : [],
       item_names: row.item_names ? row.item_names.split(",").map((name) => name.trim()) : [],
+      group_names: row.group_names
+        ? [
+            ...new Set(
+              row.group_names
+                .split(",")
+                .map((n) => n.trim())
+                .filter(Boolean),
+            ),
+          ]
+        : [],
     }));
   }
 
@@ -109,12 +123,14 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
              projects.project_name,
              GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names,
              GROUP_CONCAT(DISTINCT items.item_name) as item_names,
+             GROUP_CONCAT(DISTINCT COALESCE(item_rg.group_name, requirement_groups.group_name)) as group_names,
              COALESCE(SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price,
              COUNT(order_items.order_item_id) as item_count
       FROM orders
       LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
       LEFT JOIN requirement_groups ON requirement_groups.requirement_group_id = orders.requirement_group_id AND requirement_groups.deleted_at IS NULL
       LEFT JOIN order_items ON order_items.order_id = orders.order_id
+      LEFT JOIN requirement_groups AS item_rg ON item_rg.requirement_group_id = order_items.requirement_group_id AND item_rg.deleted_at IS NULL
       LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
       LEFT JOIN item_prices ON item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL
       LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
@@ -130,6 +146,16 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
       ...firstRow,
       vendor_names: firstRow.vendor_names ? firstRow.vendor_names.split(",").map((name) => name.trim()) : [],
       item_names: firstRow.item_names ? firstRow.item_names.split(",").map((name) => name.trim()) : [],
+      group_names: firstRow.group_names
+        ? [
+            ...new Set(
+              firstRow.group_names
+                .split(",")
+                .map((n) => n.trim())
+                .filter(Boolean),
+            ),
+          ]
+        : [],
     };
   }
 

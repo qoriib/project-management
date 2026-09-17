@@ -1,5 +1,5 @@
 import { Pencil, Trash2 } from "lucide-react";
-import { HStack, IconButton, Text } from "@astryxdesign/core";
+import { HStack, IconButton, Text, Token } from "@astryxdesign/core";
 import { EntityCode } from "@/components/shared/EntityCode";
 import { formatNumber, formatItemCode } from "@/utils/formatters";
 import { calcDPP, calcTax, calcLineTotal, TAX_RATIO_PERCENT } from "@/utils/calc";
@@ -31,10 +31,17 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       renderCell: (row) => row.item_name || "-",
     },
     {
-      header: "Pekerjaan",
+      header: "Kelompok Pekerjaan",
       key: "group_name",
-      width: pixel(160),
-      renderCell: (row) => row.group_name ?? "-",
+      width: pixel(180),
+      renderCell: (row) =>
+        row.group_name ? (
+          <Token label={row.group_name} />
+        ) : (
+          <Text size="sm" color="secondary">
+            -
+          </Text>
+        ),
     },
     {
       header: "Satuan",

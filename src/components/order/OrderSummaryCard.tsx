@@ -25,17 +25,7 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
   const isPartial = totalDeliveredQty > 0 && totalDeliveredQty < totalOrderedQty;
 
   return (
-    <Grid gap={3} columns={{ max: order.group_name ? 4 : 3, minWidth: 220 }}>
-      {order.group_name ? (
-        <GridSpan columns={1}>
-          <Card height="100%">
-            <Text size="sm" color="secondary" weight="medium" type="label">
-              Kelompok Pekerjaan
-            </Text>
-            <Heading level={3}>{order.group_name}</Heading>
-          </Card>
-        </GridSpan>
-      ) : null}
+    <Grid gap={3} columns={{ max: 3, minWidth: 220 }}>
       <GridSpan columns={1}>
         <Card height="100%">
           <Text size="sm" color="secondary" weight="medium" type="label">
@@ -65,7 +55,7 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
               color: isComplete ? "var(--color-success)" : isPartial ? "var(--color-blue)" : undefined,
             }}
           >
-            {completionPct.toFixed(0)}% Selesai
+            {completionPct.toFixed(0)}%
           </Heading>
         </Card>
       </GridSpan>
