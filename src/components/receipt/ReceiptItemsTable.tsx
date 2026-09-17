@@ -1,35 +1,18 @@
-import { useEffect, useState } from "react";
 import { Card, EmptyState, Table, Text, TextInput } from "@astryxdesign/core";
-import { useToast } from "@astryxdesign/core/Toast";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { formatItemCode, formatNumber, parseDecimalInput, sanitizeDecimalInput } from "@/utils/formatters";
-import { handleFormError } from "@/utils/form";
-import { useReceiptStore } from "@/store/useReceiptStore";
+import { formatItemCode, formatNumber, sanitizeDecimalInput } from "@/utils/formatters";
 import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { ReceiptItemRow } from "./form/receipt.schema";
 
 export interface ReceiptItemsTableProps {
   items: ReceiptItemRow[];
-  receiptId: string;
-  orderId: string;
-  onItemUpdated?: () => void;
+  /** Nilai qty yang dikontrol dari luar (dari form state parent) */
+  qtyValues: Record<string, string>;
+  onQtyChange: (orderItemId: string, value: string) => void;
 }
 
-export function ReceiptItemsTable({ items, receiptId, orderId, onItemUpdated }: ReceiptItemsTableProps) {
-  const showToast = useToast();
-  const { upsertReceiptItem } = useReceiptStore();
-
-  const [qtyValues, setQtyValues] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const initial: Record<string, string> = {};
-    for (const item of items) {
-      initial[item.order_item_id] = String(item.qty ?? "");
-    }
-    setQtyValues(initial);
-  }, [items]);
-
+export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItemsTableProps) {
   const columns: TableColumn<ReceiptItemRow>[] = [
     {
       header: "Kode Item",
@@ -98,22 +81,7 @@ export function ReceiptItemsTable({ items, receiptId, orderId, onItemUpdated }: 
           label="Volume Diterima"
           isLabelHidden
           value={qtyValues[row.order_item_id] ?? String(row.qty ?? "")}
-          onChange={(v) => {
-            setQtyValues((prev) => ({
-              ...prev,
-              [row.order_item_id]: sanitizeDecimalInput(v),
-            }));
-          }}
-          onBlur={async () => {
-            const currentVal = qtyValues[row.order_item_id] ?? String(row.qty ?? "");
-            try {
-              const numQty = parseDecimalInput(currentVal);
-              await upsertReceiptItem(receiptId, orderId, row.order_item_id, numQty);
-              onItemUpdated?.();
-            } catch (error: unknown) {
-              handleFormError(error, showToast);
-            }
-          }}
+          onChange={(v) => onQtyChange(row.order_item_id, sanitizeDecimalInput(v))}
         />
       ),
     },

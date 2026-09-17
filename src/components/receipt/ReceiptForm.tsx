@@ -1,27 +1,79 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, Heading, HStack, Text, TextInput, VStack } from "@astryxdesign/core";
-import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
+import { DateInput, DateInputProps } from "@astryxdesign/core/DateInput";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { useReceiptStore } from "@/store/useReceiptStore";
-import { getFieldError, handleFormError } from "@/utils/form";
-import type { ReceiptFormProps } from "./form/receipt.schema";
+import { handleFormError } from "@/utils/form";
+import { parseDecimalInput, todayISO } from "@/utils/formatters";
 import { useReceiptForm } from "./form/useReceiptForm";
 import { ReceiptItemsTable } from "./ReceiptItemsTable";
+import type { ReceiptFormProps } from "./form/receipt.schema";
 
 export type { ReceiptFormProps };
 
 export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
   const navigate = useNavigate();
   const showToast = useToast();
-  const { updateReceiptHeader } = useReceiptStore();
-  const { form, orderCode, orderId, items, loading, reloadData } = useReceiptForm({ receiptId });
+
+  const [qtyValues, setQtyValues] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  const { updateReceiptHeader, upsertReceiptItem } = useReceiptStore();
+  const {
+    orderCode,
+    orderId,
+    receiptCode,
+    setReceiptCode,
+    receiptDate,
+    setReceiptDate,
+    items,
+    loading
+  } = useReceiptForm(receiptId);
+
+  useEffect(() => {
+    const initial: Record<string, string> = {};
+    for (const item of items) {
+      initial[item.order_item_id] = String(item.qty ?? "");
+    }
+    setQtyValues(initial);
+  }, [items]);
 
   if (loading) {
-    return <LoadingState message="Memuat data penerimaan..." />;
-  }
+    return <LoadingState message="Memuat data penerimaan..." />
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      await updateReceiptHeader(receiptId, { receipt_code: receiptCode, receipt_date: receiptDate });
+
+      await Promise.all(
+        items.map((item) =>
+          upsertReceiptItem(
+            receiptId,
+            orderId,
+            item.order_item_id,
+            parseDecimalInput(qtyValues[item.order_item_id] ?? String(item.qty ?? "")),
+          ),
+        ),
+      );
+
+      if (onSuccess && orderId) {
+        onSuccess(orderId);
+      } else {
+        navigate({ to: orderId ? `/order/${orderId}` : "/receipt" });
+      }
+    } catch (error: unknown) {
+      handleFormError(error, showToast);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <Layout
@@ -31,24 +83,15 @@ export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
           <HStack gap={2} vAlign="center" hAlign="between">
             <VStack gap={0.5}>
               <Heading level={3}>Edit Penerimaan</Heading>
-              <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                Perbarui data penerimaan barang
-              </Text>
+              <Text color="secondary">Perbarui data penerimaan barang</Text>
             </VStack>
             <Button
               variant="primary"
               label="Simpan"
               type="button"
-              onClick={() => {
-                const poId = orderId || form.getFieldValue("order_id");
-                if (onSuccess && poId) {
-                  onSuccess(poId);
-                } else if (poId) {
-                  navigate({ to: `/order/${poId}` });
-                } else {
-                  navigate({ to: "/receipt" });
-                }
-              }}
+              isLoading={isSaving}
+              isDisabled={isSaving}
+              onClick={handleSave}
             />
           </HStack>
         </LayoutHeader>
@@ -59,65 +102,20 @@ export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
             <VStack gap={4}>
               <HStack gap={3} wrap="wrap">
                 <TextInput isReadOnly width={240} label="Nomor Pesanan (PO)" value={orderCode || "-"} />
-                <form.Field name="receipt_code">
-                  {(field) => (
-                    <TextInput
-                      isRequired
-                      width={240}
-                      label="Nomor Penerimaan"
-                      statusVariant="tooltip"
-                      value={field.state.value}
-                      onChange={(v) => field.handleChange(v)}
-                      onBlur={async () => {
-                        field.handleBlur();
-                        if (field.state.value) {
-                          try {
-                            await updateReceiptHeader(receiptId, { receipt_code: field.state.value });
-                          } catch (error: unknown) {
-                            handleFormError(error, showToast);
-                          }
-                        }
-                      }}
-                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                    />
-                  )}
-                </form.Field>
-                <form.Field name="receipt_date">
-                  {(field) => (
-                    <DateInput
-                      isRequired
-                      width={240}
-                      format="system_date"
-                      label="Tanggal Penerimaan"
-                      statusVariant="tooltip"
-                      value={field.state.value as DateInputProps["value"]}
-                      onChange={async (v) => {
-                        const val = v ?? "";
-                        field.handleChange(val);
-                        if (val) {
-                          try {
-                            await updateReceiptHeader(receiptId, { receipt_date: val });
-                          } catch (error: unknown) {
-                            handleFormError(error, showToast);
-                          }
-                        }
-                      }}
-                      onBlur={async () => {
-                        field.handleBlur();
-                        if (field.state.value) {
-                          try {
-                            await updateReceiptHeader(receiptId, { receipt_date: field.state.value });
-                          } catch (error: unknown) {
-                            handleFormError(error, showToast);
-                          }
-                        }
-                      }}
-                      status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                    />
-                  )}
-                </form.Field>
+                <TextInput width={240} label="Nomor Penerimaan" value={receiptCode} onChange={setReceiptCode} />
+                <DateInput
+                  width={240}
+                  format="system_date"
+                  label="Tanggal Penerimaan"
+                  value={receiptDate as DateInputProps["value"]}
+                  onChange={(v) => setReceiptDate(v ?? todayISO())}
+                />
               </HStack>
-              <ReceiptItemsTable items={items} receiptId={receiptId} orderId={orderId} onItemUpdated={reloadData} />
+              <ReceiptItemsTable
+                items={items}
+                qtyValues={qtyValues}
+                onQtyChange={(id, val) => setQtyValues((prev) => ({ ...prev, [id]: val }))}
+              />
             </VStack>
           </ProjectRequired>
         </LayoutContent>

@@ -1,51 +1,46 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm } from "@tanstack/react-form";
 import { useToast } from "@astryxdesign/core/Toast";
 import { handleFormError } from "@/utils/form";
+import { todayISO } from "@/utils/formatters";
 import { loadReceiptEditData } from "./receipt.utils";
-import { type ReceiptFormProps, type ReceiptItemRow, buildDefaultValues, receiptSchema } from "./receipt.schema";
+import type { ReceiptItemRow } from "./receipt.schema";
 
 /**
- * Custom hook yang mengorkestrasikan data form Receipt:
- * - Load data penerimaan, item pesanan (PO) terkait, dan kode PO
+ * Load dan orkestrasikan data form Penerimaan (header + items).
  */
-export function useReceiptForm({ receiptId }: Pick<ReceiptFormProps, "receiptId">) {
+export function useReceiptForm(receiptId: string) {
   const showToast = useToast();
   const toastRef = useRef(showToast);
   toastRef.current = showToast;
 
-  const [orderCode, setOrderCode] = useState<string>("");
-  const [orderId, setOrderId] = useState<string>("");
+  const [orderCode, setOrderCode] = useState("");
+  const [orderId, setOrderId] = useState("");
+  const [receiptCode, setReceiptCode] = useState("");
+  const [receiptDate, setReceiptDate] = useState(todayISO());
   const [items, setItems] = useState<ReceiptItemRow[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const form = useForm({
-    defaultValues: buildDefaultValues(null),
-    validators: { onChange: receiptSchema },
-  });
+  const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const editData = await loadReceiptEditData(receiptId);
-      if (editData !== null) {
-        setItems(editData.items);
-        setOrderId(editData.order_id);
-        if (editData.order_code) {
-          setOrderCode(editData.order_code);
-        }
-        form.reset(buildDefaultValues(editData));
+      const data = await loadReceiptEditData(receiptId);
+      if (data) {
+        setItems(data.items);
+        setOrderId(data.order_id);
+        if (data.order_code) setOrderCode(data.order_code);
+        if (data.receipt_code) setReceiptCode(data.receipt_code);
+        if (data.receipt_date) setReceiptDate(data.receipt_date);
       }
     } catch (error: unknown) {
       handleFormError(error, toastRef.current);
     } finally {
       setLoading(false);
     }
-  }, [receiptId, form]);
+  }, [receiptId]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  return { form, orderCode, orderId, items, setItems, loading, reloadData: loadData };
+  return { orderCode, orderId, receiptCode, setReceiptCode, receiptDate, setReceiptDate, items, loading };
 }
