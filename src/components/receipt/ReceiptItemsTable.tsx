@@ -37,6 +37,13 @@ export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItem
     },
     {
       align: "end",
+      header: "Harga (Rp)",
+      key: "price",
+      width: pixel(140),
+      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0, "currency")}</Text>,
+    },
+    {
+      align: "end",
       header: "Volume PO",
       key: "ordered",
       width: pixel(130),
@@ -81,13 +88,6 @@ export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItem
         />
       ),
     },
-    {
-      align: "end",
-      header: "Harga (Rp)",
-      key: "price",
-      width: pixel(160),
-      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0, "currency")}</Text>,
-    },
   ];
 
   const rowIndexPlugin = useTableRowIndex({
@@ -97,6 +97,7 @@ export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItem
 
   const stickyColumns = useTableStickyColumns<ReceiptItemRow>({
     startKeys: ["__rowIndex", "item_code", "item_name"],
+    endKeys: ["qty"],
   });
 
   return (
