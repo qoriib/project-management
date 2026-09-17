@@ -1,7 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Heading, HStack, Text, VStack } from "@astryxdesign/core";
+import { Button, Heading, HStack, IconButton, Text, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { useToast } from "@astryxdesign/core/Toast";
+import { Download } from "lucide-react";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { RequirementTable } from "@/components/requirement/RequirementTable";
 import { RequirementApprovalActions } from "@/components/requirement/RequirementApprovalActions";
@@ -11,11 +15,14 @@ import { useAppStore } from "@/store/useAppStore";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useRequirementStore } from "@/store/useRequirementStore";
 import { useRequirementGroupStore } from "@/store/useRequirementGroupStore";
+import { generateRequirementExcel } from "@/db/services/excel";
 import { calcBoqGrandTotal } from "@/utils/calc";
-import { formatNumber } from "@/utils/formatters";
+import { formatNumber, getTimestampString, sanitizeFilename } from "@/utils/formatters";
 
 function RequirementPage() {
+  const showToast = useToast();
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const projects = useMasterStore((state) => state.projects);
   const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const currentProject = projects.find((project) => project.project_id === selectedProjectId);
@@ -28,6 +35,31 @@ function RequirementPage() {
   const dispatchCreate = useCallback(() => {
     window.dispatchEvent(new CustomEvent("openRequirementCreate"));
   }, []);
+
+  const handleExportExcel = useCallback(async () => {
+    if (!selectedProjectId) return;
+    try {
+      setIsExporting(true);
+      const timestamp = getTimestampString();
+      const projectName = sanitizeFilename(currentProject?.project_name ?? "Proyek");
+      const filePath = await save({
+        filters: [{ name: "Excel", extensions: ["xlsx"] }],
+        defaultPath: `${timestamp}_BOQ_${projectName}.xlsx`,
+        title: "Simpan Laporan BOQ Excel",
+      });
+
+      if (filePath) {
+        const buffer = await generateRequirementExcel(selectedProjectId);
+        await writeFile(filePath, buffer);
+        showToast({ body: "Laporan BOQ Excel berhasil diunduh!", type: "info" });
+      }
+    } catch (error) {
+      console.error("Export BOQ Excel failed:", error);
+      showToast({ body: "Gagal mengunduh laporan BOQ.", type: "error" });
+    } finally {
+      setIsExporting(false);
+    }
+  }, [selectedProjectId, currentProject, showToast]);
 
   useKeyboardShortcut({
     key: "n",
@@ -49,7 +81,18 @@ function RequirementPage() {
                   Daftar dan rincian kebutuhan item
                 </Text>
               </VStack>
-              <RequirementApprovalActions />
+              <HStack gap={2} vAlign="center">
+                <RequirementApprovalActions />
+                {selectedProjectId ? (
+                  <IconButton
+                    variant="secondary"
+                    icon={<Download />}
+                    label="Export Excel"
+                    onClick={handleExportExcel}
+                    isLoading={isExporting}
+                  />
+                ) : null}
+              </HStack>
             </HStack>
           </LayoutHeader>
         }
