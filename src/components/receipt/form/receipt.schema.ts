@@ -8,22 +8,10 @@ export const receiptSchema = v.object({
   items: v.array(v.any()),
 });
 
+import type { ReceiptItemDetail } from "@/store/useReceiptStore";
+
 /** Satu baris item receipt dalam form */
-export interface ReceiptItemRow extends Record<string, unknown> {
-  order_item_id: string;
-  item_id: string | null;
-  item_name: string;
-  category_prefix?: string | null;
-  category_code?: string | null;
-  item_code?: string | null;
-  price?: number;
-  item_price_id?: string | null;
-  unit: string;
-  remaining: number;
-  qty: string | number;
-  ordered: number;
-  delivered: number;
-}
+export type ReceiptItemRow = ReceiptItemDetail;
 
 export interface ReceiptFormValues {
   order_id: string;
