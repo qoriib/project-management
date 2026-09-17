@@ -15,7 +15,7 @@ interface OrderTableProps {
 
 export function OrderTable({ onEdit }: OrderTableProps) {
   const showToast = useToast();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
 
   const [deletingId, setDeletingId] = useState<{ id: string; label: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);

@@ -16,7 +16,7 @@ import { type RequirementFormProps, requirementSchema, buildDefaultValues } from
  */
 export function useRequirementForm({ initialData, initialGroupId, onSuccess }: RequirementFormProps) {
   const showToast = useToast();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { items } = useMasterStore();
   const { createRequirement, updateRequirement } = useRequirementStore();
 

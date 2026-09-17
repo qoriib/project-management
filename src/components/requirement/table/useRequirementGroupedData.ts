@@ -27,7 +27,10 @@ export function useRequirementGroupedData(
     [groups],
   );
 
-  const hasNonPaguGroups = useMemo(() => sortedGroups.some((g) => !g.budget || g.budget <= 0), [sortedGroups]);
+  const hasNonPaguGroups = useMemo(
+    () => sortedGroups.some((group) => !group.budget || group.budget <= 0),
+    [sortedGroups],
+  );
 
   const displayRequirements = useMemo<RequirementRow[]>(() => {
     const result: RequirementRow[] = [];
@@ -57,9 +60,9 @@ export function useRequirementGroupedData(
       }
 
       const groupReqs = requirements.filter(
-        (r) =>
-          r.requirement_group_id === group.requirement_group_id ||
-          (!r.requirement_group_id && r.group_name === group.group_name),
+        (req) =>
+          req.requirement_group_id === group.requirement_group_id ||
+          (!req.requirement_group_id && req.group_name === group.group_name),
       );
 
       if (groupReqs.length === 0) {
@@ -116,7 +119,7 @@ export function useRequirementGroupedData(
     }
 
     // Item kebutuhan yang belum terelasi ke kelompok terdaftar (jika ada)
-    const remainingReqs = requirements.filter((r) => !processedReqIds.has(r.requirement_id));
+    const remainingReqs = requirements.filter((req) => !processedReqIds.has(req.requirement_id));
     for (const req of remainingReqs) {
       result.push({ ...req });
     }
@@ -126,16 +129,16 @@ export function useRequirementGroupedData(
 
   const groupOrder = useMemo(() => {
     const list: string[] = [];
-    for (const g of sortedGroups) {
-      if (!g.budget || g.budget <= 0) {
-        if (g.group_name && !list.includes(g.group_name)) {
-          list.push(g.group_name);
+    for (const group of sortedGroups) {
+      if (!group.budget || group.budget <= 0) {
+        if (group.group_name && !list.includes(group.group_name)) {
+          list.push(group.group_name);
         }
       }
     }
     for (const req of requirements) {
-      const g = groups.find((gr) => gr.requirement_group_id === req.requirement_group_id);
-      if (!g || !g.budget || g.budget <= 0) {
+      const matchedGroup = groups.find((group) => group.requirement_group_id === req.requirement_group_id);
+      if (!matchedGroup || !matchedGroup.budget || matchedGroup.budget <= 0) {
         if (req.group_name && !list.includes(req.group_name)) {
           list.push(req.group_name);
         }

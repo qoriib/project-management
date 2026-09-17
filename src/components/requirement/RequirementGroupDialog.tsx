@@ -31,7 +31,7 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { RequirementGroup } from "@/db/repositories";
 import * as v from "valibot";
 
-interface GroupRow extends RequirementGroup, Record<string, unknown> { }
+interface GroupRow extends RequirementGroup, Record<string, unknown> {}
 
 const groupSchema = v.object({
   group_name: v.pipe(
@@ -50,9 +50,9 @@ interface RequirementGroupDialogProps {
 
 export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: RequirementGroupDialogProps) {
   const showToast = useToast();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const projects = useMasterStore((s) => s.projects);
-  const currentProject = projects.find((p) => p.project_id === selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const projects = useMasterStore((state) => state.projects);
+  const currentProject = projects.find((project) => project.project_id === selectedProjectId);
   const isApproved = currentProject?.requirements_is_approved === 1;
 
   const { groups, loadGroups, createGroup, updateGroup, deleteGroup } = useRequirementGroupStore();
@@ -160,7 +160,7 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
       key: "budget",
       width: pixel(180),
       renderCell: (row: RequirementGroup) =>
-        row.budget && row.budget > 0 ? <Text type="code">Rp {formatNumber(row.budget, 2)}</Text> : "-",
+        row.budget && row.budget > 0 ? <Text type="code">Rp {formatNumber(row.budget, "currency")}</Text> : "-",
     },
     {
       align: "end",
@@ -260,9 +260,9 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
                   emptyState={<EmptyState isCompact title="Belum ada kelompok pekerjaan" />}
                 />
                 <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
                     form.handleSubmit();
                   }}
                 >

@@ -5,9 +5,9 @@ export function UnitDisplayCell({ form }: CellFormProps) {
   const { items: masterItems } = useMasterStore();
 
   return (
-    <form.Subscribe selector={(s) => s.values.item_id}>
+    <form.Subscribe selector={(state) => state.values.item_id}>
       {(itemId) => {
-        const item = masterItems.find((i) => i.item_id === itemId);
+        const item = masterItems.find((masterItem) => masterItem.item_id === itemId);
         return item?.unit_name ?? "-";
       }}
     </form.Subscribe>

@@ -39,7 +39,7 @@ export interface OrderFormProps {
 export function OrderForm({ order }: OrderFormProps) {
   const navigate = useNavigate();
   const showToast = useToast();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<OrderItemDetail | undefined>(undefined);
@@ -55,9 +55,9 @@ export function OrderForm({ order }: OrderFormProps) {
     }
   }, [selectedProjectId, loadGroups]);
 
-  const groupOptions = groups.map((g) => ({
-    label: g.group_name,
-    value: String(g.requirement_group_id),
+  const groupOptions = groups.map((group) => ({
+    label: group.group_name,
+    value: String(group.requirement_group_id),
   }));
 
   const grandTotal = useMemo(() => calcGrandTotal(items), [items]);
@@ -165,7 +165,7 @@ export function OrderForm({ order }: OrderFormProps) {
                           label="Nomor Order"
                           statusVariant="tooltip"
                           value={field.state.value}
-                          onChange={(v) => field.handleChange(v ?? "")}
+                          onChange={(val) => field.handleChange(val ?? "")}
                           onBlur={async () => {
                             field.handleBlur();
                             if (order && field.state.value && field.state.value !== order.order_code) {
@@ -189,8 +189,8 @@ export function OrderForm({ order }: OrderFormProps) {
                           label="Tanggal Order"
                           statusVariant="tooltip"
                           value={field.state.value as DateInputProps["value"]}
-                          onChange={async (v) => {
-                            const val = v ?? "";
+                          onChange={async (dateVal) => {
+                            const val = dateVal ?? "";
                             field.handleChange(val);
                             if (order && val && val !== order.order_date) {
                               try {
@@ -266,7 +266,7 @@ export function OrderForm({ order }: OrderFormProps) {
                     Total:
                   </Text>
                   <Text type="code" weight="bold" size="lg" color="primary">
-                    Rp {formatNumber(grandTotal, 2)}
+                    Rp {formatNumber(grandTotal, "currency")}
                   </Text>
                 </HStack>
               </HStack>

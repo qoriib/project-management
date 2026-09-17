@@ -54,18 +54,14 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => (
-        <Text type="code" weight="medium">
-          {formatNumber(row.qty, 5)}
-        </Text>
-      ),
+      renderCell: (row) => <Text type="code">{formatNumber(row.qty, "volume")}</Text>,
     },
     {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
       width: pixel(180),
-      renderCell: (row) => <Text type="code">{formatNumber(row.price, 2)}</Text>,
+      renderCell: (row) => <Text type="code">{formatNumber(row.price, "currency")}</Text>,
     },
     {
       header: "Vendor",
@@ -80,7 +76,7 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       width: pixel(180),
       renderCell: (row) => {
         const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        return <Text type="code">{formatNumber(subtotal, 2)}</Text>;
+        return <Text type="code">{formatNumber(subtotal, "currency")}</Text>;
       },
     },
     {
@@ -91,7 +87,7 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
       renderCell: (row) => {
         const dpp = calcDPP(row.qty, row.price);
         const taxAmount = calcTax(dpp, row.has_tax);
-        return row.has_tax ? <Text type="code">{formatNumber(taxAmount, 2)}</Text> : "-";
+        return row.has_tax ? <Text type="code">{formatNumber(taxAmount, "currency")}</Text> : "-";
       },
     },
     {
@@ -104,7 +100,7 @@ export function useOrderItemFormColumns({ onEdit, setDeleteTarget }: UseOrderIte
         const total = calcLineTotal(dpp, row.has_tax);
         return (
           <Text type="code" weight="bold">
-            {formatNumber(total, 2)}
+            {formatNumber(total, "currency")}
           </Text>
         );
       },

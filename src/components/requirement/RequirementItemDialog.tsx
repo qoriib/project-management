@@ -41,7 +41,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData, initialGro
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
   const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
 
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { items, itemPricesMap, loadItemPrices } = useMasterStore();
   const { groups, loadGroups } = useRequirementGroupStore();
 
@@ -60,13 +60,15 @@ export function RequirementItemDialog({ isOpen, onClose, initialData, initialGro
   });
 
   const groupOptions = groups
-    .filter((g) => !g.budget || g.budget <= 0 || g.requirement_group_id === initialData?.requirement_group_id)
-    .map((g) => ({
-      label: g.group_name,
-      value: String(g.requirement_group_id),
+    .filter(
+      (group) => !group.budget || group.budget <= 0 || group.requirement_group_id === initialData?.requirement_group_id,
+    )
+    .map((group) => ({
+      label: group.group_name,
+      value: String(group.requirement_group_id),
     }));
 
-  const selectedItemId = useSelector(form.store, (s) => s.values.item_id);
+  const selectedItemId = useSelector(form.store, (state) => state.values.item_id);
 
   useEffect(() => {
     if (selectedItemId) {
@@ -74,11 +76,11 @@ export function RequirementItemDialog({ isOpen, onClose, initialData, initialGro
     }
   }, [selectedItemId, loadItemPrices]);
 
-  const selectedItem = items.find((i) => i.item_id === selectedItemId);
+  const selectedItem = items.find((item) => item.item_id === selectedItemId);
   const selectedItemCode = selectedItem ? formatItemCode(selectedItem) : "";
-  const priceOptions = (itemPricesMap.get(selectedItemId ?? "") ?? []).map((p) => ({
-    label: `Rp ${formatNumber(p.price, 2)}`,
-    value: String(p.item_price_id),
+  const priceOptions = (itemPricesMap.get(selectedItemId ?? "") ?? []).map((priceItem) => ({
+    label: `Rp ${formatNumber(priceItem.price, "currency")}`,
+    value: String(priceItem.item_price_id),
   }));
 
   const itemOptions = items.map((item) => ({
@@ -90,9 +92,9 @@ export function RequirementItemDialog({ isOpen, onClose, initialData, initialGro
     <>
       <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh">
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
             form.handleSubmit();
           }}
         >
@@ -238,19 +240,21 @@ export function RequirementItemDialog({ isOpen, onClose, initialData, initialGro
 
                   {/* Ringkasan Subtotal, PPN, dan Total */}
                   <form.Subscribe
-                    selector={(s) => ({
-                      itemId: s.values.item_id,
-                      priceId: s.values.item_price_id,
-                      qty: s.values.qty,
-                      hasTax: s.values.has_tax,
+                    selector={(state) => ({
+                      itemId: state.values.item_id,
+                      priceId: state.values.item_price_id,
+                      qty: state.values.qty,
+                      hasTax: state.values.has_tax,
                     })}
                   >
                     {({ itemId, priceId, qty, hasTax }) => {
                       let priceNum = 0;
                       if (itemId && priceId) {
                         const prices = itemPricesMap.get(itemId) ?? [];
-                        const pObj = prices.find((p) => String(p.item_price_id) === String(priceId));
-                        if (pObj) priceNum = pObj.price;
+                        const priceObj = prices.find(
+                          (priceItem) => String(priceItem.item_price_id) === String(priceId),
+                        );
+                        if (priceObj) priceNum = priceObj.price;
                       }
                       return <ItemPriceSummaryCard price={priceNum} qty={qty} hasTax={hasTax} />;
                     }}

@@ -53,7 +53,7 @@ export function OrderItemDialog({
   const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
   const [isVendorFormOpen, setIsVendorFormOpen] = useState(false);
 
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
   const { groups, loadGroups } = useRequirementGroupStore();
   const { items, itemPricesMap, vendors, loadItemPrices } = useMasterStore();
 
@@ -72,12 +72,12 @@ export function OrderItemDialog({
     },
   });
 
-  const groupOptions = groups.map((g) => ({
-    label: g.group_name,
-    value: String(g.requirement_group_id),
+  const groupOptions = groups.map((group) => ({
+    label: group.group_name,
+    value: String(group.requirement_group_id),
   }));
 
-  const selectedItemId = useSelector(form.store, (s) => s.values.item_id);
+  const selectedItemId = useSelector(form.store, (state) => state.values.item_id);
 
   useEffect(() => {
     if (selectedItemId) {
@@ -85,16 +85,16 @@ export function OrderItemDialog({
     }
   }, [selectedItemId, loadItemPrices]);
 
-  const selectedItem = items.find((i) => i.item_id === selectedItemId);
+  const selectedItem = items.find((item) => item.item_id === selectedItemId);
   const selectedItemCode = selectedItem ? formatItemCode(selectedItem) : "";
-  const priceOptions = (itemPricesMap.get(selectedItemId) ?? []).map((p) => ({
-    label: `Rp ${formatNumber(p.price, 2)}`,
-    value: String(p.item_price_id),
+  const priceOptions = (itemPricesMap.get(selectedItemId) ?? []).map((priceItem) => ({
+    label: `Rp ${formatNumber(priceItem.price, "currency")}`,
+    value: String(priceItem.item_price_id),
   }));
 
-  const vendorOptions = vendors.map((v) => ({
-    label: v.vendor_name,
-    value: String(v.vendor_id),
+  const vendorOptions = vendors.map((vendor) => ({
+    label: vendor.vendor_name,
+    value: String(vendor.vendor_id),
   }));
 
   const itemOptions = items.map((item) => ({
@@ -106,9 +106,9 @@ export function OrderItemDialog({
     <>
       <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh">
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
             form.handleSubmit();
           }}
         >
@@ -283,19 +283,21 @@ export function OrderItemDialog({
 
                   {/* Realtime calculation summary card */}
                   <form.Subscribe
-                    selector={(s) => ({
-                      itemId: s.values.item_id,
-                      priceId: s.values.item_price_id,
-                      qty: s.values.qty,
-                      hasTax: s.values.has_tax,
+                    selector={(state) => ({
+                      itemId: state.values.item_id,
+                      priceId: state.values.item_price_id,
+                      qty: state.values.qty,
+                      hasTax: state.values.has_tax,
                     })}
                   >
                     {({ itemId, priceId, qty, hasTax }) => {
                       let priceNum = 0;
                       if (itemId && priceId) {
                         const prices = itemPricesMap.get(itemId) ?? [];
-                        const pObj = prices.find((p) => String(p.item_price_id) === String(priceId));
-                        if (pObj) priceNum = pObj.price;
+                        const priceObj = prices.find(
+                          (priceItem) => String(priceItem.item_price_id) === String(priceId),
+                        );
+                        if (priceObj) priceNum = priceObj.price;
                       }
                       return <ItemPriceSummaryCard price={priceNum} qty={qty} hasTax={hasTax} />;
                     }}

@@ -23,9 +23,9 @@ export function RequirementTable() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const projects = useMasterStore((s) => s.projects);
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const currentProject = projects.find((p) => p.project_id === selectedProjectId);
+  const projects = useMasterStore((state) => state.projects);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const currentProject = projects.find((project) => project.project_id === selectedProjectId);
   const isApproved = currentProject?.requirements_is_approved === 1;
 
   const handleOpenAdd = useCallback((groupId?: string) => {

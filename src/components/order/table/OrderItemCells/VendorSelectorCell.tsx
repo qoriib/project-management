@@ -13,9 +13,9 @@ export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSele
   return (
     <form.Field name="vendor_id">
       {(field) => {
-        const options = vendors.map((v) => ({
-          label: v.vendor_name,
-          value: String(v.vendor_id),
+        const options = vendors.map((vendor) => ({
+          label: vendor.vendor_name,
+          value: String(vendor.vendor_id),
         }));
 
         return (
@@ -26,7 +26,7 @@ export function VendorSelectorCell({ form, vendors, onAddNewVendor }: VendorSele
                 isLabelHidden
                 options={options}
                 value={field.state.value}
-                onChange={(v) => field.handleChange(v)}
+                onChange={(val) => field.handleChange(val)}
                 onBlur={field.handleBlur}
                 hasSearch
                 searchPlaceholder="Cari vendor..."

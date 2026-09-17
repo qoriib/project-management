@@ -11,7 +11,7 @@ import { type ReceiptRow, useReceiptColumns } from "./table/useReceiptColumns";
 
 export function ReceiptTable() {
   const showToast = useToast();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);

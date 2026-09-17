@@ -75,14 +75,10 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       renderCell: (row) =>
         withBoqItemOnly(
           row,
-          () => (
-            <Text type="code" weight="medium">
-              {formatNumber(row.qty, 5)}
-            </Text>
-          ),
+          () => <Text type="code">{formatNumber(row.qty, "volume")}</Text>,
           () => (
             <Text type="code" weight="bold">
-              {formatNumber(row.subtotal_volume ?? 0, 5)}
+              {formatNumber(row.subtotal_volume ?? 0, "volume")}
             </Text>
           ),
         ),
@@ -92,7 +88,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       header: "Harga (Rp)",
       key: "price",
       width: pixel(180),
-      renderCell: (row) => withBoqItemOnly(row, () => <Text type="code">{formatNumber(row.price, 2)}</Text>),
+      renderCell: (row) => withBoqItemOnly(row, () => <Text type="code">{formatNumber(row.price, "currency")}</Text>),
     },
     {
       align: "end",
@@ -102,10 +98,10 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
       renderCell: (row) =>
         withBoqItemOnly(
           row,
-          () => <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0), 2)}</Text>,
+          () => <Text type="code">{formatNumber((row.qty ?? 0) * (row.price ?? 0), "currency")}</Text>,
           () => (
             <Text type="code" weight="bold">
-              {formatNumber(row.subtotal_dpp ?? 0, 2)}
+              {formatNumber(row.subtotal_dpp ?? 0, "currency")}
             </Text>
           ),
         ),
@@ -121,12 +117,12 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
           () => {
             const dpp = calcDPP(row.qty, row.price);
             const taxAmount = calcTax(dpp, row.has_tax);
-            return row.has_tax ? <Text type="code">{formatNumber(taxAmount, 2)}</Text> : "-";
+            return row.has_tax ? <Text type="code">{formatNumber(taxAmount, "currency")}</Text> : "-";
           },
           () =>
             (row.subtotal_tax ?? 0) > 0 ? (
               <Text type="code" weight="bold">
-                {formatNumber(row.subtotal_tax ?? 0, 2)}
+                {formatNumber(row.subtotal_tax ?? 0, "currency")}
               </Text>
             ) : (
               "-"
@@ -142,7 +138,7 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
         if (row.is_group_footer) {
           return (
             <Text type="code" weight="bold" color="primary">
-              {formatNumber(row.subtotal_total ?? 0, 2)}
+              {formatNumber(row.subtotal_total ?? 0, "currency")}
             </Text>
           );
         }
@@ -150,14 +146,14 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
         if (row.is_pagu_account) {
           return (
             <Text type="code" weight="bold">
-              {formatNumber(row.price, 2)}
+              {formatNumber(row.price, "currency")}
             </Text>
           );
         }
         const total = calcLineTotal(calcDPP(row.qty, row.price), row.has_tax);
         return (
           <Text type="code" weight="bold">
-            {formatNumber(total, 2)}
+            {formatNumber(total, "currency")}
           </Text>
         );
       },

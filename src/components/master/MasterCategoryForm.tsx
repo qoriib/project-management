@@ -42,7 +42,7 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
 
   const nextCategoryCode = useMemo(() => {
     if (initialData) return initialData.category_code || "";
-    return generateNextCode(categories.map((c) => c.category_code));
+    return generateNextCode(categories.map((cat) => cat.category_code));
   }, [categories, initialData]);
 
   const form = useForm({
@@ -74,9 +74,9 @@ export function MasterCategoryForm({ isOpen, onClose, initialData }: MasterCateg
   return (
     <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           form.handleSubmit();
         }}
       >

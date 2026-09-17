@@ -45,7 +45,7 @@ export function MasterItemForm({ isOpen, onClose, initialData, onSuccess }: Mast
 
   const nextItemCode = useMemo(() => {
     if (initialData) return initialData.item_code || "";
-    return generateNextCode(items.map((i) => i.item_code));
+    return generateNextCode(items.map((item) => item.item_code));
   }, [items, initialData]);
 
   const fallbackDefaults = useMemo(
@@ -106,9 +106,9 @@ export function MasterItemForm({ isOpen, onClose, initialData, onSuccess }: Mast
   return (
     <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           form.handleSubmit();
         }}
       >

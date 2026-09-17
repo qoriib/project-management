@@ -13,7 +13,7 @@ export function QtyInputCell({ form }: QtyInputCellProps) {
           label="Volume"
           isLabelHidden
           value={String(field.state.value ?? "")}
-          onChange={(v) => field.handleChange(sanitizeDecimalInput(v))}
+          onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
           onBlur={field.handleBlur}
           statusVariant="tooltip"
           status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}

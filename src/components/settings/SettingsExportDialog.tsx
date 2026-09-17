@@ -28,9 +28,9 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
     }
   }, [isOpen, projects]);
 
-  const projectOptions = projects.map((p) => ({
-    label: p.project_name,
-    value: p.project_id,
+  const projectOptions = projects.map((project) => ({
+    label: project.project_name,
+    value: project.project_id,
   }));
 
   const handleExport = () => {
@@ -54,9 +54,9 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
       }}
     >
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           handleExport();
         }}
       >

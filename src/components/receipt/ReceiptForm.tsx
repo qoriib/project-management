@@ -23,16 +23,8 @@ export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   const { updateReceiptHeader, upsertReceiptItem } = useReceiptStore();
-  const {
-    orderCode,
-    orderId,
-    receiptCode,
-    setReceiptCode,
-    receiptDate,
-    setReceiptDate,
-    items,
-    loading
-  } = useReceiptForm(receiptId);
+  const { orderCode, orderId, receiptCode, setReceiptCode, receiptDate, setReceiptDate, items, loading } =
+    useReceiptForm(receiptId);
 
   useEffect(() => {
     const initial: Record<string, string> = {};
@@ -43,8 +35,8 @@ export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
   }, [items]);
 
   if (loading) {
-    return <LoadingState message="Memuat data penerimaan..." />
-  };
+    return <LoadingState message="Memuat data penerimaan..." />;
+  }
 
   const handleSave = async () => {
     try {
@@ -108,7 +100,7 @@ export function ReceiptForm({ receiptId, onSuccess }: ReceiptFormProps) {
                   format="system_date"
                   label="Tanggal Penerimaan"
                   value={receiptDate as DateInputProps["value"]}
-                  onChange={(v) => setReceiptDate(v ?? todayISO())}
+                  onChange={(dateVal) => setReceiptDate(dateVal ?? todayISO())}
                 />
               </HStack>
               <ReceiptItemsTable

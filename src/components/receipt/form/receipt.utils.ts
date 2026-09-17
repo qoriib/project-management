@@ -23,28 +23,28 @@ export async function loadReceiptEditData(receiptId: string): Promise<{
     receiptRepo.findItems(receiptId),
   ]);
 
-  const items: ReceiptItemRow[] = orderItems.map((i) => {
-    const existingDelivItem = delivItems.find((di) => di.order_item_id === i.order_item_id);
+  const items: ReceiptItemRow[] = orderItems.map((item) => {
+    const existingDelivItem = delivItems.find((delivItem) => delivItem.order_item_id === item.order_item_id);
     const oldQty = existingDelivItem?.qty ?? 0;
-    const originalSisa = i.remaining ?? 0;
+    const originalSisa = item.remaining ?? 0;
     const restoredSisa = originalSisa + oldQty; // kembalikan sisa yang sudah dipakai
-    const originalDelivered = (i.total_delivered ?? 0) - oldQty;
-    const item_name = i.item_name ?? "";
-    const unit = i.unit ?? "";
+    const originalDelivered = (item.total_delivered ?? 0) - oldQty;
+    const item_name = item.item_name ?? "";
+    const unit = item.unit ?? "";
 
     return {
       delivered: originalDelivered,
-      item_id: i.item_id,
+      item_id: item.item_id,
       item_name,
-      category_prefix: i.category_prefix,
-      category_code: i.category_code,
-      item_code: i.item_code,
-      price: i.price,
-      item_price_id: i.item_price_id,
-      ordered: i.qty ?? 0,
-      order_item_id: i.order_item_id,
-      qty: oldQty,
+      category_prefix: item.category_prefix,
+      category_code: item.category_code,
+      item_code: item.item_code,
+      price: item.price,
+      item_price_id: item.item_price_id,
+      ordered: item.qty ?? 0,
+      order_item_id: item.order_item_id,
       remaining: restoredSisa,
+      qty: oldQty,
       unit,
     };
   });

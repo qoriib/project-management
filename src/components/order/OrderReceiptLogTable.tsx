@@ -45,11 +45,7 @@ export function OrderReceiptLogTable() {
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => (
-        <Text type="code" weight="medium">
-          {formatNumber(row.qty, 5)}
-        </Text>
-      ),
+      renderCell: (row) => <Text type="code">{formatNumber(row.qty, "volume")}</Text>,
     },
     {
       align: "end",

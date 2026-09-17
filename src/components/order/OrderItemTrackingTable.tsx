@@ -53,18 +53,14 @@ export function OrderItemTrackingTable() {
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => (
-        <Text type="code" weight="medium">
-          {formatNumber(row.qty, 5)}
-        </Text>
-      ),
+      renderCell: (row) => <Text type="code">{formatNumber(row.qty, "volume")}</Text>,
     },
     {
       align: "end",
       header: "Harga (Rp)",
       key: "price",
       width: pixel(180),
-      renderCell: (row) => <Text type="code">{formatNumber(row.price, 2)}</Text>,
+      renderCell: (row) => <Text type="code">{formatNumber(row.price, "currency")}</Text>,
     },
     {
       align: "end",
@@ -73,7 +69,7 @@ export function OrderItemTrackingTable() {
       width: pixel(180),
       renderCell: (row) => {
         const subtotal = (row.qty ?? 0) * (row.price ?? 0);
-        return <Text type="code">{formatNumber(subtotal, 2)}</Text>;
+        return <Text type="code">{formatNumber(subtotal, "currency")}</Text>;
       },
     },
     {
@@ -85,7 +81,7 @@ export function OrderItemTrackingTable() {
         const dpp = calcDPP(row.qty, row.price);
         const taxAmount = calcTax(dpp, row.has_tax);
         return row.has_tax ? (
-          <Text type="code">{formatNumber(taxAmount, 2)}</Text>
+          <Text type="code">{formatNumber(taxAmount, "currency")}</Text>
         ) : (
           <Text size="sm" color="secondary">
             -
@@ -103,7 +99,7 @@ export function OrderItemTrackingTable() {
         const total = calcLineTotal(dpp, row.has_tax);
         return (
           <Text type="code" weight="bold">
-            {formatNumber(total, 2)}
+            {formatNumber(total, "currency")}
           </Text>
         );
       },
@@ -125,7 +121,7 @@ export function OrderItemTrackingTable() {
             max={total || 1}
             label={`${pct.toFixed(0)}%`}
             hasValueLabel
-            formatValueLabel={() => `${formatNumber(delivered, 5)} / ${formatNumber(total, 5)}`}
+            formatValueLabel={() => `${formatNumber(delivered, "volume")} / ${formatNumber(total, "volume")}`}
             variant={variant}
           />
         );

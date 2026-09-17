@@ -40,11 +40,7 @@ export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItem
       header: "Volume PO",
       key: "ordered",
       width: pixel(130),
-      renderCell: (row) => (
-        <Text type="code" weight="medium">
-          {formatNumber(row.ordered ?? 0, 5)}
-        </Text>
-      ),
+      renderCell: (row) => <Text type="code">{formatNumber(row.ordered ?? 0, "volume")}</Text>,
     },
     {
       align: "end",
@@ -53,7 +49,7 @@ export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItem
       width: pixel(130),
       renderCell: (row) => (
         <Text type="code" color="secondary">
-          {formatNumber(row.delivered ?? 0, 5)}
+          {formatNumber(row.delivered ?? 0, "volume")}
         </Text>
       ),
     },
@@ -66,7 +62,7 @@ export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItem
         const sisa = row.remaining ?? 0;
         return (
           <Text type="code" weight={sisa > 0 ? "bold" : "normal"} color={sisa > 0 ? "primary" : "secondary"}>
-            {formatNumber(sisa, 5)}
+            {formatNumber(sisa, "volume")}
           </Text>
         );
       },
@@ -81,7 +77,7 @@ export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItem
           label="Volume Diterima"
           isLabelHidden
           value={qtyValues[row.order_item_id] ?? String(row.qty ?? "")}
-          onChange={(v) => onQtyChange(row.order_item_id, sanitizeDecimalInput(v))}
+          onChange={(val) => onQtyChange(row.order_item_id, sanitizeDecimalInput(val))}
         />
       ),
     },
@@ -90,7 +86,7 @@ export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItem
       header: "Harga (Rp)",
       key: "price",
       width: pixel(160),
-      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0, 2)}</Text>,
+      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0, "currency")}</Text>,
     },
   ];
 

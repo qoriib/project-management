@@ -8,10 +8,10 @@ export function SubtotalCell({ form }: CellFormProps) {
 
   return (
     <form.Subscribe
-      selector={(s) => ({
-        itemId: s.values.item_id,
-        priceId: s.values.item_price_id,
-        qty: s.values.qty,
+      selector={(state) => ({
+        itemId: state.values.item_id,
+        priceId: state.values.item_price_id,
+        qty: state.values.qty,
       })}
     >
       {({ qty, priceId, itemId }) => {
@@ -19,14 +19,14 @@ export function SubtotalCell({ form }: CellFormProps) {
 
         if (itemId && priceId) {
           const prices = itemPricesMap.get(itemId) ?? [];
-          const priceObj = prices.find((p) => String(p.item_price_id) === String(priceId));
+          const priceObj = prices.find((priceItem) => String(priceItem.item_price_id) === String(priceId));
           if (priceObj) {
             priceNum = priceObj.price;
           }
         }
 
         const numQty = parseDecimalInput(qty);
-        return <Text type="code">{formatNumber(numQty * priceNum, 2)}</Text>;
+        return <Text type="code">{formatNumber(numQty * priceNum, "currency")}</Text>;
       }}
     </form.Subscribe>
   );

@@ -22,19 +22,19 @@ export function ItemPriceSummaryCard({ price, qty, hasTax }: ItemPriceSummaryCar
           <Text size="sm" color="secondary">
             Subtotal
           </Text>
-          <Text type="code">Rp {formatNumber(dpp, 2)}</Text>
+          <Text type="code">Rp {formatNumber(dpp, "currency")}</Text>
         </HStack>
         <HStack justify="between">
           <Text size="sm" color="secondary">
             PPn ({TAX_RATIO_PERCENT}%):
           </Text>
-          <Text type="code">{hasTax ? `Rp ${formatNumber(tax, 2)}` : "-"}</Text>
+          <Text type="code">{hasTax ? `Rp ${formatNumber(tax, "currency")}` : "-"}</Text>
         </HStack>
         <Divider />
         <HStack justify="between">
           <Text weight="bold">Total</Text>
           <Text type="code" weight="bold" color="primary">
-            Rp {formatNumber(total, 2)}
+            Rp {formatNumber(total, "currency")}
           </Text>
         </HStack>
       </VStack>
