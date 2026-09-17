@@ -1,10 +1,12 @@
-import { IconButton, Text, VStack } from "@astryxdesign/core";
+import { useMemo } from "react";
+import { Badge, HStack, IconButton, Text, VStack } from "@astryxdesign/core";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { Eye } from "lucide-react";
-import { formatNumber, formatItemCode } from "@/utils/formatters";
+import { formatNumber, formatItemCode, type DecimalType } from "@/utils/formatters";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { ReportComparisonCell } from "@/components/shared/ReportComparisonCell";
-import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { ReportComparisonCell, type FinancialStatus } from "@/components/shared/ReportComparisonCell";
+import { TAX_RATIO_PERCENT } from "@/utils/calc";
+import { type TableColumn, pixel } from "@astryxdesign/core/Table";
 import type { RequirementReportItem } from "@/db/services";
 
 export interface EnrichedReportItem extends RequirementReportItem, Record<string, unknown> {
@@ -19,32 +21,32 @@ interface UseReportSummaryColumnsProps {
 interface ComparisonOptions {
   poValue: number;
   plannedValue: number;
-  decimals?: number;
+  type?: DecimalType;
   highlightUnder?: boolean;
 }
 
 /**
  * Helper terpusat untuk merender sel komparasi BOQ vs PO pada baris item biasa.
- * Untuk kelompok pagu, hanya menampilkan nilai PO murni.
- * Untuk item unplanned, menampilkan "-" pada nilai BOQ.
+ * Jika item tidak memiliki BOQ (misalnya item unplanned), menampilkan nilai PO dengan strip pada baris BOQ.
+ * Jika item memiliki BOQ, menampilkan ReportComparisonCell (PO vs BOQ).
  */
 function renderReportComparison(
-  r: EnrichedReportItem,
-  { poValue, plannedValue, decimals = 2, highlightUnder = false }: ComparisonOptions,
+  row: EnrichedReportItem,
+  { poValue, plannedValue, type = "currency", highlightUnder = false }: ComparisonOptions,
 ) {
-  const isPagu = Boolean(r.group_budget && r.group_budget > 0);
+  const hasBoq = !row.is_unplanned && (row.planned_volume > 0 || (row.planned_variants?.length ?? 0) > 0);
 
-  if (isPagu) {
-    return <Text type="code">{poValue > 0 ? formatNumber(poValue, decimals) : "-"}</Text>;
+  if (!hasBoq) {
+    return <ReportComparisonCell poValue={formatNumber(poValue, type)} bomValue="-" />;
   }
 
-  const isOver = !r.is_unplanned && poValue > plannedValue && r.total_ordered > 0;
-  const isUnder = Boolean(highlightUnder && !r.is_unplanned && poValue > 0 && poValue < plannedValue);
+  const isOver = poValue > plannedValue && row.total_ordered > 0;
+  const isUnder = Boolean(highlightUnder && poValue > 0 && poValue < plannedValue);
 
   return (
     <ReportComparisonCell
-      poValue={r.total_ordered > 0 ? formatNumber(poValue, decimals) : "-"}
-      bomValue={r.is_unplanned ? "-" : formatNumber(plannedValue, decimals)}
+      poValue={formatNumber(poValue, type)}
+      bomValue={formatNumber(plannedValue, type)}
       poStatus={isOver ? "over" : isUnder ? "under" : undefined}
     />
   );
@@ -52,195 +54,245 @@ function renderReportComparison(
 
 /**
  * Helper terpusat untuk merender sel komparasi pada baris subtotal footer kelompok.
- * Untuk kelompok pagu: kolom volume, dpp, tax mengembalikan "-",
- * sedangkan total_price mendukung perbandingan over/under vs nilai pagu.
+ * Disederhanakan & konsisten antara kelompok pagu dan non-pagu:
+ * - Hanya kolom Total (Rp) yang diwarnai status finansial:
+ *   - "over"  (merah) jika PO > BOQ / Pagu
+ *   - "under" (hijau) jika PO < BOQ / Pagu (dan PO > 0)
+ * - Kolom non-total (Volume, Subtotal, PPn) tidak diberi warna highlight (selalu netral).
  */
 function renderFooterComparison(
-  r: EnrichedReportItem,
-  poVal: number,
-  planVal: number,
-  decimals = 2,
-  supportUnder = false,
+  row: EnrichedReportItem,
+  poValue: number,
+  plannedValue: number,
+  type: DecimalType = "currency",
+  isTotal = false,
 ) {
-  const isPagu = Boolean(r.group_budget && r.group_budget > 0);
-  if (isPagu && !supportUnder) {
+  const isPagu = Boolean(row.group_budget && row.group_budget > 0);
+
+  // Untuk kelompok pagu, kolom rincian (volume, subtotal, ppn) tidak memiliki rencana item terpisah
+  if (isPagu && !isTotal) {
     return "-";
   }
 
-  const isOver = poVal > planVal && planVal > 0;
-  const isUnder = Boolean(supportUnder && isPagu && poVal > 0 && poVal < planVal);
+  let poStatus: FinancialStatus | undefined;
+  if (isTotal) {
+    if (plannedValue > 0 && poValue > plannedValue) {
+      poStatus = "over";
+    } else if (plannedValue === 0 && poValue > 0) {
+      poStatus = "over";
+    } else if (plannedValue > 0 && poValue > 0 && poValue < plannedValue) {
+      poStatus = "under";
+    }
+  }
 
   return (
     <ReportComparisonCell
-      poValue={poVal > 0 ? formatNumber(poVal, decimals) : "-"}
-      bomValue={planVal > 0 ? formatNumber(planVal, decimals) : "-"}
-      poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+      poValue={poValue > 0 ? formatNumber(poValue, type) : "-"}
+      bomValue={plannedValue > 0 ? formatNumber(plannedValue, type) : "-"}
+      poStatus={poStatus}
+    />
+  );
+}
+
+/**
+ * Helper terpusat untuk merender sel metrik numerik komparasi (volume, subtotal, tax, total).
+ */
+function renderNumericComparisonCell(
+  row: EnrichedReportItem,
+  poValue: number,
+  plannedValue: number,
+  type: DecimalType = "currency",
+  options?: { isTotal?: boolean; highlightUnderInRow?: boolean },
+) {
+  if (row.is_group_footer) {
+    return renderFooterComparison(row, poValue, plannedValue, type, options?.isTotal);
+  }
+
+  if (row.is_empty_group) {
+    return <ReportComparisonCell poValue="-" bomValue="-" />;
+  }
+
+  return renderReportComparison(row, {
+    poValue,
+    plannedValue,
+    type,
+    highlightUnder: options?.highlightUnderInRow,
+  });
+}
+
+/**
+ * Helper terpusat untuk merender progress bar pemenuhan pesanan atau penerimaan.
+ */
+function renderProgressCell(current: number, target: number) {
+  const percent = target > 0 ? (current / target) * 100 : 0;
+  const variant = percent > 100 ? "error" : "success";
+
+  return (
+    <ProgressBar
+      value={current}
+      max={target || 1}
+      label={`${percent.toFixed(0)}%`}
+      hasValueLabel
+      formatValueLabel={() => `${formatNumber(current, "volume")} / ${formatNumber(target, "volume")}`}
+      variant={variant}
     />
   );
 }
 
 export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsProps) {
-  const columns: TableColumn<EnrichedReportItem>[] = [
-    {
-      header: "Item",
-      key: "item",
-      width: proportional(1, { minWidth: 280 }),
-      renderCell: (r) => {
-        if (r.is_group_footer)
+  return useMemo<TableColumn<EnrichedReportItem>[]>(
+    () => [
+      {
+        header: "Item",
+        key: "item",
+        width: pixel(280),
+        renderCell: (row) => {
+          if (row.is_group_footer) {
+            return (
+              <Text weight="bold" maxLines={1}>
+                Subtotal {row.group_name}
+              </Text>
+            );
+          }
+
+          if (row.is_empty_group) {
+            return <Text color="secondary">(Belum ada rincian item)</Text>;
+          }
+
+          const code = formatItemCode(row);
+
           return (
-            <Text weight="bold" maxLines={1}>
-              Subtotal {r.group_name}
-            </Text>
+            <VStack gap={0.5} align="start">
+              <Text weight="medium" maxLines={1}>
+                {row.item_name}
+              </Text>
+              <HStack gap={1.5} align="center">
+                <EntityCode size="sm" id={code} />
+                {row.unit && <Badge variant="neutral" label={row.unit} />}
+              </HStack>
+            </VStack>
           );
-        if (r.is_empty_group) return <Text color="secondary">(Belum ada rincian item)</Text>;
+        },
+      },
+      {
+        header: "",
+        key: "row_type",
+        width: pixel(50),
+        renderCell: (row) => {
+          if (row.is_empty_group) return "-";
 
-        const code = formatItemCode(r);
-        return (
-          <VStack gap={0.5} align="start">
-            <Text weight="medium" maxLines={1}>
-              {r.item_name}
-            </Text>
-            <EntityCode size="sm" id={code} />
-          </VStack>
-        );
-      },
-    },
-    {
-      header: "Satuan",
-      key: "unit",
-      width: pixel(80),
-      renderCell: (r) => (r.is_group_footer || r.is_empty_group ? "-" : r.unit || "-"),
-    },
-    {
-      align: "end",
-      header: "Harga (Rp)",
-      key: "price",
-      width: pixel(180),
-      renderCell: (r) => {
-        if (r.is_group_footer || r.is_empty_group) return "-";
-        const poPrice = r.total_ordered > 0 ? r.total_order_dpp / r.total_ordered : (r.price ?? 0);
-        const plannedPrice = r.planned_volume > 0 ? r.planned_dpp / r.planned_volume : (r.price ?? 0);
-        return renderReportComparison(r, { poValue: poPrice, plannedValue: plannedPrice, highlightUnder: true });
-      },
-    },
-    {
-      align: "end",
-      header: "Volume",
-      key: "qty",
-      width: pixel(140),
-      renderCell: (r) => {
-        if (r.is_group_footer) return renderFooterComparison(r, r.total_ordered, r.planned_volume, 5);
-        if (r.is_empty_group) return <ReportComparisonCell poValue="-" bomValue="-" />;
-        return renderReportComparison(r, { poValue: r.total_ordered, plannedValue: r.planned_volume, decimals: 5 });
-      },
-    },
-    {
-      align: "end",
-      header: "Subtotal (Rp)",
-      key: "subtotal",
-      width: pixel(180),
-      renderCell: (r) => {
-        if (r.is_group_footer) return renderFooterComparison(r, r.total_order_dpp, r.planned_dpp);
-        if (r.is_empty_group) return <ReportComparisonCell poValue="-" bomValue="-" />;
-        return renderReportComparison(r, { poValue: r.total_order_dpp, plannedValue: r.planned_dpp });
-      },
-    },
-    {
-      align: "end",
-      header: "PPn (12%)",
-      key: "has_tax",
-      width: pixel(180),
-      renderCell: (r) => {
-        if (r.is_group_footer) return renderFooterComparison(r, r.total_order_tax, r.planned_tax);
-        if (r.is_empty_group) return <ReportComparisonCell poValue="-" bomValue="-" />;
-        return renderReportComparison(r, { poValue: r.total_order_tax, plannedValue: r.planned_tax });
-      },
-    },
-    {
-      align: "end",
-      header: "Total (Rp)",
-      key: "total_price",
-      width: pixel(180),
-      renderCell: (r) => {
-        if (r.is_group_footer) {
-          return renderFooterComparison(r, r.total_order_price, r.planned_budget, 2, true);
-        }
-        if (r.is_empty_group) return <ReportComparisonCell poValue="-" bomValue="-" />;
-        return renderReportComparison(r, { poValue: r.total_order_price, plannedValue: r.planned_budget });
-      },
-    },
-    {
-      align: "end",
-      header: "Dipesan (PO)",
-      key: "ordered",
-      width: pixel(200),
-      renderCell: (r) => {
-        if (r.is_empty_group || r.is_group_footer) return "-";
-
-        if ((r.group_budget && r.group_budget > 0) || r.is_unplanned) {
           return (
-            <Text type="code" color="secondary" weight="medium">
-              {formatNumber(r.total_ordered, 5)}
-            </Text>
+            <VStack gap={0.5} align="start">
+              <Text type="code" size="sm" weight="bold">
+                PO
+              </Text>
+              <Text type="code" size="sm" weight="bold" color="secondary">
+                BOQ
+              </Text>
+            </VStack>
           );
-        }
-
-        const ordered = r.total_ordered ?? 0;
-        const planned = r.planned_volume ?? 0;
-        const percent = planned > 0 ? (ordered / planned) * 100 : 0;
-        const variant = percent > 100 ? "error" : "success";
-
-        return (
-          <ProgressBar
-            value={ordered}
-            max={planned || 1}
-            label={`${percent.toFixed(0)}%`}
-            hasValueLabel
-            formatValueLabel={() => `${formatNumber(ordered, 5)} / ${formatNumber(planned, 5)}`}
-            variant={variant}
-          />
-        );
+        },
       },
-    },
-    {
-      align: "end",
-      header: "Diterima (NP)",
-      key: "delivered",
-      width: pixel(200),
-      renderCell: (r) => {
-        if (r.is_empty_group || r.is_group_footer) return "-";
+      {
+        align: "end",
+        header: "Harga (Rp)",
+        key: "price",
+        width: pixel(180),
+        renderCell: (row) => {
+          if (row.is_group_footer || row.is_empty_group) return "-";
 
-        const delivered = r.total_delivered ?? 0;
-        const ordered = r.total_ordered ?? 0;
-        const percent = ordered > 0 ? (delivered / ordered) * 100 : 0;
-        const variant = percent > 100 ? "error" : "success";
+          const poPrice = row.total_ordered > 0 ? row.total_order_dpp / row.total_ordered : (row.price ?? 0);
+          const plannedPrice = row.planned_volume > 0 ? row.planned_dpp / row.planned_volume : (row.price ?? 0);
 
-        return (
-          <ProgressBar
-            value={delivered}
-            max={ordered || 1}
-            label={`${percent.toFixed(0)}%`}
-            hasValueLabel
-            formatValueLabel={() => `${formatNumber(delivered, 5)} / ${formatNumber(ordered, 5)}`}
-            variant={variant}
-          />
-        );
+          return renderReportComparison(row, {
+            poValue: poPrice,
+            plannedValue: plannedPrice,
+            type: "currency",
+            highlightUnder: true,
+          });
+        },
       },
-    },
-    {
-      align: "end",
-      header: "Aksi",
-      key: "actions",
-      width: pixel(80),
-      renderCell: (r) => {
-        if (r.is_empty_group || r.is_group_footer) return null;
-
-        return (
-          <IconButton icon={<Eye />} variant="secondary" onClick={() => onLogClick(r)} label="Lihat Rincian & Log" />
-        );
+      {
+        align: "end",
+        header: "Volume",
+        key: "qty",
+        width: pixel(140),
+        renderCell: (row) => renderNumericComparisonCell(row, row.total_ordered, row.planned_volume, "volume"),
       },
-    },
-  ];
+      {
+        align: "end",
+        header: "Subtotal (Rp)",
+        key: "subtotal",
+        width: pixel(180),
+        renderCell: (row) => renderNumericComparisonCell(row, row.total_order_dpp, row.planned_dpp, "currency"),
+      },
+      {
+        align: "end",
+        header: `PPn (${TAX_RATIO_PERCENT}%)`,
+        key: "has_tax",
+        width: pixel(180),
+        renderCell: (row) => renderNumericComparisonCell(row, row.total_order_tax, row.planned_tax, "currency"),
+      },
+      {
+        align: "end",
+        header: "Total (Rp)",
+        key: "total_price",
+        width: pixel(180),
+        renderCell: (row) =>
+          renderNumericComparisonCell(row, row.total_order_price, row.planned_budget, "currency", {
+            isTotal: true,
+            highlightUnderInRow: true,
+          }),
+      },
+      {
+        align: "end",
+        header: "Dipesan (PO)",
+        key: "ordered",
+        width: pixel(200),
+        renderCell: (row) => {
+          if (row.is_empty_group || row.is_group_footer) return "-";
 
-  return columns;
+          if ((row.group_budget && row.group_budget > 0) || row.is_unplanned) {
+            return (
+              <Text type="code" color="secondary" weight="medium">
+                {formatNumber(row.total_ordered, "volume")}
+              </Text>
+            );
+          }
+
+          return renderProgressCell(row.total_ordered ?? 0, row.planned_volume ?? 0);
+        },
+      },
+      {
+        align: "end",
+        header: "Diterima (NP)",
+        key: "delivered",
+        width: pixel(200),
+        renderCell: (row) => {
+          if (row.is_empty_group || row.is_group_footer) return "-";
+
+          return renderProgressCell(row.total_delivered ?? 0, row.total_ordered ?? 0);
+        },
+      },
+      {
+        align: "end",
+        header: "Aksi",
+        key: "actions",
+        width: pixel(80),
+        renderCell: (row) => {
+          if (row.is_empty_group || row.is_group_footer) return null;
+
+          return (
+            <IconButton
+              icon={<Eye />}
+              variant="secondary"
+              onClick={() => onLogClick(row)}
+              label="Lihat Rincian & Log"
+            />
+          );
+        },
+      },
+    ],
+    [onLogClick],
+  );
 }

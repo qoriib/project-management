@@ -50,59 +50,60 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
 
   const logIndexPlugin = useTableRowIndex({
     data: paginatedLogs as LogRow[],
-    getRowKey: (logItem) => logItem.reference,
+    getRowKey: (logItem: LogRow) => logItem.id,
     startFrom: (page - 1) * pageSize + 1,
   });
 
-  const columns: TableColumn<LogRow>[] = [
-    {
-      header: "Tanggal",
-      key: "date",
-      width: pixel(100),
-      renderCell: (r) => <Timestamp value={r.date} format="system_date" size="base" />,
-    },
-    {
-      header: "Tipe",
-      key: "type",
-      width: pixel(60),
-      renderCell: (r) => (
-        <Badge variant={r.type === "Order" ? "blue" : "green"} label={r.type === "Order" ? "PO" : "NP"} />
-      ),
-    },
-    {
-      header: "Referensi",
-      key: "reference",
-      width: pixel(140),
-      renderCell: (r) => {
-        if (!r.id) {
-          return <Text type="code">{r.reference}</Text>;
-        }
-        const targetUrl = r.type === "Order" ? `/order/${r.id}` : `/receipt/${r.id}/edit`;
-        return (
-          <Link
-            onClick={() => {
-              navigate({ to: targetUrl });
-            }}
-          >
-            <Text type="code">{r.reference}</Text>
-          </Link>
-        );
+  const columns: TableColumn<LogRow>[] = useMemo(
+    () => [
+      {
+        header: "Tanggal",
+        key: "date",
+        width: pixel(100),
+        renderCell: (row) => <Timestamp value={row.date} format="system_date" size="base" />,
       },
-    },
-    {
-      align: "end",
-      header: "Volume",
-      key: "qty",
-      width: pixel(80),
-      renderCell: (r) => <Text type="code">{formatNumber(r.qty, 5)}</Text>,
-    },
-    {
-      header: "Vendor",
-      key: "vendor",
-      width: proportional(1),
-      renderCell: (r) => r.vendor_name ?? "-",
-    },
-  ];
+      {
+        header: "",
+        key: "type",
+        width: pixel(60),
+        renderCell: (row) => (
+          <Badge variant={row.type === "Order" ? "blue" : "green"} label={row.type === "Order" ? "PO" : "NP"} />
+        ),
+      },
+      {
+        header: "Referensi",
+        key: "reference",
+        width: pixel(140),
+        renderCell: (row) => {
+          const targetUrl = row.type === "Order" ? `/order/${row.id}` : `/receipt/${row.id}/edit`;
+
+          return (
+            <Link
+              onClick={() => {
+                navigate({ to: targetUrl });
+              }}
+            >
+              <Text type="code">{row.reference}</Text>
+            </Link>
+          );
+        },
+      },
+      {
+        align: "end",
+        header: "Volume",
+        key: "qty",
+        width: pixel(80),
+        renderCell: (row) => <Text type="code">{formatNumber(row.qty, "volume")}</Text>,
+      },
+      {
+        header: "Vendor",
+        key: "vendor",
+        width: proportional(1),
+        renderCell: (row) => row.vendor_name ?? "-",
+      },
+    ],
+    [navigate],
+  );
 
   return (
     <Card>
@@ -120,7 +121,7 @@ export function TransactionHistoryCard({ projectId, item, isOpen }: TransactionH
               textOverflow="truncate"
               columns={columns}
               data={paginatedLogs as LogRow[]}
-              idKey="reference"
+              idKey="id"
               plugins={{ rowIndex: logIndexPlugin, pagination: paginationPlugin }}
               emptyState={<EmptyState isCompact title="Belum ada riwayat transaksi" />}
             />

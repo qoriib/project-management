@@ -1,7 +1,6 @@
 import { Button, Dialog, HStack, Heading, Token, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
-import { RequirementVariantCard } from "./dialog/RequirementVariantCard";
-import { OrderVariantCard } from "./dialog/OrderVariantCard";
+import { ReportVariantCard } from "./dialog/ReportVariantCard";
 import { TransactionHistoryCard } from "./dialog/TransactionHistoryCard";
 import type { RequirementReportItem } from "@/db/services";
 
@@ -29,8 +28,8 @@ export function ReportItemLogDialog({ isOpen, onClose, projectId, item }: Report
         content={
           <LayoutContent padding={4}>
             <VStack gap={4}>
-              <RequirementVariantCard item={item} />
-              <OrderVariantCard item={item} />
+              <ReportVariantCard type="planned" item={item} />
+              <ReportVariantCard type="order" item={item} />
               <TransactionHistoryCard projectId={projectId} item={item} isOpen={isOpen} />
             </VStack>
           </LayoutContent>

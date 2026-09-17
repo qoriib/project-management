@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { EmptyState, Table } from "@astryxdesign/core";
 import { useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
 import { useReportSummaryGroupedData } from "./table/useReportSummaryGroupedData";
-import { extractPaguGroupNames, useUnplannedRowPlugin } from "./table/reportSummaryTableUtils";
+import { useUnplannedRowPlugin } from "./table/reportSummaryTableUtils";
 import { ReportGroupHeader } from "./table/ReportGroupHeader";
 import type { RequirementReportItem } from "@/db/services";
 import { type EnrichedReportItem, useReportSummaryColumns } from "./table/useReportSummaryColumns";
@@ -16,8 +16,7 @@ interface ReportSummaryTableProps {
 export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummaryTableProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
-  const { enrichedReport, groupOrder } = useReportSummaryGroupedData(report);
-  const paguGroupNames = useMemo(() => extractPaguGroupNames(report), [report]);
+  const { enrichedReport, groupOrder, paguGroupNames } = useReportSummaryGroupedData(report);
 
   const handleToggleGroup = useCallback((groupKey: string) => {
     setCollapsedGroups((previousCollapsed) => {
@@ -46,13 +45,14 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
   });
 
   const stickyColumns = useTableStickyColumns<EnrichedReportItem>({
-    startKeys: ["item"],
+    startKeys: ["item", "row_type"],
   });
 
-  const unplannedRowPlugin = useUnplannedRowPlugin(paguGroupNames);
+  const unplannedRowPlugin = useUnplannedRowPlugin();
   const columns = useReportSummaryColumns({ onLogClick });
 
   const isReportEmpty = report.length === 0 && !loading;
+
   if (isReportEmpty) {
     return <EmptyState isCompact title="Belum ada laporan kebutuhan (BOQ)" />;
   }

@@ -2,36 +2,51 @@ import { useMemo } from "react";
 import type { RequirementReportItem } from "@/db/services";
 import type { EnrichedReportItem } from "./useReportSummaryColumns";
 
-interface UseReportSummaryGroupedDataResult {
+export interface UseReportSummaryGroupedDataResult {
   enrichedReport: EnrichedReportItem[];
   groupOrder: string[];
+  paguGroupNames: Set<string>;
 }
 
 /**
  * Custom hook untuk mengelompokkan data laporan pemenuhan kebutuhan berdasarkan kelompok pekerjaan:
  * - Menghitung subtotal akumulasi pemesanan (PO) vs perencanaan (BOQ).
  * - Mengurutkan kelompok berbasis UUIDv7 ASC.
+ * - Mengumpulkan daftar kelompok pagu dan urutan kelompok dalam single-pass O(N).
  */
 export function useReportSummaryGroupedData(report: RequirementReportItem[]): UseReportSummaryGroupedDataResult {
-  const enrichedReport: EnrichedReportItem[] = useMemo(() => {
+  return useMemo(() => {
     const groupMap = new Map<string, RequirementReportItem[]>();
-    for (const r of report) {
-      const gId = r.requirement_group_id ?? "none";
-      const list = groupMap.get(gId) || [];
-      list.push(r);
-      groupMap.set(gId, list);
+    const paguGroupNames = new Set<string>();
+
+    for (const row of report) {
+      const groupId = row.requirement_group_id ?? "none";
+      let groupItems = groupMap.get(groupId);
+      if (!groupItems) {
+        groupItems = [];
+        groupMap.set(groupId, groupItems);
+      }
+      groupItems.push(row);
+
+      const hasValidBudget = row.group_budget != null && row.group_budget > 0;
+      if (row.group_name && hasValidBudget) {
+        paguGroupNames.add(row.group_name);
+      }
     }
 
     const sortedGroupIds = Array.from(groupMap.keys()).toSorted((a, b) => a.localeCompare(b));
-    const result: EnrichedReportItem[] = [];
+    const enrichedReport: EnrichedReportItem[] = [];
+    const groupOrder: string[] = [];
 
-    for (const gId of sortedGroupIds) {
-      const items = groupMap.get(gId) || [];
+    for (const groupId of sortedGroupIds) {
+      const items = groupMap.get(groupId)!;
+      const groupBudget =
+        items.find((item) => item.group_budget != null && item.group_budget > 0)?.group_budget ?? null;
+      const isPaguGroup = groupBudget != null && groupBudget > 0;
       const isSingleEmpty = items.length === 1 && Boolean(items[0].is_empty_group);
-      const isPaguGroup = items.some((it) => it.group_budget && it.group_budget > 0);
 
       if (isSingleEmpty && !isPaguGroup) {
-        result.push({
+        enrichedReport.push({
           ...items[0],
           unique_id: `${items[0].requirement_group_id ?? "none"}__${items[0].item_id}`,
         });
@@ -49,10 +64,13 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
       let groupName = "";
 
       for (const item of items) {
-        if (!groupName && item.group_name) groupName = item.group_name;
+        if (!groupName && item.group_name) {
+          groupName = item.group_name;
+          groupOrder.push(groupName);
+        }
         if (item.is_empty_group) continue;
 
-        result.push({
+        enrichedReport.push({
           ...item,
           unique_id: `${item.requirement_group_id ?? "none"}__${item.item_id}`,
         });
@@ -67,19 +85,18 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
         subBudgetPlan += item.planned_budget || 0;
       }
 
-      const groupBudget = items.find((it) => it.group_budget && it.group_budget > 0)?.group_budget ?? null;
-      const plannedBudgetForSubtotal = groupBudget && groupBudget > 0 ? groupBudget : subBudgetPlan;
-      const plannedDppForSubtotal = groupBudget && groupBudget > 0 ? groupBudget : subDppPlan;
-      const plannedTaxForSubtotal = groupBudget && groupBudget > 0 ? 0 : subTaxPlan;
+      const plannedBudgetForSubtotal = isPaguGroup ? groupBudget : subBudgetPlan;
+      const plannedDppForSubtotal = isPaguGroup ? 0 : subDppPlan;
+      const plannedTaxForSubtotal = isPaguGroup ? 0 : subTaxPlan;
 
       // Subtotal footer row per kelompok pekerjaan
-      result.push({
+      enrichedReport.push({
         category: "-",
         group_name: groupName,
         group_budget: groupBudget,
         is_group_footer: true,
         item_code: "",
-        item_id: `subtotal_${gId}`,
+        item_id: `subtotal_${groupId}`,
         item_name: `Subtotal ${groupName}`,
         order_variants: [],
         planned_budget: plannedBudgetForSubtotal,
@@ -87,32 +104,17 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
         planned_tax: plannedTaxForSubtotal,
         planned_variants: [],
         planned_volume: subVolumePlan,
-        requirement_group_id: gId,
+        requirement_group_id: groupId,
         total_delivered: 0,
         total_order_dpp: subDppOrder,
         total_order_price: subPriceOrder,
         total_order_tax: subTaxOrder,
         total_ordered: subVolumeOrder,
-        unique_id: `subtotal_${gId}`,
+        unique_id: `subtotal_${groupId}`,
         unit: "-",
       });
     }
 
-    return result;
+    return { enrichedReport, groupOrder, paguGroupNames };
   }, [report]);
-
-  const groupOrder = useMemo(() => {
-    const list: string[] = [];
-    const sorted = report.toSorted((a, b) =>
-      (a.requirement_group_id || "").localeCompare(b.requirement_group_id || ""),
-    );
-    for (const item of sorted) {
-      if (item.group_name && !list.includes(item.group_name)) {
-        list.push(item.group_name);
-      }
-    }
-    return list;
-  }, [report]);
-
-  return { enrichedReport, groupOrder };
 }
