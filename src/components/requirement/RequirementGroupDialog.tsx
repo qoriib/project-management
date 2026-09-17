@@ -31,7 +31,7 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { RequirementGroup } from "@/db/repositories";
 import * as v from "valibot";
 
-interface GroupRow extends RequirementGroup, Record<string, unknown> {}
+interface GroupRow extends RequirementGroup, Record<string, unknown> { }
 
 const groupSchema = v.object({
   group_name: v.pipe(
@@ -81,11 +81,9 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
         try {
           if (editingGroup) {
             await updateGroup(editingGroup.requirement_group_id, trimmed, finalBudget);
-            showToast({ body: `Pekerjaan "${trimmed}" berhasil diperbarui`, type: "info" });
             setEditingGroup(null);
           } else {
             const createdId = await createGroup(selectedProjectId, trimmed, finalBudget);
-            showToast({ body: `Pekerjaan "${trimmed}" berhasil ditambahkan`, type: "info" });
             if (onSuccess && createdId) {
               onSuccess(createdId);
             }

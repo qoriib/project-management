@@ -1,24 +1,29 @@
 import { useEffect, useState } from "react";
-import { Button, Dialog, HStack, Heading } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, SegmentedControl, SegmentedControlItem, Text } from "@astryxdesign/core";
 import { Selector } from "@astryxdesign/core/Selector";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useMasterStore } from "@/store/useMasterStore";
 
+type ExportMode = "project" | "master";
+
 interface SettingsExportDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (projectId: string) => void;
+  /** projectId = string untuk mode project, null untuk mode master */
+  onConfirm: (projectId: string | null) => void;
   isLoading: boolean;
 }
 
 export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: SettingsExportDialogProps) {
+  const [mode, setMode] = useState<ExportMode>("project");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const projects = useMasterStore((state) => state.projects);
 
   useEffect(() => {
     if (isOpen) {
+      setMode("project");
       setSelectedProjectId(projects[0]?.project_id || null);
     }
   }, [isOpen, projects]);
@@ -29,10 +34,14 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
   }));
 
   const handleExport = () => {
-    if (selectedProjectId) {
+    if (mode === "master") {
+      onConfirm(null);
+    } else if (selectedProjectId) {
       onConfirm(selectedProjectId);
     }
   };
+
+  const isSubmitDisabled = isLoading || (mode === "project" && !selectedProjectId);
 
   return (
     <Dialog
@@ -54,23 +63,39 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
         <Layout
           header={
             <LayoutHeader hasDivider>
-              <Heading level={3}>Ekspor Data Proyek</Heading>
+              <Heading level={3}>Ekspor Data</Heading>
             </LayoutHeader>
           }
           content={
             <LayoutContent padding={4}>
               <FormLayout>
-                <Selector
-                  isRequired
-                  label="Pilih Proyek"
-                  value={selectedProjectId || ""}
-                  options={projectOptions}
-                  onChange={(val) => {
-                    setSelectedProjectId(val || null);
-                  }}
-                  hasSearch
-                  searchPlaceholder="Cari proyek..."
-                />
+                <SegmentedControl
+                  label="Mode Ekspor"
+                  value={mode}
+                  onChange={(val) => setMode(val as ExportMode)}
+                  layout="fill"
+                >
+                  <SegmentedControlItem value="project" label="Per Proyek" />
+                  <SegmentedControlItem value="master" label="Master Data Saja" />
+                </SegmentedControl>
+                {mode === "project" ? (
+                  <Selector
+                    isRequired
+                    label="Pilih Proyek"
+                    value={selectedProjectId || ""}
+                    options={projectOptions}
+                    onChange={(val) => {
+                      setSelectedProjectId(val || null);
+                    }}
+                    hasSearch
+                    searchPlaceholder="Cari proyek..."
+                  />
+                ) : (
+                  <Text type="supporting" color="secondary">
+                    Hanya tabel master (vendor, item, kategori, satuan, harga) yang akan diekspor. Data proyek tidak
+                    disertakan.
+                  </Text>
+                )}
               </FormLayout>
             </LayoutContent>
           }
@@ -81,7 +106,7 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
                 <Button
                   variant="primary"
                   type="submit"
-                  isDisabled={isLoading || !selectedProjectId}
+                  isDisabled={isSubmitDisabled}
                   isLoading={isLoading}
                   label="Mulai Ekspor"
                 />

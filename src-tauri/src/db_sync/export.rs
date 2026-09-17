@@ -11,19 +11,26 @@ use zip::{AesMode, CompressionMethod, ZipWriter};
 pub fn export_csv_zip(
     app: tauri::AppHandle,
     target_path: String,
-    project_id: String,
+    // project_id: Some(id) → ekspor project + master. None → hanya master.
+    project_id: Option<String>,
 ) -> Result<(), String> {
     let db_path = get_db_path(&app)?;
     let conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
 
-    // Pastikan proyek ada dan ambil namanya untuk metadata
-    let project_name: String = conn
-        .query_row(
-            "SELECT project_name FROM projects WHERE project_id = ?1",
-            params![&project_id],
-            |row| row.get(0),
-        )
-        .map_err(|_| format!("Proyek dengan ID '{project_id}' tidak ditemukan."))?;
+    // Resolusi metadata proyek (hanya jika mode project)
+    let (export_type, resolved_project_id, project_name) = match &project_id {
+        Some(pid) => {
+            let name: String = conn
+                .query_row(
+                    "SELECT project_name FROM projects WHERE project_id = ?1",
+                    params![pid],
+                    |row| row.get(0),
+                )
+                .map_err(|_| format!("Proyek dengan ID '{pid}' tidak ditemukan."))?;
+            ("project".to_string(), Some(pid.clone()), Some(name))
+        }
+        None => ("master".to_string(), None, None),
+    };
 
     let file = File::create(&target_path).map_err(|e| e.to_string())?;
     let mut zip = ZipWriter::new(file);
@@ -34,7 +41,8 @@ pub fn export_csv_zip(
     // 1. Tulis manifest.json ke arsip terenkripsi
     let manifest = SyncManifest {
         version: 1,
-        project_id: project_id.clone(),
+        export_type,
+        project_id: resolved_project_id.clone(),
         project_name,
         exported_at: chrono::Local::now().to_rfc3339(),
         app_version: env!("CARGO_PKG_VERSION").to_string(),
@@ -44,15 +52,17 @@ pub fn export_csv_zip(
     let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?;
     std::io::Write::write_all(&mut zip, &manifest_bytes).map_err(|e| e.to_string())?;
 
-    // 2. Ekspor seluruh isi tabel master
+    // 2. Ekspor seluruh isi tabel master (selalu)
     for &(table, _, _) in MASTER_TABLES {
         export_table_to_zip(&conn, &mut zip, options, table, &format!("SELECT * FROM {table}"))?;
     }
 
-    // 3. Ekspor tabel per project yang terkait
-    for &table in PROJECT_TABLES {
-        let query = get_project_export_query(table, &project_id);
-        export_table_to_zip(&conn, &mut zip, options, table, &query)?;
+    // 3. Ekspor tabel per project (hanya jika mode project)
+    if let Some(pid) = &resolved_project_id {
+        for &table in PROJECT_TABLES {
+            let query = get_project_export_query(table, pid);
+            export_table_to_zip(&conn, &mut zip, options, table, &query)?;
+        }
     }
 
     zip.finish().map_err(|e| e.to_string())?;
