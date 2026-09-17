@@ -8,8 +8,6 @@ import {
   BORDER_ALL_LIGHT,
   BORDER_ALL_THIN,
   EXCEL_ROW_HEIGHT,
-  FILL_TABLE_HEADER,
-  FILL_TOTAL_ROW,
   FONT_KOP_SUBTITLE,
   FONT_KOP_TITLE,
   FONT_REGULAR,
@@ -47,7 +45,7 @@ export function createFormalKop(worksheet: ExcelJS.Worksheet, options: FormalKop
   const reportTitleCell = worksheet.getCell(`${startColumn}1`);
   reportTitleCell.value = options.title;
   reportTitleCell.font = FONT_KOP_TITLE;
-  reportTitleCell.alignment = ALIGN_CENTER;
+  reportTitleCell.alignment = { horizontal: "center", vertical: "middle" };
   worksheet.getRow(1).height = EXCEL_ROW_HEIGHT.kopTitle;
 
   // Baris 2: Subtitle / Metadata (Proyek, Tahun Anggaran, Periode)
@@ -55,7 +53,7 @@ export function createFormalKop(worksheet: ExcelJS.Worksheet, options: FormalKop
   const subtitleCell = worksheet.getCell(`${startColumn}2`);
   subtitleCell.value = options.subtitle;
   subtitleCell.font = FONT_KOP_SUBTITLE;
-  subtitleCell.alignment = ALIGN_CENTER;
+  subtitleCell.alignment = { horizontal: "center", vertical: "middle" };
   worksheet.getRow(2).height = EXCEL_ROW_HEIGHT.kopSubtitle;
 
   // Baris 3: Spacer kosong
@@ -74,7 +72,6 @@ export function renderTableHeaderRow(worksheet: ExcelJS.Worksheet, columns: Shee
 
     targetCell.value = columnConfig.header;
     targetCell.font = FONT_TABLE_HEADER;
-    targetCell.fill = FILL_TABLE_HEADER;
     targetCell.alignment = ALIGN_HEADER;
     targetCell.border = BORDER_ALL_THIN;
   });
@@ -83,17 +80,13 @@ export function renderTableHeaderRow(worksheet: ExcelJS.Worksheet, columns: Shee
 /**
  * Applies standard body row cell styling (border, font, alignment, numFmt) driven by COLUMNS config.
  */
-export function styleBodyRow(row: ExcelJS.Row, columns: SheetColumnConfig[], backgroundFill?: ExcelJS.Fill): void {
+export function styleBodyRow(row: ExcelJS.Row, columns: SheetColumnConfig[]): void {
   row.height = EXCEL_ROW_HEIGHT.bodyRow;
   row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
     const columnConfig = columns[columnNumber - 1];
 
     cell.border = BORDER_ALL_LIGHT;
     cell.font = FONT_REGULAR;
-
-    if (backgroundFill) {
-      cell.fill = backgroundFill;
-    }
 
     if (columnConfig?.align === "center") {
       cell.alignment = ALIGN_CENTER;
@@ -103,15 +96,15 @@ export function styleBodyRow(row: ExcelJS.Row, columns: SheetColumnConfig[], bac
       cell.alignment = ALIGN_RIGHT;
     }
 
-    if (columnConfig?.numFmt) {
+    if (columnConfig?.numFmt && typeof cell.value === "number") {
       cell.numFmt = columnConfig.numFmt;
     }
   });
 }
 
 /**
- * Applies standard total row cell styling (bold font, fill, double-bottom border, numFmt) driven by COLUMNS config.
- * Col 2 is always center-aligned (merged label cell convention).
+ * Applies standard total row cell styling (bold font, double-bottom border, numFmt) driven by COLUMNS config.
+ * Col 2 is always right-aligned (merged label cell convention).
  */
 export function styleTotalRow(row: ExcelJS.Row, columns: SheetColumnConfig[]): void {
   row.height = EXCEL_ROW_HEIGHT.bodyRow;
@@ -119,13 +112,14 @@ export function styleTotalRow(row: ExcelJS.Row, columns: SheetColumnConfig[]): v
     const columnConfig = columns[columnNumber - 1];
 
     cell.font = FONT_TOTAL_ROW;
-    cell.fill = FILL_TOTAL_ROW;
     cell.border = BORDER_ACCOUNTING_TOTAL;
 
     if (columnNumber === 2) {
       cell.alignment = ALIGN_RIGHT;
-    } else if (columnConfig?.numFmt) {
+    } else if (columnConfig?.numFmt && typeof cell.value === "number") {
       cell.numFmt = columnConfig.numFmt;
+      cell.alignment = ALIGN_RIGHT;
+    } else if (columnConfig?.align === "right") {
       cell.alignment = ALIGN_RIGHT;
     }
   });

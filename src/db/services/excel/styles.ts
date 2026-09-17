@@ -6,8 +6,8 @@ import type * as ExcelJS from "exceljs";
 export const FORMAL_STYLE = {
   fontFamily: "Calibri",
   fontCellSize: 9,
-  kopTitleSize: 12,
-  kopSubtitleSize: 9,
+  kopTitleSize: 11,
+  kopSubtitleSize: 8.5,
   categoryHeaderSize: 10,
 
   // Header and Title Colors
@@ -45,9 +45,9 @@ export const FORMAL_STYLE = {
 const BODY_ROW_HEIGHT = 18;
 
 export const EXCEL_ROW_HEIGHT = {
-  kopTitle: 22,
-  kopSubtitle: 18,
-  kopSpacer: 10,
+  kopTitle: 18,
+  kopSubtitle: 12,
+  kopSpacer: 4,
   bodyRow: BODY_ROW_HEIGHT,
   tableHeader: BODY_ROW_HEIGHT,
   tableHeaderGroup: BODY_ROW_HEIGHT,
@@ -208,17 +208,17 @@ export const FILL_WHITE: ExcelJS.Fill = {
  */
 export const ALIGN_CENTER: Partial<ExcelJS.Alignment> = {
   horizontal: "center",
-  vertical: "middle",
+  vertical: "top",
 };
 
 export const ALIGN_LEFT: Partial<ExcelJS.Alignment> = {
   horizontal: "left",
-  vertical: "middle",
+  vertical: "top",
 };
 
 export const ALIGN_RIGHT: Partial<ExcelJS.Alignment> = {
   horizontal: "right",
-  vertical: "middle",
+  vertical: "top",
 };
 
 export const ALIGN_HEADER: Partial<ExcelJS.Alignment> = {

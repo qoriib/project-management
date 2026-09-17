@@ -10,20 +10,20 @@ export { formatDate, formatPercentage, formatQty, toISODate } from "@/utils/form
  * Merender Kop Dokumen Formal (Judul, Subtitle, dan Garis Pemisah).
  */
 export function renderPdfKop(doc: jsPDF, options: PdfKopOptions): void {
-  const { title, projectName, companyName, period, pageWidth, startY = 16 } = options;
+  const { title, projectName, companyName, period, pageWidth, startY = 13 } = options;
 
   // Judul
   doc.setFont(PDF_FONTS.primary, "bold");
-  doc.setFontSize(13);
+  doc.setFontSize(12);
   doc.setTextColor(...PDF_COLORS.textDark);
   doc.text(title, pageWidth / 2, startY, { align: "center" });
 
   // Subtitle
   doc.setFont(PDF_FONTS.primary, "normal");
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(...PDF_COLORS.textMuted);
   const subtitleText = `${projectName} | ${companyName} | ${period}`;
-  doc.text(subtitleText, pageWidth / 2, startY + 5.5, { align: "center" });
+  doc.text(subtitleText, pageWidth / 2, startY + 4.5, { align: "center" });
 }
 
 /**
