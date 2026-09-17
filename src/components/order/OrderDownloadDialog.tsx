@@ -1,17 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  Button,
-  Dialog,
-  HStack,
-  Heading,
-  SegmentedControl,
-  SegmentedControlItem,
-  Selector,
-  Text,
-  TextArea,
-  TextInput,
-  VStack,
-} from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, Selector, Text, TextArea, TextInput, VStack } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { save } from "@tauri-apps/plugin-dialog";
@@ -132,18 +120,15 @@ export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDown
           content={
             <LayoutContent padding={4}>
               <VStack gap={4}>
-                <VStack gap={2} width="100%">
-                  <Text weight="medium">Template Dokumen</Text>
-                  <SegmentedControl
-                    label="Template Dokumen"
-                    layout="fill"
-                    value={selectedTemplate}
-                    onChange={(value) => setSelectedTemplate(value as OrderPdfTemplate)}
-                  >
-                    <SegmentedControlItem value="purchase-order" label="Purchase Order" />
-                    <SegmentedControlItem value="asset-request" label="Form Permintaan" />
-                  </SegmentedControl>
-                </VStack>
+                <Selector
+                  label="Template Dokumen"
+                  value={selectedTemplate}
+                  onChange={(value) => setSelectedTemplate(value as OrderPdfTemplate)}
+                  options={[
+                    { value: "purchase-order", label: "Purchase Order" },
+                    { value: "asset-request", label: "Form Permintaan" },
+                  ]}
+                />
                 {isPurchaseOrder ? (
                   <VStack gap={4} width="100%">
                     <Selector

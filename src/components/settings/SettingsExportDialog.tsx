@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Dialog, HStack, Heading, SegmentedControl, SegmentedControlItem, Text } from "@astryxdesign/core";
+import { Button, Dialog, HStack, Heading, Text } from "@astryxdesign/core";
 import { Selector } from "@astryxdesign/core/Selector";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
 import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
@@ -69,15 +69,15 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
           content={
             <LayoutContent padding={4}>
               <FormLayout>
-                <SegmentedControl
+                <Selector
                   label="Mode Ekspor"
                   value={mode}
                   onChange={(val) => setMode(val as ExportMode)}
-                  layout="fill"
-                >
-                  <SegmentedControlItem value="project" label="Per Proyek" />
-                  <SegmentedControlItem value="master" label="Master Data Saja" />
-                </SegmentedControl>
+                  options={[
+                    { value: "project", label: "Per Proyek" },
+                    { value: "master", label: "Master Data Saja" },
+                  ]}
+                />
                 {mode === "project" ? (
                   <Selector
                     isRequired
