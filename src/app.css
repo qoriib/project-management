@@ -1,10 +1,26 @@
+/* Astryx Design System */
+@import "@astryxdesign/core/reset.css";
+@import "@astryxdesign/core/astryx.css";
+
+/* Fonts — Figtree, Montserrat, JetBrains Mono */
+@import "@fontsource/figtree/400.css";
+@import "@fontsource/figtree/500.css";
+@import "@fontsource/figtree/600.css";
+@import "@fontsource/figtree/700.css";
+@import "@fontsource/montserrat/600.css";
+@import "@fontsource/montserrat/700.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
 /* Replace the " ∙ Required" indicator with a red asterisk */
-.astryx-field-label > span:has(> span[aria-hidden="true"]) {
+.astryx-field-label>span:has(> span[aria-hidden="true"]) {
   color: var(--color-error);
   margin-left: 4px;
 }
 
-.astryx-field-label > span:has(> span[aria-hidden="true"]) > span[aria-hidden="true"] {
+.astryx-field-label>span:has(> span[aria-hidden="true"])>span[aria-hidden="true"] {
   display: none;
 }
 
