@@ -47,9 +47,7 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
           <Text size="sm" color="secondary" weight="medium" type="label">
             Realisasi Penerimaan
           </Text>
-          <Heading level={3}>
-            {completionPct.toFixed(0)}%
-          </Heading>
+          <Heading level={3}>{completionPct.toFixed(0)}%</Heading>
         </Card>
       </GridSpan>
     </Grid>
