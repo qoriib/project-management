@@ -21,8 +21,6 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
   const totalOrderedQty = items.reduce((acc, item) => acc + (item.qty ?? 0), 0);
   const totalDeliveredQty = items.reduce((acc, item) => acc + (item.total_delivered ?? 0), 0);
   const completionPct = totalOrderedQty > 0 ? Math.min(100, (totalDeliveredQty / totalOrderedQty) * 100) : 0;
-  const isComplete = totalOrderedQty > 0 && totalDeliveredQty >= totalOrderedQty;
-  const isPartial = totalDeliveredQty > 0 && totalDeliveredQty < totalOrderedQty;
 
   return (
     <Grid gap={3} columns={{ max: 3, minWidth: 220 }}>
@@ -49,12 +47,7 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
           <Text size="sm" color="secondary" weight="medium" type="label">
             Realisasi Penerimaan
           </Text>
-          <Heading
-            level={3}
-            style={{
-              color: isComplete ? "var(--color-success)" : isPartial ? "var(--color-blue)" : undefined,
-            }}
-          >
+          <Heading level={3}>
             {completionPct.toFixed(0)}%
           </Heading>
         </Card>
