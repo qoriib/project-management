@@ -70,12 +70,12 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
             <LayoutContent padding={4}>
               <FormLayout>
                 <Selector
-                  label="Mode Ekspor"
+                  label="Mode"
                   value={mode}
                   onChange={(val) => setMode(val as ExportMode)}
                   options={[
-                    { value: "project", label: "Per Proyek" },
-                    { value: "master", label: "Master Data Saja" },
+                    { value: "project", label: "Proyek" },
+                    { value: "master", label: "Master Data" },
                   ]}
                 />
                 {mode === "project" ? (
@@ -92,8 +92,7 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
                   />
                 ) : (
                   <Text type="supporting" color="secondary">
-                    Hanya tabel master (vendor, item, kategori, satuan, harga) yang akan diekspor. Data proyek tidak
-                    disertakan.
+                    Hanya data master (vendor, item, kategori, satuan, harga) yang akan diekspor.
                   </Text>
                 )}
               </FormLayout>
