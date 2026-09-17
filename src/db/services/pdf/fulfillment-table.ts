@@ -39,18 +39,20 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     startY: kopStartY,
   });
 
-  // Pengelompokan Data per Kelompok Pekerjaan
-  const groupMap = new Map<string, typeof fulfillmentItems>();
+  // Pengelompokan Data per Kelompok Pekerjaan (diselaraskan dengan UUIDv7 ASC aplikasi web)
+  const groupMap = new Map<string, { groupId: string; groupName: string; items: typeof fulfillmentItems }>();
 
   fulfillmentItems.forEach((item) => {
+    const groupId = item.requirement_group_id || "none";
     const groupName = (item.group_name || "").trim();
-    const existingGroup = groupMap.get(groupName) || [];
-    existingGroup.push(item);
-    groupMap.set(groupName, existingGroup);
+    const existing = groupMap.get(groupId) || { groupId, groupName, items: [] };
+    if (!existing.groupName && groupName) existing.groupName = groupName;
+    existing.items.push(item);
+    groupMap.set(groupId, existing);
   });
 
-  const sortedGroupEntries = Array.from(groupMap.entries());
-  sortedGroupEntries.sort(([nameA], [nameB]) => nameA.localeCompare(nameB));
+  const sortedGroupEntries = Array.from(groupMap.values());
+  sortedGroupEntries.sort((a, b) => a.groupId.localeCompare(b.groupId));
 
   // Akumulasi dan Pembentukan Baris Tabel
   let totalPlannedVolume = 0;
@@ -62,7 +64,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
   const tableBody: RowInput[] = [];
   let itemCounter = 1;
 
-  for (const [groupName, groupItems] of sortedGroupEntries) {
+  for (const { groupName, items: groupItems } of sortedGroupEntries) {
     groupItems.sort((firstItem, secondItem) => {
       const isFirstUnplanned = Boolean(firstItem.is_unplanned);
       const isSecondUnplanned = Boolean(secondItem.is_unplanned);
@@ -77,7 +79,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     // Baris Header Kelompok Pekerjaan
     tableBody.push([
       {
-        content: `PEKERJAAN: ${groupName.toUpperCase()}`,
+        content: groupName.toUpperCase(),
         colSpan: hasDateRange ? 11 : 9,
         styles: PDF_TABLE_CATEGORY_BANNER_STYLES,
       },
@@ -124,9 +126,9 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         (plannedVolume > 0 && deliveredVolume > plannedVolume);
       const isDeliveryPctOver = deliveryPercentage > 1.0;
 
-      const itemCode = formatItemCode(item) || item.item_code || "-";
-      const unit = item.unit || "-";
       const isPagu = Boolean(item.is_pagu_account);
+      const itemCode = isPagu ? "PAGU" : formatItemCode(item) || item.item_code || "-";
+      const unit = item.unit || "-";
       const plannedVolDisplay = isPagu ? "1" : !item.is_unplanned && plannedVolume > 0 ? formatQty(plannedVolume) : "-";
       const periodOrderedDisplay = isPagu ? "-" : formatQty(periodOrdered);
       const cumulativeOrderedDisplay = isPagu ? "-" : formatQty(cumulativeOrdered);
@@ -144,7 +146,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           _isOrderPctOver: isOrderPctOver,
           _isDeliveredOver: isDeliveredOver,
           _isDeliveryPctOver: isDeliveryPctOver,
-          0: itemCounter,
+          0: item.is_empty_group ? "" : itemCounter,
           1: itemCode,
           2: item.item_name,
           3: unit,
@@ -163,7 +165,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           _isOrderPctOver: isOrderPctOver,
           _isDeliveredOver: isDeliveredOver,
           _isDeliveryPctOver: isDeliveryPctOver,
-          0: itemCounter,
+          0: item.is_empty_group ? "" : itemCounter,
           1: itemCode,
           2: item.item_name,
           3: unit,
@@ -175,20 +177,23 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         });
       }
 
-      itemCounter += 1;
+      if (!item.is_empty_group) {
+        itemCounter += 1;
+      }
     });
 
-    const isSingleEmptyOrPagu =
-      groupItems.length === 1 && (Boolean(groupItems[0].is_empty_group) || Boolean(groupItems[0].is_pagu_account));
+    const groupBudget =
+      groupItems.find((item) => item.group_budget != null && item.group_budget > 0)?.group_budget ?? null;
+    const isPaguGroup = groupBudget != null && groupBudget > 0;
 
-    if (isSingleEmptyOrPagu) {
-      continue;
-    }
-
-    // Baris Subtotal per Kelompok Pekerjaan
+    // Baris Subtotal per Kelompok Pekerjaan (selalu tampil di seluruh kondisi)
     const subtotalOrderPercentage = calcRatio(subtotalOrderedVolume, subtotalPlannedVolume);
     const subtotalDeliveryPercentage = calcRatio(subtotalDeliveredVolume, subtotalOrderedVolume);
     const subtotalRowCellStyle = PDF_TABLE_TOTAL_ROW_STYLES;
+
+    const subtotalPlannedDisplay = isPaguGroup ? "-" : formatQty(subtotalPlannedVolume);
+    const subtotalOrderPctDisplay = isPaguGroup ? "-" : formatPercentage(subtotalOrderPercentage);
+    const subtotalDeliveryPctDisplay = subtotalOrderedVolume > 0 ? formatPercentage(subtotalDeliveryPercentage) : "-";
 
     const subtotalRow: RowInput = hasDateRange
       ? [
@@ -198,7 +203,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
             styles: PDF_TABLE_TOTAL_LABEL_STYLES,
           },
           {
-            content: formatQty(subtotalPlannedVolume),
+            content: subtotalPlannedDisplay,
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
           {
@@ -210,7 +215,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
           {
-            content: formatPercentage(subtotalOrderPercentage),
+            content: subtotalOrderPctDisplay,
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
           {
@@ -222,7 +227,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
           {
-            content: formatPercentage(subtotalDeliveryPercentage),
+            content: subtotalDeliveryPctDisplay,
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
         ]
@@ -233,7 +238,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
             styles: PDF_TABLE_TOTAL_LABEL_STYLES,
           },
           {
-            content: formatQty(subtotalPlannedVolume),
+            content: subtotalPlannedDisplay,
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
           {
@@ -241,7 +246,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
           {
-            content: formatPercentage(subtotalOrderPercentage),
+            content: subtotalOrderPctDisplay,
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
           {
@@ -249,7 +254,7 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
           {
-            content: formatPercentage(subtotalDeliveryPercentage),
+            content: subtotalDeliveryPctDisplay,
             styles: { ...subtotalRowCellStyle, halign: "right" },
           },
         ];
