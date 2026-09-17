@@ -7,12 +7,14 @@ import { useMasterStore } from "./useMasterStore";
 import { useOrderStore } from "./useOrderStore";
 import { useReceiptStore } from "./useReceiptStore";
 import { useRequirementStore } from "./useRequirementStore";
+import { useRequirementGroupStore } from "./useRequirementGroupStore";
 
 export { useAppStore } from "./useAppStore";
 export { useMasterStore } from "./useMasterStore";
 export { useOrderStore } from "./useOrderStore";
 export { useReceiptStore } from "./useReceiptStore";
 export { useRequirementStore } from "./useRequirementStore";
+export { useRequirementGroupStore } from "./useRequirementGroupStore";
 
 /**
  * Resets all global Zustand stores to their fresh, default initial states.
@@ -48,5 +50,10 @@ export function resetAllStores(): void {
   useRequirementStore.setState({
     isLoadingRequirements: false,
     requirements: [],
+  });
+
+  useRequirementGroupStore.setState({
+    groups: [],
+    isLoadingGroups: false,
   });
 }

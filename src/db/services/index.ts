@@ -6,11 +6,14 @@ export {
   getItemLog,
   getProjectOrderReport,
   getProjectReceiptReport,
+  getProjectRequirementReport,
   type RequirementReportItem,
+  type RequirementReportVariant,
   type ItemLogEntry,
   type OrderReportItem,
   type ReceiptReportItem,
-} from "./report.service";
+  type RequirementReportDetailItem,
+} from "./report";
 
 export {
   generateReportExcel,

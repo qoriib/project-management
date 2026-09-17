@@ -4,6 +4,8 @@ import { type CreateOrderItem, type OrderItem, OrderItemModel } from "@/db/model
 export interface OrderItemDetail {
   order_item_id: string;
   order_id: string | null;
+  requirement_group_id?: string;
+  group_name?: string;
   item_id: string | null;
   vendor_id: string | null;
   item_price_id: string;
@@ -23,6 +25,7 @@ export interface OrderItemDetail {
 
 export interface OrderItemInput {
   order_item_id?: string;
+  requirement_group_id?: string;
   item_id: string | null;
   vendor_id: string | null;
   item_price_id: string;
@@ -45,6 +48,8 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
     const sql = `
       SELECT order_items.order_item_id,
              order_items.order_id,
+             COALESCE(order_items.requirement_group_id, orders.requirement_group_id) as requirement_group_id,
+             COALESCE(item_groups.group_name, order_groups.group_name) as group_name,
              order_items.item_id,
              order_items.vendor_id,
              order_items.item_price_id,
@@ -60,6 +65,9 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
              COALESCE(SUM(CASE WHEN receipts.deleted_at IS NULL THEN receipt_items.qty ELSE 0 END), 0) as total_delivered,
              order_items.qty - COALESCE(SUM(CASE WHEN receipts.deleted_at IS NULL THEN receipt_items.qty ELSE 0 END), 0) as remaining
       FROM order_items
+      LEFT JOIN orders ON orders.order_id = order_items.order_id
+      LEFT JOIN requirement_groups item_groups ON item_groups.requirement_group_id = order_items.requirement_group_id AND item_groups.deleted_at IS NULL
+      LEFT JOIN requirement_groups order_groups ON order_groups.requirement_group_id = orders.requirement_group_id AND order_groups.deleted_at IS NULL
       LEFT JOIN item_prices ON item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL
       LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
       LEFT JOIN item_categories categories ON categories.category_id = items.category_id AND categories.deleted_at IS NULL
@@ -73,9 +81,9 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
     `;
 
     const rows = await this.rawSelect<OrderItemDetail>(sql, [orderId]);
-    return rows.map((r) => ({
-      ...r,
-      has_tax: Boolean(r.has_tax),
+    return rows.map((row) => ({
+      ...row,
+      has_tax: Boolean(row.has_tax),
     }));
   }
 

@@ -21,7 +21,10 @@ interface OrderStore {
   clearOrderDetail: () => void;
 
   createOrderForProject: (projectId: string) => Promise<string>;
-  updateOrderHeader: (id: string, data: { order_date?: string; order_code?: string }) => Promise<void>;
+  updateOrderHeader: (
+    id: string,
+    data: { order_date?: string; order_code?: string; requirement_group_id?: string },
+  ) => Promise<void>;
   addOrderItem: (orderId: string, item: Omit<OrderItemInput, "order_item_id">) => Promise<string>;
   updateOrderItem: (orderId: string, orderItemId: string, item: OrderItemInput) => Promise<void>;
   deleteOrderItem: (orderId: string, orderItemId: string) => Promise<void>;
@@ -39,15 +42,15 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
   },
 
   loadAllOrders: async (projectId) => {
-    const o = await orderRepo.findAllWithSummary({ project_id: projectId });
-    set({ orders: o });
+    const orderList = await orderRepo.findAllWithSummary({ project_id: projectId });
+    set({ orders: orderList });
   },
 
   loadOrderDetail: async (id) => {
-    const o = await orderRepo.findByIdWithSummary(id);
-    if (o) {
+    const orderData = await orderRepo.findByIdWithSummary(id);
+    if (orderData) {
       const [items, recItems] = await Promise.all([orderRepo.findItems(id), receiptRepo.findItemsByOrder(id)]);
-      set({ currentOrder: o, currentItems: items, currentReceiptItems: recItems });
+      set({ currentOrder: orderData, currentItems: items, currentReceiptItems: recItems });
     } else {
       set({ currentOrder: null, currentItems: [], currentReceiptItems: [] });
     }
@@ -85,7 +88,7 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
 
   deleteOrder: async (id) => {
     const { orders } = get();
-    const order = orders.find((o) => o.order_id === id);
+    const order = orders.find((ord) => ord.order_id === id);
     const projectId = order?.project_id || useAppStore.getState().selectedProjectId || undefined;
     await orderRepo.delete(id);
     await get().loadAllOrders(projectId);

@@ -1,29 +1,31 @@
-/**
- * Utilitas Pemformatan, Sanitasi, dan Parsing Data
- *
- * Berisi fungsi-fungsi murni untuk pemformatan angka lokal Indonesia (`id-ID`),
- * sanitasi input desimal & PIN, pembuatan kode urut otomatis, dan manipulasi tanggal ISO.
- */
+import { APP, type DecimalType } from "@/configs/app.config";
+
+export type { DecimalType };
 
 /**
  * Memformat angka ke dalam format pemisah ribuan dan desimal standar lokal Indonesia (`id-ID`).
  *
  * @param value - Angka yang akan diformat
- * @param decimals - Jumlah maksimum digit desimal (wajib ditentukan)
+ * @param typeOrDecimals - Jenis nilai ("currency" | "volume") atau jumlah desimal langsung. Default: "currency".
  * @returns String angka terformat (e.g. "1.500.000,5")
  *
  * @example
  * ```ts
- * formatNumber(1500000, 2); // "1.500.000"
- * formatNumber(12.345678, 2); // "12,35"
- * formatNumber(12.345678, 5); // "12,34568"
- * formatNumber(null, 2); // "0"
+ * formatNumber(1500000); // "1.500.000" (currency default)
+ * formatNumber(1500000, "currency"); // "1.500.000"
+ * formatNumber(12.345678, "volume"); // "12,34568"
  * ```
  */
-export function formatNumber(value: number | undefined | null, decimals: number): string {
+export function formatNumber(
+  value: number | undefined | null,
+  typeOrDecimals: DecimalType | number = "currency",
+): string {
   if (value === undefined || value === null || isNaN(value)) {
     return "0";
   }
+
+  const decimals = typeof typeOrDecimals === "number" ? typeOrDecimals : APP.decimals[typeOrDecimals];
+
   return new Intl.NumberFormat("id-ID", {
     maximumFractionDigits: decimals,
     minimumFractionDigits: 0,
@@ -272,11 +274,11 @@ export function formatPeriod(startDate?: string, endDate?: string): string {
  * formatQty(0); // "-"
  * ```
  */
-export function formatQty(value: number | null | undefined, decimals = 2): string {
+export function formatQty(value: number | null | undefined, type: DecimalType = "volume"): string {
   if (value === null || value === undefined || value === 0 || isNaN(value)) {
     return "-";
   }
-  return formatNumber(value, decimals);
+  return formatNumber(value, type);
 }
 
 /**

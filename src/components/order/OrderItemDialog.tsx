@@ -1,31 +1,35 @@
 import { useEffect, useState } from "react";
 import {
   Button,
-  Card,
   Dialog,
-  Divider,
   HStack,
+  FormLayout,
   Heading,
+  Layout,
+  LayoutContent,
+  LayoutFooter,
+  LayoutHeader,
   IconButton,
   InputGroup,
   InputGroupText,
   Selector,
   Switch,
-  Text,
   TextInput,
   VStack,
 } from "@astryxdesign/core";
-import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
 import { MasterVendorForm } from "@/components/master/MasterVendorForm";
+import { RequirementGroupDialog } from "@/components/requirement/RequirementGroupDialog";
+import { ItemPriceSummaryCard } from "@/components/shared/ItemPriceSummaryCard";
 import { useMasterStore } from "@/store/useMasterStore";
-import { formatNumber, formatItemCode, sanitizeDecimalInput, parseDecimalInput } from "@/utils/formatters";
-import { calcDPP, calcTax, TAX_RATIO_PERCENT } from "@/utils/calc";
+import { useRequirementGroupStore } from "@/store/useRequirementGroupStore";
+import { useAppStore } from "@/store/useAppStore";
+import { formatNumber, formatItemCode, sanitizeDecimalInput } from "@/utils/formatters";
+import { TAX_RATIO_PERCENT } from "@/utils/calc";
 import { getFieldError } from "@/utils/form";
-import { useOrderItemForm } from "./form/useOrderItemForm";
+import { type OrderItemInputPayload, useOrderItemForm } from "./form/useOrderItemForm";
 import { useSelector } from "@tanstack/react-form";
 import type { OrderItemDetail } from "@/db/repositories";
 
@@ -33,17 +37,34 @@ interface OrderItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
   initialData?: OrderItemDetail;
-  onSubmitItem: (item: any) => void;
+  defaultRequirementGroupId?: string;
+  onSubmitItem: (item: OrderItemInputPayload) => void;
 }
 
-export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: OrderItemDialogProps) {
+export function OrderItemDialog({
+  isOpen,
+  onClose,
+  initialData,
+  defaultRequirementGroupId,
+  onSubmitItem,
+}: OrderItemDialogProps) {
+  const [isGroupFormOpen, setIsGroupFormOpen] = useState(false);
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
   const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
   const [isVendorFormOpen, setIsVendorFormOpen] = useState(false);
 
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const { groups, loadGroups } = useRequirementGroupStore();
   const { items, itemPricesMap, vendors, loadItemPrices } = useMasterStore();
 
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadGroups(selectedProjectId);
+    }
+  }, [selectedProjectId, loadGroups]);
+
   const { form, handleItemChange } = useOrderItemForm({
+    defaultRequirementGroupId,
     initialData,
     onSubmitItem,
     onSuccess: () => {
@@ -51,7 +72,12 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
     },
   });
 
-  const selectedItemId = useSelector(form.store, (s) => s.values.item_id);
+  const groupOptions = groups.map((group) => ({
+    label: group.group_name,
+    value: String(group.requirement_group_id),
+  }));
+
+  const selectedItemId = useSelector(form.store, (state) => state.values.item_id);
 
   useEffect(() => {
     if (selectedItemId) {
@@ -59,16 +85,16 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
     }
   }, [selectedItemId, loadItemPrices]);
 
-  const selectedItem = items.find((i) => i.item_id === selectedItemId);
+  const selectedItem = items.find((item) => item.item_id === selectedItemId);
   const selectedItemCode = selectedItem ? formatItemCode(selectedItem) : "";
-  const priceOptions = (itemPricesMap.get(selectedItemId) ?? []).map((p) => ({
-    label: `Rp ${formatNumber(p.price, 2)}`,
-    value: String(p.item_price_id),
+  const priceOptions = (itemPricesMap.get(selectedItemId) ?? []).map((priceItem) => ({
+    label: `Rp ${formatNumber(priceItem.price, "currency")}`,
+    value: String(priceItem.item_price_id),
   }));
 
-  const vendorOptions = vendors.map((v) => ({
-    label: v.vendor_name,
-    value: String(v.vendor_id),
+  const vendorOptions = vendors.map((vendor) => ({
+    label: vendor.vendor_name,
+    value: String(vendor.vendor_id),
   }));
 
   const itemOptions = items.map((item) => ({
@@ -80,9 +106,9 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
     <>
       <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh">
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
             form.handleSubmit();
           }}
         >
@@ -96,6 +122,36 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
               <LayoutContent padding={4}>
                 <VStack gap={4}>
                   <FormLayout>
+                    {/* Kelompok Pekerjaan */}
+                    <HStack gap={2} align="end" width="100%">
+                      <VStack width="100%">
+                        <form.Field
+                          name="requirement_group_id"
+                          children={(field) => (
+                            <Selector
+                              hasSearch
+                              isRequired
+                              searchPlaceholder="Cari kelompok pekerjaan..."
+                              statusVariant="tooltip"
+                              label="Kelompok Pekerjaan"
+                              options={groupOptions}
+                              value={field.state.value || undefined}
+                              onChange={(val) => field.handleChange((val as string) || "")}
+                              onBlur={field.handleBlur}
+                              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                            />
+                          )}
+                        />
+                      </VStack>
+                      <IconButton
+                        type="button"
+                        variant="secondary"
+                        label="Kelola Pekerjaan"
+                        icon={<Plus />}
+                        onClick={() => setIsGroupFormOpen(true)}
+                      />
+                    </HStack>
+
                     {/* Item */}
                     <HStack gap={2} align="end" width="100%">
                       <VStack width="100%">
@@ -227,50 +283,23 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
 
                   {/* Realtime calculation summary card */}
                   <form.Subscribe
-                    selector={(s) => ({
-                      itemId: s.values.item_id,
-                      priceId: s.values.item_price_id,
-                      qty: s.values.qty,
-                      hasTax: s.values.has_tax,
+                    selector={(state) => ({
+                      itemId: state.values.item_id,
+                      priceId: state.values.item_price_id,
+                      qty: state.values.qty,
+                      hasTax: state.values.has_tax,
                     })}
                   >
                     {({ itemId, priceId, qty, hasTax }) => {
                       let priceNum = 0;
                       if (itemId && priceId) {
                         const prices = itemPricesMap.get(itemId) ?? [];
-                        const pObj = prices.find((p) => String(p.item_price_id) === String(priceId));
-                        if (pObj) priceNum = pObj.price;
+                        const priceObj = prices.find(
+                          (priceItem) => String(priceItem.item_price_id) === String(priceId),
+                        );
+                        if (priceObj) priceNum = priceObj.price;
                       }
-                      const numQty = parseDecimalInput(qty);
-                      const dpp = calcDPP(numQty, priceNum);
-                      const taxAmount = calcTax(dpp, hasTax);
-                      const total = dpp + taxAmount;
-
-                      return (
-                        <Card padding={3}>
-                          <VStack gap={1.5}>
-                            <HStack justify="between">
-                              <Text size="sm" color="secondary">
-                                Subtotal
-                              </Text>
-                              <Text type="code">Rp {formatNumber(dpp, 2)}</Text>
-                            </HStack>
-                            <HStack justify="between">
-                              <Text size="sm" color="secondary">
-                                PPn ({TAX_RATIO_PERCENT}%):
-                              </Text>
-                              <Text type="code">{hasTax ? `Rp ${formatNumber(taxAmount, 2)}` : "-"}</Text>
-                            </HStack>
-                            <Divider />
-                            <HStack justify="between">
-                              <Text weight="bold">Total</Text>
-                              <Text type="code" weight="bold" color="primary">
-                                Rp {formatNumber(total, 2)}
-                              </Text>
-                            </HStack>
-                          </VStack>
-                        </Card>
-                      );
+                      return <ItemPriceSummaryCard price={priceNum} qty={qty} hasTax={hasTax} />;
                     }}
                   </form.Subscribe>
                 </VStack>
@@ -326,6 +355,13 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
         }}
         onSuccess={(newPriceId) => {
           form.setFieldValue("item_price_id", newPriceId);
+        }}
+      />
+      <RequirementGroupDialog
+        isOpen={isGroupFormOpen}
+        onClose={() => setIsGroupFormOpen(false)}
+        onSuccess={(newGroupId) => {
+          form.setFieldValue("requirement_group_id", newGroupId);
         }}
       />
     </>

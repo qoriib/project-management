@@ -4,9 +4,9 @@ import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useAppStore } from "@/store/useAppStore";
 import { useOrderStore } from "@/store/useOrderStore";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { handleFormError } from "@/utils/form";
 import { useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import { handleFormError } from "@/utils";
 import { type PORow, useOrderTableColumns } from "./table/useOrderTableColumns";
 
 interface OrderTableProps {
@@ -15,7 +15,7 @@ interface OrderTableProps {
 
 export function OrderTable({ onEdit }: OrderTableProps) {
   const showToast = useToast();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
 
   const [deletingId, setDeletingId] = useState<{ id: string; label: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);

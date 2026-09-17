@@ -1,4 +1,4 @@
-import { DEFAULT_SHEET_VIEW, EXCEL_COL_WIDTH, EXCEL_NUM_FMT } from "./styles";
+import { BORDER_ACCOUNTING_TOTAL, DEFAULT_SHEET_VIEW, EXCEL_COL_WIDTH, EXCEL_NUM_FMT } from "./styles";
 import { createFormalKop, renderTableHeaderRow, styleBodyRow, styleTotalRow, type SheetColumnConfig } from "./utils";
 import { formatItemCode, toISODate } from "@/utils/formatters";
 import { calcLine } from "@/utils/calc";
@@ -22,6 +22,12 @@ const COLUMNS: SheetColumnConfig[] = [
     header: "NO. PO",
     key: "order_code",
     width: EXCEL_COL_WIDTH.orderCode,
+    align: "left",
+  },
+  {
+    header: "PEKERJAAN",
+    key: "group_name",
+    width: EXCEL_COL_WIDTH.category,
     align: "left",
   },
   {
@@ -104,8 +110,8 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   }));
 
   createFormalKop(worksheet, {
-    endCol: "M",
-    endColIdx: 13,
+    endCol: "N",
+    endColIdx: 14,
     startCol: "A",
     startColIdx: 1,
     subtitle: `${project_name} | ${company_name} | ${period}`,
@@ -119,49 +125,74 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
   let totalTaxAmount = 0;
   let totalOrderPrice = 0;
 
-  orderData.forEach((item, index) => {
-    const rowNumber = index + 5;
-    const row = worksheet.getRow(rowNumber);
-
-    const { dpp, tax: taxAmount, total: totalPrice } = calcLine(item.qty, item.price, item.has_tax);
-
-    totalOrderedQuantity += item.qty;
-    totalDpp += dpp;
-    totalTaxAmount += taxAmount;
-    totalOrderPrice += totalPrice;
-
-    const orderDate = toISODate(item.order_date);
-    const orderCode = item.order_code ?? "-";
-    const vendorName = item.vendor_name ?? "-";
-    const itemCode = formatItemCode(item) ?? item.item_code;
-    const categoryName = item.category_name ?? "-";
-    const unitName = item.unit_name ?? "-";
-
-    row.values = [
-      index + 1,
-      orderDate,
-      orderCode,
-      vendorName,
-      itemCode,
-      item.item_name,
-      categoryName,
-      unitName,
-      item.qty,
-      item.price,
-      dpp,
-      taxAmount,
-      totalPrice,
-    ];
-
-    styleBodyRow(row, COLUMNS);
+  // Kelompokkan data per transaksi PO (order_code) agar informasi dokumen tidak berulang
+  const orderGroups = new Map<string, typeof orderData>();
+  orderData.forEach((item) => {
+    const key = item.order_code || "UNKNOWN";
+    const group = orderGroups.get(key) || [];
+    group.push(item);
+    orderGroups.set(key, group);
   });
 
+  let currentRowIndex = 5;
+  let itemCounter = 1;
+
+  for (const items of orderGroups.values()) {
+    const firstItem = items[0];
+    const orderDate = toISODate(firstItem.order_date);
+    const orderCode = firstItem.order_code ?? "-";
+
+    items.forEach((item, itemIndex) => {
+      const row = worksheet.getRow(currentRowIndex);
+      const { dpp, tax: taxAmount, total: totalPrice } = calcLine(item.qty, item.price, item.has_tax);
+
+      totalOrderedQuantity += item.qty;
+      totalDpp += dpp;
+      totalTaxAmount += taxAmount;
+      totalOrderPrice += totalPrice;
+
+      const groupName = item.group_name ?? "-";
+      const vendorName = item.vendor_name ?? "-";
+      const itemCode = formatItemCode(item) ?? item.item_code;
+      const categoryName = item.category_name ?? "-";
+      const unitName = item.unit_name ?? "-";
+
+      row.values = [
+        itemCounter++,
+        orderDate,
+        orderCode,
+        groupName,
+        vendorName,
+        itemCode,
+        item.item_name,
+        categoryName,
+        unitName,
+        item.qty,
+        item.price,
+        dpp,
+        taxAmount,
+        totalPrice,
+      ];
+
+      styleBodyRow(row, COLUMNS);
+
+      // Pisahkan antar nomor PO dengan garis double border bottom pada baris terakhir PO
+      if (itemIndex === items.length - 1) {
+        for (let col = 1; col <= 14; col++) {
+          row.getCell(col).border = BORDER_ACCOUNTING_TOTAL;
+        }
+      }
+
+      currentRowIndex++;
+    });
+  }
+
   // Baris Total
-  const totalRowIndex = orderData.length + 5;
-  const totalRow = worksheet.getRow(totalRowIndex);
+  const totalRow = worksheet.getRow(currentRowIndex);
   totalRow.values = [
     "",
-    "TOTAL",
+    "TOTAL KESELURUHAN",
+    "",
     "",
     "",
     "",
@@ -175,8 +206,8 @@ export function createOrderSheet(workbook: ExcelJS.Workbook, context: OrderSheet
     totalOrderPrice,
   ];
 
-  worksheet.mergeCells(`B${totalRowIndex}:H${totalRowIndex}`);
+  worksheet.mergeCells(`B${currentRowIndex}:I${currentRowIndex}`);
   styleTotalRow(totalRow, COLUMNS);
 
-  worksheet.autoFilter = "A4:M4";
+  worksheet.autoFilter = "A4:N4";
 }

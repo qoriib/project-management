@@ -5,6 +5,31 @@ Semua perubahan penting pada proyek ini akan dicatat dalam berkas ini.
 Format berkas ini berdasarkan [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 dan proyek ini mengadopsi [Semantic Versioning](https://semver.org/lang/id/).
 
+## [2.0.0] - 2026-09-18
+
+### Added
+
+- **Ekspor Excel Modular per Halaman**: Tombol aksi ekspor Excel ditambahkan langsung di header setiap halaman laporan — BOQ (`/requirement`), PO (`/order`), dan NP (`/receipt`) — tanpa bergantung pada dialog laporan gabungan.
+- **Kolom Input Sticky Kanan pada Tabel NP**: Kolom kuantitas diterima (`Diterima (NP)`) ditempatkan di posisi paling kanan dengan sticky right agar selalu terlihat saat scroll horizontal.
+
+### Changed
+
+- **Styling Excel & PDF Monokrom**: Menghapus semua background fill berwarna pada sel Excel dan tabel PDF, menghasilkan tampilan dokumen formal yang lebih bersih dan hemat tinta.
+- **Tinggi Kop Dokumen Kompak**: Tinggi baris kop header pada dokumen Excel dan PDF dikompres dari baris tinggi ke tinggi kompak (34pt), selaras dengan standar dokumen formal.
+- **Pemisah Transaksi dengan Double Border (tanpa merge)**: Baris PO dan NP pada laporan Excel kini dipisahkan dengan double bottom border (`BORDER_ACCOUNTING_TOTAL`) per transaksi, menggantikan cell merge vertikal sebelumnya, sehingga fitur AutoFilter dan pengurutan Excel tetap berfungsi.
+- **Posisi Kolom Harga pada Tabel NP**: Kolom `Harga (Rp)` dipindahkan ke antara kolom `Satuan` dan `Volume PO` agar urutan kolom lebih logis dan intuitif.
+- **Penyederhanaan Header Kategori BOQ**: Menghapus awalan `PEKERJAAN:` dari baris kategori, dan item pagu dirender sebagai satu baris tunggal dengan kode item `PAGU`.
+- **Penyelarasan Laporan Requirement**: Grup kosong, item pagu, dan urutan pengurutan diselaraskan secara konsisten di seluruh tampilan laporan BOQ.
+- **Konsolidasi Kartu Ringkasan & Indikator Baris**: Kartu ringkasan perbandingan dikonsolidasikan, ditambahkan indikator baris sticky untuk memudahkan navigasi laporan.
+
+### Refactored
+
+- **Sentralisasi Konfigurasi Desimal & Tipe `formatNumber`**: Konfigurasi format angka dan desimal dipusatkan agar konsisten di seluruh komponen dan route.
+- **Pemuatan Detail Receipt ke `useReceiptStore`**: Logika pemuatan detail NP (`loadReceiptDetail`) dipindahkan ke dalam `useReceiptStore`, menghapus berkas ad-hoc `receipt.utils.ts` yang tidak lagi diperlukan.
+- **Eliminasi Alias `ReceiptItemRow`**: Tipe alias legacy `ReceiptItemRow` dihapus dan digantikan langsung dengan `ReceiptItemDetail` untuk konsistensi tipe di seluruh modul receipt.
+- **Perbaikan Keterbacaan Kode**: Penamaan variabel satu huruf dieliminasi dan digantikan dengan nama yang deskriptif di komponen UI, route, store, service, dan repository.
+- **Penghapusan Warna Status Dinamis**: Warna status kondisional pada persentase penyelesaian di `OrderSummaryCard` dihapus demi konsistensi visual.
+
 ## [1.1.0] - 2026-09-08
 
 ### Added

@@ -22,8 +22,8 @@ import { formatNumber, sanitizeDecimalInput, parseDecimalInput } from "@/utils/f
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
 import { getFieldError, handleFormError } from "@/utils/form";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional, useTablePagination, paginateData } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type ItemPriceWithRelation, itemPriceRepo } from "@/db/repositories";
 import type { ItemWithDetails } from "@/db/repositories";
 import * as v from "valibot";
@@ -66,7 +66,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
         const numPrice = parseDecimalInput(value.price);
         if (numPrice <= 0) return null;
 
-        const isDuplicate = prices.some((p) => Math.abs(Number(p.price) - numPrice) < 0.00001);
+        const isDuplicate = prices.some((priceItem) => Math.abs(Number(priceItem.price) - numPrice) < 0.00001);
 
         if (isDuplicate) {
           return {
@@ -141,7 +141,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
       width: proportional(1),
       renderCell: (row: ItemPriceWithRelation) => (
         <HStack gap={2} align="center" justify="end">
-          <Text type="code">{formatNumber(row.price, 2)}</Text>
+          <Text type="code">{formatNumber(row.price, "currency")}</Text>
         </HStack>
       ),
     },
@@ -224,9 +224,9 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
                   emptyState={<EmptyState isCompact title="Belum ada riwayat harga" />}
                 />
                 <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
                     form.handleSubmit();
                   }}
                 >
@@ -272,7 +272,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
       </Dialog>
       <AlertDialog
         title="Hapus Harga"
-        description={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price, 2) : ""}? Tindakan ini tidak dapat dibatalkan.`}
+        description={`Hapus harga ${deleteTarget ? formatNumber(deleteTarget.price, "currency") : ""}? Tindakan ini tidak dapat dibatalkan.`}
         actionLabel="Hapus"
         cancelLabel="Batal"
         isOpen={Boolean(deleteTarget)}

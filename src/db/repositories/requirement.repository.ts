@@ -8,6 +8,7 @@ export type RequirementDetail = Requirement & {
   category_code?: string;
   unit?: string;
   project_name?: string;
+  group_name?: string;
   category?: string;
   /** Resolved price value from item_prices join */
   price?: number;
@@ -24,7 +25,7 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
   }
 
   /**
-   * Get all Requirements with joined details (item, price variant, unit, category, project).
+   * Get all Requirements with joined details (item, price variant, unit, category, project, group).
    */
   async findAllWithDetails(filters?: RequirementFilters): Promise<RequirementDetail[]> {
     const params: unknown[] = [];
@@ -37,6 +38,8 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
     const sql = `
       SELECT requirements.requirement_id,
              requirements.project_id,
+             requirements.requirement_group_id,
+             requirement_groups.group_name,
              requirements.item_id,
              requirements.item_price_id,
              requirements.qty,
@@ -52,19 +55,20 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
              projects.project_name,
              (requirements.qty * item_prices.price * (CASE WHEN requirements.has_tax = 1 THEN 1.12 ELSE 1.0 END)) as estimated_total
       FROM requirements
+      LEFT JOIN requirement_groups ON requirement_groups.requirement_group_id = requirements.requirement_group_id AND requirement_groups.deleted_at IS NULL
       LEFT JOIN item_prices ON item_prices.item_price_id = requirements.item_price_id AND item_prices.deleted_at IS NULL
       LEFT JOIN items ON items.item_id = requirements.item_id AND items.deleted_at IS NULL
       LEFT JOIN item_categories categories ON items.category_id = categories.category_id AND categories.deleted_at IS NULL
       LEFT JOIN units ON items.unit_id = units.unit_id AND units.deleted_at IS NULL
       LEFT JOIN projects ON projects.project_id = requirements.project_id AND projects.deleted_at IS NULL
       ${whereClause}
-      ORDER BY requirements.requirement_id ASC
+      ORDER BY COALESCE(requirement_groups.requirement_group_id, '') ASC, requirements.requirement_id ASC
     `;
 
     const rows = await this.rawSelect<RequirementDetail>(sql, params);
-    return rows.map((r) => ({
-      ...r,
-      has_tax: Boolean(r.has_tax),
+    return rows.map((row) => ({
+      ...row,
+      has_tax: Boolean(row.has_tax),
     }));
   }
 

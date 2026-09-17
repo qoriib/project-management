@@ -64,9 +64,9 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
   return (
     <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           form.handleSubmit();
         }}
       >

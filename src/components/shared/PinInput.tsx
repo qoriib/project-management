@@ -112,8 +112,8 @@ export function PinInput({
           disabled={isDisabled}
           autoComplete="off"
           name={`${name}-${index}`}
-          onChange={(e) => handleDigitChange(index, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(index, e)}
+          onChange={(event) => handleDigitChange(index, event.target.value)}
+          onKeyDown={(event) => handleKeyDown(index, event)}
           onPaste={handlePaste}
           style={{
             width: 46,

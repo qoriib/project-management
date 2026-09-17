@@ -348,7 +348,7 @@ export class QueryBuilder {
 
     // ORDER BY
     if (this._orderBys.length > 0) {
-      const orderParts = this._orderBys.map((o) => `${o.column} ${o.direction}`);
+      const orderParts = this._orderBys.map((orderBy) => `${orderBy.column} ${orderBy.direction}`);
       parts.push(`ORDER BY ${orderParts.join(", ")}`);
     }
 

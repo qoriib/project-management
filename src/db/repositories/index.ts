@@ -18,6 +18,7 @@ export { itemPriceRepo } from "./item-price.repository";
 export { unitRepo } from "./unit.repository";
 export { orderRepo } from "./order.repository";
 export { orderItemRepo } from "./order-item.repository";
+export { requirementGroupRepo } from "./requirement-group.repository";
 export { requirementRepo } from "./requirement.repository";
 export { receiptRepo } from "./receipt.repository";
 export { receiptItemRepo } from "./receipt-item.repository";
@@ -58,6 +59,9 @@ export type {
   UpdateOrder,
   OrderItem,
   CreateOrderItem,
+  RequirementGroup,
+  CreateRequirementGroup,
+  UpdateRequirementGroup,
   Requirement,
   CreateRequirement,
   UpdateRequirement,

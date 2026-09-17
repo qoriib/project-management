@@ -6,8 +6,8 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useAppStore } from "@/store/useAppStore";
 import { handleFormError } from "@/utils/form";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { Project, ProjectWithRelations } from "@/db/repositories";
 
 interface MasterProjectTableProps {
@@ -65,7 +65,7 @@ export function MasterProjectTable({ onEdit }: MasterProjectTableProps) {
       header: "Tahun Anggaran",
       key: "fiscal_year",
       width: pixel(140),
-      renderCell: (row: ProjectRow) => <Text type="code">{row.fiscal_year ? String(row.fiscal_year) : "-"}</Text>,
+      renderCell: (row: ProjectRow) => (row.fiscal_year ? <Text type="code">{String(row.fiscal_year)}</Text> : "-"),
     },
     {
       align: "end",

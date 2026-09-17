@@ -5,12 +5,19 @@ export enum AppRole {
   LOGISTICS_STAFF = "Staff Logistik",
 }
 
+export type DecimalType = "currency" | "volume";
+
 export const APP = {
   version: "1.1.0",
   defaultRole: AppRole.MANAGER,
   companyName: "PT SANG BIMA RATU",
   taxRatio: 0.12,
+  decimals: {
+    currency: 2,
+    volume: 5,
+  } as const,
   projectExtension: "project",
+  masterExtension: "master",
   sessionKey: "menpro_auth_session",
   sidenav: [
     {

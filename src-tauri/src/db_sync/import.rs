@@ -12,7 +12,7 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
     let file = File::open(&source_path).map_err(|e| format!("Gagal membuka file backup: {e}"))?;
     let mut archive = ZipArchive::new(file).map_err(|e| format!("Format file backup tidak valid: {e}"))?;
 
-    // 1. Baca manifest untuk mendapatkan project_id yang diimpor
+    // 1. Baca manifest untuk menentukan mode import dan project_id
     let manifest_content = match archive.by_name_decrypt(SYNC_MANIFEST_NAME, SYNC_ARCHIVE_KEY.as_bytes()) {
         Ok(mut zip_entry) => {
             let mut content = String::new();
@@ -24,12 +24,21 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
         Err(_) => None,
     };
 
-    let project_id = if let Some(content) = manifest_content {
+    // Tentukan mode: "project" atau "master"
+    // project_id = None berarti mode master-only
+    let project_id: Option<String> = if let Some(content) = manifest_content {
         let manifest: SyncManifest = serde_json::from_str(&content)
             .map_err(|e| format!("Manifest berkas arsip rusak: {e}"))?;
-        manifest.project_id
+
+        if manifest.export_type == "master" {
+            // Mode master-only: tidak perlu project_id
+            None
+        } else {
+            // Mode project: ambil project_id dari manifest
+            manifest.project_id
+        }
     } else {
-        // Fallback: baca baris pertama dari projects.csv
+        // Fallback legacy (manifest tidak ada): baca baris pertama dari projects.csv
         let mut zip_entry = archive
             .by_name_decrypt("projects.csv", SYNC_ARCHIVE_KEY.as_bytes())
             .map_err(|_| "File backup tidak valid: data proyek tidak ditemukan.".to_string())?;
@@ -44,67 +53,76 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
             .next()
             .ok_or_else(|| "Data proyek kosong dalam berkas backup.".to_string())?
             .map_err(|e| e.to_string())?;
-        first_rec
+        let pid = first_rec
             .get(pid_idx)
             .filter(|id| !id.is_empty())
             .ok_or_else(|| "ID proyek kosong dalam berkas backup.".to_string())?
-            .to_string()
+            .to_string();
+        Some(pid)
     };
 
     let mut conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
 
-    // Matikan foreign key checks & triggers sementara selama transaksi impor agar batch aman dari konflik urutan
+    // Matikan foreign key checks sementara
     conn.execute_batch("PRAGMA foreign_keys = OFF;")
         .map_err(|e| format!("Gagal menonaktifkan foreign keys: {e}"))?;
 
     let tx = conn.transaction().map_err(|e| e.to_string())?;
 
-    // 2. Bersihkan data proyek lama untuk project_id terkait (Clean wipe khusus proyek ini)
-    tx.execute(
-        "DELETE FROM receipt_items WHERE receipt_id IN (
-            SELECT receipt_id FROM receipts WHERE order_id IN (
+    // 2. Jika mode project: bersihkan data proyek lama untuk project_id terkait
+    if let Some(ref pid) = project_id {
+        tx.execute(
+            "DELETE FROM receipt_items WHERE receipt_id IN (
+                SELECT receipt_id FROM receipts WHERE order_id IN (
+                    SELECT order_id FROM orders WHERE project_id = ?1
+                )
+            )",
+            params![pid],
+        )
+        .map_err(|e| format!("Gagal membersihkan data receipt_items lama: {e}"))?;
+
+        tx.execute(
+            "DELETE FROM receipts WHERE order_id IN (
                 SELECT order_id FROM orders WHERE project_id = ?1
-            )
-        )",
-        params![&project_id],
-    )
-    .map_err(|e| format!("Gagal membersihkan data receipt_items lama: {e}"))?;
+            )",
+            params![pid],
+        )
+        .map_err(|e| format!("Gagal membersihkan data receipts lama: {e}"))?;
 
-    tx.execute(
-        "DELETE FROM receipts WHERE order_id IN (
-            SELECT order_id FROM orders WHERE project_id = ?1
-        )",
-        params![&project_id],
-    )
-    .map_err(|e| format!("Gagal membersihkan data receipts lama: {e}"))?;
+        tx.execute(
+            "DELETE FROM order_items WHERE order_id IN (
+                SELECT order_id FROM orders WHERE project_id = ?1
+            )",
+            params![pid],
+        )
+        .map_err(|e| format!("Gagal membersihkan data order_items lama: {e}"))?;
 
-    tx.execute(
-        "DELETE FROM order_items WHERE order_id IN (
-            SELECT order_id FROM orders WHERE project_id = ?1
-        )",
-        params![&project_id],
-    )
-    .map_err(|e| format!("Gagal membersihkan data order_items lama: {e}"))?;
+        tx.execute(
+            "DELETE FROM orders WHERE project_id = ?1",
+            params![pid],
+        )
+        .map_err(|e| format!("Gagal membersihkan data orders lama: {e}"))?;
 
-    tx.execute(
-        "DELETE FROM orders WHERE project_id = ?1",
-        params![&project_id],
-    )
-    .map_err(|e| format!("Gagal membersihkan data orders lama: {e}"))?;
+        tx.execute(
+            "DELETE FROM requirements WHERE project_id = ?1",
+            params![pid],
+        )
+        .map_err(|e| format!("Gagal membersihkan data requirements lama: {e}"))?;
 
-    tx.execute(
-        "DELETE FROM requirements WHERE project_id = ?1",
-        params![&project_id],
-    )
-    .map_err(|e| format!("Gagal membersihkan data requirements lama: {e}"))?;
+        tx.execute(
+            "DELETE FROM requirement_groups WHERE project_id = ?1",
+            params![pid],
+        )
+        .map_err(|e| format!("Gagal membersihkan data requirement_groups lama: {e}"))?;
 
-    tx.execute(
-        "DELETE FROM projects WHERE project_id = ?1",
-        params![&project_id],
-    )
-    .map_err(|e| format!("Gagal membersihkan data project lama: {e}"))?;
+        tx.execute(
+            "DELETE FROM projects WHERE project_id = ?1",
+            params![pid],
+        )
+        .map_err(|e| format!("Gagal membersihkan data project lama: {e}"))?;
+    }
 
-    // 3. Impor & merge data Master (menggunakan INSERT OR REPLACE agar aman & idempotent)
+    // 3. Impor & merge data Master (selalu, untuk kedua mode)
     for &(table, _pk, _update_cols) in MASTER_TABLES {
         let zip_entry = match archive.by_name_decrypt(&format!("{table}.csv"), SYNC_ARCHIVE_KEY.as_bytes()) {
             Ok(entry) => entry,
@@ -136,35 +154,37 @@ pub fn import_csv_zip(app: tauri::AppHandle, source_path: String) -> Result<(), 
         }
     }
 
-    // 4. Impor tabel Proyek & Transaksi (menggunakan INSERT OR REPLACE)
-    for &table in PROJECT_TABLES {
-        let zip_entry = match archive.by_name_decrypt(&format!("{table}.csv"), SYNC_ARCHIVE_KEY.as_bytes()) {
-            Ok(entry) => entry,
-            Err(_) => continue,
-        };
+    // 4. Impor tabel Proyek & Transaksi (hanya jika mode project)
+    if project_id.is_some() {
+        for &table in PROJECT_TABLES {
+            let zip_entry = match archive.by_name_decrypt(&format!("{table}.csv"), SYNC_ARCHIVE_KEY.as_bytes()) {
+                Ok(entry) => entry,
+                Err(_) => continue,
+            };
 
-        let mut rdr = csv::Reader::from_reader(zip_entry);
-        let headers = rdr.headers().map_err(|e| e.to_string())?.clone();
-        let col_count = headers.len();
-        if col_count == 0 {
-            continue;
-        }
+            let mut rdr = csv::Reader::from_reader(zip_entry);
+            let headers = rdr.headers().map_err(|e| e.to_string())?.clone();
+            let col_count = headers.len();
+            if col_count == 0 {
+                continue;
+            }
 
-        let col_names = headers.iter().map(|h| format!("`{h}`")).collect::<Vec<_>>().join(", ");
-        let placeholders = vec!["?"; col_count].join(", ");
-        let insert_sql = format!("INSERT OR REPLACE INTO `{table}` ({col_names}) VALUES ({placeholders})");
+            let col_names = headers.iter().map(|h| format!("`{h}`")).collect::<Vec<_>>().join(", ");
+            let placeholders = vec!["?"; col_count].join(", ");
+            let insert_sql = format!("INSERT OR REPLACE INTO `{table}` ({col_names}) VALUES ({placeholders})");
 
-        let mut stmt = tx.prepare(&insert_sql).map_err(|e| format!("Gagal prepare SQL proyek {table}: {e}"))?;
+            let mut stmt = tx.prepare(&insert_sql).map_err(|e| format!("Gagal prepare SQL proyek {table}: {e}"))?;
 
-        for record in rdr.records() {
-            let rec = record.map_err(|e| format!("Gagal membaca CSV proyek {table}: {e}"))?;
-            let params: Vec<Option<String>> = rec
-                .iter()
-                .map(|f| if f.is_empty() { None } else { Some(f.to_string()) })
-                .collect();
+            for record in rdr.records() {
+                let rec = record.map_err(|e| format!("Gagal membaca CSV proyek {table}: {e}"))?;
+                let params: Vec<Option<String>> = rec
+                    .iter()
+                    .map(|f| if f.is_empty() { None } else { Some(f.to_string()) })
+                    .collect();
 
-            stmt.execute(rusqlite::params_from_iter(params))
-                .map_err(|e| format!("Gagal mengimpor baris pada tabel {table}: {e}"))?;
+                stmt.execute(rusqlite::params_from_iter(params))
+                    .map_err(|e| format!("Gagal mengimpor baris pada tabel {table}: {e}"))?;
+            }
         }
     }
 

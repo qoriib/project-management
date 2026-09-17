@@ -11,6 +11,7 @@
  */
 
 import { APP } from "@/configs/app.config";
+import { parseDecimalInput } from "./formatters";
 
 // ─────────────────────────────────────────────────────────
 // Types
@@ -31,6 +32,14 @@ export interface LineCalcResult {
   tax: number;
   /** Total = DPP + PPN */
   total: number;
+}
+
+/** Hasil akumulasi ringkasan sekumpulan item transaksi */
+export interface ItemsSummaryResult {
+  totalVolume: number;
+  totalDpp: number;
+  totalTax: number;
+  grandTotal: number;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -134,9 +143,56 @@ export function calcLineItem(item: CalcLineItem): LineCalcResult {
   return calcLine(item.qty, item.price, item.has_tax);
 }
 
+/**
+ * Menghitung rincian kalkulasi harga (DPP, PPN, dan total) untuk satu baris,
+ * mendukung input kuantitas bertipe string desimal maupun number.
+ *
+ * @param price  - Harga satuan (nominal angka)
+ * @param qty    - Kuantitas / volume (string input desimal atau number)
+ * @param hasTax - Flag apakah dikenakan pajak
+ * @returns `{ dpp, tax, total }`
+ */
+export function calcPriceSummary(
+  price: number | null | undefined,
+  qty: number | string | null | undefined,
+  hasTax: boolean | null | undefined,
+): LineCalcResult {
+  const numQty = typeof qty === "string" ? parseDecimalInput(qty) : (qty ?? 0);
+  return calcLine(numQty, price, hasTax);
+}
+
 // ─────────────────────────────────────────────────────────
 // Kalkulasi Koleksi (Collection-Level)
 // ─────────────────────────────────────────────────────────
+
+/**
+ * Menghitung akumulasi summary transaksi (total volume, DPP, PPN, dan grand total)
+ * dari sekumpulan baris item secara konsisten dan efisien.
+ *
+ * @param items - Array baris item yang memiliki qty, price, dan has_tax
+ * @returns `{ totalVolume, totalDpp, totalTax, grandTotal }`
+ */
+export function calcItemsSummary<T extends CalcLineItem>(items: T[]): ItemsSummaryResult {
+  let totalVolume = 0;
+  let totalDpp = 0;
+  let totalTax = 0;
+  let grandTotal = 0;
+
+  for (const item of items) {
+    const qty = item.qty ?? 0;
+    const price = item.price ?? 0;
+    const dpp = calcDPP(qty, price);
+    const tax = calcTax(dpp, item.has_tax);
+    const total = dpp + tax;
+
+    totalVolume += qty;
+    totalDpp += dpp;
+    totalTax += tax;
+    grandTotal += total;
+  }
+
+  return { totalVolume, totalDpp, totalTax, grandTotal };
+}
 
 /**
  * Menghitung grand total dari sekumpulan baris item.
@@ -168,6 +224,32 @@ export function calcGrandTotal(
     }
   }
   return grand;
+}
+
+/**
+ * Menghitung grand total BOQ:
+ * - Untuk kelompok tanpa pagu: dihitung dari akumulasi item materialnya.
+ * - Untuk kelompok yang memiliki pagu: dihitung dari nilai pagunya (sebagai akun rekening tanpa rincian item).
+ *
+ * @param items  - Array kebutuhan material
+ * @param groups - Array kelompok pekerjaan aktif
+ * @returns Grand total BOQ
+ */
+export function calcBoqGrandTotal(
+  items: (CalcLineItem & {
+    estimated_total?: number | null;
+    total_price?: number | null;
+  })[],
+  groups: { requirement_group_id: string; budget?: number | null }[] = [],
+): number {
+  const itemsTotal = calcGrandTotal(items);
+  let paguTotal = 0;
+  for (const g of groups) {
+    if (g.budget && g.budget > 0) {
+      paguTotal += g.budget;
+    }
+  }
+  return itemsTotal + paguTotal;
 }
 
 /**

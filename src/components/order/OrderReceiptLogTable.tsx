@@ -5,8 +5,8 @@ import { Pencil } from "lucide-react";
 import { formatNumber } from "@/utils/formatters";
 import { useOrderStore } from "@/store/useOrderStore";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { Table, type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { ReceiptItemByOrder } from "@/db/repositories";
 
 type LogRow = ReceiptItemByOrder & Record<string, unknown>;
@@ -45,11 +45,7 @@ export function OrderReceiptLogTable() {
       header: "Volume",
       key: "qty",
       width: pixel(140),
-      renderCell: (row) => (
-        <Text type="code" weight="medium">
-          {formatNumber(row.qty, 5)}
-        </Text>
-      ),
+      renderCell: (row) => <Text type="code">{formatNumber(row.qty, "volume")}</Text>,
     },
     {
       align: "end",

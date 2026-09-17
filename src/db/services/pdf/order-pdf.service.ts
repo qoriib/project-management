@@ -64,17 +64,21 @@ export async function generatePurchaseOrderPdf(
       return {
         no: index + 1,
         name_with_price: `${item.item_name ?? "-"}${formatPriceSuffix(item.price)}`,
-        qty_display: `${formatNumber(item.qty, 2)}${unitStr}`.trim(),
+        qty_display: `${formatNumber(item.qty, "volume")}${unitStr}`.trim(),
         unit: item.unit ?? "",
       };
     });
+
+    const groupName = order.group_name || vendorItems[0]?.group_name;
+    const packageName = groupName ? `${project?.project_name ?? "-"} (${groupName})` : (project?.project_name ?? "-");
 
     const context: PurchaseOrderPdfContext = {
       title: "PURCHASE ORDER",
       order_code: options.orderCodeOverride?.trim() || order.order_code || "-",
       order_date_display: formatDate(order.order_date),
       vendor_name: vendorName,
-      package_name: project?.project_name ?? "-",
+      package_name: packageName,
+      group_name: groupName ?? undefined,
       year: project?.fiscal_year ?? "-",
       company_name: project?.company_name ?? "-",
       items: pdfItems,
@@ -116,17 +120,20 @@ export async function generateAssetRequestPdf(
     const pdfItems: OrderPdfItem[] = items.map((item, index) => ({
       no: index + 1,
       name_with_price: item.item_name ?? "-",
-      qty_display: formatNumber(item.qty, 2),
+      qty_display: formatNumber(item.qty, "volume"),
       unit: item.unit ?? "-",
       item_code: item.item_code ?? "-",
     }));
 
     const now = new Date();
+    const groupName = order.group_name || items[0]?.group_name;
+    const projectName = groupName ? `${project?.project_name ?? "-"} (${groupName})` : (project?.project_name ?? "-");
 
     const context: AssetRequestPdfContext = {
       company_line: "CIVIL ENGINEERING & GENERAL CONTRACTORS",
       company_name: project?.company_name ?? "-",
-      project_name: project?.project_name ?? "-",
+      project_name: projectName,
+      group_name: groupName ?? undefined,
       fiscal_year: project?.fiscal_year ?? "-",
       document_code: options.documentCode?.trim() || "....................",
       items: pdfItems,

@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
-import { EmptyState, HStack, Table, Text } from "@astryxdesign/core";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { type TablePlugin, useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useCallback, useState } from "react";
+import { EmptyState, Table } from "@astryxdesign/core";
+import { useTableGroupedRows, useTableStickyColumns } from "@astryxdesign/core/Table";
+import { useReportSummaryGroupedData } from "./table/useReportSummaryGroupedData";
+import { useUnplannedRowPlugin } from "./table/reportSummaryTableUtils";
+import { ReportGroupHeader } from "./table/ReportGroupHeader";
 import type { RequirementReportItem } from "@/db/services";
 import { type EnrichedReportItem, useReportSummaryColumns } from "./table/useReportSummaryColumns";
 
@@ -14,31 +16,19 @@ interface ReportSummaryTableProps {
 export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummaryTableProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
-  const enrichedReport: EnrichedReportItem[] = useMemo(
-    () =>
-      report.map((r) => ({
-        ...r,
-        unique_id: r.item_id,
-      })),
-    [report],
-  );
+  const { enrichedReport, groupOrder, paguGroupNames } = useReportSummaryGroupedData(report);
 
-  const groupOrder = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const item of report) {
-      const catName = (item.category as string) ?? "LAINNYA";
-      if (!map.has(catName)) {
-        map.set(catName, item.category_id ?? "\uffff");
+  const handleToggleGroup = useCallback((groupKey: string) => {
+    setCollapsedGroups((previousCollapsed) => {
+      const updatedCollapsed = new Set(previousCollapsed);
+      if (updatedCollapsed.has(groupKey)) {
+        updatedCollapsed.delete(groupKey);
+      } else {
+        updatedCollapsed.add(groupKey);
       }
-    }
-    const entries = Array.from(map.entries());
-    entries.sort((a, b) => {
-      const cmp = a[1].localeCompare(b[1]);
-      if (cmp !== 0) return cmp;
-      return a[0].localeCompare(b[0]);
+      return updatedCollapsed;
     });
-    return entries.map(([name]) => name);
-  }, [report]);
+  }, []);
 
   const {
     data: groupedData,
@@ -47,73 +37,23 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
   } = useTableGroupedRows<EnrichedReportItem>({
     collapsedGroups,
     data: enrichedReport,
-    getRowKey: (item: EnrichedReportItem) => item.unique_id,
-    groupBy: (item: EnrichedReportItem) => (item.category as string) ?? "LAINNYA",
+    getRowKey: (item) => item.unique_id,
+    groupBy: (item) => item.group_name ?? "",
     groupOrder,
-    onToggleGroup: (key: string) => {
-      setCollapsedGroups((prev) => {
-        const next = new Set(prev);
-        if (next.has(key)) next.delete(key);
-        else next.add(key);
-        return next;
-      });
-    },
-    renderGroupHeader: (key: string) => (
-      <HStack justify="between" align="center" paddingInline={1} width="100%">
-        <Text weight="bold">{key}</Text>
-      </HStack>
-    ),
-  });
-
-  const rowIndexPlugin = useTableRowIndex({
-    data: enrichedReport,
-    getRowKey: (item: EnrichedReportItem) => item.unique_id,
+    onToggleGroup: handleToggleGroup,
+    renderGroupHeader: (groupKey) => <ReportGroupHeader groupName={groupKey} isPagu={paguGroupNames.has(groupKey)} />,
   });
 
   const stickyColumns = useTableStickyColumns<EnrichedReportItem>({
-    startKeys: ["__rowIndex", "item"],
+    startKeys: ["item", "row_type"],
   });
 
-  const unplannedRowPlugin = useMemo<TablePlugin<EnrichedReportItem>>(
-    () => ({
-      transformBodyRow: (props, item) => {
-        if (item && Boolean(item.is_unplanned)) {
-          return {
-            ...props,
-            htmlProps: {
-              ...props.htmlProps,
-              style: {
-                ...props.htmlProps?.style,
-                backgroundColor: "var(--color-background-yellow)",
-                "--table-sticky-background": "var(--color-background-yellow)",
-              },
-            },
-          };
-        }
-        return props;
-      },
-      transformBodyCell: (props, _column, item) => {
-        if (item && Boolean(item.is_unplanned)) {
-          return {
-            ...props,
-            htmlProps: {
-              ...props.htmlProps,
-              style: {
-                ...props.htmlProps?.style,
-                backgroundColor: "var(--color-background-yellow)",
-              },
-            },
-          };
-        }
-        return props;
-      },
-    }),
-    [],
-  );
-
+  const unplannedRowPlugin = useUnplannedRowPlugin();
   const columns = useReportSummaryColumns({ onLogClick });
 
-  if (report.length === 0 && !loading) {
+  const isReportEmpty = report.length === 0 && !loading;
+
+  if (isReportEmpty) {
     return <EmptyState isCompact title="Belum ada laporan kebutuhan (BOQ)" />;
   }
 
@@ -125,10 +65,9 @@ export function ReportSummaryTable({ report, loading, onLogClick }: ReportSummar
       data={groupedData}
       idKey={groupedIdKey}
       plugins={{
-        grouping: groupedPlugin,
-        rowIndex: rowIndexPlugin,
         stickyColumns,
-        unplannedRow: unplannedRowPlugin,
+        grouping: groupedPlugin,
+        unplannedRows: unplannedRowPlugin,
       }}
       emptyState={<EmptyState isCompact title="Belum ada laporan kebutuhan (BOQ)" />}
     />

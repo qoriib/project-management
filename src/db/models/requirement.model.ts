@@ -8,6 +8,8 @@ export interface Requirement {
   requirement_id: string;
   /** Relasi ID proyek pemilik kebutuhan */
   project_id: string;
+  /** Relasi ID kelompok kebutuhan / item pekerjaan */
+  requirement_group_id?: string | null;
   /** Relasi ID item yang direncanakan */
   item_id: string;
   /** Relasi ID harga satuan acuan yang dipilih */
@@ -39,9 +41,9 @@ export type UpdateRequirement = Partial<CreateRequirement>;
  * Metadata definisi tabel basis data untuk model Requirement
  */
 export const RequirementModel: ModelDefinition = {
-  createColumns: ["project_id", "item_id", "item_price_id", "qty", "has_tax"],
+  createColumns: ["project_id", "requirement_group_id", "item_id", "item_price_id", "qty", "has_tax"],
   primaryKey: "requirement_id",
   softDelete: true,
   tableName: "requirements",
-  updateColumns: ["project_id", "item_id", "item_price_id", "qty", "has_tax"],
+  updateColumns: ["project_id", "requirement_group_id", "item_id", "item_price_id", "qty", "has_tax"],
 };

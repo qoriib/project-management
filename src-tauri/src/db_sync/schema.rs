@@ -3,8 +3,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SyncManifest {
     pub version: u32,
-    pub project_id: String,
-    pub project_name: String,
+    /// "project" atau "master"
+    pub export_type: String,
+    /// Hanya ada jika export_type == "project"
+    pub project_id: Option<String>,
+    pub project_name: Option<String>,
     pub exported_at: String,
     pub app_version: String,
 }
@@ -13,7 +16,7 @@ pub use crate::constants::{MASTER_TABLES, PROJECT_TABLES};
 
 pub fn get_project_export_query(table: &str, project_id: &str) -> String {
     match table {
-        "projects" | "requirements" | "orders" => {
+        "projects" | "requirement_groups" | "requirements" | "orders" => {
             format!("SELECT * FROM {table} WHERE project_id = '{project_id}'")
         }
         "order_items" => {

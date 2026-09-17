@@ -8,8 +8,8 @@ import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { handleFormError } from "@/utils/form";
 import { formatItemCode } from "@/utils/formatters";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { type TableColumn, pixel, proportional } from "@astryxdesign/core/Table";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import type { ItemWithDetails } from "@/db/repositories";
 
 interface MasterItemTableProps {
@@ -53,7 +53,7 @@ export function MasterItemTable({ onEdit }: MasterItemTableProps) {
       width: pixel(140),
       renderCell: (row: ItemRow) => {
         const code = formatItemCode(row);
-        return code ? <EntityCode id={code} /> : "-";
+        return <EntityCode id={code} />;
       },
     },
 

@@ -1,43 +1,26 @@
-import { useEffect, useState } from "react";
 import { Card, EmptyState, Table, Text, TextInput } from "@astryxdesign/core";
-import { useToast } from "@astryxdesign/core/Toast";
 import { EntityCode } from "@/components/shared/EntityCode";
-import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import { formatItemCode, formatNumber, parseDecimalInput, sanitizeDecimalInput } from "@/utils/formatters";
-import { handleFormError } from "@/utils/form";
-import { useReceiptStore } from "@/store/useReceiptStore";
+import { formatItemCode, formatNumber, sanitizeDecimalInput } from "@/utils/formatters";
 import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
-import type { ReceiptItemRow } from "./form/receipt.schema";
+import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
+import type { ReceiptItemDetail } from "@/store/useReceiptStore";
 
 export interface ReceiptItemsTableProps {
-  items: ReceiptItemRow[];
-  receiptId: string;
-  orderId: string;
-  onItemUpdated?: () => void;
+  items: ReceiptItemDetail[];
+  /** Nilai qty yang dikontrol dari luar (dari form state parent) */
+  qtyValues: Record<string, string>;
+  onQtyChange: (orderItemId: string, value: string) => void;
 }
 
-export function ReceiptItemsTable({ items, receiptId, orderId, onItemUpdated }: ReceiptItemsTableProps) {
-  const showToast = useToast();
-  const { upsertReceiptItem } = useReceiptStore();
-
-  const [qtyValues, setQtyValues] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const initial: Record<string, string> = {};
-    for (const item of items) {
-      initial[item.order_item_id] = String(item.qty ?? "");
-    }
-    setQtyValues(initial);
-  }, [items]);
-
-  const columns: TableColumn<ReceiptItemRow>[] = [
+export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItemsTableProps) {
+  const columns: TableColumn<ReceiptItemDetail>[] = [
     {
       header: "Kode Item",
       key: "item_code",
       width: pixel(140),
       renderCell: (row) => {
         const code = formatItemCode(row);
-        return code ? <EntityCode id={code} /> : "-";
+        return <EntityCode id={code} />;
       },
     },
     {
@@ -54,14 +37,17 @@ export function ReceiptItemsTable({ items, receiptId, orderId, onItemUpdated }: 
     },
     {
       align: "end",
+      header: "Harga (Rp)",
+      key: "price",
+      width: pixel(140),
+      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0, "currency")}</Text>,
+    },
+    {
+      align: "end",
       header: "Volume PO",
       key: "ordered",
       width: pixel(130),
-      renderCell: (row) => (
-        <Text type="code" weight="medium">
-          {formatNumber(row.ordered ?? 0, 5)}
-        </Text>
-      ),
+      renderCell: (row) => <Text type="code">{formatNumber(row.ordered ?? 0, "volume")}</Text>,
     },
     {
       align: "end",
@@ -70,7 +56,7 @@ export function ReceiptItemsTable({ items, receiptId, orderId, onItemUpdated }: 
       width: pixel(130),
       renderCell: (row) => (
         <Text type="code" color="secondary">
-          {formatNumber(row.delivered ?? 0, 5)}
+          {formatNumber(row.delivered ?? 0, "volume")}
         </Text>
       ),
     },
@@ -83,7 +69,7 @@ export function ReceiptItemsTable({ items, receiptId, orderId, onItemUpdated }: 
         const sisa = row.remaining ?? 0;
         return (
           <Text type="code" weight={sisa > 0 ? "bold" : "normal"} color={sisa > 0 ? "primary" : "secondary"}>
-            {formatNumber(sisa, 5)}
+            {formatNumber(sisa, "volume")}
           </Text>
         );
       },
@@ -98,31 +84,9 @@ export function ReceiptItemsTable({ items, receiptId, orderId, onItemUpdated }: 
           label="Volume Diterima"
           isLabelHidden
           value={qtyValues[row.order_item_id] ?? String(row.qty ?? "")}
-          onChange={(v) => {
-            setQtyValues((prev) => ({
-              ...prev,
-              [row.order_item_id]: sanitizeDecimalInput(v),
-            }));
-          }}
-          onBlur={async () => {
-            const currentVal = qtyValues[row.order_item_id] ?? String(row.qty ?? "");
-            try {
-              const numQty = parseDecimalInput(currentVal);
-              await upsertReceiptItem(receiptId, orderId, row.order_item_id, numQty);
-              onItemUpdated?.();
-            } catch (error: unknown) {
-              handleFormError(error, showToast);
-            }
-          }}
+          onChange={(val) => onQtyChange(row.order_item_id, sanitizeDecimalInput(val))}
         />
       ),
-    },
-    {
-      align: "end",
-      header: "Harga (Rp)",
-      key: "price",
-      width: pixel(160),
-      renderCell: (row) => <Text type="code">{formatNumber(row.price ?? 0, 2)}</Text>,
     },
   ];
 
@@ -131,8 +95,9 @@ export function ReceiptItemsTable({ items, receiptId, orderId, onItemUpdated }: 
     getRowKey: (item) => item.order_item_id,
   });
 
-  const stickyColumns = useTableStickyColumns<ReceiptItemRow>({
+  const stickyColumns = useTableStickyColumns<ReceiptItemDetail>({
     startKeys: ["__rowIndex", "item_code", "item_name"],
+    endKeys: ["qty"],
   });
 
   return (

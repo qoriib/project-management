@@ -15,8 +15,8 @@ export const PDF_PAGE_LANDSCAPE = {
   pageWidth: 297,
   pageHeight: 210,
   printableWidth: 269,
-  kopStartY: 16,
-  tableStartY: 27,
+  kopStartY: 13,
+  tableStartY: 23,
 };
 
 export const PDF_PAGE_PORTRAIT = {
@@ -32,8 +32,8 @@ export const PDF_PAGE_PORTRAIT = {
   pageWidth: 210,
   pageHeight: 297,
   printableWidth: 182,
-  kopStartY: 16,
-  tableStartY: 28,
+  kopStartY: 13,
+  tableStartY: 23,
 };
 
 export const PDF_COLORS = {

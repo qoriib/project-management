@@ -12,13 +12,7 @@ import {
   EXCEL_COL_WIDTH,
   EXCEL_NUM_FMT,
   EXCEL_ROW_HEIGHT,
-  FILL_BUDGET_OVER_CELL,
-  FILL_BUDGET_UNDER_CELL,
-  FILL_SECONDARY_HEADER,
-  FILL_TABLE_HEADER,
-  FILL_TOTAL_ROW,
-  FILL_UNPLANNED_CELL,
-  FILL_WHITE,
+  FONT_BOLD,
   FONT_CATEGORY_HEADER,
   FONT_REGULAR,
   FONT_TABLE_HEADER,
@@ -204,7 +198,6 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     for (let columnIndex = 1; columnIndex <= TOTAL_HEADER_COLUMNS; columnIndex++) {
       const cell = currentRow.getCell(columnIndex);
       cell.font = FONT_TABLE_HEADER;
-      cell.fill = FILL_TABLE_HEADER;
       cell.alignment = ALIGN_HEADER;
       cell.border = BORDER_ALL_LIGHT;
     }
@@ -213,49 +206,54 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
   let totalPlannedVolume = 0;
   let totalPlannedDpp = 0;
   let totalPlannedTax = 0;
-  let totalPlannedBudget = 0;
   let totalOrderedVolume = 0;
   let totalOrderDpp = 0;
   let totalOrderTax = 0;
   let totalOrderPrice = 0;
-  let totalVariance = 0;
   let totalDeliveredVolume = 0;
 
-  // 2. Pengelompokan data berdasarkan kategori
-  const categoryMap = new Map<string, { categoryId: string; items: typeof fulfillmentItems }>();
+  // Akumulasi total anggaran sesuai logika pemenuhan (memperhitungkan pagu budget per kelompok)
+  const paguBudgetsByGroup = new Map<string, number>();
+  let itemsBudgetNonPagu = 0;
+
+  for (const item of fulfillmentItems) {
+    if (item.requirement_group_id && item.group_budget && item.group_budget > 0) {
+      paguBudgetsByGroup.set(item.requirement_group_id, item.group_budget);
+    } else {
+      itemsBudgetNonPagu += item.planned_budget || 0;
+    }
+  }
+
+  let totalPaguBudget = 0;
+  for (const budget of paguBudgetsByGroup.values()) {
+    totalPaguBudget += budget;
+  }
+  const totalPlannedBudget = itemsBudgetNonPagu + totalPaguBudget;
+
+  // 2. Pengelompokan data berdasarkan Kelompok Pekerjaan (diselaraskan dengan UUIDv7 ASC aplikasi web)
+  const groupMap = new Map<string, { groupId: string; groupName: string; items: typeof fulfillmentItems }>();
 
   fulfillmentItems.forEach((item) => {
-    const categoryName = (item.category || "LAINNYA").trim();
-    const existingGroup = categoryMap.get(categoryName);
-
-    if (existingGroup) {
-      existingGroup.items.push(item);
-    } else {
-      categoryMap.set(categoryName, {
-        categoryId: item.category_id || "\uffff",
-        items: [item],
-      });
-    }
+    const groupId = item.requirement_group_id || "none";
+    const groupName = (item.group_name || "").trim();
+    const existing = groupMap.get(groupId) || { groupId, groupName, items: [] };
+    if (!existing.groupName && groupName) existing.groupName = groupName;
+    existing.items.push(item);
+    groupMap.set(groupId, existing);
   });
 
-  // 3. Urutkan kategori berdasarkan category_id
-  const sortedCategoryEntries = Array.from(categoryMap.entries());
-
-  sortedCategoryEntries.sort(([nameA, groupA], [nameB, groupB]) => {
-    const idComparison = groupA.categoryId.localeCompare(groupB.categoryId);
-    if (idComparison !== 0) {
-      return idComparison;
-    }
-    return nameA.localeCompare(nameB);
-  });
+  const sortedGroupEntries = Array.from(groupMap.values());
+  sortedGroupEntries.sort((a, b) => a.groupId.localeCompare(b.groupId));
 
   let currentRowIndex = 6;
   let itemNumber = 1;
 
-  for (const [categoryName, categoryGroup] of sortedCategoryEntries) {
-    const categoryItems = categoryGroup.items;
+  for (const { groupName, items: groupItems } of sortedGroupEntries) {
+    const groupBudget =
+      groupItems.find((item) => item.group_budget != null && item.group_budget > 0)?.group_budget ?? null;
+    const isPaguGroup = groupBudget != null && groupBudget > 0;
 
-    categoryItems.sort((firstItem, secondItem) => {
+    groupItems.sort((firstItem, secondItem) => {
       const isFirstUnplanned = Boolean(firstItem.is_unplanned);
       const isSecondUnplanned = Boolean(secondItem.is_unplanned);
 
@@ -268,26 +266,35 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       return firstName.localeCompare(secondName);
     });
 
-    // Render Baris Header Kategori
-    const categoryRowIndex = currentRowIndex;
+    // Render Baris Header Kelompok Pekerjaan
+    const groupRowIndex = currentRowIndex;
     currentRowIndex += 1;
 
-    const categoryRow = worksheet.getRow(categoryRowIndex);
-    categoryRow.height = EXCEL_ROW_HEIGHT.categoryHeader;
+    const groupRow = worksheet.getRow(groupRowIndex);
+    groupRow.height = EXCEL_ROW_HEIGHT.categoryHeader;
 
-    worksheet.mergeCells(`A${categoryRowIndex}:S${categoryRowIndex}`);
-    const firstCategoryCell = worksheet.getCell(`A${categoryRowIndex}`);
-    firstCategoryCell.value = categoryName.toUpperCase();
-    firstCategoryCell.font = FONT_CATEGORY_HEADER;
-    firstCategoryCell.alignment = ALIGN_CATEGORY_HEADER;
+    worksheet.mergeCells(`A${groupRowIndex}:S${groupRowIndex}`);
+    const firstGroupCell = worksheet.getCell(`A${groupRowIndex}`);
+    firstGroupCell.value = groupName.toUpperCase();
+    firstGroupCell.font = FONT_CATEGORY_HEADER;
+    firstGroupCell.alignment = ALIGN_CATEGORY_HEADER;
 
     for (let columnIndex = 1; columnIndex <= TOTAL_HEADER_COLUMNS; columnIndex++) {
-      const cell = categoryRow.getCell(columnIndex);
-      cell.fill = FILL_SECONDARY_HEADER;
+      const cell = groupRow.getCell(columnIndex);
       cell.border = BORDER_ALL_LIGHT;
     }
 
-    categoryItems.forEach((item) => {
+    let subtotalPlannedVol = 0;
+    let subtotalPlannedDpp = 0;
+    let subtotalPlannedTax = 0;
+    let subtotalPlannedBudget = 0;
+    let subtotalOrderedVol = 0;
+    let subtotalOrderDpp = 0;
+    let subtotalOrderTax = 0;
+    let subtotalOrderPrice = 0;
+    let subtotalDeliveredVol = 0;
+
+    groupItems.forEach((item) => {
       const rowNumber = currentRowIndex;
       currentRowIndex += 1;
 
@@ -315,18 +322,29 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       const remainingVolume = orderedVolume - deliveredVolume;
       const deliveryPercentage = calcRatio(deliveredVolume, orderedVolume);
 
+      // Subtotal akumulasi kelompok
+      subtotalPlannedVol += plannedVolume;
+      subtotalPlannedDpp += plannedDpp;
+      subtotalPlannedTax += plannedTax;
+      subtotalPlannedBudget += plannedBudget;
+      subtotalOrderedVol += orderedVolume;
+      subtotalOrderDpp += orderDpp;
+      subtotalOrderTax += orderTax;
+      subtotalOrderPrice += orderPrice;
+      subtotalDeliveredVol += deliveredVolume;
+
+      // Grand total akumulasi keseluruhan
       totalPlannedVolume += plannedVolume;
       totalPlannedDpp += plannedDpp;
       totalPlannedTax += plannedTax;
-      totalPlannedBudget += plannedBudget;
       totalOrderedVolume += orderedVolume;
       totalOrderDpp += orderDpp;
       totalOrderTax += orderTax;
       totalOrderPrice += orderPrice;
-      totalVariance += variance;
       totalDeliveredVolume += deliveredVolume;
 
-      const itemCode = formatItemCode(item) || item.item_code || "-";
+      const isPagu = Boolean(item.is_pagu_account);
+      const itemCode = isPagu ? "PAGU" : formatItemCode(item) || item.item_code || "-";
       const categoryDisplay = item.category || "-";
       const unitDisplay = item.unit || "-";
 
@@ -337,18 +355,23 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
       const displayPlannedDpp = !item.is_unplanned && plannedDpp > 0 ? plannedDpp : "-";
       const displayPlannedTax = !item.is_unplanned && plannedTax > 0 ? plannedTax : "-";
       const displayPlannedBudget = !item.is_unplanned && plannedBudget > 0 ? plannedBudget : "-";
-      const displayPricePo = poPrice > 0 ? poPrice : "-";
-      const displayOrderedVol = orderedVolume > 0 ? orderedVolume : "-";
+      const displayPricePo = !isPagu && poPrice > 0 ? poPrice : "-";
+      const displayOrderedVol = !isPagu && orderedVolume > 0 ? orderedVolume : "-";
       const displayOrderDpp = orderDpp > 0 ? orderDpp : "-";
       const displayOrderTax = orderTax > 0 ? orderTax : "-";
       const displayOrderPrice = orderPrice > 0 ? orderPrice : "-";
       const displayVariance = variance !== 0 ? variance : "-";
-      const displayDelivered = deliveredVolume > 0 ? deliveredVolume : "-";
-      const displayRemaining = remainingVolume > 0 ? remainingVolume : "-";
-      const displayDeliveryPct = deliveryPercentage > 0 ? deliveryPercentage : "-";
+      const displayDelivered = !isPagu && deliveredVolume > 0 ? deliveredVolume : "-";
+      const displayRemaining = !isPagu && remainingVolume > 0 ? remainingVolume : "-";
+      const displayDeliveryPct = !isPagu && deliveryPercentage > 0 ? deliveryPercentage : "-";
+
+      const itemNoDisplay = item.is_empty_group ? "" : itemNumber;
+      if (!item.is_empty_group) {
+        itemNumber += 1;
+      }
 
       row.values = [
-        itemNumber,
+        itemNoDisplay,
         itemCode,
         item.item_name,
         categoryDisplay,
@@ -368,60 +391,12 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
         displayRemaining,
         displayDeliveryPct,
       ];
-      itemNumber += 1;
-
-      // Evaluasi status over per-cell (seperti pada useReportSummaryColumns aplikasi)
-      const isPriceOver = !item.is_unplanned && poPrice > plannedPrice && orderedVolume > 0;
-      const isPriceUnder = !item.is_unplanned && poPrice > 0 && poPrice < plannedPrice;
-      const isVolumeOver = !item.is_unplanned && orderedVolume > plannedVolume && plannedVolume > 0;
-      const isDppOver = !item.is_unplanned && orderDpp > plannedDpp && plannedDpp > 0;
-      const isTaxOver = !item.is_unplanned && orderTax > plannedTax && plannedTax > 0;
-      const isTotalOver = !item.is_unplanned && orderPrice > plannedBudget && plannedBudget > 0;
-      const isVarianceOver = !item.is_unplanned && variance < 0;
-      const isDeliveredOver =
-        (orderedVolume > 0 && deliveredVolume > orderedVolume) ||
-        (plannedVolume > 0 && deliveredVolume > plannedVolume);
-      const isRemainingOver = remainingVolume < 0;
-      const isDeliveryPctOver = deliveryPercentage > 1.0;
 
       row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
         cell.border = BORDER_ALL_LIGHT;
         cell.font = FONT_REGULAR;
 
-        // Pewarnaan: seluruh baris kuning jika tidak ada di BOQ (unplanned), merah jika over, hanya harga yang hijau jika under
-        let cellFill = FILL_WHITE;
-
-        if (item.is_unplanned) {
-          // Seluruh baris diwarnai kuning untuk item di luar rencana (unplanned)
-          cellFill = FILL_UNPLANNED_CELL;
-        } else {
-          // Hanya harga yang bisa hijau jika under. Kolom lain merah jika over.
-          if (columnNumber === 11) {
-            if (isPriceOver) cellFill = FILL_BUDGET_OVER_CELL;
-            else if (isPriceUnder) cellFill = FILL_BUDGET_UNDER_CELL;
-          } else if (columnNumber === 12 && isVolumeOver) {
-            cellFill = FILL_BUDGET_OVER_CELL;
-          } else if (columnNumber === 13 && isDppOver) {
-            cellFill = FILL_BUDGET_OVER_CELL;
-          } else if (columnNumber === 14 && isTaxOver) {
-            cellFill = FILL_BUDGET_OVER_CELL;
-          } else if (columnNumber === 15 && isTotalOver) {
-            cellFill = FILL_BUDGET_OVER_CELL;
-          } else if (columnNumber === 16 && isVarianceOver) {
-            cellFill = FILL_BUDGET_OVER_CELL;
-          } else if (columnNumber === 17 && isDeliveredOver) {
-            cellFill = FILL_BUDGET_OVER_CELL;
-          } else if (columnNumber === 18 && isRemainingOver) {
-            cellFill = FILL_BUDGET_OVER_CELL;
-          } else if (columnNumber === 19 && isDeliveryPctOver) {
-            cellFill = FILL_BUDGET_OVER_CELL;
-          }
-        }
-
-        cell.fill = cellFill;
-
         const isCenterAligned = columnNumber === 1 || columnNumber === 2 || columnNumber === 4 || columnNumber === 5;
-
         const isLeftAligned = columnNumber === 3;
 
         if (isCenterAligned) {
@@ -457,6 +432,80 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
         }
       });
     });
+
+    // 4. Render Baris Subtotal per Kelompok Pekerjaan (selalu tampil di seluruh kondisi)
+    const subtotalRowIndex = currentRowIndex;
+    currentRowIndex += 1;
+
+    const subtotalRow = worksheet.getRow(subtotalRowIndex);
+    subtotalRow.height = EXCEL_ROW_HEIGHT.bodyRow;
+
+    const subtotalRemainingVol = subtotalOrderedVol - subtotalDeliveredVol;
+    const subtotalDeliveryPct = calcRatio(subtotalDeliveredVol, subtotalOrderedVol) || "-";
+
+    const displaySubtotalPlannedVol = isPaguGroup ? "-" : subtotalPlannedVol;
+    const displaySubtotalPlannedDpp = isPaguGroup ? "-" : subtotalPlannedDpp;
+    const displaySubtotalPlannedTax = isPaguGroup ? "-" : subtotalPlannedTax;
+    const effectiveSubtotalPlannedBudget = isPaguGroup ? (groupBudget ?? 0) : subtotalPlannedBudget;
+    const effectiveSubtotalVariance = effectiveSubtotalPlannedBudget - subtotalOrderPrice;
+
+    subtotalRow.values = [
+      "",
+      `SUBTOTAL ${groupName.toUpperCase()}`,
+      "",
+      "",
+      "",
+      "",
+      displaySubtotalPlannedVol,
+      displaySubtotalPlannedDpp,
+      displaySubtotalPlannedTax,
+      effectiveSubtotalPlannedBudget,
+      "",
+      subtotalOrderedVol,
+      subtotalOrderDpp,
+      subtotalOrderTax,
+      subtotalOrderPrice,
+      effectiveSubtotalVariance,
+      subtotalDeliveredVol,
+      subtotalRemainingVol,
+      subtotalDeliveryPct,
+    ];
+
+    worksheet.mergeCells(`B${subtotalRowIndex}:E${subtotalRowIndex}`);
+
+    subtotalRow.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
+      cell.font = FONT_BOLD;
+      cell.border = BORDER_ALL_LIGHT;
+
+      if (columnNumber === 2) {
+        cell.alignment = ALIGN_LEFT;
+        return;
+      }
+
+      const isCurrencyColumn =
+        columnNumber === 8 ||
+        columnNumber === 9 ||
+        columnNumber === 10 ||
+        columnNumber === 13 ||
+        columnNumber === 14 ||
+        columnNumber === 15 ||
+        columnNumber === 16;
+
+      const isQuantityColumn = columnNumber === 7 || columnNumber === 12 || columnNumber === 17 || columnNumber === 18;
+
+      const isPercentageColumn = columnNumber === 19;
+
+      if (isCurrencyColumn) {
+        if (typeof cell.value === "number") cell.numFmt = EXCEL_NUM_FMT.currency;
+        cell.alignment = ALIGN_RIGHT;
+      } else if (isQuantityColumn) {
+        if (typeof cell.value === "number") cell.numFmt = EXCEL_NUM_FMT.quantity;
+        cell.alignment = ALIGN_RIGHT;
+      } else if (isPercentageColumn) {
+        if (typeof cell.value === "number") cell.numFmt = EXCEL_NUM_FMT.percentage;
+        cell.alignment = ALIGN_RIGHT;
+      }
+    });
   }
 
   // Baris Total Keseluruhan
@@ -468,6 +517,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
 
   const remainingVolumeTotal = totalOrderedVolume - totalDeliveredVolume;
   const overallDeliveryPercentage = calcRatio(totalDeliveredVolume, totalOrderedVolume) || "-";
+  const overallVariance = totalPlannedBudget - totalOrderPrice;
 
   totalRow.values = [
     "",
@@ -485,7 +535,7 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     totalOrderDpp,
     totalOrderTax,
     totalOrderPrice,
-    totalVariance,
+    overallVariance,
     totalDeliveredVolume,
     remainingVolumeTotal,
     overallDeliveryPercentage,
@@ -495,7 +545,6 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
 
   totalRow.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
     cell.font = FONT_TOTAL_ROW;
-    cell.fill = FILL_TOTAL_ROW;
     cell.border = BORDER_ACCOUNTING_TOTAL;
 
     if (columnNumber === 2) {
@@ -517,13 +566,13 @@ export function createFulfillmentSheet(workbook: ExcelJS.Workbook, context: Fulf
     const isPercentageColumn = columnNumber === 19;
 
     if (isCurrencyColumn) {
-      cell.numFmt = EXCEL_NUM_FMT.currency;
+      if (typeof cell.value === "number") cell.numFmt = EXCEL_NUM_FMT.currency;
       cell.alignment = ALIGN_RIGHT;
     } else if (isQuantityColumn) {
-      cell.numFmt = EXCEL_NUM_FMT.quantity;
+      if (typeof cell.value === "number") cell.numFmt = EXCEL_NUM_FMT.quantity;
       cell.alignment = ALIGN_RIGHT;
-    } else if (isPercentageColumn && typeof cell.value === "number") {
-      cell.numFmt = EXCEL_NUM_FMT.percentage;
+    } else if (isPercentageColumn) {
+      if (typeof cell.value === "number") cell.numFmt = EXCEL_NUM_FMT.percentage;
       cell.alignment = ALIGN_RIGHT;
     }
   });

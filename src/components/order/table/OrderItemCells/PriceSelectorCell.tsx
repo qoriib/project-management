@@ -13,15 +13,15 @@ export function PriceSelectorCell({ form, onAddNewPrice }: PriceSelectorCellProp
   const { itemPricesMap } = useMasterStore();
 
   return (
-    <form.Subscribe selector={(s) => s.values.item_id}>
+    <form.Subscribe selector={(state) => state.values.item_id}>
       {(itemId) => {
         let priceOptions: { value: string; label: string }[] = [];
 
         if (itemId) {
           const prices = itemPricesMap.get(itemId) || [];
-          priceOptions = prices.map((p) => ({
-            label: formatNumber(p.price, 2),
-            value: String(p.item_price_id),
+          priceOptions = prices.map((priceItem) => ({
+            label: formatNumber(priceItem.price, "currency"),
+            value: String(priceItem.item_price_id),
           }));
         }
 
@@ -35,7 +35,7 @@ export function PriceSelectorCell({ form, onAddNewPrice }: PriceSelectorCellProp
                     isLabelHidden
                     options={priceOptions}
                     value={field.state.value}
-                    onChange={(v) => field.handleChange(v)}
+                    onChange={(val) => field.handleChange(val)}
                     onBlur={field.handleBlur}
                     hasSearch
                     searchPlaceholder="Cari harga..."

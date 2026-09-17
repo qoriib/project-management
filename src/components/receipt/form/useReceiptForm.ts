@@ -1,51 +1,56 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm } from "@tanstack/react-form";
 import { useToast } from "@astryxdesign/core/Toast";
 import { handleFormError } from "@/utils/form";
-import { loadReceiptEditData } from "./receipt.utils";
-import { type ReceiptFormProps, type ReceiptItemRow, buildDefaultValues, receiptSchema } from "./receipt.schema";
+import { todayISO } from "@/utils/formatters";
+import { useReceiptStore } from "@/store/useReceiptStore";
 
 /**
- * Custom hook yang mengorkestrasikan data form Receipt:
- * - Load data penerimaan, item pesanan (PO) terkait, dan kode PO
+ * Load dan orkestrasikan data form Penerimaan (header + items) menggunakan Zustand store utama.
  */
-export function useReceiptForm({ receiptId }: Pick<ReceiptFormProps, "receiptId">) {
+export function useReceiptForm(receiptId: string) {
   const showToast = useToast();
   const toastRef = useRef(showToast);
   toastRef.current = showToast;
 
-  const [orderCode, setOrderCode] = useState<string>("");
-  const [orderId, setOrderId] = useState<string>("");
-  const [items, setItems] = useState<ReceiptItemRow[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { currentReceipt, currentItems: items, loadReceiptDetail, clearReceiptDetail } = useReceiptStore();
 
-  const form = useForm({
-    defaultValues: buildDefaultValues(null),
-    validators: { onChange: receiptSchema },
-  });
+  const [receiptCode, setReceiptCode] = useState("");
+  const [receiptDate, setReceiptDate] = useState(todayISO());
+  const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const editData = await loadReceiptEditData(receiptId);
-      if (editData !== null) {
-        setItems(editData.items);
-        setOrderId(editData.order_id);
-        if (editData.order_code) {
-          setOrderCode(editData.order_code);
-        }
-        form.reset(buildDefaultValues(editData));
-      }
+      await loadReceiptDetail(receiptId);
     } catch (error: unknown) {
       handleFormError(error, toastRef.current);
     } finally {
       setLoading(false);
     }
-  }, [receiptId, form]);
+  }, [receiptId, loadReceiptDetail]);
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+    return () => {
+      clearReceiptDetail();
+    };
+  }, [loadData, clearReceiptDetail]);
 
-  return { form, orderCode, orderId, items, setItems, loading, reloadData: loadData };
+  useEffect(() => {
+    if (currentReceipt) {
+      setReceiptCode(currentReceipt.receipt_code);
+      setReceiptDate(currentReceipt.receipt_date || todayISO());
+    }
+  }, [currentReceipt]);
+
+  return {
+    orderCode: currentReceipt?.order_code ?? "",
+    orderId: currentReceipt?.order_id ?? "",
+    receiptCode,
+    setReceiptCode,
+    receiptDate,
+    setReceiptDate,
+    items,
+    loading,
+  };
 }

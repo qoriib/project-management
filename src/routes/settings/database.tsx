@@ -23,20 +23,28 @@ function SettingsDatabase() {
   const [isImportConfirmOpen, setIsImportConfirmOpen] = useState(false);
   const [importSourcePath, setImportSourcePath] = useState<string | null>(null);
 
-  const executeExport = async (projectId: string) => {
+  const executeExport = async (projectId: string | null) => {
     try {
       setIsExporting(true);
       setIsExportDialogOpen(false);
 
       const timestamp = getTimestampString();
-      const project = useMasterStore.getState().projects.find((p) => p.project_id === projectId);
-      const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
-      const filename = `${timestamp}_${projectName}.${APP.projectExtension}`;
+      const isMasterMode = projectId === null;
+
+      const filename = isMasterMode
+        ? `${timestamp}_master.${APP.masterExtension}`
+        : (() => {
+            const project = useMasterStore.getState().projects.find((proj) => proj.project_id === projectId);
+            const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
+            return `${timestamp}_${projectName}.${APP.projectExtension}`;
+          })();
 
       const targetPath = await save({
         defaultPath: filename,
-        filters: [{ name: "Manajemen Proyek Archive", extensions: [APP.projectExtension] }],
-        title: "Simpan Backup Project",
+        filters: isMasterMode
+          ? [{ name: "Manajemen Proyek Master Archive", extensions: [APP.masterExtension] }]
+          : [{ name: "Manajemen Proyek Archive", extensions: [APP.projectExtension] }],
+        title: isMasterMode ? "Simpan Arsip Master Data" : "Simpan Arsip Project",
       });
 
       if (targetPath) {
@@ -56,9 +64,14 @@ function SettingsDatabase() {
   const handleImportSelect = async () => {
     try {
       const sourcePath = await open({
-        filters: [{ name: "Manajemen Proyek Archive", extensions: [APP.projectExtension] }],
+        filters: [
+          {
+            name: "Manajemen Proyek Archive",
+            extensions: [APP.projectExtension, APP.masterExtension],
+          },
+        ],
         multiple: false,
-        title: "Pilih File Backup Project",
+        title: "Pilih File Arsip",
       });
 
       if (sourcePath && typeof sourcePath === "string") {
@@ -171,7 +184,7 @@ function SettingsDatabase() {
         isLoading={isExporting}
       />
       <AlertDialog
-        title="Impor Backup"
+        title="Impor Arsip"
         description="Impor data cadangan ini? Data akan digabungkan dan aplikasi dimuat ulang."
         actionLabel="Impor"
         actionVariant="primary"

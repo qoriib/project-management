@@ -21,17 +21,15 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
   const totalOrderedQty = items.reduce((acc, item) => acc + (item.qty ?? 0), 0);
   const totalDeliveredQty = items.reduce((acc, item) => acc + (item.total_delivered ?? 0), 0);
   const completionPct = totalOrderedQty > 0 ? Math.min(100, (totalDeliveredQty / totalOrderedQty) * 100) : 0;
-  const isComplete = totalOrderedQty > 0 && totalDeliveredQty >= totalOrderedQty;
-  const isPartial = totalDeliveredQty > 0 && totalDeliveredQty < totalOrderedQty;
 
   return (
-    <Grid gap={3} columns={{ max: 3, minWidth: 260 }}>
+    <Grid gap={3} columns={{ max: 3, minWidth: 220 }}>
       <GridSpan columns={1}>
         <Card height="100%">
           <Text size="sm" color="secondary" weight="medium" type="label">
             Total Nilai Pesanan
           </Text>
-          <Heading level={3}>Rp {formatNumber(totalOrderPrice, 2)}</Heading>
+          <Heading level={3}>Rp {formatNumber(totalOrderPrice, "currency")}</Heading>
         </Card>
       </GridSpan>
       <GridSpan columns={1}>
@@ -40,7 +38,7 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
             Total Item & Volume
           </Text>
           <Heading level={3}>
-            {items.length} Item ({formatNumber(totalOrderedQty, 5)} Vol)
+            {items.length} Item ({formatNumber(totalOrderedQty, "volume")} Vol)
           </Heading>
         </Card>
       </GridSpan>
@@ -49,14 +47,7 @@ export function OrderSummaryCard({ order: propOrder, items: propItems }: OrderSu
           <Text size="sm" color="secondary" weight="medium" type="label">
             Realisasi Penerimaan
           </Text>
-          <Heading
-            level={3}
-            style={{
-              color: isComplete ? "var(--color-success)" : isPartial ? "var(--color-blue)" : undefined,
-            }}
-          >
-            {completionPct.toFixed(0)}% Selesai
-          </Heading>
+          <Heading level={3}>{completionPct.toFixed(0)}%</Heading>
         </Card>
       </GridSpan>
     </Grid>

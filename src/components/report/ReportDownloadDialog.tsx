@@ -20,6 +20,32 @@ interface ReportDownloadDialogProps {
   endDate?: ISODateString;
 }
 
+const FORMAT_CONFIG: Record<
+  ReportFormat,
+  {
+    extension: string;
+    filterName: string;
+    dialogTitle: string;
+    successToast: string;
+    generate: (projectId: string, startDate?: ISODateString, endDate?: ISODateString) => Promise<Uint8Array>;
+  }
+> = {
+  pdf: {
+    extension: "pdf",
+    filterName: "PDF Document",
+    dialogTitle: "Simpan Laporan PDF",
+    successToast: "Laporan PDF berhasil diunduh!",
+    generate: generateReportPdf,
+  },
+  excel: {
+    extension: "xlsx",
+    filterName: "Excel",
+    dialogTitle: "Simpan Laporan Excel",
+    successToast: "Laporan Excel berhasil diunduh!",
+    generate: generateReportExcel,
+  },
+};
+
 export function ReportDownloadDialog({ isOpen, onClose, projectId, startDate, endDate }: ReportDownloadDialogProps) {
   const [selectedFormat, setSelectedFormat] = useState<ReportFormat>("pdf");
   const [isDownloading, setIsDownloading] = useState(false);
@@ -31,42 +57,24 @@ export function ReportDownloadDialog({ isOpen, onClose, projectId, startDate, en
     try {
       setIsDownloading(true);
       const timestamp = getTimestampString();
-      const project = useMasterStore.getState().projects.find((p) => p.project_id === projectId);
+      const project = useMasterStore.getState().projects.find((project) => project.project_id === projectId);
       const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
+      const config = FORMAT_CONFIG[selectedFormat];
 
-      const baseFilename = `${timestamp}_${projectName}`;
+      const filePath = await save({
+        filters: [{ name: config.filterName, extensions: [config.extension] }],
+        defaultPath: `${timestamp}_${projectName}.${config.extension}`,
+        title: config.dialogTitle,
+      });
 
-      if (selectedFormat === "pdf") {
-        const filename = `${baseFilename}.pdf`;
-        const filePath = await save({
-          filters: [{ name: "PDF Document", extensions: ["pdf"] }],
-          defaultPath: filename,
-          title: "Simpan Laporan PDF",
-        });
-
-        if (filePath) {
-          const buffer = await generateReportPdf(projectId, startDate, endDate);
-          await writeFile(filePath, buffer);
-          showToast({ body: "Laporan PDF berhasil diunduh!", type: "info" });
-          onClose();
-        }
-      } else {
-        const filename = `${baseFilename}.xlsx`;
-        const filePath = await save({
-          filters: [{ name: "Excel", extensions: ["xlsx"] }],
-          defaultPath: filename,
-          title: "Simpan Laporan Excel",
-        });
-
-        if (filePath) {
-          const buffer = await generateReportExcel(projectId, startDate, endDate);
-          await writeFile(filePath, buffer);
-          showToast({ body: "Laporan Excel berhasil diunduh!", type: "info" });
-          onClose();
-        }
+      if (filePath) {
+        const buffer = await config.generate(projectId, startDate, endDate);
+        await writeFile(filePath, buffer);
+        showToast({ body: config.successToast, type: "info" });
+        onClose();
       }
-    } catch (err) {
-      console.error("Download report failed:", err);
+    } catch (error) {
+      console.error("Download report failed:", error);
       showToast({ body: "Gagal mengunduh laporan.", type: "error" });
     } finally {
       setIsDownloading(false);

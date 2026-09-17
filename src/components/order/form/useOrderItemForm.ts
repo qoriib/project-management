@@ -5,37 +5,46 @@ import { useMasterStore } from "@/store/useMasterStore";
 import { orderItemSchema, buildDefaultValues } from "./orderItem.schema";
 import { handleFormError } from "@/utils/form";
 import { parseDecimalInput } from "@/utils/formatters";
-import type { OrderItemDetail } from "@/db/repositories";
+import type { OrderItemDetail, OrderItemInput } from "@/db/repositories";
+
+export type OrderItemInputPayload = Omit<OrderItemInput, "order_item_id">;
 
 export interface OrderItemFormProps {
   initialData?: OrderItemDetail;
+  defaultRequirementGroupId?: string;
   onSuccess: () => void;
-  onSubmitItem: (item: any) => void;
+  onSubmitItem: (item: OrderItemInputPayload) => Promise<void> | void;
 }
 
-export function useOrderItemForm({ initialData, onSuccess, onSubmitItem }: OrderItemFormProps) {
+export function useOrderItemForm({
+  initialData,
+  defaultRequirementGroupId,
+  onSuccess,
+  onSubmitItem,
+}: OrderItemFormProps) {
   const showToast = useToast(),
     form = useForm({
-      defaultValues: buildDefaultValues(initialData),
+      defaultValues: buildDefaultValues(initialData, defaultRequirementGroupId),
       validators: { onChange: orderItemSchema },
       onSubmit: async ({ value }) => {
         try {
-          const payload = {
+          const payload: OrderItemInputPayload = {
             item_id: value.item_id,
             vendor_id: value.vendor_id,
             item_price_id: value.item_price_id,
+            requirement_group_id: value.requirement_group_id || defaultRequirementGroupId || undefined,
             qty: parseDecimalInput(value.qty),
-            has_tax: value.has_tax ? 1 : 0,
+            has_tax: Boolean(value.has_tax),
           };
 
           await onSubmitItem(payload);
 
           if (!initialData) {
-            form.reset();
+            form.reset(buildDefaultValues(undefined, defaultRequirementGroupId));
           }
 
           onSuccess();
-        } catch (error: any) {
+        } catch (error: unknown) {
           handleFormError(error, showToast);
         }
       },
@@ -56,7 +65,7 @@ export function useOrderItemForm({ initialData, onSuccess, onSubmitItem }: Order
   }
 
   useEffect(() => {
-    form.reset(buildDefaultValues(initialData));
+    form.reset(buildDefaultValues(initialData, defaultRequirementGroupId));
 
     if (initialData?.item_id) {
       const { loadItemPrices, itemPricesMap } = useMasterStore.getState();
@@ -65,7 +74,7 @@ export function useOrderItemForm({ initialData, onSuccess, onSubmitItem }: Order
         loadItemPrices(initialData.item_id);
       }
     }
-  }, [initialData]);
+  }, [initialData, defaultRequirementGroupId]);
 
   return {
     form,

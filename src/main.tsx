@@ -6,8 +6,7 @@ import { routeTree } from "@/routeTree.gen";
 import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
 import { useAppStore } from "@/store/useAppStore";
 import { InternationalizationProvider } from "@astryxdesign/core/i18n";
-import "@astryxdesign/core/reset.css";
-import "@astryxdesign/core/astryx.css";
+
 import "./app.css";
 
 // Register the router instance for type safety
@@ -23,7 +22,7 @@ const router = createRouter({ history: hashHistory, routeTree });
 
 /** Inner component that reads themeMode from the store and passes appTheme to <Theme>. */
 function ThemedApp() {
-  const themeMode = useAppStore((s) => s.themeMode);
+  const themeMode = useAppStore((state) => state.themeMode);
 
   return (
     <Theme theme={appTheme} mode={themeMode}>

@@ -1,3 +1,19 @@
+/* Astryx Design System */
+@import "@astryxdesign/core/reset.css";
+@import "@astryxdesign/core/astryx.css";
+
+/* Fonts — Figtree, Montserrat, JetBrains Mono */
+@import "@fontsource/figtree/400.css";
+@import "@fontsource/figtree/500.css";
+@import "@fontsource/figtree/600.css";
+@import "@fontsource/figtree/700.css";
+@import "@fontsource/montserrat/600.css";
+@import "@fontsource/montserrat/700.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
 /* Replace the " ∙ Required" indicator with a red asterisk */
 .astryx-field-label > span:has(> span[aria-hidden="true"]) {
   color: var(--color-error);
@@ -11,6 +27,24 @@
 html,
 body {
   overscroll-behavior: none;
+  font-family: var(--font-family-body, "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+}
+
+/* Monospace font & tabular numbers consistency for offline desktop */
+:root {
+  --font-family-body: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-family-heading:
+    "Montserrat", "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-family-code: "JetBrains Mono", "SF Mono", Monaco, Consolas, monospace;
+}
+
+code,
+pre,
+kbd,
+samp,
+[data-text-type="code"] {
+  font-family: var(--font-family-code);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ============================================================================

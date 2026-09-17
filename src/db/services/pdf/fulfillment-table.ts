@@ -39,32 +39,20 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
     startY: kopStartY,
   });
 
-  // Pengelompokan Data per Kategori
-  const categoryMap = new Map<string, { categoryId: string; items: typeof fulfillmentItems }>();
+  // Pengelompokan Data per Kelompok Pekerjaan (diselaraskan dengan UUIDv7 ASC aplikasi web)
+  const groupMap = new Map<string, { groupId: string; groupName: string; items: typeof fulfillmentItems }>();
 
   fulfillmentItems.forEach((item) => {
-    const categoryName = (item.category || "LAINNYA").trim();
-    const existingGroup = categoryMap.get(categoryName);
-
-    if (existingGroup) {
-      existingGroup.items.push(item);
-    } else {
-      categoryMap.set(categoryName, {
-        categoryId: item.category_id || "\uffff",
-        items: [item],
-      });
-    }
+    const groupId = item.requirement_group_id || "none";
+    const groupName = (item.group_name || "").trim();
+    const existing = groupMap.get(groupId) || { groupId, groupName, items: [] };
+    if (!existing.groupName && groupName) existing.groupName = groupName;
+    existing.items.push(item);
+    groupMap.set(groupId, existing);
   });
 
-  const sortedCategoryEntries = Array.from(categoryMap.entries());
-
-  sortedCategoryEntries.sort(([nameA, groupA], [nameB, groupB]) => {
-    const idComparison = groupA.categoryId.localeCompare(groupB.categoryId);
-    if (idComparison !== 0) {
-      return idComparison;
-    }
-    return nameA.localeCompare(nameB);
-  });
+  const sortedGroupEntries = Array.from(groupMap.values());
+  sortedGroupEntries.sort((a, b) => a.groupId.localeCompare(b.groupId));
 
   // Akumulasi dan Pembentukan Baris Tabel
   let totalPlannedVolume = 0;
@@ -76,10 +64,8 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
   const tableBody: RowInput[] = [];
   let itemCounter = 1;
 
-  for (const [categoryName, categoryGroup] of sortedCategoryEntries) {
-    const categoryItems = categoryGroup.items;
-
-    categoryItems.sort((firstItem, secondItem) => {
+  for (const { groupName, items: groupItems } of sortedGroupEntries) {
+    groupItems.sort((firstItem, secondItem) => {
       const isFirstUnplanned = Boolean(firstItem.is_unplanned);
       const isSecondUnplanned = Boolean(secondItem.is_unplanned);
 
@@ -90,16 +76,22 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
       return (firstItem.item_name || "").localeCompare(secondItem.item_name || "");
     });
 
-    // Baris Header Kategori
+    // Baris Header Kelompok Pekerjaan
     tableBody.push([
       {
-        content: categoryName.toUpperCase(),
+        content: groupName.toUpperCase(),
         colSpan: hasDateRange ? 11 : 9,
         styles: PDF_TABLE_CATEGORY_BANNER_STYLES,
       },
     ]);
 
-    categoryItems.forEach((item) => {
+    let subtotalPlannedVolume = 0;
+    let subtotalOrderedVolume = 0;
+    let subtotalPeriodOrderedVolume = 0;
+    let subtotalDeliveredVolume = 0;
+    let subtotalPeriodDeliveredVolume = 0;
+
+    groupItems.forEach((item) => {
       const plannedVolume = item.planned_volume || 0;
       const cumulativeOrdered = item.cumulative_ordered ?? item.total_ordered ?? 0;
       const periodOrdered = item.period_ordered ?? 0;
@@ -115,6 +107,12 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
       // % Pemenuhan dihitung dari: (Kumulatif NP / Kumulatif PO)
       const deliveryPercentage = calcRatio(deliveredVolume, orderedVolume);
 
+      subtotalPlannedVolume += plannedVolume;
+      subtotalOrderedVolume += orderedVolume;
+      subtotalPeriodOrderedVolume += periodOrdered;
+      subtotalDeliveredVolume += deliveredVolume;
+      subtotalPeriodDeliveredVolume += periodDelivered;
+
       totalPlannedVolume += plannedVolume;
       totalOrderedVolume += orderedVolume;
       totalPeriodOrderedVolume += periodOrdered;
@@ -128,9 +126,18 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
         (plannedVolume > 0 && deliveredVolume > plannedVolume);
       const isDeliveryPctOver = deliveryPercentage > 1.0;
 
-      const itemCode = formatItemCode(item) || item.item_code || "-";
+      const isPagu = Boolean(item.is_pagu_account);
+      const itemCode = isPagu ? "PAGU" : formatItemCode(item) || item.item_code || "-";
       const unit = item.unit || "-";
-      const plannedVolDisplay = !item.is_unplanned && plannedVolume > 0 ? formatQty(plannedVolume) : "-";
+      const plannedVolDisplay = isPagu ? "1" : !item.is_unplanned && plannedVolume > 0 ? formatQty(plannedVolume) : "-";
+      const periodOrderedDisplay = isPagu ? "-" : formatQty(periodOrdered);
+      const cumulativeOrderedDisplay = isPagu ? "-" : formatQty(cumulativeOrdered);
+      const orderPercentageDisplay = isPagu ? "-" : formatPercentage(orderPercentage);
+      const periodDeliveredDisplay = isPagu ? "-" : formatQty(periodDelivered);
+      const cumulativeDeliveredDisplay = isPagu ? "-" : formatQty(cumulativeDelivered);
+      const deliveryPercentageDisplay = isPagu ? "-" : formatPercentage(deliveryPercentage);
+      const orderedVolumeDisplay = isPagu ? "-" : formatQty(orderedVolume);
+      const deliveredVolumeDisplay = isPagu ? "-" : formatQty(deliveredVolume);
 
       if (hasDateRange) {
         tableBody.push({
@@ -139,17 +146,17 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           _isOrderPctOver: isOrderPctOver,
           _isDeliveredOver: isDeliveredOver,
           _isDeliveryPctOver: isDeliveryPctOver,
-          0: itemCounter,
+          0: item.is_empty_group ? "" : itemCounter,
           1: itemCode,
           2: item.item_name,
           3: unit,
           4: plannedVolDisplay,
-          5: formatQty(periodOrdered),
-          6: formatQty(cumulativeOrdered),
-          7: formatPercentage(orderPercentage),
-          8: formatQty(periodDelivered),
-          9: formatQty(cumulativeDelivered),
-          10: formatPercentage(deliveryPercentage),
+          5: periodOrderedDisplay,
+          6: cumulativeOrderedDisplay,
+          7: orderPercentageDisplay,
+          8: periodDeliveredDisplay,
+          9: cumulativeDeliveredDisplay,
+          10: deliveryPercentageDisplay,
         });
       } else {
         tableBody.push({
@@ -158,20 +165,101 @@ export function renderFulfillmentVolumeSection(doc: jsPDF, context: FulfillmentP
           _isOrderPctOver: isOrderPctOver,
           _isDeliveredOver: isDeliveredOver,
           _isDeliveryPctOver: isDeliveryPctOver,
-          0: itemCounter,
+          0: item.is_empty_group ? "" : itemCounter,
           1: itemCode,
           2: item.item_name,
           3: unit,
           4: plannedVolDisplay,
-          5: formatQty(orderedVolume),
-          6: formatPercentage(orderPercentage),
-          7: formatQty(deliveredVolume),
-          8: formatPercentage(deliveryPercentage),
+          5: orderedVolumeDisplay,
+          6: orderPercentageDisplay,
+          7: deliveredVolumeDisplay,
+          8: deliveryPercentageDisplay,
         });
       }
 
-      itemCounter += 1;
+      if (!item.is_empty_group) {
+        itemCounter += 1;
+      }
     });
+
+    const groupBudget =
+      groupItems.find((item) => item.group_budget != null && item.group_budget > 0)?.group_budget ?? null;
+    const isPaguGroup = groupBudget != null && groupBudget > 0;
+
+    // Baris Subtotal per Kelompok Pekerjaan (selalu tampil di seluruh kondisi)
+    const subtotalOrderPercentage = calcRatio(subtotalOrderedVolume, subtotalPlannedVolume);
+    const subtotalDeliveryPercentage = calcRatio(subtotalDeliveredVolume, subtotalOrderedVolume);
+    const subtotalRowCellStyle = PDF_TABLE_TOTAL_ROW_STYLES;
+
+    const subtotalPlannedDisplay = isPaguGroup ? "-" : formatQty(subtotalPlannedVolume);
+    const subtotalOrderPctDisplay = isPaguGroup ? "-" : formatPercentage(subtotalOrderPercentage);
+    const subtotalDeliveryPctDisplay = subtotalOrderedVolume > 0 ? formatPercentage(subtotalDeliveryPercentage) : "-";
+
+    const subtotalRow: RowInput = hasDateRange
+      ? [
+          {
+            content: `SUBTOTAL ${groupName.toUpperCase()}`,
+            colSpan: 4,
+            styles: PDF_TABLE_TOTAL_LABEL_STYLES,
+          },
+          {
+            content: subtotalPlannedDisplay,
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: formatQty(subtotalPeriodOrderedVolume),
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: formatQty(subtotalOrderedVolume),
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: subtotalOrderPctDisplay,
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: formatQty(subtotalPeriodDeliveredVolume),
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: formatQty(subtotalDeliveredVolume),
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: subtotalDeliveryPctDisplay,
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+        ]
+      : [
+          {
+            content: `SUBTOTAL ${groupName.toUpperCase()}`,
+            colSpan: 4,
+            styles: PDF_TABLE_TOTAL_LABEL_STYLES,
+          },
+          {
+            content: subtotalPlannedDisplay,
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: formatQty(subtotalOrderedVolume),
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: subtotalOrderPctDisplay,
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: formatQty(subtotalDeliveredVolume),
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+          {
+            content: subtotalDeliveryPctDisplay,
+            styles: { ...subtotalRowCellStyle, halign: "right" },
+          },
+        ];
+
+    tableBody.push(subtotalRow);
   }
 
   // Baris Total Keseluruhan

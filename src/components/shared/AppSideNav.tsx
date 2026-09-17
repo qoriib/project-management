@@ -20,15 +20,15 @@ export function AppSideNav() {
   const userRole = getUserRole();
 
   const { activeNav, setActiveNav, selectedProjectId } = useAppStore(
-    useShallow((s) => ({
-      activeNav: s.activeNav,
-      selectedProjectId: s.selectedProjectId,
-      setActiveNav: s.setActiveNav,
+    useShallow((state) => ({
+      activeNav: state.activeNav,
+      selectedProjectId: state.selectedProjectId,
+      setActiveNav: state.setActiveNav,
     })),
   );
 
   const projects = useMasterStore((state) => state.projects);
-  const activeProject = projects.find((p) => p.project_id === selectedProjectId);
+  const activeProject = projects.find((project) => project.project_id === selectedProjectId);
 
   return (
     <SideNav

@@ -13,6 +13,7 @@ export * from "./item-category.model";
 export * from "./unit.model";
 export * from "./order.model";
 export * from "./order-item.model";
+export * from "./requirement-group.model";
 export * from "./requirement.model";
 export * from "./receipt.model";
 export * from "./receipt-item.model";

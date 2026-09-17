@@ -11,10 +11,10 @@ interface ProjectRequiredProps {
 
 export function ProjectRequired({ children }: ProjectRequiredProps) {
   const navigate = useNavigate();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const setSelectedProjectId = useAppStore((s) => s.setSelectedProjectId);
-  const projects = useMasterStore((s) => s.projects);
-  const isValidProject = projects.some((p) => p.project_id === selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const setSelectedProjectId = useAppStore((state) => state.setSelectedProjectId);
+  const projects = useMasterStore((state) => state.projects);
+  const isValidProject = projects.some((project) => project.project_id === selectedProjectId);
 
   if (!selectedProjectId || !isValidProject) {
     return (

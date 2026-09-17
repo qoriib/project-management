@@ -1,4 +1,4 @@
-import type { ItemLogEntry, RequirementReportItem } from "../report.service";
+import type { ItemLogEntry, RequirementReportItem } from "../report";
 
 export interface ItemTransactionHistory {
   item: FulfillmentPdfItem;

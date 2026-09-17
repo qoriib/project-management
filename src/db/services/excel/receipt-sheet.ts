@@ -1,4 +1,4 @@
-import { DEFAULT_SHEET_VIEW, EXCEL_COL_WIDTH, EXCEL_NUM_FMT } from "./styles";
+import { BORDER_ACCOUNTING_TOTAL, DEFAULT_SHEET_VIEW, EXCEL_COL_WIDTH, EXCEL_NUM_FMT } from "./styles";
 import { createFormalKop, renderTableHeaderRow, styleBodyRow, styleTotalRow, type SheetColumnConfig } from "./utils";
 import { formatItemCode, toISODate } from "@/utils/formatters";
 import type { ReceiptSheetContext } from "./types";
@@ -93,42 +93,64 @@ export function createReceiptSheet(workbook: ExcelJS.Workbook, context: ReceiptS
 
   let totalReceivedQuantity = 0;
 
-  receiptData.forEach((item, index) => {
-    const rowNumber = index + 5;
-    const row = worksheet.getRow(rowNumber);
-
-    const receiptDate = toISODate(item.receipt_date);
-    const receiptCode = item.receipt_code ?? "-";
-    const orderCode = item.order_code ?? "-";
-    const vendorName = item.vendor_name ?? "-";
-    const itemCode = formatItemCode(item) ?? item.item_code;
-    const categoryName = item.category_name ?? "-";
-    const unitName = item.unit_name ?? "-";
-
-    totalReceivedQuantity += item.qty;
-
-    row.values = [
-      index + 1,
-      receiptDate,
-      receiptCode,
-      orderCode,
-      vendorName,
-      itemCode,
-      item.item_name,
-      categoryName,
-      unitName,
-      item.qty,
-    ];
-
-    styleBodyRow(row, COLUMNS);
+  // Kelompokkan data per transaksi NP (receipt_code)
+  const receiptGroups = new Map<string, typeof receiptData>();
+  receiptData.forEach((item) => {
+    const key = item.receipt_code || "UNKNOWN";
+    const group = receiptGroups.get(key) || [];
+    group.push(item);
+    receiptGroups.set(key, group);
   });
 
-  // Baris Total
-  const totalRowIndex = receiptData.length + 5;
-  const totalRow = worksheet.getRow(totalRowIndex);
-  totalRow.values = ["", "TOTAL", "", "", "", "", "", "", "", totalReceivedQuantity];
+  let currentRowIndex = 5;
+  let itemCounter = 1;
 
-  worksheet.mergeCells(`B${totalRowIndex}:I${totalRowIndex}`);
+  for (const items of receiptGroups.values()) {
+    const firstItem = items[0];
+    const receiptDate = toISODate(firstItem.receipt_date);
+    const receiptCode = firstItem.receipt_code ?? "-";
+
+    items.forEach((item, itemIndex) => {
+      const row = worksheet.getRow(currentRowIndex);
+      const orderCode = item.order_code ?? "-";
+      const vendorName = item.vendor_name ?? "-";
+      const itemCode = formatItemCode(item) ?? item.item_code;
+      const categoryName = item.category_name ?? "-";
+      const unitName = item.unit_name ?? "-";
+
+      totalReceivedQuantity += item.qty;
+
+      row.values = [
+        itemCounter++,
+        receiptDate,
+        receiptCode,
+        orderCode,
+        vendorName,
+        itemCode,
+        item.item_name,
+        categoryName,
+        unitName,
+        item.qty,
+      ];
+
+      styleBodyRow(row, COLUMNS);
+
+      // Pisahkan antar nomor NP dengan garis double border bottom pada baris terakhir NP
+      if (itemIndex === items.length - 1) {
+        for (let col = 1; col <= 10; col++) {
+          row.getCell(col).border = BORDER_ACCOUNTING_TOTAL;
+        }
+      }
+
+      currentRowIndex++;
+    });
+  }
+
+  // Baris Total
+  const totalRow = worksheet.getRow(currentRowIndex);
+  totalRow.values = ["", "TOTAL KESELURUHAN", "", "", "", "", "", "", "", totalReceivedQuantity];
+
+  worksheet.mergeCells(`B${currentRowIndex}:I${currentRowIndex}`);
   styleTotalRow(totalRow, COLUMNS);
 
   worksheet.autoFilter = "A4:J4";

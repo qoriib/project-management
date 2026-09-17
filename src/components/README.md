@@ -31,8 +31,7 @@ src/components/
 │   ├── RequirementTable.tsx, RequirementApprovalActions.tsx, form/, table/
 ├── settings/       # Komponen Pengaturan & Database Backup
 └── shared/         # Komponen yang Digunakan Bersama
-    ├── EntityCode.tsx         # Badge kode entitas terstandarisasi
-    └── useTableRowIndex.ts    # Plugin nomor urut baris tabel Astryx
+    └── EntityCode.tsx         # Badge kode entitas terstandarisasi
 ```
 
 ## Pola Integrasi Form & State

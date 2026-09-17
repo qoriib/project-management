@@ -43,9 +43,9 @@ function LoginPage() {
             <LayoutContent>
               <form
                 autoComplete="off"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
                   form.handleSubmit();
                 }}
               >

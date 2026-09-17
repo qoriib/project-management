@@ -1,8 +1,7 @@
 import { projectRepo } from "@/db/repositories";
 import { formatPeriod } from "@/utils/formatters";
-import { getItemLog, getRequirementReport } from "../report.service";
+import { getItemLog, getRequirementReport, type RequirementReportItem } from "../report";
 import { createReportPdf } from "./report-pdf";
-import type { RequirementReportItem } from "../report.service";
 import type { FulfillmentPdfItem, ItemTransactionHistory } from "./types";
 
 export * from "./types";
@@ -37,14 +36,14 @@ export async function generateReportPdf(projectId: string, startDate?: string, e
   const baseList = cumulativeData || periodData;
 
   const fulfillmentData: FulfillmentPdfItem[] = baseList.map((item) => {
-    const pItem = periodData.find((p) => p.item_id === item.item_id);
-    const cItem = cumulativeData ? cumulativeMap.get(item.item_id) : item;
+    const periodItem = periodData.find((periodRow) => periodRow.item_id === item.item_id);
+    const cumulativeItem = cumulativeData ? cumulativeMap.get(item.item_id) : item;
 
-    const periodOrdered = pItem?.total_ordered ?? 0;
-    const cumulativeOrdered = cItem?.total_ordered ?? periodOrdered;
+    const periodOrdered = periodItem?.total_ordered ?? 0;
+    const cumulativeOrdered = cumulativeItem?.total_ordered ?? periodOrdered;
 
-    const periodDelivered = pItem?.total_delivered ?? 0;
-    const cumulativeDelivered = cItem?.total_delivered ?? periodDelivered;
+    const periodDelivered = periodItem?.total_delivered ?? 0;
+    const cumulativeDelivered = cumulativeItem?.total_delivered ?? periodDelivered;
 
     return {
       ...item,
@@ -66,7 +65,7 @@ export async function generateReportPdf(projectId: string, startDate?: string, e
   const rawItemLogs = await Promise.all(
     itemsWithActivity.map(async (item) => {
       try {
-        const logs = await getItemLog(projectId, item.item_id);
+        const logs = await getItemLog(projectId, item.item_id, item.requirement_group_id ?? null);
 
         let filteredLogs = logs;
 

@@ -144,7 +144,6 @@ export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDown
                     <SegmentedControlItem value="asset-request" label="Form Permintaan" />
                   </SegmentedControl>
                 </VStack>
-
                 {isPurchaseOrder ? (
                   <VStack gap={4} width="100%">
                     <Selector

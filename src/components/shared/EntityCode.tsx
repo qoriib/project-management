@@ -1,7 +1,8 @@
-import { Text } from "@astryxdesign/core";
+import { Text, type TextSize } from "@astryxdesign/core";
 
 export interface EntityCodeProps {
   id: string | number | null | undefined;
+  size?: TextSize;
 }
 
 /**
@@ -18,9 +19,13 @@ export function formatEntityCode(id: string | number | null | undefined): string
 /**
  * Render a standardized entity code using Astryx's Text component with code styling.
  */
-export function EntityCode({ id }: EntityCodeProps) {
+export function EntityCode({ id, size }: EntityCodeProps) {
   if (id === null || id === undefined || id === "") {
-    return <Text type="code">-</Text>;
+    return "-";
   }
-  return <Text type="code">{String(id)}</Text>;
+  return (
+    <Text size={size} type="code">
+      {String(id)}
+    </Text>
+  );
 }
