@@ -29,35 +29,33 @@ export function extractPaguGroupNames(report: readonly RequirementReportItem[]):
 }
 
 /**
- * Mengecek apakah suatu item adalah item unplanned (tambahan di luar BOQ)
- * dan bukan termasuk ke dalam kelompok pagu.
+ * Mengecek apakah suatu item adalah item unplanned (tidak ada di BOQ / di luar rencana BOQ).
+ * Tetap menandai kuning termasuk jika item berada di kelompok pagu.
  */
-export function isUnplannedNonPaguItem(
-  item: EnrichedReportItem | null | undefined,
-  paguGroupNames: ReadonlySet<string>,
-): boolean {
-  if (!item || !item.is_unplanned) {
+export function isUnplannedItem(item: EnrichedReportItem | null | undefined): boolean {
+  if (!item || !item.is_unplanned || item.is_group_footer || item.is_empty_group) {
     return false;
   }
 
-  const hasGroupBudget = item.group_budget != null && item.group_budget > 0;
-  const belongsToPaguGroup = item.group_name != null && paguGroupNames.has(item.group_name);
-  const isPaguGroup = hasGroupBudget || belongsToPaguGroup;
-
-  return !isPaguGroup;
+  return true;
 }
+
+export const isUnplannedNonPaguItem = (
+  item: EnrichedReportItem | null | undefined,
+  _paguGroupNames?: ReadonlySet<string>,
+): boolean => isUnplannedItem(item);
 
 /**
  * Hook untuk membuat plugin tabel yang mewarnai baris dan sel item unplanned
- * dengan warna peringatan (warning), terkecuali kelompok pagu.
+ * dengan warna peringatan (warning / kuning), termasuk jika berada di kelompok pagu.
  */
-export function useUnplannedRowPlugin(paguGroupNames: ReadonlySet<string>): TablePlugin<EnrichedReportItem> {
+export function useUnplannedRowPlugin(_paguGroupNames?: ReadonlySet<string>): TablePlugin<EnrichedReportItem> {
   return useMemo<TablePlugin<EnrichedReportItem>>(() => {
     function applyWarningHighlight<TProps extends { htmlProps?: { style?: CSSProperties } }>(
       targetProps: TProps,
       item?: EnrichedReportItem,
     ): TProps {
-      const shouldHighlight = isUnplannedNonPaguItem(item, paguGroupNames);
+      const shouldHighlight = isUnplannedItem(item);
 
       if (!shouldHighlight) {
         return targetProps;
@@ -79,5 +77,5 @@ export function useUnplannedRowPlugin(paguGroupNames: ReadonlySet<string>): Tabl
       transformBodyRow: (rowProps, item) => applyWarningHighlight(rowProps, item),
       transformBodyCell: (cellProps, _column, item) => applyWarningHighlight(cellProps, item),
     };
-  }, [paguGroupNames]);
+  }, []);
 }

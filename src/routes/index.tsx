@@ -70,7 +70,7 @@ function DashboardPage() {
         height="fill"
         header={
           <LayoutHeader hasDivider padding={6}>
-            <HStack gap={2} vAlign="center" hAlign="between">
+            <HStack gap={2} vAlign="end" hAlign="between">
               <VStack gap={0.5}>
                 <Heading level={3}>Laporan Pemenuhan</Heading>
                 <Text color="secondary" wordBreak="break-word" textWrap="wrap">
@@ -110,29 +110,29 @@ function DashboardPage() {
         footer={
           selectedProjectId ? (
             <LayoutFooter hasDivider padding={6}>
-              <HStack gap={6} vAlign="center" hAlign="end">
-                <HStack gap={2} vAlign="center">
+              <HStack gap={6} vAlign="end" hAlign="end">
+                <HStack gap={2} vAlign="end">
                   <Text weight="medium" size="base" color="secondary">
-                    Total BOQ:
+                    Nilai BOQ:
                   </Text>
-                  <Text type="code" weight="bold" size="base">
+                  <Text type="code" weight="bold" size="lg">
                     Rp {formatNumber(totalBudget, 2)}
                   </Text>
                 </HStack>
-                <HStack gap={2} vAlign="center">
+                <HStack gap={2} vAlign="end">
                   <Text weight="medium" size="base" color="secondary">
-                    Total PO:
+                    Nilai PO:
                   </Text>
                   <Text
                     type="code"
                     weight="bold"
-                    size="base"
+                    size="lg"
                     style={isOverBudget ? { color: "var(--color-error)" } : undefined}
                   >
                     Rp {formatNumber(totalPO, 2)}
                   </Text>
                 </HStack>
-                <HStack gap={2} vAlign="center">
+                <HStack gap={2} vAlign="end">
                   <Text weight="medium" size="base" color="secondary">
                     Deviasi:
                   </Text>

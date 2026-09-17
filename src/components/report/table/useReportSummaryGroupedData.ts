@@ -28,8 +28,9 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
     for (const gId of sortedGroupIds) {
       const items = groupMap.get(gId) || [];
       const isSingleEmpty = items.length === 1 && Boolean(items[0].is_empty_group);
+      const isPaguGroup = items.some((it) => it.group_budget && it.group_budget > 0);
 
-      if (isSingleEmpty) {
+      if (isSingleEmpty && !isPaguGroup) {
         result.push({
           ...items[0],
           unique_id: `${items[0].requirement_group_id ?? "none"}__${items[0].item_id}`,
@@ -49,6 +50,8 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
 
       for (const item of items) {
         if (!groupName && item.group_name) groupName = item.group_name;
+        if (item.is_empty_group) continue;
+
         result.push({
           ...item,
           unique_id: `${item.requirement_group_id ?? "none"}__${item.item_id}`,

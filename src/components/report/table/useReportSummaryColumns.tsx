@@ -72,8 +72,8 @@ function renderFooterComparison(
 
   return (
     <ReportComparisonCell
-      poValue={formatNumber(poVal, decimals)}
-      bomValue={formatNumber(planVal, decimals)}
+      poValue={poVal > 0 ? formatNumber(poVal, decimals) : "-"}
+      bomValue={planVal > 0 ? formatNumber(planVal, decimals) : "-"}
       poStatus={isOver ? "over" : isUnder ? "under" : undefined}
     />
   );
