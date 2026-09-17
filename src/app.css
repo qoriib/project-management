@@ -15,12 +15,12 @@
 @import "@fontsource/jetbrains-mono/700.css";
 
 /* Replace the " ∙ Required" indicator with a red asterisk */
-.astryx-field-label>span:has(> span[aria-hidden="true"]) {
+.astryx-field-label > span:has(> span[aria-hidden="true"]) {
   color: var(--color-error);
   margin-left: 4px;
 }
 
-.astryx-field-label>span:has(> span[aria-hidden="true"])>span[aria-hidden="true"] {
+.astryx-field-label > span:has(> span[aria-hidden="true"]) > span[aria-hidden="true"] {
   display: none;
 }
 

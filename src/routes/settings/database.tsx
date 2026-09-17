@@ -34,10 +34,10 @@ function SettingsDatabase() {
       const filename = isMasterMode
         ? `${timestamp}_master.${APP.masterExtension}`
         : (() => {
-          const project = useMasterStore.getState().projects.find((p) => p.project_id === projectId);
-          const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
-          return `${timestamp}_${projectName}.${APP.projectExtension}`;
-        })();
+            const project = useMasterStore.getState().projects.find((p) => p.project_id === projectId);
+            const projectName = sanitizeFilename(project?.project_name ?? "Proyek");
+            return `${timestamp}_${projectName}.${APP.projectExtension}`;
+          })();
 
       const targetPath = await save({
         defaultPath: filename,
@@ -60,7 +60,6 @@ function SettingsDatabase() {
       setIsExporting(false);
     }
   };
-
 
   const handleImportSelect = async () => {
     try {
