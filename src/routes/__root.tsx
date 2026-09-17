@@ -33,10 +33,10 @@ function AppLayout() {
   const showToast = useToast();
 
   const { setActiveNav, dbReady, setDbReady } = useAppStore(
-    useShallow((s) => ({
-      dbReady: s.dbReady,
-      setActiveNav: s.setActiveNav,
-      setDbReady: s.setDbReady,
+    useShallow((state) => ({
+      dbReady: state.dbReady,
+      setActiveNav: state.setActiveNav,
+      setDbReady: state.setDbReady,
     })),
   );
 

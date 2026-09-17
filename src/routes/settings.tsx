@@ -9,7 +9,7 @@ function SettingsLayout() {
   const activeNav = APP.settingsNav.find((item) => item.href === location.pathname)?.id || APP.settingsNav[0]?.id;
 
   const handleTabChange = (val: string) => {
-    const target = APP.settingsNav.find((i) => i.id === val);
+    const target = APP.settingsNav.find((item) => item.id === val);
 
     if (target?.href) {
       navigate({ to: target.href });

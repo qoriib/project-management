@@ -6,9 +6,9 @@ import { useShallow } from "zustand/react/shallow";
 
 function SettingsAppearance() {
   const { resolvedMode, toggleThemeMode } = useAppStore(
-    useShallow((s) => ({
-      resolvedMode: s.resolvedMode,
-      toggleThemeMode: s.toggleThemeMode,
+    useShallow((state) => ({
+      resolvedMode: state.resolvedMode,
+      toggleThemeMode: state.toggleThemeMode,
     })),
   );
 

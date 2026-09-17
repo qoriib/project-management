@@ -16,9 +16,9 @@ import { formatNumber } from "@/utils/formatters";
 
 function RequirementPage() {
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
-  const projects = useMasterStore((s) => s.projects);
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const currentProject = projects.find((p) => p.project_id === selectedProjectId);
+  const projects = useMasterStore((state) => state.projects);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const currentProject = projects.find((project) => project.project_id === selectedProjectId);
   const isApproved = currentProject?.requirements_is_approved === 1;
 
   const { requirements } = useRequirementStore();
@@ -68,14 +68,19 @@ function RequirementPage() {
               <HStack gap={4} vAlign="center" hAlign="between">
                 <HStack gap={2}>
                   <Button variant="secondary" label="Tambah Item" onClick={dispatchCreate} isDisabled={isApproved} />
-                  <Button variant="secondary" label="Kelola Pekerjaan" onClick={() => setIsGroupDialogOpen(true)} isDisabled={isApproved} />
+                  <Button
+                    variant="secondary"
+                    label="Kelola Pekerjaan"
+                    onClick={() => setIsGroupDialogOpen(true)}
+                    isDisabled={isApproved}
+                  />
                 </HStack>
                 <HStack gap={2} vAlign="end">
                   <Text weight="medium" size="base" color="secondary">
                     Nilai BOQ:
                   </Text>
                   <Text type="code" weight="bold" size="lg">
-                    Rp {formatNumber(grandTotal, 2)}
+                    Rp {formatNumber(grandTotal, "currency")}
                   </Text>
                 </HStack>
               </HStack>

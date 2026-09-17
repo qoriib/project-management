@@ -13,8 +13,8 @@ import { useOrderStore } from "@/store/useOrderStore";
 function OrderListPage() {
   const navigate = useNavigate();
   const showToast = useToast();
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
-  const createOrderForProject = useOrderStore((s) => s.createOrderForProject);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+  const createOrderForProject = useOrderStore((state) => state.createOrderForProject);
 
   const handleCreateNew = useCallback(async () => {
     if (!selectedProjectId) return;

@@ -14,7 +14,7 @@ import { type RequirementReportItem, getRequirementReport } from "@/db/services"
 import { formatNumber } from "@/utils/formatters";
 
 function DashboardPage() {
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId);
+  const selectedProjectId = useAppStore((state) => state.selectedProjectId);
 
   const [report, setReport] = useState<RequirementReportItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,21 +46,21 @@ function DashboardPage() {
   const groupBudgets = new Map<string, number>();
   let itemsBudgetNonPagu = 0;
 
-  for (const r of report) {
-    if (r.requirement_group_id && r.group_budget && r.group_budget > 0) {
-      groupBudgets.set(r.requirement_group_id, r.group_budget);
+  for (const item of report) {
+    if (item.requirement_group_id && item.group_budget && item.group_budget > 0) {
+      groupBudgets.set(item.requirement_group_id, item.group_budget);
     } else {
-      itemsBudgetNonPagu += r.planned_budget;
+      itemsBudgetNonPagu += item.planned_budget;
     }
   }
 
   let totalPaguBudget = 0;
-  for (const b of groupBudgets.values()) {
-    totalPaguBudget += b;
+  for (const budget of groupBudgets.values()) {
+    totalPaguBudget += budget;
   }
 
   const totalBudget = itemsBudgetNonPagu + totalPaguBudget;
-  const totalPO = report.reduce((sum, r) => sum + r.total_order_price, 0);
+  const totalPO = report.reduce((sum, item) => sum + item.total_order_price, 0);
   const totalVariance = totalBudget - totalPO;
   const isOverBudget = totalPO > totalBudget && totalBudget > 0;
 
@@ -116,7 +116,7 @@ function DashboardPage() {
                     Nilai BOQ:
                   </Text>
                   <Text type="code" weight="bold" size="lg">
-                    Rp {formatNumber(totalBudget, 2)}
+                    Rp {formatNumber(totalBudget, "currency")}
                   </Text>
                 </HStack>
                 <HStack gap={2} vAlign="end">
@@ -129,7 +129,7 @@ function DashboardPage() {
                     size="lg"
                     style={isOverBudget ? { color: "var(--color-error)" } : undefined}
                   >
-                    Rp {formatNumber(totalPO, 2)}
+                    Rp {formatNumber(totalPO, "currency")}
                   </Text>
                 </HStack>
                 <HStack gap={2} vAlign="end">
@@ -142,7 +142,7 @@ function DashboardPage() {
                     size="lg"
                     style={{ color: totalVariance < 0 ? "var(--color-error)" : "var(--color-success)" }}
                   >
-                    Rp {formatNumber(totalVariance, 2)}
+                    Rp {formatNumber(totalVariance, "currency")}
                   </Text>
                 </HStack>
               </HStack>
