@@ -3,17 +3,17 @@ import { EntityCode } from "@/components/shared/EntityCode";
 import { formatItemCode, formatNumber, sanitizeDecimalInput } from "@/utils/formatters";
 import { type TableColumn, pixel, proportional, useTableStickyColumns } from "@astryxdesign/core/Table";
 import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
-import type { ReceiptItemRow } from "./form/receipt.schema";
+import type { ReceiptItemDetail } from "@/store/useReceiptStore";
 
 export interface ReceiptItemsTableProps {
-  items: ReceiptItemRow[];
+  items: ReceiptItemDetail[];
   /** Nilai qty yang dikontrol dari luar (dari form state parent) */
   qtyValues: Record<string, string>;
   onQtyChange: (orderItemId: string, value: string) => void;
 }
 
 export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItemsTableProps) {
-  const columns: TableColumn<ReceiptItemRow>[] = [
+  const columns: TableColumn<ReceiptItemDetail>[] = [
     {
       header: "Kode Item",
       key: "item_code",
@@ -95,7 +95,7 @@ export function ReceiptItemsTable({ items, qtyValues, onQtyChange }: ReceiptItem
     getRowKey: (item) => item.order_item_id,
   });
 
-  const stickyColumns = useTableStickyColumns<ReceiptItemRow>({
+  const stickyColumns = useTableStickyColumns<ReceiptItemDetail>({
     startKeys: ["__rowIndex", "item_code", "item_name"],
     endKeys: ["qty"],
   });
