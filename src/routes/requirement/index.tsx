@@ -68,17 +68,15 @@ function RequirementPage() {
               <HStack gap={4} vAlign="center" hAlign="between">
                 <HStack gap={2}>
                   <Button variant="secondary" label="Tambah Item" onClick={dispatchCreate} isDisabled={isApproved} />
-                  <Button variant="secondary" label="Kelola Pekerjaan" onClick={() => setIsGroupDialogOpen(true)} />
+                  <Button variant="secondary" label="Kelola Pekerjaan" onClick={() => setIsGroupDialogOpen(true)} isDisabled={isApproved} />
                 </HStack>
-                <HStack gap={6} vAlign="center">
-                  <HStack gap={2} vAlign="center">
-                    <Text weight="medium" size="base" color="secondary">
-                      Nilai BOQ:
-                    </Text>
-                    <Text type="code" weight="bold" size="lg" color="primary">
-                      Rp {formatNumber(grandTotal, 2)}
-                    </Text>
-                  </HStack>
+                <HStack gap={2} vAlign="end">
+                  <Text weight="medium" size="base" color="secondary">
+                    Nilai BOQ:
+                  </Text>
+                  <Text type="code" weight="bold" size="lg">
+                    Rp {formatNumber(grandTotal, 2)}
+                  </Text>
                 </HStack>
               </HStack>
             </LayoutFooter>

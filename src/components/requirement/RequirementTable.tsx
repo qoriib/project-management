@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { EmptyState, Table } from "@astryxdesign/core";
-import { AlertDialog } from "@astryxdesign/core/AlertDialog";
+import { EmptyState, Table, AlertDialog } from "@astryxdesign/core";
 import { RequirementItemDialog } from "@/components/requirement/RequirementItemDialog";
 import { useAppStore } from "@/store/useAppStore";
 import { useRequirementStore } from "@/store/useRequirementStore";
