@@ -43,15 +43,6 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
       const groupBudget =
         items.find((item) => item.group_budget != null && item.group_budget > 0)?.group_budget ?? null;
       const isPaguGroup = groupBudget != null && groupBudget > 0;
-      const isSingleEmpty = items.length === 1 && Boolean(items[0].is_empty_group);
-
-      if (isSingleEmpty && !isPaguGroup) {
-        enrichedReport.push({
-          ...items[0],
-          unique_id: `${items[0].requirement_group_id ?? "none"}__${items[0].item_id}`,
-        });
-        continue;
-      }
 
       let subVolumeOrder = 0;
       let subVolumePlan = 0;
@@ -68,12 +59,13 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
           groupName = item.group_name;
           groupOrder.push(groupName);
         }
-        if (item.is_empty_group) continue;
 
         enrichedReport.push({
           ...item,
           unique_id: `${item.requirement_group_id ?? "none"}__${item.item_id}`,
         });
+
+        if (item.is_empty_group) continue;
 
         subVolumeOrder += item.total_ordered || 0;
         subVolumePlan += item.planned_volume || 0;

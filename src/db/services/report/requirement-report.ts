@@ -68,15 +68,24 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
 
     const rawGroups = await groupsQuery.getMany<{ requirement_group_id: string; group_name: string; budget: number }>();
 
+    const groupBudgetMap = new Map<string, number>();
+    for (const g of rawGroups) {
+      if (g.budget && g.budget > 0) {
+        groupBudgetMap.set(g.requirement_group_id, g.budget);
+      }
+    }
+
     const mapped: RequirementReportDetailItem[] = raw.map((row) => {
       const dpp = calcDPP(row.qty, row.price);
       const taxAmount = calcTax(dpp, Boolean(row.has_tax));
+      const gBudget = row.requirement_group_id ? (groupBudgetMap.get(row.requirement_group_id) ?? null) : null;
       return {
         ...row,
         has_tax: Boolean(row.has_tax),
         dpp,
         tax_amount: taxAmount,
         total_price: dpp + taxAmount,
+        group_budget: gBudget,
       };
     });
 
@@ -89,21 +98,25 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
 
     for (const group of rawGroups) {
       if (!groupsWithItems.has(group.requirement_group_id)) {
+        const isPagu = group.budget != null && group.budget > 0;
         mapped.push({
           requirement_group_id: group.requirement_group_id,
           group_name: group.group_name,
-          item_code: "-",
+          group_budget: group.budget ?? null,
+          item_code: isPagu ? "PAGU" : "-",
           category_prefix: undefined,
           category_code: undefined,
-          item_name: "(Belum ada rincian item)",
+          item_name: isPagu ? group.group_name : "(Belum ada rincian item)",
           category_name: "-",
           unit_name: "-",
           qty: 0,
-          price: 0,
+          price: isPagu ? group.budget : 0,
           has_tax: false,
-          dpp: 0,
+          dpp: isPagu ? group.budget : 0,
           tax_amount: 0,
-          total_price: 0,
+          total_price: isPagu ? group.budget : 0,
+          is_empty_group: !isPagu,
+          is_pagu_account: isPagu,
         });
       }
     }

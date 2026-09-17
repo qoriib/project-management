@@ -95,4 +95,7 @@ export interface RequirementReportDetailItem {
   dpp: number;
   tax_amount: number;
   total_price: number;
+  is_empty_group?: boolean;
+  is_pagu_account?: boolean;
+  group_budget?: number | null;
 }
