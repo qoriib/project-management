@@ -28,10 +28,15 @@ export function useOrderItemForm({
       validators: { onChange: orderItemSchema },
       onSubmit: async ({ value }) => {
         try {
+          const { itemPricesMap } = useMasterStore.getState();
+          const matchedPrice = itemPricesMap.get(value.item_id)?.find((p) => p.item_price_id === value.item_price_id);
+          const resolvedPrice = matchedPrice?.price ?? initialData?.price ?? 0;
+
           const payload: OrderItemInputPayload = {
             item_id: value.item_id,
             vendor_id: value.vendor_id,
             item_price_id: value.item_price_id,
+            price: resolvedPrice,
             requirement_group_id: value.requirement_group_id || defaultRequirementGroupId || undefined,
             qty: parseDecimalInput(value.qty),
             has_tax: Boolean(value.has_tax),

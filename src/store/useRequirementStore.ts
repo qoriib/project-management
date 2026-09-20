@@ -12,6 +12,7 @@ interface RequirementStore {
     item_id: string;
     qty: number;
     item_price_id: string;
+    price: number;
     has_tax?: boolean;
   }) => Promise<void>;
   updateRequirement: (
@@ -21,6 +22,7 @@ interface RequirementStore {
       item_id?: string;
       qty?: number;
       item_price_id?: string;
+      price?: number;
       has_tax?: boolean;
     },
   ) => Promise<void>;

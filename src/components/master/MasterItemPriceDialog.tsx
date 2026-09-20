@@ -36,6 +36,7 @@ const priceSchema = v.object({
     v.nonEmpty("Harga harus diisi."),
     v.check((val) => parseDecimalInput(val) > 0, "Harga harus lebih dari 0."),
   ),
+  note: v.string(),
 });
 
 interface MasterItemPriceDialogProps {
@@ -57,6 +58,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
   const form = useForm({
     defaultValues: {
       price: "",
+      note: "",
     },
     validators: {
       onChange: priceSchema,
@@ -66,18 +68,26 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
         const numPrice = parseDecimalInput(value.price);
         if (numPrice <= 0) return null;
 
-        const isDuplicate = prices.some((priceItem) => Math.abs(Number(priceItem.price) - numPrice) < 0.00001);
+        const isDuplicate = prices.some(
+          (priceItem) =>
+            Math.abs(Number(priceItem.price) - numPrice) < 0.00001 &&
+            (priceItem.note || "").trim().toLowerCase() === (value.note || "").trim().toLowerCase(),
+        );
 
         if (isDuplicate) {
           return {
             fields: {
-              price: "Harga tersebut sudah ada untuk item ini.",
+              price: "Harga dan variasi tersebut sudah ada untuk item ini.",
             },
           };
         }
 
         try {
-          const createdId = await createItemPrice({ item_id: item.item_id, price: numPrice });
+          const createdId = await createItemPrice({
+            item_id: item.item_id,
+            price: numPrice,
+            note: value.note?.trim() || null,
+          });
           if (onSuccess && createdId) {
             onClose();
             onSuccess(createdId);
@@ -90,7 +100,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
       },
     },
     onSubmit: async () => {
-      form.reset({ price: "" });
+      form.reset({ price: "", note: "" });
       if (!onSuccess) {
         await loadPrices();
       }
@@ -102,7 +112,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
 
     try {
       const data = await itemPriceRepo.findByItemWithRelation(item.item_id);
-      form.reset({ price: "" });
+      form.reset({ price: "", note: "" });
       setPrices(data);
     } catch {
       setPrices([]);
@@ -112,7 +122,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
   useEffect(() => {
     if (isOpen && item) {
       setPage(1);
-      form.reset({ price: "" });
+      form.reset({ price: "", note: "" });
       loadPrices();
     }
   }, [isOpen, item]);
@@ -146,10 +156,21 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
       ),
     },
     {
+      align: "start",
+      header: "Keterangan",
+      key: "note",
+      width: proportional(1),
+      renderCell: (row: ItemPriceWithRelation) => (
+        <Text size="sm" color={row.note ? "primary" : "secondary"}>
+          {row.note || "-"}
+        </Text>
+      ),
+    },
+    {
       align: "end",
       header: "Aksi",
       key: "actions",
-      width: pixel(100),
+      width: pixel(80),
       renderCell: (row: ItemPriceWithRelation) => {
         const locked = row.has_relation;
         return (
@@ -202,7 +223,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={560} maxHeight="85vh">
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={620} maxHeight="85vh">
         <Layout
           header={
             <LayoutHeader hasDivider>
@@ -242,6 +263,20 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
                               onChange={(val) => field.handleChange(sanitizeDecimalInput(val))}
                               onBlur={field.handleBlur}
                               isRequired
+                              statusVariant="tooltip"
+                              status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
+                            />
+                          )}
+                        />
+                        <form.Field
+                          name="note"
+                          children={(field) => (
+                            <TextInput
+                              label="Keterangan / Variasi"
+                              placeholder="Misal: Grade A, Supplier X, Grosir"
+                              value={field.state.value}
+                              onChange={(val) => field.handleChange(val)}
+                              onBlur={field.handleBlur}
                               statusVariant="tooltip"
                               status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
                             />

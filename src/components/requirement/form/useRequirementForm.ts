@@ -27,12 +27,17 @@ export function useRequirementForm({ initialData, initialGroupId, onSuccess }: R
       try {
         if (!selectedProjectId) return;
 
+        const { itemPricesMap } = useMasterStore.getState();
+        const matchedPrice = itemPricesMap.get(value.item_id)?.find((p) => p.item_price_id === value.item_price_id);
+        const resolvedPrice = matchedPrice?.price ?? initialData?.price ?? 0;
+
         const payload = {
           project_id: selectedProjectId,
           requirement_group_id: value.requirement_group_id,
           item_id: value.item_id,
           qty: parseDecimalInput(value.qty),
           item_price_id: value.item_price_id,
+          price: resolvedPrice,
           has_tax: Boolean(value.has_tax),
         };
 

@@ -79,7 +79,9 @@ export function RequirementItemDialog({ isOpen, onClose, initialData, initialGro
   const selectedItem = items.find((item) => item.item_id === selectedItemId);
   const selectedItemCode = selectedItem ? formatItemCode(selectedItem) : "";
   const priceOptions = (itemPricesMap.get(selectedItemId ?? "") ?? []).map((priceItem) => ({
-    label: `Rp ${formatNumber(priceItem.price, "currency")}`,
+    label: priceItem.note
+      ? `Rp ${formatNumber(priceItem.price, "currency")} (${priceItem.note})`
+      : `Rp ${formatNumber(priceItem.price, "currency")}`,
     value: String(priceItem.item_price_id),
   }));
 

@@ -53,7 +53,6 @@ export function useRequirementGroupedData(
           has_tax: false,
           created_at: group.created_at,
           updated_at: group.updated_at,
-          deleted_at: null,
           is_pagu_account: true,
         });
         continue;
@@ -81,7 +80,6 @@ export function useRequirementGroupedData(
           has_tax: false,
           created_at: group.created_at,
           updated_at: group.updated_at,
-          deleted_at: null,
           is_empty_group: true,
         });
       } else {
@@ -108,7 +106,6 @@ export function useRequirementGroupedData(
           has_tax: false,
           created_at: group.created_at,
           updated_at: group.updated_at,
-          deleted_at: null,
           is_group_footer: true,
           subtotal_volume: totalVolume,
           subtotal_dpp: totalDpp,
