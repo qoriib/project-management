@@ -20,9 +20,7 @@ export function PriceSelectorCell({ form, onAddNewPrice }: PriceSelectorCellProp
         if (itemId) {
           const prices = itemPricesMap.get(itemId) || [];
           priceOptions = prices.map((priceItem) => ({
-            label: priceItem.note
-              ? `${formatNumber(priceItem.price, "currency")} (${priceItem.note})`
-              : formatNumber(priceItem.price, "currency"),
+            label: formatNumber(priceItem.price, "currency"),
             value: String(priceItem.item_price_id),
           }));
         }

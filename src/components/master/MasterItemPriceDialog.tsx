@@ -148,7 +148,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
       align: "end",
       header: "Harga (Rp)",
       key: "price",
-      width: proportional(1),
+      width: proportional(1, { minWidth: 160 }),
       renderCell: (row: ItemPriceWithRelation) => (
         <HStack gap={2} align="center" justify="end">
           <Text type="code">{formatNumber(row.price, "currency")}</Text>
@@ -159,11 +159,9 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
       align: "start",
       header: "Keterangan",
       key: "note",
-      width: proportional(1),
+      width: proportional(1.5, { minWidth: 240 }),
       renderCell: (row: ItemPriceWithRelation) => (
-        <Text size="sm" color={row.note ? "primary" : "secondary"}>
-          {row.note || "-"}
-        </Text>
+        <Text color={row.note ? "primary" : "secondary"}>{row.note || "-"}</Text>
       ),
     },
     {
@@ -223,7 +221,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={620} maxHeight="85vh">
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={640} maxHeight="85vh">
         <Layout
           header={
             <LayoutHeader hasDivider>
@@ -239,7 +237,6 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
                 <Table
                   idKey="item_price_id"
                   plugins={{ rowIndex: rowIndexPlugin, pagination: paginationPlugin }}
-                  textOverflow="truncate"
                   columns={columns}
                   data={paginatedPrices as PriceRow[]}
                   emptyState={<EmptyState isCompact title="Belum ada riwayat harga" />}
@@ -272,8 +269,7 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
                           name="note"
                           children={(field) => (
                             <TextInput
-                              label="Keterangan / Variasi"
-                              placeholder="Misal: Grade A, Supplier X, Grosir"
+                              label="Keterangan"
                               value={field.state.value}
                               onChange={(val) => field.handleChange(val)}
                               onBlur={field.handleBlur}
