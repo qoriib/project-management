@@ -4,6 +4,7 @@ interface SeedGroupDefinition {
   projectName: string;
   groupName: string;
   budget?: number | null;
+  hasDetail?: boolean;
 }
 
 interface SeedRequirementRaw {
@@ -20,25 +21,27 @@ export async function seedRequirements(): Promise<void> {
   const p2 = "Renovasi Interior Kantor PT. xyz";
   const p3 = "Pembangunan Gudang Logistik Cikarang";
 
-  // 1. Definisi seluruh kelompok pekerjaan lintas proyek
+  // 1. Definisi seluruh kelompok pekerjaan lintas proyek (Kombinasi BOQ, Pagu dengan Harga & Tanpa Harga)
   const groupDefs: SeedGroupDefinition[] = [
-    // PROYEK 1: Model Campuran (Rincian BOQ + Pagu Anggaran + Kelompok Kosong)
-    { projectName: p1, groupName: "Pekerjaan Struktur & Konstruksi", budget: null },
-    { projectName: p1, groupName: "Pekerjaan Finishing & Arsitektur", budget: null },
-    { projectName: p1, groupName: "Pekerjaan Mekanikal & Elektrikal", budget: 45000000 },
-    { projectName: p1, groupName: "Pekerjaan Pagar & Lanskap", budget: 20000000 },
-    { projectName: p1, groupName: "Pekerjaan Pembersihan & Akhir", budget: null },
+    // PROYEK 1: Model Campuran (Rincian BOQ + Pagu Anggaran dengan Harga + Pagu tanpa Harga + Kelompok Kosong)
+    { projectName: p1, groupName: "Pekerjaan Struktur & Konstruksi", budget: 180000000, hasDetail: true },
+    { projectName: p1, groupName: "Pekerjaan Finishing & Arsitektur", budget: null, hasDetail: true },
+    { projectName: p1, groupName: "Pekerjaan Mekanikal & Elektrikal", budget: 45000000, hasDetail: false },
+    { projectName: p1, groupName: "Pekerjaan Pagar & Lanskap", budget: 20000000, hasDetail: false },
+    { projectName: p1, groupName: "Pekerjaan Pembersihan & Akhir", budget: null, hasDetail: false },
 
-    // PROYEK 2: Model Pagu Semua (All Pagu: Seluruh pekerjaan diatur dengan plafon pagu anggaran)
-    { projectName: p2, groupName: "Pekerjaan Perencanaan & Desain Interior", budget: 25000000 },
-    { projectName: p2, groupName: "Pekerjaan Fit-Out & Partisi Ruangan", budget: 60000000 },
-    { projectName: p2, groupName: "Pekerjaan Tata Suara & Pencahayaan", budget: 35000000 },
-    { projectName: p2, groupName: "Pekerjaan Pengawasan & Supervisi", budget: 10000000 },
+    // PROYEK 2: Model All Pagu (Seluruh pekerjaan diatur dengan pagu: sebagian beranggaran, sebagian pagu tanpa batas)
+    { projectName: p2, groupName: "Pekerjaan Perencanaan & Desain Interior", budget: 25000000, hasDetail: false },
+    { projectName: p2, groupName: "Pekerjaan Fit-Out & Partisi Ruangan", budget: 60000000, hasDetail: false },
+    { projectName: p2, groupName: "Pekerjaan Tata Suara & Pencahayaan", budget: 35000000, hasDetail: false },
+    { projectName: p2, groupName: "Pekerjaan Pengawasan & Supervisi", budget: null, hasDetail: false },
 
-    // PROYEK 3: Model Multi-Kelompok Rincian Standar (Seluruh pekerjaan memiliki rincian material BOQ)
-    { projectName: p3, groupName: "Pekerjaan Pondasi & Tanah", budget: null },
-    { projectName: p3, groupName: "Pekerjaan Struktur Baja & Beton", budget: null },
-    { projectName: p3, groupName: "Pekerjaan Dinding & Atap", budget: null },
+    // PROYEK 3: Pembangunan Gudang Logistik Cikarang (Status Draft / Belum ACC, Multi-Kelompok BOQ + Pagu)
+    { projectName: p3, groupName: "Pekerjaan Pondasi & Tanah", budget: 150000000, hasDetail: true },
+    { projectName: p3, groupName: "Pekerjaan Struktur Baja & Beton", budget: null, hasDetail: true },
+    { projectName: p3, groupName: "Pekerjaan Dinding & Atap", budget: null, hasDetail: true },
+    { projectName: p3, groupName: "Pekerjaan Utilitas & Drainase", budget: 30000000, hasDetail: false },
+    { projectName: p3, groupName: "Biaya Kontinjensi & Tak Terduga", budget: null, hasDetail: false },
   ];
 
   // 2. Definisi kebutuhan material (BOQ) untuk kelompok rincian
@@ -339,17 +342,20 @@ export async function seedRequirements(): Promise<void> {
 
     const existingGroups = await requirementGroupRepo.findByProject(projectId);
     let matchedGroup = existingGroups.find((existingGroup) => existingGroup.group_name === groupDef.groupName);
+    const hasDetailValue = groupDef.hasDetail !== undefined ? (groupDef.hasDetail ? 1 : 0) : 1;
 
     if (!matchedGroup) {
       const newGroupId = await requirementGroupRepo.create({
-        project_id: projectId,
-        group_name: groupDef.groupName,
         budget: groupDef.budget ?? null,
+        group_name: groupDef.groupName,
+        has_detail: hasDetailValue,
+        project_id: projectId,
       });
       matchedGroup = (await requirementGroupRepo.findById(newGroupId))!;
-    } else if (groupDef.budget !== undefined && matchedGroup.budget !== (groupDef.budget ?? null)) {
+    } else {
       await requirementGroupRepo.update(matchedGroup.requirement_group_id, {
         budget: groupDef.budget ?? null,
+        has_detail: hasDetailValue,
       });
     }
 
@@ -385,15 +391,12 @@ export async function seedRequirements(): Promise<void> {
       continue;
     }
 
-    const exists = await requirementRepo.exists(
-      {
-        item_id: itemId,
-        item_price_id: matchedPrice.item_price_id,
-        project_id: projectId,
-        requirement_group_id: requirementGroupId,
-      },
-      true,
-    );
+    const exists = await requirementRepo.exists({
+      item_id: itemId,
+      item_price_id: matchedPrice.item_price_id,
+      project_id: projectId,
+      requirement_group_id: requirementGroupId,
+    });
 
     if (!exists) {
       await requirementRepo.create({

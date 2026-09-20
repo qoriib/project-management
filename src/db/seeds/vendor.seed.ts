@@ -50,7 +50,7 @@ export async function seedVendors(): Promise<void> {
   ];
 
   for (const v of vendors) {
-    const exists = await vendorRepo.exists({ vendor_name: v.vendor_name }, true);
+    const exists = await vendorRepo.exists({ vendor_name: v.vendor_name });
     if (!exists) {
       await vendorRepo.create(v);
     }

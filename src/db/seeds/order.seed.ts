@@ -252,15 +252,11 @@ export async function seedOrders(): Promise<void> {
       const prices = await itemPriceRepo.findByItem(itemRecord.item_id);
       const matchedPrice = prices.find((priceItem) => priceItem.price === item.price) ?? prices[0];
 
-      if (!matchedPrice) {
-        console.warn(`[order.seed] Price variant not found for: ${item.itemName} @ ${item.price}`);
-        continue;
-      }
-
       orderItems.push({
         has_tax: Boolean(item.hasTax),
         item_id: itemRecord.item_id,
-        item_price_id: matchedPrice.item_price_id,
+        item_price_id: matchedPrice?.item_price_id ?? null,
+        price: item.price !== undefined ? item.price : (matchedPrice?.price ?? 0),
         qty: item.qty,
         requirement_group_id: requirementGroupId,
         vendor_id: vendor.vendor_id,

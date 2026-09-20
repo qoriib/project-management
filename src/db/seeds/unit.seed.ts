@@ -20,7 +20,7 @@ export async function seedUnits(): Promise<void> {
   ];
 
   for (const name of units) {
-    const exists = await unitRepo.exists({ unit_name: name }, true);
+    const exists = await unitRepo.exists({ unit_name: name });
     if (!exists) {
       await unitRepo.create({ unit_name: name });
     }

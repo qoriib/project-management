@@ -26,13 +26,31 @@ export async function seedProjects(): Promise<void> {
   ];
 
   for (const proj of projects) {
-    const exists = await projectRepo.exists({ project_name: proj.projectName }, true);
+    const exists = await projectRepo.exists({ project_name: proj.projectName });
 
     if (!exists) {
       await projectRepo.create({
         company_name: proj.companyName,
         fiscal_year: proj.fiscalYear,
         project_name: proj.projectName,
+      });
+    }
+  }
+}
+
+/**
+ * Mengunci / menyetujui proyek tertentu setelah kebutuhan selesai disemai.
+ * Proyek 1 dan 2 disetujui (locked / ACC), sedangkan Proyek 3 dibiarkan berstatus Draft
+ * (unlocked) agar pengguna dapat bereksperimen dengan aksi penguncian / approval di UI.
+ */
+export async function approveSeededProjects(): Promise<void> {
+  const approvedProjectNames = ["Pembangunan Rumah Tinggal 2 Lantai Bpk. Budi", "Renovasi Interior Kantor PT. xyz"];
+
+  for (const name of approvedProjectNames) {
+    const proj = await projectRepo.findOne({ project_name: name });
+    if (proj && proj.requirements_is_approved !== 1) {
+      await projectRepo.update(proj.project_id, {
+        requirements_is_approved: 1,
       });
     }
   }

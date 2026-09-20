@@ -82,7 +82,7 @@ export async function seedItems(): Promise<void> {
 
   for (let idx = 0; idx < items.length; idx++) {
     const it = items[idx];
-    const exists = await itemRepo.exists({ item_name: it.itemName }, true);
+    const exists = await itemRepo.exists({ item_name: it.itemName });
 
     if (!exists) {
       let catId = catMap.get(it.category);
