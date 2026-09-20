@@ -28,7 +28,9 @@ export function useRequirementForm({ initialData, initialGroupId, onSuccess }: R
         if (!selectedProjectId) return;
 
         const { itemPricesMap } = useMasterStore.getState();
-        const matchedPrice = itemPricesMap.get(value.item_id)?.find((p) => p.item_price_id === value.item_price_id);
+        const matchedPrice = itemPricesMap
+          .get(value.item_id)
+          ?.find((priceItem) => priceItem.item_price_id === value.item_price_id);
         const resolvedPrice = matchedPrice?.price ?? initialData?.price ?? 0;
 
         const payload = {

@@ -62,10 +62,12 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
       .leftJoin("order_items", "order_items.order_item_id = receipt_items.order_item_id")
       .leftJoin("items", "items.item_id = order_items.item_id")
       .leftJoin("vendors", "vendors.vendor_id = order_items.vendor_id")
-      .when(Boolean(filters?.vendor_id), (q) => q.where("order_items.vendor_id", filters!.vendor_id))
-      .when(Boolean(filters?.project_id), (q) => q.where("orders.project_id", filters!.project_id))
-      .when(Boolean(filters?.start_date), (q) => q.where("receipts.receipt_date", ">=", filters!.start_date))
-      .when(Boolean(filters?.end_date), (q) => q.where("receipts.receipt_date", "<=", filters!.end_date))
+      .when(Boolean(filters?.vendor_id), (builder) => builder.where("order_items.vendor_id", filters!.vendor_id))
+      .when(Boolean(filters?.project_id), (builder) => builder.where("orders.project_id", filters!.project_id))
+      .when(Boolean(filters?.start_date), (builder) =>
+        builder.where("receipts.receipt_date", ">=", filters!.start_date),
+      )
+      .when(Boolean(filters?.end_date), (builder) => builder.where("receipts.receipt_date", "<=", filters!.end_date))
       .groupBy("receipts.receipt_id")
       .orderBy("receipts.receipt_date", "DESC")
       .orderBy("receipts.receipt_id", "DESC")

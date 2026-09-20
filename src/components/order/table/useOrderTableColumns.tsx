@@ -49,8 +49,8 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
             minVisibleItems={1}
             overflowRenderer={(overflowItems) => <Token label={`+${overflowItems.length}`} />}
           >
-            {groups.map((g, idx) => (
-              <Token key={idx} label={g} />
+            {groups.map((groupName, index) => (
+              <Token key={index} label={groupName} />
             ))}
           </OverflowList>
         );
@@ -69,8 +69,8 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
             minVisibleItems={1}
             overflowRenderer={(overflowItems) => <Token label={`+${overflowItems.length}`} />}
           >
-            {items.map((item, idx) => (
-              <Token key={idx} label={item} />
+            {items.map((item, index) => (
+              <Token key={index} label={item} />
             ))}
           </OverflowList>
         );
@@ -89,8 +89,8 @@ export function useOrderTableColumns({ onEdit, setDeleteTarget }: UseOrderTableC
             minVisibleItems={1}
             overflowRenderer={(overflowItems) => <Token label={`+${overflowItems.length}`} />}
           >
-            {vendors.map((v, idx) => (
-              <Token key={idx} label={v} />
+            {vendors.map((vendorName, index) => (
+              <Token key={index} label={vendorName} />
             ))}
           </OverflowList>
         );

@@ -87,7 +87,7 @@ export function ReceiptItemDialog({
   });
 
   const currentPriceObj = selectedItemId
-    ? itemPricesMap.get(selectedItemId)?.find((p) => p.item_price_id === selectedItemPriceId)
+    ? itemPricesMap.get(selectedItemId)?.find((priceItem) => priceItem.item_price_id === selectedItemPriceId)
     : undefined;
   const currentPrice = currentPriceObj?.price ?? initialData?.price ?? 0;
 
@@ -128,9 +128,9 @@ export function ReceiptItemDialog({
                           value={field.state.value || undefined}
                           isDisabled={Boolean(initialData)}
                           onChange={(val) => {
-                            const v = (val as string) || "";
-                            field.handleChange(v);
-                            handleOrderItemChange(v);
+                            const selectedOrderItemIdVal = (val as string) || "";
+                            field.handleChange(selectedOrderItemIdVal);
+                            handleOrderItemChange(selectedOrderItemIdVal);
                           }}
                         />
                       )}
@@ -242,7 +242,7 @@ export function ReceiptItemDialog({
       {isPriceFormOpen && (
         <MasterItemPriceDialog
           isOpen={isPriceFormOpen}
-          item={items.find((i) => i.item_id === selectedItemId) ?? null}
+          item={items.find((item) => item.item_id === selectedItemId) ?? null}
           onClose={async () => {
             setIsPriceFormOpen(false);
             if (selectedItemId) {

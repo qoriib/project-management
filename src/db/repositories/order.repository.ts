@@ -92,12 +92,12 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
    */
   async findAllWithSummary(filters?: OrderFilters): Promise<OrderWithSummary[]> {
     const qb = this.buildSummaryQuery()
-      .when(Boolean(filters?.project_id), (b) => b.where("orders.project_id", "=", filters!.project_id))
-      .when(Boolean(filters?.requirement_group_id), (b) =>
-        b.where("order_items.requirement_group_id", "=", filters!.requirement_group_id),
+      .when(Boolean(filters?.project_id), (builder) => builder.where("orders.project_id", "=", filters!.project_id))
+      .when(Boolean(filters?.requirement_group_id), (builder) =>
+        builder.where("order_items.requirement_group_id", "=", filters!.requirement_group_id),
       )
-      .when(Boolean(filters?.start_date), (b) => b.where("orders.order_date", ">=", filters!.start_date))
-      .when(Boolean(filters?.end_date), (b) => b.where("orders.order_date", "<=", filters!.end_date))
+      .when(Boolean(filters?.start_date), (builder) => builder.where("orders.order_date", ">=", filters!.start_date))
+      .when(Boolean(filters?.end_date), (builder) => builder.where("orders.order_date", "<=", filters!.end_date))
       .orderBy("orders.order_date", "DESC")
       .orderBy("orders.order_id", "DESC");
 

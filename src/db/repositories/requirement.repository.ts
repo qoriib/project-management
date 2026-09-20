@@ -59,7 +59,7 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
       .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
       .leftJoin("units", "items.unit_id = units.unit_id")
       .leftJoin("projects", "projects.project_id = requirements.project_id")
-      .when(Boolean(filters?.project_id), (q) => q.where("requirements.project_id", filters!.project_id))
+      .when(Boolean(filters?.project_id), (builder) => builder.where("requirements.project_id", filters!.project_id))
       .orderBy("COALESCE(requirement_groups.requirement_group_id, '')", "ASC")
       .orderBy("requirements.requirement_id", "ASC")
       .getMany<RequirementDetail>();

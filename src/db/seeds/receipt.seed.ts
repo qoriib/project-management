@@ -18,30 +18,30 @@ export async function seedReceipts(): Promise<void> {
   const orders = await orderRepo.findAll();
   const orderMap = new Map<string, string>(
     orders
-      .filter((o): o is typeof o & { order_code: string } => Boolean(o.order_code))
-      .map((o) => [o.order_code, o.order_id]),
+      .filter((order): order is typeof order & { order_code: string } => Boolean(order.order_code))
+      .map((order) => [order.order_code, order.order_id]),
   );
 
   const allOrderItems = await orderItemRepo.findAll();
   const allItems = await itemRepo.findAll();
-  const itemById = new Map<string, string>(allItems.map((i) => [i.item_id, i.item_name]));
+  const itemById = new Map<string, string>(allItems.map((item) => [item.item_id, item.item_name]));
   const allPrices = await itemPriceRepo.findAll();
-  const priceMap = new Map<string, number>(allPrices.map((p) => [p.item_price_id, p.price]));
+  const priceMap = new Map<string, number>(allPrices.map((priceItem) => [priceItem.item_price_id, priceItem.price]));
 
   const orderItemMap = new Map<
     string,
     { has_tax: boolean; order_item_id: string; item_id: string; item_price_id: string; price: number }
   >(
-    allOrderItems.map((oi) => {
-      const itemName = itemById.get(oi.item_id) ?? "";
+    allOrderItems.map((orderItem) => {
+      const itemName = itemById.get(orderItem.item_id) ?? "";
       return [
-        `${oi.order_id}|${itemName}`,
+        `${orderItem.order_id}|${itemName}`,
         {
-          has_tax: Boolean(oi.has_tax),
-          order_item_id: oi.order_item_id,
-          item_id: oi.item_id,
-          item_price_id: oi.item_price_id,
-          price: priceMap.get(oi.item_price_id) ?? 0,
+          has_tax: Boolean(orderItem.has_tax),
+          order_item_id: orderItem.order_item_id,
+          item_id: orderItem.item_id,
+          item_price_id: orderItem.item_price_id,
+          price: priceMap.get(orderItem.item_price_id) ?? 0,
         },
       ];
     }),
@@ -253,33 +253,35 @@ export async function seedReceipts(): Promise<void> {
     },
   ];
 
-  for (const rc of receipts) {
-    const orderId = orderMap.get(rc.orderCode);
+  for (const receipt of receipts) {
+    const orderId = orderMap.get(receipt.orderCode);
     if (!orderId) {
-      console.warn(`[receipt.seed] Order not found for code: ${rc.orderCode}`);
+      console.warn(`[receipt.seed] Order not found for code: ${receipt.orderCode}`);
       continue;
     }
 
     const receiptItems = [];
 
-    for (const item of rc.items) {
+    for (const item of receipt.items) {
       const orderItem = orderItemMap.get(`${orderId}|${item.itemName}`);
       if (!orderItem) {
-        console.warn(`[receipt.seed] OrderItem not found for: ${item.itemName} in order ${orderId}`);
+        console.warn(
+          `[receipt.seed] Order item not found for '${item.itemName}' in order code '${receipt.receiptCode}'`,
+        );
         continue;
       }
 
       let matchedPriceId = orderItem.item_price_id;
       if (item.price !== undefined && item.price !== orderItem.price) {
         const prices = await itemPriceRepo.findByItem(orderItem.item_id);
-        const match = prices.find((p) => p.price === item.price);
+        const match = prices.find((priceItem) => priceItem.price === item.price);
         if (match) {
           matchedPriceId = match.item_price_id;
         } else {
           matchedPriceId = await itemPriceRepo.create({
             item_id: orderItem.item_id,
             price: item.price,
-            note: `Faktur Penerimaan ${rc.receiptCode}`,
+            note: `Faktur Penerimaan ${receipt.receiptCode}`,
           });
         }
       }
@@ -298,7 +300,7 @@ export async function seedReceipts(): Promise<void> {
     const existingReceipts = await receiptRepo.findAll({
       where: {
         order_id: orderId,
-        receipt_code: rc.receiptCode,
+        receipt_code: receipt.receiptCode,
       },
     });
 
@@ -306,8 +308,8 @@ export async function seedReceipts(): Promise<void> {
       await receiptRepo.createWithItems(
         {
           order_id: orderId,
-          receipt_code: rc.receiptCode,
-          receipt_date: rc.receiptDate,
+          receipt_code: receipt.receiptCode,
+          receipt_date: receipt.receiptDate,
         },
         receiptItems,
       );

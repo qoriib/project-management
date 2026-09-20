@@ -171,7 +171,7 @@ export async function seedItemPrices(): Promise<void> {
     const existingPrices = await itemPriceRepo.findByItem(item.item_id);
 
     for (const variant of variants) {
-      const match = existingPrices.find((p) => p.price === variant.price);
+      const match = existingPrices.find((priceItem) => priceItem.price === variant.price);
       if (!match) {
         await itemPriceRepo.create({
           item_id: item.item_id,

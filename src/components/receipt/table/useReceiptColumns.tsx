@@ -46,8 +46,8 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
             minVisibleItems={1}
             overflowRenderer={(overflowItems) => <Token label={`+${overflowItems.length}`} />}
           >
-            {items.map((item, idx) => (
-              <Token key={idx} label={item} />
+            {items.map((item, index) => (
+              <Token key={index} label={item} />
             ))}
           </OverflowList>
         );
@@ -66,8 +66,8 @@ export function useReceiptColumns({ setDeletingId }: UseReceiptColumnsProps) {
             minVisibleItems={1}
             overflowRenderer={(overflowItems) => <Token label={`+${overflowItems.length}`} />}
           >
-            {vendors.map((v, idx) => (
-              <Token key={idx} label={v} />
+            {vendors.map((vendorName, index) => (
+              <Token key={index} label={vendorName} />
             ))}
           </OverflowList>
         );
