@@ -74,17 +74,14 @@ export function ReceiptItemDialog({
   }, [selectedItemId, loadItemPrices]);
 
   const priceOptions = (selectedItemId ? (itemPricesMap.get(selectedItemId) ?? []) : []).map((priceItem) => ({
-    label: priceItem.note
-      ? `Rp ${formatNumber(priceItem.price, "currency")} (${priceItem.note})`
-      : `Rp ${formatNumber(priceItem.price, "currency")}`,
+    label: `Rp ${formatNumber(priceItem.price, "currency")}`,
     value: String(priceItem.item_price_id),
   }));
 
   const orderItemOptions = availableOrderItems.map((item) => {
     const code = formatItemCode(item);
-    const remainingText = formatNumber(item.remaining ?? 0, "volume");
     return {
-      label: `${code ? `${code} - ` : ""}${item.item_name} (Sisa: ${remainingText} ${item.unit || ""})`,
+      label: `${code ? `${code} - ` : ""}${item.item_name}`,
       value: String(item.order_item_id),
     };
   });
