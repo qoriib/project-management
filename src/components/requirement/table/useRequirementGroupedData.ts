@@ -27,17 +27,14 @@ export function useRequirementGroupedData(
     [groups],
   );
 
-  const hasNonPaguGroups = useMemo(
-    () => sortedGroups.some((group) => !group.budget || group.budget <= 0),
-    [sortedGroups],
-  );
+  const hasNonPaguGroups = useMemo(() => sortedGroups.some((group) => !group.has_detail), [sortedGroups]);
 
   const displayRequirements = useMemo<RequirementRow[]>(() => {
     const result: RequirementRow[] = [];
     const processedReqIds = new Set<string>();
 
     for (const group of sortedGroups) {
-      if (group.budget && group.budget > 0) {
+      if (group.has_detail) {
         result.push({
           requirement_id: `pagu_${group.requirement_group_id}`,
           requirement_group_id: group.requirement_group_id,
@@ -48,7 +45,7 @@ export function useRequirementGroupedData(
           item_code: "-",
           item_name: group.group_name,
           unit: "-",
-          price: group.budget,
+          price: group.budget && group.budget > 0 ? group.budget : 0,
           qty: 0,
           has_tax: false,
           created_at: group.created_at,
@@ -127,7 +124,7 @@ export function useRequirementGroupedData(
   const groupOrder = useMemo(() => {
     const list: string[] = [];
     for (const group of sortedGroups) {
-      if (!group.budget || group.budget <= 0) {
+      if (!group.has_detail) {
         if (group.group_name && !list.includes(group.group_name)) {
           list.push(group.group_name);
         }
@@ -135,7 +132,7 @@ export function useRequirementGroupedData(
     }
     for (const req of requirements) {
       const matchedGroup = groups.find((group) => group.requirement_group_id === req.requirement_group_id);
-      if (!matchedGroup || !matchedGroup.budget || matchedGroup.budget <= 0) {
+      if (!matchedGroup || !matchedGroup.has_detail) {
         if (req.group_name && !list.includes(req.group_name)) {
           list.push(req.group_name);
         }

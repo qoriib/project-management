@@ -216,6 +216,39 @@ export async function seedOrders(): Promise<void> {
         { itemName: "Waterproofing 20kg", price: 750000, qty: 6, hasTax: true },
       ],
     },
+    {
+      // PO 12: Pekerjaan Pembersihan & Akhir (PAGU TANPA BUDGET - Proyek 1)
+      orderCode: "PO-2026-0012",
+      projectName: p1,
+      groupName: "Pekerjaan Pembersihan & Akhir",
+      orderDate: "2026-03-28",
+      vendorName: "TB. Sinar Bangunan",
+      items: [
+        { itemName: "Tukang Batu / Pekerja", price: 150000, qty: 10, hasTax: false },
+        { itemName: "Mandor", price: 250000, qty: 2, hasTax: false },
+      ],
+    },
+    {
+      // PO 13: Pekerjaan Pengawasan & Supervisi (PAGU TANPA BUDGET - Proyek 2)
+      orderCode: "PO-2026-0013",
+      projectName: p2,
+      groupName: "Pekerjaan Pengawasan & Supervisi",
+      orderDate: "2026-04-20",
+      vendorName: "Sewa Alat Berat Nusantara",
+      items: [{ itemName: "Mandor", price: 250000, qty: 20, hasTax: false }],
+    },
+    {
+      // PO 14: Biaya Kontinjensi & Tak Terduga (PAGU TANPA BUDGET - Proyek 3)
+      orderCode: "PO-2026-0014",
+      projectName: p3,
+      groupName: "Biaya Kontinjensi & Tak Terduga",
+      orderDate: "2026-05-25",
+      vendorName: "TB. Sinar Bangunan",
+      items: [
+        { itemName: "Waterproofing 20kg", price: 750000, qty: 4, hasTax: true },
+        { itemName: "Semen Putih 40 Kg", price: 85000, qty: 10, hasTax: true },
+      ],
+    },
   ];
 
   for (const ord of orders) {

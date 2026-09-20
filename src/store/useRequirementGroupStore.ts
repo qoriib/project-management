@@ -6,8 +6,13 @@ interface RequirementGroupStore {
   groups: RequirementGroup[];
   isLoadingGroups: boolean;
   loadGroups: (projectId: string) => Promise<void>;
-  createGroup: (projectId: string, groupName: string, budget?: number | null) => Promise<string>;
-  updateGroup: (id: string, groupName: string, budget?: number | null) => Promise<void>;
+  createGroup: (
+    projectId: string,
+    groupName: string,
+    hasDetail?: boolean | number,
+    budget?: number | null,
+  ) => Promise<string>;
+  updateGroup: (id: string, groupName: string, hasDetail?: boolean | number, budget?: number | null) => Promise<void>;
   deleteGroup: (id: string) => Promise<void>;
 }
 
@@ -28,21 +33,23 @@ export const useRequirementGroupStore = create<RequirementGroupStore>((set, get)
     }
   },
 
-  createGroup: async (projectId: string, groupName: string, budget?: number | null) => {
+  createGroup: async (projectId: string, groupName: string, hasDetail?: boolean | number, budget?: number | null) => {
     const project = useMasterStore.getState().projects.find((proj) => proj.project_id === projectId);
     if (project?.requirements_is_approved === 1) {
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
     }
+    const isPagu = Boolean(hasDetail);
     const id = await requirementGroupRepo.create({
       project_id: projectId,
       group_name: groupName,
-      budget: budget && budget > 0 ? budget : null,
+      has_detail: isPagu ? 1 : 0,
+      budget: isPagu && budget && budget > 0 ? budget : null,
     });
     await get().loadGroups(projectId);
     return id;
   },
 
-  updateGroup: async (id: string, groupName: string, budget?: number | null) => {
+  updateGroup: async (id: string, groupName: string, hasDetail?: boolean | number, budget?: number | null) => {
     const existing = get().groups.find((grp) => grp.requirement_group_id === id);
     if (!existing) return;
 
@@ -51,8 +58,14 @@ export const useRequirementGroupStore = create<RequirementGroupStore>((set, get)
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
     }
 
-    const payload: { group_name: string; budget?: number | null } = { group_name: groupName };
-    if (budget !== undefined) {
+    const payload: { group_name: string; has_detail?: number; budget?: number | null } = {
+      group_name: groupName,
+    };
+    if (hasDetail !== undefined) {
+      const isPagu = Boolean(hasDetail);
+      payload.has_detail = isPagu ? 1 : 0;
+      payload.budget = isPagu && budget && budget > 0 ? budget : null;
+    } else if (budget !== undefined) {
       payload.budget = budget && budget > 0 ? budget : null;
     }
 

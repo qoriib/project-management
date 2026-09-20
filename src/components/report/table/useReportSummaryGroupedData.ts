@@ -28,8 +28,8 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
       }
       groupItems.push(row);
 
-      const hasValidBudget = row.group_budget != null && row.group_budget > 0;
-      if (row.group_name && hasValidBudget) {
+      const isPagu = Boolean(row.is_pagu_account || (row.group_budget != null && row.group_budget > 0));
+      if (row.group_name && isPagu) {
         paguGroupNames.add(row.group_name);
       }
     }
@@ -40,9 +40,11 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
 
     for (const groupId of sortedGroupIds) {
       const items = groupMap.get(groupId)!;
-      const groupBudget =
-        items.find((item) => item.group_budget != null && item.group_budget > 0)?.group_budget ?? null;
-      const isPaguGroup = groupBudget != null && groupBudget > 0;
+      const paguItem = items.find(
+        (item) => item.is_pagu_account || (item.group_budget != null && item.group_budget > 0),
+      );
+      const isPaguGroup = Boolean(paguItem);
+      const groupBudget = paguItem?.group_budget ?? null;
 
       let subVolumeReceipt = 0;
       let subVolumeOrder = 0;
@@ -85,7 +87,7 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
         subBudgetPlan += item.planned_budget || 0;
       }
 
-      const plannedBudgetForSubtotal = isPaguGroup ? groupBudget : subBudgetPlan;
+      const plannedBudgetForSubtotal = isPaguGroup ? (groupBudget ?? 0) : subBudgetPlan;
       const plannedDppForSubtotal = isPaguGroup ? 0 : subDppPlan;
       const plannedTaxForSubtotal = isPaguGroup ? 0 : subTaxPlan;
 

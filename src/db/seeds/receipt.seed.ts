@@ -224,6 +224,33 @@ export async function seedReceipts(): Promise<void> {
         { itemName: "Semen Portland 50 Kg", price: 79500, qty: 100 },
       ],
     },
+    {
+      // NP 14 untuk PO-2026-0012 (Pekerjaan Pembersihan & Akhir - Pagu Tanpa Budget)
+      receiptCode: "NP-2026-0014",
+      orderCode: "PO-2026-0012",
+      receiptDate: "2026-03-30",
+      items: [
+        { itemName: "Tukang Batu / Pekerja", price: 150000, qty: 10 },
+        { itemName: "Mandor", price: 250000, qty: 2 },
+      ],
+    },
+    {
+      // NP 15 untuk PO-2026-0013 (Pekerjaan Pengawasan & Supervisi - Pagu Tanpa Budget)
+      receiptCode: "NP-2026-0015",
+      orderCode: "PO-2026-0013",
+      receiptDate: "2026-04-25",
+      items: [{ itemName: "Mandor", price: 250000, qty: 20 }],
+    },
+    {
+      // NP 16 untuk PO-2026-0014 (Biaya Kontinjensi & Tak Terduga - Pagu Tanpa Budget)
+      receiptCode: "NP-2026-0016",
+      orderCode: "PO-2026-0014",
+      receiptDate: "2026-05-28",
+      items: [
+        { itemName: "Waterproofing 20kg", price: 750000, qty: 4 },
+        { itemName: "Semen Putih 40 Kg", price: 85000, qty: 10 },
+      ],
+    },
   ];
 
   for (const rc of receipts) {

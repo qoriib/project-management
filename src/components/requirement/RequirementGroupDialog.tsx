@@ -1,6 +1,7 @@
 import { Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Badge,
   Button,
   Card,
   Dialog,
@@ -10,6 +11,7 @@ import {
   IconButton,
   InputGroup,
   InputGroupText,
+  Switch,
   Table,
   Text,
   TextInput,
@@ -39,6 +41,7 @@ const groupSchema = v.object({
     v.trim(),
     v.nonEmpty("Nama kelompok pekerjaan harus diisi."),
   ),
+  has_detail: v.boolean(),
   budget: v.string(),
 });
 
@@ -66,6 +69,7 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
   const form = useForm({
     defaultValues: {
       group_name: "",
+      has_detail: false,
       budget: "",
     },
     validators: {
@@ -75,15 +79,16 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
 
         const trimmed = value.group_name.trim();
         if (!trimmed) return null;
+        const isPagu = Boolean(value.has_detail);
         const budgetVal = parseDecimalInput(value.budget);
-        const finalBudget = budgetVal > 0 ? budgetVal : null;
+        const finalBudget = isPagu ? (budgetVal > 0 ? budgetVal : null) : null;
 
         try {
           if (editingGroup) {
-            await updateGroup(editingGroup.requirement_group_id, trimmed, finalBudget);
+            await updateGroup(editingGroup.requirement_group_id, trimmed, isPagu, finalBudget);
             setEditingGroup(null);
           } else {
-            const createdId = await createGroup(selectedProjectId, trimmed, finalBudget);
+            const createdId = await createGroup(selectedProjectId, trimmed, isPagu, finalBudget);
             if (onSuccess && createdId) {
               onSuccess(createdId);
             }
@@ -96,7 +101,7 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
       },
     },
     onSubmit: async () => {
-      form.reset({ group_name: "", budget: "" });
+      form.reset({ group_name: "", has_detail: false, budget: "" });
       setEditingGroup(null);
       if (selectedProjectId) {
         await loadGroups(selectedProjectId);
@@ -108,7 +113,7 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
     if (isOpen && selectedProjectId) {
       setPage(1);
       setEditingGroup(null);
-      form.reset({ group_name: "", budget: "" });
+      form.reset({ group_name: "", has_detail: false, budget: "" });
       loadGroups(selectedProjectId);
     }
   }, [isOpen, selectedProjectId, loadGroups]);
@@ -116,12 +121,13 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
   function handleStartEdit(group: RequirementGroup) {
     setEditingGroup(group);
     form.setFieldValue("group_name", group.group_name);
+    form.setFieldValue("has_detail", Boolean(group.has_detail));
     form.setFieldValue("budget", group.budget && group.budget > 0 ? String(group.budget).replace(".", ",") : "");
   }
 
   function handleCancelEdit() {
     setEditingGroup(null);
-    form.reset({ group_name: "", budget: "" });
+    form.reset({ group_name: "", has_detail: false, budget: "" });
   }
 
   async function handleDelete() {
@@ -155,12 +161,26 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
       ),
     },
     {
+      header: "Pagu",
+      key: "has_detail",
+      width: pixel(100),
+      renderCell: (row: RequirementGroup) =>
+        row.has_detail ? <Badge variant="warning" label="Pagu" /> : <Text color="secondary">-</Text>,
+    },
+    {
       align: "end",
-      header: "Pagu Anggaran (Rp)",
+      header: "Anggaran (Rp)",
       key: "budget",
       width: pixel(180),
-      renderCell: (row: RequirementGroup) =>
-        row.budget && row.budget > 0 ? <Text type="code">Rp {formatNumber(row.budget, "currency")}</Text> : "-",
+      renderCell: (row: RequirementGroup) => {
+        if (!row.has_detail) {
+          return <Text color="secondary">-</Text>;
+        }
+        if (row.budget && row.budget > 0) {
+          return <Text type="code">Rp {formatNumber(row.budget, "currency")}</Text>;
+        }
+        return <Text color="secondary">(Tanpa Budget)</Text>;
+      },
     },
     {
       align: "end",
@@ -238,7 +258,7 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={680} maxHeight="85vh">
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={720} maxHeight="85vh">
         <Layout
           header={
             <LayoutHeader hasDivider>
@@ -285,21 +305,40 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
                           )}
                         />
                         <form.Field
-                          name="budget"
+                          name="has_detail"
                           children={(field) => (
-                            <InputGroup label="Pagu Anggaran">
-                              <InputGroupText>Rp</InputGroupText>
-                              <TextInput
-                                label="Pagu Anggaran"
-                                isLabelHidden
-                                placeholder="Kosongkan jika dihitung dari item"
-                                value={field.state.value}
-                                onChange={(val) => field.handleChange(sanitizeDecimalInput(val ?? ""))}
-                                onBlur={field.handleBlur}
-                                isDisabled={isApproved}
-                              />
-                            </InputGroup>
+                            <Switch
+                              label="Kelompok Pagu Anggaran"
+                              description="Aktifkan jika pekerjaan ini menggunakan sistem pagu anggaran (bukan rincian item BOQ)"
+                              value={field.state.value}
+                              onChange={(checked) => field.handleChange(checked)}
+                              isDisabled={isApproved}
+                            />
                           )}
+                        />
+                        <form.Subscribe
+                          selector={(state) => state.values.has_detail}
+                          children={(isPagu) =>
+                            isPagu ? (
+                              <form.Field
+                                name="budget"
+                                children={(field) => (
+                                  <InputGroup label="Nominal Pagu Anggaran (Opsional)">
+                                    <InputGroupText>Rp</InputGroupText>
+                                    <TextInput
+                                      label="Nominal Pagu Anggaran"
+                                      isLabelHidden
+                                      placeholder="Kosongkan jika pagu tanpa batas/nominal budget"
+                                      value={field.state.value}
+                                      onChange={(val) => field.handleChange(sanitizeDecimalInput(val ?? ""))}
+                                      onBlur={field.handleBlur}
+                                      isDisabled={isApproved}
+                                    />
+                                  </InputGroup>
+                                )}
+                              />
+                            ) : null
+                          }
                         />
                       </FormLayout>
                       <HStack justify="end" gap={2} width="100%">

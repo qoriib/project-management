@@ -24,24 +24,24 @@ export async function seedRequirements(): Promise<void> {
   // 1. Definisi seluruh kelompok pekerjaan lintas proyek (Kombinasi BOQ, Pagu dengan Harga & Tanpa Harga)
   const groupDefs: SeedGroupDefinition[] = [
     // PROYEK 1: Model Campuran (Rincian BOQ + Pagu Anggaran dengan Harga + Pagu tanpa Harga + Kelompok Kosong)
-    { projectName: p1, groupName: "Pekerjaan Struktur & Konstruksi", budget: 180000000, hasDetail: true },
-    { projectName: p1, groupName: "Pekerjaan Finishing & Arsitektur", budget: null, hasDetail: true },
-    { projectName: p1, groupName: "Pekerjaan Mekanikal & Elektrikal", budget: 45000000, hasDetail: false },
-    { projectName: p1, groupName: "Pekerjaan Pagar & Lanskap", budget: 20000000, hasDetail: false },
-    { projectName: p1, groupName: "Pekerjaan Pembersihan & Akhir", budget: null, hasDetail: false },
+    { projectName: p1, groupName: "Pekerjaan Struktur & Konstruksi", budget: null, hasDetail: false },
+    { projectName: p1, groupName: "Pekerjaan Finishing & Arsitektur", budget: null, hasDetail: false },
+    { projectName: p1, groupName: "Pekerjaan Mekanikal & Elektrikal", budget: 45000000, hasDetail: true },
+    { projectName: p1, groupName: "Pekerjaan Pagar & Lanskap", budget: 20000000, hasDetail: true },
+    { projectName: p1, groupName: "Pekerjaan Pembersihan & Akhir", budget: null, hasDetail: true },
 
     // PROYEK 2: Model All Pagu (Seluruh pekerjaan diatur dengan pagu: sebagian beranggaran, sebagian pagu tanpa batas)
-    { projectName: p2, groupName: "Pekerjaan Perencanaan & Desain Interior", budget: 25000000, hasDetail: false },
-    { projectName: p2, groupName: "Pekerjaan Fit-Out & Partisi Ruangan", budget: 60000000, hasDetail: false },
-    { projectName: p2, groupName: "Pekerjaan Tata Suara & Pencahayaan", budget: 35000000, hasDetail: false },
-    { projectName: p2, groupName: "Pekerjaan Pengawasan & Supervisi", budget: null, hasDetail: false },
+    { projectName: p2, groupName: "Pekerjaan Perencanaan & Desain Interior", budget: 25000000, hasDetail: true },
+    { projectName: p2, groupName: "Pekerjaan Fit-Out & Partisi Ruangan", budget: 60000000, hasDetail: true },
+    { projectName: p2, groupName: "Pekerjaan Tata Suara & Pencahayaan", budget: 35000000, hasDetail: true },
+    { projectName: p2, groupName: "Pekerjaan Pengawasan & Supervisi", budget: null, hasDetail: true },
 
     // PROYEK 3: Pembangunan Gudang Logistik Cikarang (Status Draft / Belum ACC, Multi-Kelompok BOQ + Pagu)
-    { projectName: p3, groupName: "Pekerjaan Pondasi & Tanah", budget: 150000000, hasDetail: true },
-    { projectName: p3, groupName: "Pekerjaan Struktur Baja & Beton", budget: null, hasDetail: true },
-    { projectName: p3, groupName: "Pekerjaan Dinding & Atap", budget: null, hasDetail: true },
-    { projectName: p3, groupName: "Pekerjaan Utilitas & Drainase", budget: 30000000, hasDetail: false },
-    { projectName: p3, groupName: "Biaya Kontinjensi & Tak Terduga", budget: null, hasDetail: false },
+    { projectName: p3, groupName: "Pekerjaan Pondasi & Tanah", budget: null, hasDetail: false },
+    { projectName: p3, groupName: "Pekerjaan Struktur Baja & Beton", budget: null, hasDetail: false },
+    { projectName: p3, groupName: "Pekerjaan Dinding & Atap", budget: null, hasDetail: false },
+    { projectName: p3, groupName: "Pekerjaan Utilitas & Drainase", budget: 30000000, hasDetail: true },
+    { projectName: p3, groupName: "Biaya Kontinjensi & Tak Terduga", budget: null, hasDetail: true },
   ];
 
   // 2. Definisi kebutuhan material (BOQ) untuk kelompok rincian

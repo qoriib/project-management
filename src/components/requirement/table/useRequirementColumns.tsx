@@ -144,10 +144,12 @@ export function useRequirementColumns({ onEdit, setDeletingId, isApproved }: Use
         }
         if (row.is_empty_group) return null;
         if (row.is_pagu_account) {
-          return (
+          return row.price && row.price > 0 ? (
             <Text type="code" weight="bold">
               {formatNumber(row.price, "currency")}
             </Text>
+          ) : (
+            <Text color="secondary">(Tanpa Budget)</Text>
           );
         }
         const total = calcLineTotal(calcDPP(row.qty, row.price), row.has_tax);
