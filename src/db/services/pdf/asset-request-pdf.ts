@@ -93,12 +93,12 @@ export function createAssetRequestPdf(context: AssetRequestPdfContext): jsPDF {
   const headerSectionBottomY = Math.max(leftY, rightY + 6);
   const titleBandY = headerSectionBottomY + 4;
 
-  const logoWidth = 46;
-  const logoHeight = 25.5;
-  doc.addImage(ASSET_CONTROL_LOGO_BASE64, "JPEG", margins.left, titleBandY, logoWidth, logoHeight);
+  const logoWidth = 42;
+  const logoHeight = 12.8;
+  doc.addImage(ASSET_CONTROL_LOGO_BASE64, "PNG", margins.left, titleBandY, logoWidth, logoHeight);
 
   const docCenterX = pageWidth / 2;
-  const formTitleY = titleBandY + 8.5;
+  const formTitleY = titleBandY + 5;
 
   doc.setFont(PDF_FONTS.primary, "bold");
   doc.setFontSize(14);
@@ -113,14 +113,14 @@ export function createAssetRequestPdf(context: AssetRequestPdfContext): jsPDF {
   doc.setFont(PDF_FONTS.primary, "normal");
   doc.setFontSize(9.5);
   doc.setTextColor(...PDF_COLORS.textDark);
-  doc.text(`No.   : ${context.document_code || "...................."}`, docCenterX, formTitleY + 6.8, {
+  doc.text(`No.   : ${context.document_code || "...................."}`, docCenterX, formTitleY + 5.5, {
     align: "center",
   });
 
   // ============================================================
   // 4. TABEL ITEM — No. | NAMA BARANG | KODE RAPP | SATUAN | JUMLAH | KETERANGAN
   // ============================================================
-  const tableStartY = titleBandY + logoHeight + 4;
+  const tableStartY = titleBandY + logoHeight + 1.5;
 
   const tableBody: RowInput[] = [];
   const minRows = ASSET_LAYOUT.minGridRows;

@@ -19,6 +19,8 @@ const PO_CLOSING_LINE = "Demikian P.O ini dibuat, atas perhatian dan kerja saman
 
 export function createPurchaseOrderPdf(context: PurchaseOrderPdfContext): jsPDF {
   const isPreprinted = context.preprintedOnly !== false; // default: true (cetak pada kertas bahan form nota fisik)
+  const rowOffset = context.rowOffset ?? 0;
+  const rowOffsetMm = rowOffset * 5.5; // pergeseran ~5.5mm per baris
 
   const doc = new jsPDF({
     orientation: PDF_PAGE_PORTRAIT.orientation,
@@ -55,7 +57,7 @@ export function createPurchaseOrderPdf(context: PurchaseOrderPdfContext): jsPDF 
   const colonX = PO_LAYOUT.headerInfoColonX;
   const valueX = PO_LAYOUT.headerInfoValueX;
   const valueMaxWidth = pageWidth - margins.right - valueX;
-  let infoY = titleY + 8.5;
+  let infoY = titleY + 8.5 + (isPreprinted ? rowOffsetMm : 0);
 
   const renderHeaderInfoRow = (label: string, value: string): void => {
     doc.setFont(PDF_FONTS.primary, "normal");
@@ -153,10 +155,10 @@ export function createPurchaseOrderPdf(context: PurchaseOrderPdfContext): jsPDF 
   }
 
   if (isPreprinted) {
-    // Mode cetak blangko: startY 66mm sejajar baris data ke-1 pada kertas nota fisik.
+    // Mode cetak blangko: startY 66mm sejajar baris data ke-1 pada kertas nota fisik (+ rowOffset).
     autoTable(doc, {
       theme: "plain",
-      startY: 66,
+      startY: 66 + rowOffsetMm,
       margin: margins,
       tableWidth: printableWidth,
       styles: {
@@ -225,8 +227,8 @@ export function createPurchaseOrderPdf(context: PurchaseOrderPdfContext): jsPDF 
   const companyLines = doc.splitTextToSize(context.company_name, printableWidth * 0.65);
 
   if (isPreprinted) {
-    // Posisi mengikuti softfile Excel blangko cetak (y ≈ 138mm).
-    let footerY = 138;
+    // Posisi mengikuti softfile Excel blangko cetak (y ≈ 138mm + rowOffset).
+    let footerY = 138 + rowOffsetMm;
     doc.setFont(PDF_FONTS.primary, "normal");
     doc.setFontSize(9.5);
     doc.setTextColor(...PDF_COLORS.textDark);

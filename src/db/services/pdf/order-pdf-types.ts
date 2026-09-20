@@ -34,6 +34,8 @@ export interface PurchaseOrderPdfContext {
    * Jika false, mencetak formulir lengkap dengan garis tabel dan teks statis.
    */
   preprintedOnly?: boolean;
+  /** Pergeseran baris (tambah/kurang baris) untuk penyesuaian margin vertikal nota fisik */
+  rowOffset?: number;
 }
 
 /** Konteks render dokumen Form Permintaan Barang/Alat (Asset Control). */
@@ -61,6 +63,8 @@ export interface GeneratePurchaseOrderOptions {
   note?: string;
   /** Cetak isi saja untuk kertas formulir nota fisik (default: true) */
   preprintedOnly?: boolean;
+  /** Pergeseran baris (tambah/kurang baris) untuk penyesuaian margin vertikal */
+  rowOffset?: number;
 }
 
 /** Opsi pembuatan dokumen Form Permintaan Barang/Alat dari satu order. */

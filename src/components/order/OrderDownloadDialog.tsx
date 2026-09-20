@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Dialog, HStack, Heading, Selector, Text, TextArea, TextInput, VStack } from "@astryxdesign/core";
+import { Button, Dialog, FormLayout, HStack, Heading, Selector, Text, TextArea } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { RadioList, RadioListItem } from "@astryxdesign/core/RadioList";
 import { useToast } from "@astryxdesign/core/Toast";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { getTimestampString, sanitizeFilename } from "@/utils/formatters";
+import { generateAssetRequestExcel, generatePurchaseOrderExcel } from "@/db/services/excel";
 import { generateAssetRequestPdf, generatePurchaseOrderPdf } from "@/db/services/pdf";
 import type { OrderPdfTemplate } from "@/db/services/pdf";
 import type { OrderItemDetail, OrderWithSummary } from "@/db/repositories";
@@ -16,14 +18,18 @@ interface OrderDownloadDialogProps {
   items: OrderItemDetail[];
 }
 
+const TEMPLATE_OPTIONS = [
+  { value: "purchase-order", label: "Purchase Order" },
+  { value: "asset-request", label: "Form Permintaan Barang/Alat" },
+];
+
 export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDownloadDialogProps) {
   const showToast = useToast();
 
   const [selectedTemplate, setSelectedTemplate] = useState<OrderPdfTemplate>("purchase-order");
+  const [downloadFormat, setDownloadFormat] = useState<"xlsx" | "pdf">("xlsx");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("");
-  const [orderCodeInput, setOrderCodeInput] = useState<string>(order.order_code ?? "");
   const [noteInput, setNoteInput] = useState<string>("");
-  const [documentCodeInput, setDocumentCodeInput] = useState<string>("");
   const [remarksInput, setRemarksInput] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -31,12 +37,11 @@ export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDown
     if (!isOpen) return;
 
     setSelectedTemplate("purchase-order");
+    setDownloadFormat("xlsx");
     setSelectedVendorId("");
-    setOrderCodeInput(order.order_code ?? "");
     setNoteInput("");
-    setDocumentCodeInput("");
     setRemarksInput("");
-  }, [isOpen, order.order_code, order.order_id]);
+  }, [isOpen]);
 
   // Daftar vendor unik dari item order (satu dokumen PO = satu vendor)
   const vendorOptions = useMemo(() => {
@@ -62,33 +67,60 @@ export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDown
       const baseFilename = `${timestamp}_${projectName}`;
       const selectedVendor = vendorOptions.find((vendor) => vendor.value === selectedVendorId);
       const vendorName = sanitizeFilename(selectedVendor?.label ?? "Vendor");
-      const filename = isPurchaseOrder ? `${baseFilename}_PO_${vendorName}.pdf` : `${baseFilename}_Form_Permintaan.pdf`;
+      const ext = downloadFormat;
+      const filename = isPurchaseOrder
+        ? `${baseFilename}_PO_${vendorName}.${ext}`
+        : `${baseFilename}_Form_Permintaan.${ext}`;
 
       const filePath = await save({
-        filters: [{ name: "PDF Document", extensions: ["pdf"] }],
+        filters:
+          downloadFormat === "xlsx"
+            ? [{ name: "Excel Spreadsheet", extensions: ["xlsx"] }]
+            : [{ name: "PDF Document", extensions: ["pdf"] }],
         defaultPath: filename,
-        title: isPurchaseOrder ? "Simpan Purchase Order" : "Simpan Form Permintaan Barang/Alat",
+        title: isPurchaseOrder ? `Simpan Purchase Order (.${ext})` : `Simpan Form Permintaan Barang/Alat (.${ext})`,
       });
 
       if (filePath) {
-        const buffer = isPurchaseOrder
-          ? await generatePurchaseOrderPdf(order.order_id, {
+        let buffer: Uint8Array;
+        if (isPurchaseOrder) {
+          if (downloadFormat === "xlsx") {
+            buffer = await generatePurchaseOrderExcel(order.order_id, {
               vendorId: selectedVendorId,
-              orderCodeOverride: orderCodeInput.trim() || undefined,
               note: noteInput.trim() || undefined,
-            })
-          : await generateAssetRequestPdf(order.order_id, {
-              documentCode: documentCodeInput.trim() || undefined,
+            });
+          } else {
+            buffer = await generatePurchaseOrderPdf(order.order_id, {
+              vendorId: selectedVendorId,
+              note: noteInput.trim() || undefined,
+              rowOffset: 0,
+            });
+          }
+        } else {
+          if (downloadFormat === "xlsx") {
+            buffer = await generateAssetRequestExcel(order.order_id, {
+              documentCode: order.order_code?.trim() || undefined,
               remarks: remarksInput.trim() || undefined,
             });
+          } else {
+            buffer = await generateAssetRequestPdf(order.order_id, {
+              documentCode: order.order_code?.trim() || undefined,
+              remarks: remarksInput.trim() || undefined,
+            });
+          }
+        }
 
         await writeFile(filePath, buffer);
-        showToast({ body: "Dokumen PDF berhasil diunduh!", type: "info" });
+        const docTitle = isPurchaseOrder ? "Purchase Order" : "Form Permintaan";
+        showToast({
+          body: `Dokumen ${docTitle} (.${ext}) berhasil diunduh!`,
+          type: "info",
+        });
         onClose();
       }
     } catch (err) {
-      console.error("Download order PDF failed:", err);
-      showToast({ body: "Gagal mengunduh dokumen PDF.", type: "error" });
+      console.error("Download order document failed:", err);
+      showToast({ body: "Gagal mengunduh dokumen.", type: "error" });
     } finally {
       setIsDownloading(false);
     }
@@ -114,23 +146,31 @@ export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDown
         <Layout
           header={
             <LayoutHeader hasDivider>
-              <Heading level={3}>Unduh Dokumen PDF</Heading>
+              <Heading level={3}>Unduh Dokumen</Heading>
             </LayoutHeader>
           }
           content={
             <LayoutContent padding={4}>
-              <VStack gap={4}>
+              <FormLayout>
                 <Selector
                   label="Template Dokumen"
                   value={selectedTemplate}
                   onChange={(value) => setSelectedTemplate(value as OrderPdfTemplate)}
-                  options={[
-                    { value: "purchase-order", label: "Purchase Order" },
-                    { value: "asset-request", label: "Form Permintaan" },
-                  ]}
+                  options={TEMPLATE_OPTIONS}
                 />
+
+                <RadioList
+                  label="Format Unduhan"
+                  value={downloadFormat}
+                  onChange={(value) => setDownloadFormat(value as "xlsx" | "pdf")}
+                  orientation="horizontal"
+                >
+                  <RadioListItem label="Excel (.xlsx)" value="xlsx" />
+                  <RadioListItem label="PDF (.pdf)" value="pdf" />
+                </RadioList>
+
                 {isPurchaseOrder ? (
-                  <VStack gap={4} width="100%">
+                  <>
                     <Selector
                       label="Vendor Tujuan"
                       options={vendorOptions}
@@ -140,36 +180,22 @@ export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDown
                       isDisabled={vendorOptions.length === 0}
                       isRequired
                     />
-                    <TextInput
-                      label="No. PO"
-                      value={orderCodeInput}
-                      onChange={setOrderCodeInput}
-                      placeholder={`Default: ${order.order_code ?? "-"}`}
-                    />
                     <TextArea
-                      label="Keterangan (opsional)"
+                      label="Catatan (opsional)"
                       value={noteInput}
                       onChange={setNoteInput}
-                      placeholder="Masukkan keterangan daftar barang..."
+                      placeholder="Masukkan catatan..."
                       rows={3}
                     />
-                  </VStack>
+                  </>
                 ) : (
-                  <VStack gap={4} width="100%">
-                    <TextInput
-                      label="No. Dokumen"
-                      value={documentCodeInput}
-                      onChange={setDocumentCodeInput}
-                      placeholder="Masukkan nomor dokumen..."
-                    />
-                    <TextArea
-                      label="Keterangan (opsional)"
-                      value={remarksInput}
-                      onChange={setRemarksInput}
-                      placeholder="Masukkan keterangan daftar barang..."
-                      rows={3}
-                    />
-                  </VStack>
+                  <TextArea
+                    label="Catatan (opsional)"
+                    value={remarksInput}
+                    onChange={setRemarksInput}
+                    placeholder="Masukkan catatan..."
+                    rows={3}
+                  />
                 )}
 
                 {vendorOptions.length === 0 && isPurchaseOrder ? (
@@ -177,7 +203,7 @@ export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDown
                     Pengadaan ini belum memiliki item/vendor.
                   </Text>
                 ) : null}
-              </VStack>
+              </FormLayout>
             </LayoutContent>
           }
           footer={
@@ -189,7 +215,7 @@ export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDown
                   type="submit"
                   isDisabled={isDownloading || !canDownload}
                   isLoading={isDownloading}
-                  label="Unduh PDF"
+                  label={downloadFormat === "xlsx" ? "Unduh Excel" : "Unduh PDF"}
                 />
               </HStack>
             </LayoutFooter>

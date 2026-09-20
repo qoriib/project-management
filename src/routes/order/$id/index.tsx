@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Button, Card, HStack, Heading, Text, Toolbar, VStack } from "@astryxdesign/core";
+import { Button, Card, HStack, Heading, Text, Toolbar, VStack, IconButton } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
-import { FileDown } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
@@ -11,6 +11,7 @@ import { OrderSummaryCard } from "@/components/order/OrderSummaryCard";
 import { OrderItemTrackingTable } from "@/components/order/OrderItemTrackingTable";
 import { OrderReceiptLogTable } from "@/components/order/OrderReceiptLogTable";
 import { OrderDownloadDialog } from "@/components/order/OrderDownloadDialog";
+import { OrderPrintDialog } from "@/components/order/OrderPrintDialog";
 import { handleFormError } from "@/utils/form";
 
 function OrderDetailPage() {
@@ -21,6 +22,7 @@ function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isCreatingReceipt, setIsCreatingReceipt] = useState(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+  const [isPrintOpen, setIsPrintOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -77,16 +79,22 @@ function OrderDetailPage() {
                 <Button
                   variant="primary"
                   size="sm"
-                  label="Unduh PDF"
-                  icon={<FileDown />}
+                  label="Edit Pengadaan"
+                  onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
+                />
+                <IconButton
+                  variant="secondary"
+                  icon={<Download />}
+                  label="Unduh Dokumen"
                   onClick={() => setIsDownloadOpen(true)}
                   isDisabled={items.length === 0}
                 />
-                <Button
-                  variant="primary"
-                  size="sm"
-                  label="Edit Pengadaan"
-                  onClick={() => navigate({ to: `/order/${order.order_id}/edit` })}
+                <IconButton
+                  variant="secondary"
+                  icon={<Printer />}
+                  label="Cetak Dokumen"
+                  onClick={() => setIsPrintOpen(true)}
+                  isDisabled={items.length === 0}
                 />
               </HStack>
             </HStack>
@@ -151,6 +159,7 @@ function OrderDetailPage() {
         order={order}
         items={items}
       />
+      <OrderPrintDialog isOpen={isPrintOpen} onClose={() => setIsPrintOpen(false)} order={order} items={items} />
     </>
   );
 }

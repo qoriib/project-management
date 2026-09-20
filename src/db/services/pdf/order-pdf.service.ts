@@ -84,6 +84,7 @@ export async function generatePurchaseOrderPdf(
       items: pdfItems,
       note: options.note?.trim() ?? "",
       preprintedOnly: options.preprintedOnly ?? true,
+      rowOffset: options.rowOffset ?? 0,
     };
 
     const doc = createPurchaseOrderPdf(context);
@@ -135,7 +136,7 @@ export async function generateAssetRequestPdf(
       project_name: projectName,
       group_name: groupName ?? undefined,
       fiscal_year: project?.fiscal_year ?? "-",
-      document_code: options.documentCode?.trim() || "....................",
+      document_code: options.documentCode?.trim() || order.order_code || "....................",
       items: pdfItems,
       location: "Bandar Lampung",
       date_display: formatDate(now),

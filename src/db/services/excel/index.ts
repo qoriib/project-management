@@ -16,6 +16,10 @@ export { createFulfillmentSheet } from "./fulfillment-sheet";
 export { createRequirementSheet } from "./requirement-sheet";
 export { createOrderSheet } from "./order-sheet";
 export { createReceiptSheet } from "./receipt-sheet";
+export { createPurchaseOrderSheet, generatePurchaseOrderExcel } from "./purchase-order-sheet";
+export type { PurchaseOrderExcelContext } from "./purchase-order-sheet";
+export { createAssetRequestSheet, generateAssetRequestExcel } from "./asset-request-sheet";
+export type { AssetRequestExcelContext } from "./asset-request-sheet";
 
 export * from "./types";
 export * from "./styles";
