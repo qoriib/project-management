@@ -44,12 +44,16 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
         items.find((item) => item.group_budget != null && item.group_budget > 0)?.group_budget ?? null;
       const isPaguGroup = groupBudget != null && groupBudget > 0;
 
+      let subVolumeReceipt = 0;
       let subVolumeOrder = 0;
       let subVolumePlan = 0;
+      let subDppReceipt = 0;
       let subDppOrder = 0;
       let subDppPlan = 0;
+      let subTaxReceipt = 0;
       let subTaxOrder = 0;
       let subTaxPlan = 0;
+      let subPriceReceipt = 0;
       let subPriceOrder = 0;
       let subBudgetPlan = 0;
       let groupName = "";
@@ -67,12 +71,16 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
 
         if (item.is_empty_group) continue;
 
+        subVolumeReceipt += item.total_delivered || 0;
         subVolumeOrder += item.total_ordered || 0;
         subVolumePlan += item.planned_volume || 0;
+        subDppReceipt += item.total_receipt_dpp || 0;
         subDppOrder += item.total_order_dpp || 0;
         subDppPlan += item.planned_dpp || 0;
+        subTaxReceipt += item.total_receipt_tax || 0;
         subTaxOrder += item.total_order_tax || 0;
         subTaxPlan += item.planned_tax || 0;
+        subPriceReceipt += item.total_receipt_price || 0;
         subPriceOrder += item.total_order_price || 0;
         subBudgetPlan += item.planned_budget || 0;
       }
@@ -96,12 +104,16 @@ export function useReportSummaryGroupedData(report: RequirementReportItem[]): Us
         planned_tax: plannedTaxForSubtotal,
         planned_variants: [],
         planned_volume: subVolumePlan,
+        receipt_variants: [],
         requirement_group_id: groupId,
-        total_delivered: 0,
+        total_delivered: subVolumeReceipt,
         total_order_dpp: subDppOrder,
         total_order_price: subPriceOrder,
         total_order_tax: subTaxOrder,
         total_ordered: subVolumeOrder,
+        total_receipt_dpp: subDppReceipt,
+        total_receipt_price: subPriceReceipt,
+        total_receipt_tax: subTaxReceipt,
         unique_id: `subtotal_${groupId}`,
         unit: "-",
       });

@@ -8,6 +8,7 @@ import type { RequirementReportDetailItem } from "./types";
  */
 export async function getProjectRequirementReport(projectId: string): Promise<RequirementReportDetailItem[]> {
   try {
+    // price comes from requirements.price (snapshot)
     const query = new QueryBuilder()
       .select(
         "requirements.requirement_group_id",
@@ -19,29 +20,20 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
         "categories.category_name",
         "units.unit_name",
         "requirements.qty",
-        "item_prices.price",
+        "item_prices.price as price",
         "requirements.has_tax",
       )
       .from("requirements", "requirements")
+      .join("item_prices", "item_prices", "item_prices.item_price_id = requirements.item_price_id")
       .leftJoin(
         "requirement_groups",
         "requirement_groups",
-        "requirement_groups.requirement_group_id = requirements.requirement_group_id AND requirement_groups.deleted_at IS NULL",
+        "requirement_groups.requirement_group_id = requirements.requirement_group_id",
       )
-      .join("items", "items", "items.item_id = requirements.item_id AND items.deleted_at IS NULL")
-      .join(
-        "item_prices",
-        "item_prices",
-        "item_prices.item_price_id = requirements.item_price_id AND item_prices.deleted_at IS NULL",
-      )
-      .leftJoin(
-        "item_categories",
-        "categories",
-        "categories.category_id = items.category_id AND categories.deleted_at IS NULL",
-      )
-      .leftJoin("units", "units", "units.unit_id = items.unit_id AND units.deleted_at IS NULL")
+      .join("items", "items", "items.item_id = requirements.item_id")
+      .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
+      .leftJoin("units", "units", "units.unit_id = items.unit_id")
       .where("requirements.project_id", "=", projectId)
-      .withSoftDelete("requirements")
       .orderBy("COALESCE(requirement_groups.requirement_group_id, '')", "ASC")
       .orderBy("items.item_name", "ASC");
 
@@ -60,18 +52,22 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
     }>();
 
     const groupsQuery = new QueryBuilder()
-      .select("requirement_group_id", "group_name", "budget")
+      .select("requirement_group_id", "group_name", "has_detail", "budget")
       .from("requirement_groups")
       .where("project_id", "=", projectId)
-      .withSoftDelete("requirement_groups")
       .orderBy("requirement_group_id", "ASC");
 
-    const rawGroups = await groupsQuery.getMany<{ requirement_group_id: string; group_name: string; budget: number }>();
+    const rawGroups = await groupsQuery.getMany<{
+      requirement_group_id: string;
+      group_name: string;
+      has_detail: number;
+      budget: number | null;
+    }>();
 
-    const groupBudgetMap = new Map<string, number>();
+    const groupBudgetMap = new Map<string, number | null>();
     for (const g of rawGroups) {
-      if (g.budget && g.budget > 0) {
-        groupBudgetMap.set(g.requirement_group_id, g.budget);
+      if (g.has_detail) {
+        groupBudgetMap.set(g.requirement_group_id, g.budget ?? null);
       }
     }
 
@@ -98,25 +94,26 @@ export async function getProjectRequirementReport(projectId: string): Promise<Re
 
     for (const group of rawGroups) {
       if (!groupsWithItems.has(group.requirement_group_id)) {
-        const isPagu = group.budget != null && group.budget > 0;
+        const hasPagu = Boolean(group.has_detail);
+        const hasBudget = hasPagu && group.budget != null && group.budget > 0;
         mapped.push({
           requirement_group_id: group.requirement_group_id,
           group_name: group.group_name,
-          group_budget: group.budget ?? null,
-          item_code: isPagu ? "PAGU" : "-",
+          group_budget: hasPagu ? (group.budget ?? null) : null,
+          item_code: hasBudget ? "PAGU" : "-",
           category_prefix: undefined,
           category_code: undefined,
-          item_name: isPagu ? group.group_name : "(Belum ada rincian item)",
+          item_name: hasBudget ? group.group_name : "(Belum ada rincian item)",
           category_name: "-",
           unit_name: "-",
           qty: 0,
-          price: isPagu ? group.budget : 0,
+          price: hasBudget ? (group.budget ?? 0) : 0,
           has_tax: false,
-          dpp: isPagu ? group.budget : 0,
+          dpp: hasBudget ? (group.budget ?? 0) : 0,
           tax_amount: 0,
-          total_price: isPagu ? group.budget : 0,
-          is_empty_group: !isPagu,
-          is_pagu_account: isPagu,
+          total_price: hasBudget ? (group.budget ?? 0) : 0,
+          is_empty_group: !hasBudget,
+          is_pagu_account: hasBudget,
         });
       }
     }

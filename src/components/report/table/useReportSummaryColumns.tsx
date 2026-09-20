@@ -8,6 +8,7 @@ import { ReportComparisonCell, type FinancialStatus } from "@/components/shared/
 import { TAX_RATIO_PERCENT } from "@/utils/calc";
 import { type TableColumn, pixel } from "@astryxdesign/core/Table";
 import type { RequirementReportItem } from "@/db/services";
+import { isUnplannedItem } from "./reportSummaryTableUtils";
 
 export interface EnrichedReportItem extends RequirementReportItem, Record<string, unknown> {
   unique_id: string;
@@ -19,6 +20,7 @@ interface UseReportSummaryColumnsProps {
 }
 
 interface ComparisonOptions {
+  npValue: number;
   poValue: number;
   plannedValue: number;
   type?: DecimalType;
@@ -26,42 +28,62 @@ interface ComparisonOptions {
 }
 
 /**
- * Helper terpusat untuk merender sel komparasi BOQ vs PO pada baris item biasa.
- * Jika item tidak memiliki BOQ (misalnya item unplanned), menampilkan nilai PO dengan strip pada baris BOQ.
- * Jika item memiliki BOQ, menampilkan ReportComparisonCell (PO vs BOQ).
+ * Helper terpusat untuk merender sel komparasi NP, PO, BOQ pada baris item biasa.
+ * - Baris 1: NP (Penerimaan) -> deviasi dihitung terhadap PO
+ * - Baris 2: PO (Pesanan)    -> deviasi dihitung terhadap BOQ
+ * - Baris 3: BOQ (Rencana)   -> baseline netral
  */
 function renderReportComparison(
   row: EnrichedReportItem,
-  { poValue, plannedValue, type = "currency", highlightUnder = false }: ComparisonOptions,
+  { npValue, poValue, plannedValue, type = "currency", highlightUnder = false }: ComparisonOptions,
 ) {
   const hasBoq = !row.is_unplanned && (row.planned_volume > 0 || (row.planned_variants?.length ?? 0) > 0);
 
+  // Status deviasi PO berdasarkan BOQ
+  let poStatus: FinancialStatus | undefined;
   if (!hasBoq) {
-    return <ReportComparisonCell poValue={formatNumber(poValue, type)} bomValue="-" />;
+    if (poValue > 0 && row.total_ordered > 0) poStatus = "over";
+  } else {
+    if (poValue > plannedValue && row.total_ordered > 0) {
+      poStatus = "over";
+    } else if (highlightUnder && poValue > 0 && poValue < plannedValue) {
+      poStatus = "under";
+    }
   }
 
-  const isOver = poValue > plannedValue && row.total_ordered > 0;
-  const isUnder = Boolean(highlightUnder && poValue > 0 && poValue < plannedValue);
+  // Status deviasi NP berdasarkan PO
+  let npStatus: FinancialStatus | undefined;
+  if (row.total_ordered > 0 || poValue > 0) {
+    if (npValue > poValue && row.total_delivered > 0) {
+      npStatus = "over";
+    } else if (highlightUnder && npValue > 0 && npValue < poValue) {
+      npStatus = "under";
+    }
+  } else if (npValue > 0 && row.total_delivered > 0) {
+    npStatus = "over";
+  }
 
   return (
     <ReportComparisonCell
-      poValue={formatNumber(poValue, type)}
-      bomValue={formatNumber(plannedValue, type)}
-      poStatus={isOver ? "over" : isUnder ? "under" : undefined}
+      npValue={row.total_delivered > 0 || npValue > 0 ? formatNumber(npValue, type) : "-"}
+      poValue={row.total_ordered > 0 || poValue > 0 ? formatNumber(poValue, type) : "-"}
+      boqValue={hasBoq ? formatNumber(plannedValue, type) : "-"}
+      npStatus={npStatus}
+      poStatus={poStatus}
     />
   );
 }
 
 /**
  * Helper terpusat untuk merender sel komparasi pada baris subtotal footer kelompok.
- * Disederhanakan & konsisten antara kelompok pagu dan non-pagu:
- * - Hanya kolom Total (Rp) yang diwarnai status finansial:
- *   - "over"  (merah) jika PO > BOQ / Pagu
- *   - "under" (hijau) jika PO < BOQ / Pagu (dan PO > 0)
- * - Kolom non-total (Volume, Subtotal, PPn) tidak diberi warna highlight (selalu netral).
+ * - Kolom Total (Rp) diwarnai status finansial:
+ *   - PO vs BOQ / Pagu
+ *   - NP vs PO
+ * - Kolom non-total (Volume, Subtotal, PPn) selalu netral.
  */
 function renderFooterComparison(
   row: EnrichedReportItem,
+  npValue: number,
   poValue: number,
   plannedValue: number,
   type: DecimalType = "currency",
@@ -71,11 +93,20 @@ function renderFooterComparison(
 
   // Untuk kelompok pagu, kolom rincian (volume, subtotal, ppn) tidak memiliki rencana item terpisah
   if (isPagu && !isTotal) {
-    return "-";
+    return (
+      <ReportComparisonCell
+        npValue={npValue > 0 ? formatNumber(npValue, type) : "-"}
+        poValue={poValue > 0 ? formatNumber(poValue, type) : "-"}
+        boqValue="-"
+      />
+    );
   }
 
   let poStatus: FinancialStatus | undefined;
+  let npStatus: FinancialStatus | undefined;
+
   if (isTotal) {
+    // PO vs BOQ
     if (plannedValue > 0 && poValue > plannedValue) {
       poStatus = "over";
     } else if (plannedValue === 0 && poValue > 0) {
@@ -83,12 +114,23 @@ function renderFooterComparison(
     } else if (plannedValue > 0 && poValue > 0 && poValue < plannedValue) {
       poStatus = "under";
     }
+
+    // NP vs PO
+    if (poValue > 0 && npValue > poValue) {
+      npStatus = "over";
+    } else if (poValue === 0 && npValue > 0) {
+      npStatus = "over";
+    } else if (poValue > 0 && npValue > 0 && npValue < poValue) {
+      npStatus = "under";
+    }
   }
 
   return (
     <ReportComparisonCell
+      npValue={npValue > 0 ? formatNumber(npValue, type) : "-"}
       poValue={poValue > 0 ? formatNumber(poValue, type) : "-"}
-      bomValue={plannedValue > 0 ? formatNumber(plannedValue, type) : "-"}
+      boqValue={plannedValue > 0 ? formatNumber(plannedValue, type) : "-"}
+      npStatus={npStatus}
       poStatus={poStatus}
     />
   );
@@ -99,20 +141,22 @@ function renderFooterComparison(
  */
 function renderNumericComparisonCell(
   row: EnrichedReportItem,
+  npValue: number,
   poValue: number,
   plannedValue: number,
   type: DecimalType = "currency",
   options?: { isTotal?: boolean; highlightUnderInRow?: boolean },
 ) {
   if (row.is_group_footer) {
-    return renderFooterComparison(row, poValue, plannedValue, type, options?.isTotal);
+    return renderFooterComparison(row, npValue, poValue, plannedValue, type, options?.isTotal);
   }
 
   if (row.is_empty_group) {
-    return <ReportComparisonCell poValue="-" bomValue="-" />;
+    return <ReportComparisonCell npValue="-" poValue="-" boqValue="-" />;
   }
 
   return renderReportComparison(row, {
+    npValue,
     poValue,
     plannedValue,
     type,
@@ -184,6 +228,9 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
           return (
             <VStack gap={0.5} align="start">
               <Text type="code" size="sm" weight="bold">
+                NP
+              </Text>
+              <Text type="code" size="sm" weight="bold">
                 PO
               </Text>
               <Text type="code" size="sm" weight="bold" color="secondary">
@@ -201,10 +248,12 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         renderCell: (row) => {
           if (row.is_group_footer || row.is_empty_group) return "-";
 
+          const npPrice = row.total_delivered > 0 ? row.total_receipt_dpp / row.total_delivered : (row.price ?? 0);
           const poPrice = row.total_ordered > 0 ? row.total_order_dpp / row.total_ordered : (row.price ?? 0);
           const plannedPrice = row.planned_volume > 0 ? row.planned_dpp / row.planned_volume : (row.price ?? 0);
 
           return renderReportComparison(row, {
+            npValue: npPrice,
             poValue: poPrice,
             plannedValue: plannedPrice,
             type: "currency",
@@ -217,21 +266,26 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         header: "Volume",
         key: "qty",
         width: pixel(140),
-        renderCell: (row) => renderNumericComparisonCell(row, row.total_ordered, row.planned_volume, "volume"),
+        renderCell: (row) =>
+          renderNumericComparisonCell(row, row.total_delivered, row.total_ordered, row.planned_volume, "volume", {
+            highlightUnderInRow: false,
+          }),
       },
       {
         align: "end",
         header: "Subtotal (Rp)",
         key: "subtotal",
         width: pixel(180),
-        renderCell: (row) => renderNumericComparisonCell(row, row.total_order_dpp, row.planned_dpp, "currency"),
+        renderCell: (row) =>
+          renderNumericComparisonCell(row, row.total_receipt_dpp, row.total_order_dpp, row.planned_dpp, "currency"),
       },
       {
         align: "end",
         header: `PPn (${TAX_RATIO_PERCENT}%)`,
         key: "has_tax",
         width: pixel(180),
-        renderCell: (row) => renderNumericComparisonCell(row, row.total_order_tax, row.planned_tax, "currency"),
+        renderCell: (row) =>
+          renderNumericComparisonCell(row, row.total_receipt_tax, row.total_order_tax, row.planned_tax, "currency"),
       },
       {
         align: "end",
@@ -239,10 +293,17 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         key: "total_price",
         width: pixel(180),
         renderCell: (row) =>
-          renderNumericComparisonCell(row, row.total_order_price, row.planned_budget, "currency", {
-            isTotal: true,
-            highlightUnderInRow: true,
-          }),
+          renderNumericComparisonCell(
+            row,
+            row.total_receipt_price,
+            row.total_order_price,
+            row.planned_budget,
+            "currency",
+            {
+              isTotal: true,
+              highlightUnderInRow: true,
+            },
+          ),
       },
       {
         align: "end",
@@ -252,7 +313,7 @@ export function useReportSummaryColumns({ onLogClick }: UseReportSummaryColumnsP
         renderCell: (row) => {
           if (row.is_empty_group || row.is_group_footer) return "-";
 
-          if ((row.group_budget && row.group_budget > 0) || row.is_unplanned) {
+          if (isUnplannedItem(row)) {
             return (
               <Text type="code" color="secondary" weight="medium">
                 {formatNumber(row.total_ordered, "volume")}

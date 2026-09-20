@@ -24,26 +24,25 @@ export async function getProjectReceiptReport(
         "categories.category_name",
         "units.unit_name",
         "receipt_items.qty",
+        "item_prices.price as price",
+        "receipt_items.has_tax",
       )
       .from("receipt_items", "receipt_items")
       .join("receipts", "receipts", "receipts.receipt_id = receipt_items.receipt_id")
       .join("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
+      .join("item_prices", "item_prices", "item_prices.item_price_id = receipt_items.item_price_id")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
-      .join("items", "items", "items.item_id = order_items.item_id AND items.deleted_at IS NULL")
-      .leftJoin(
-        "item_categories",
-        "categories",
-        "categories.category_id = items.category_id AND categories.deleted_at IS NULL",
-      )
-      .leftJoin("units", "units", "units.unit_id = items.unit_id AND units.deleted_at IS NULL")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
+      .join("items", "items", "items.item_id = order_items.item_id")
+      .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
+      .leftJoin("units", "units", "units.unit_id = items.unit_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
       .where("orders.project_id", "=", projectId)
-      .withSoftDelete("receipts", "orders")
-      .when(Boolean(startDate), (builder) => builder.where("receipts.receipt_date", ">=", startDate!))
-      .when(Boolean(endDate), (builder) => builder.where("receipts.receipt_date", "<=", endDate!))
+      .when(Boolean(startDate), (builder: QueryBuilder) => builder.where("receipts.receipt_date", ">=", startDate!))
+      .when(Boolean(endDate), (builder: QueryBuilder) => builder.where("receipts.receipt_date", "<=", endDate!))
       .orderBy("receipts.receipt_id", "ASC");
 
-    return await query.getMany<ReceiptReportItem>();
+    const rows = await query.getMany<ReceiptReportItem>();
+    return rows.map((row) => ({ ...row, has_tax: Boolean(row.has_tax) }));
   } catch (error) {
     throw wrapDbError(error, "receipt_report");
   }

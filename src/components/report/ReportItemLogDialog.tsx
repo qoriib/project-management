@@ -30,6 +30,7 @@ export function ReportItemLogDialog({ isOpen, onClose, projectId, item }: Report
             <VStack gap={4}>
               <ReportVariantCard type="planned" item={item} />
               <ReportVariantCard type="order" item={item} />
+              <ReportVariantCard type="receipt" item={item} />
               <TransactionHistoryCard projectId={projectId} item={item} isOpen={isOpen} />
             </VStack>
           </LayoutContent>

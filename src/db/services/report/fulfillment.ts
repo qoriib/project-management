@@ -41,12 +41,17 @@ interface RawOrderRow {
 interface RawReceiptRow {
   requirement_group_id: string | null;
   item_id: string;
-  total_delivered: number;
+  item_price_id: string;
+  price: number;
+  qty: number;
+  has_tax: number;
+  vendor_name: string | null;
 }
 
 interface RawGroupRow {
   requirement_group_id: string;
   group_name: string;
+  has_detail: number;
   budget: number | null;
 }
 
@@ -81,6 +86,7 @@ function createEmptyItem(
     item_id: row.item_id,
     item_name: row.item_name,
     order_variants: [],
+    receipt_variants: [],
     planned_budget: 0,
     planned_dpp: 0,
     planned_tax: 0,
@@ -88,6 +94,9 @@ function createEmptyItem(
     planned_volume: 0,
     price: row.price,
     total_delivered: 0,
+    total_receipt_dpp: 0,
+    total_receipt_tax: 0,
+    total_receipt_price: 0,
     total_order_dpp: 0,
     total_order_price: 0,
     total_order_tax: 0,
@@ -117,7 +126,7 @@ export async function getRequirementReport(
   endDate?: string,
 ): Promise<RequirementReportItem[]> {
   try {
-    // 1. BOQ Query
+    // 1. BOQ Query — price comes from requirements.price (snapshot)
     const boqQuery = new QueryBuilder()
       .select(
         "req.requirement_group_id",
@@ -131,33 +140,28 @@ export async function getRequirementReport(
         "items.item_name",
         "cats.category_name as category",
         "units.unit_name as unit",
-        "prices.price as price",
+        "ip.price as price",
         "req.qty",
         "req.has_tax",
       )
       .from("requirements", "req")
-      .leftJoin(
-        "requirement_groups",
-        "grp",
-        "req.requirement_group_id = grp.requirement_group_id AND grp.deleted_at IS NULL",
-      )
-      .join("items", "items", "items.item_id = req.item_id AND items.deleted_at IS NULL")
-      .join("item_prices", "prices", "prices.item_price_id = req.item_price_id AND prices.deleted_at IS NULL")
-      .leftJoin("item_categories", "cats", "items.category_id = cats.category_id AND cats.deleted_at IS NULL")
-      .leftJoin("units", "units", "items.unit_id = units.unit_id AND units.deleted_at IS NULL")
+      .leftJoin("requirement_groups", "grp", "req.requirement_group_id = grp.requirement_group_id")
+      .join("items", "items", "items.item_id = req.item_id")
+      .join("item_prices", "ip", "ip.item_price_id = req.item_price_id")
+      .leftJoin("item_categories", "cats", "items.category_id = cats.category_id")
+      .leftJoin("units", "units", "items.unit_id = units.unit_id")
       .where("req.project_id", "=", projectId)
-      .withSoftDelete("req")
       .orderBy("grp.requirement_group_id", "ASC")
       .orderBy("items.item_id", "ASC");
 
-    // 2. Orders Query
+    // 2. Orders Query — price comes from item_prices via oi.item_price_id
     const orderQuery = new QueryBuilder()
       .select(
         "COALESCE(oi.requirement_group_id, ord.requirement_group_id) as requirement_group_id",
         "grp.group_name",
         "oi.item_id",
         "oi.item_price_id",
-        "prices.price",
+        "ip.price as price",
         "oi.qty",
         "oi.has_tax",
         "items.item_code",
@@ -171,42 +175,46 @@ export async function getRequirementReport(
       )
       .from("order_items", "oi")
       .join("orders", "ord", "ord.order_id = oi.order_id")
+      .join("item_prices", "ip", "ip.item_price_id = oi.item_price_id")
       .leftJoin(
         "requirement_groups",
         "grp",
-        "COALESCE(oi.requirement_group_id, ord.requirement_group_id) = grp.requirement_group_id AND grp.deleted_at IS NULL",
+        "COALESCE(oi.requirement_group_id, ord.requirement_group_id) = grp.requirement_group_id",
       )
-      .join("items", "items", "items.item_id = oi.item_id AND items.deleted_at IS NULL")
-      .join("item_prices", "prices", "prices.item_price_id = oi.item_price_id AND prices.deleted_at IS NULL")
-      .leftJoin("item_categories", "cats", "items.category_id = cats.category_id AND cats.deleted_at IS NULL")
-      .leftJoin("units", "units", "items.unit_id = units.unit_id AND units.deleted_at IS NULL")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = oi.vendor_id AND vendors.deleted_at IS NULL")
+      .join("items", "items", "items.item_id = oi.item_id")
+      .leftJoin("item_categories", "cats", "items.category_id = cats.category_id")
+      .leftJoin("units", "units", "items.unit_id = units.unit_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = oi.vendor_id")
       .where("ord.project_id", "=", projectId)
-      .withSoftDelete("ord")
-      .when(Boolean(startDate), (builder) => builder.where("ord.order_date", ">=", startDate!))
-      .when(Boolean(endDate), (builder) => builder.where("ord.order_date", "<=", endDate!));
+      .when(Boolean(startDate), (builder: QueryBuilder) => builder.where("ord.order_date", ">=", startDate!))
+      .when(Boolean(endDate), (builder: QueryBuilder) => builder.where("ord.order_date", "<=", endDate!));
 
-    // 3. Receipts Query
+    // 3. Receipts Query — price comes from item_prices via ri.item_price_id
     const receiptQuery = new QueryBuilder()
-      .select("COALESCE(oi.requirement_group_id, ord.requirement_group_id) as requirement_group_id")
-      .select("oi.item_id")
-      .selectSum("ri.qty", "total_delivered", 0)
+      .select(
+        "COALESCE(oi.requirement_group_id, ord.requirement_group_id) as requirement_group_id",
+        "oi.item_id",
+        "ri.item_price_id",
+        "ip.price as price",
+        "ri.qty",
+        "ri.has_tax",
+        "vendors.vendor_name",
+      )
       .from("receipt_items", "ri")
       .join("receipts", "rec", "rec.receipt_id = ri.receipt_id")
       .join("order_items", "oi", "oi.order_item_id = ri.order_item_id")
       .join("orders", "ord", "ord.order_id = oi.order_id")
+      .join("item_prices", "ip", "ip.item_price_id = ri.item_price_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = oi.vendor_id")
       .where("ord.project_id", "=", projectId)
-      .withSoftDelete("rec", "ord")
-      .when(Boolean(startDate), (builder) => builder.where("rec.receipt_date", ">=", startDate!))
-      .when(Boolean(endDate), (builder) => builder.where("rec.receipt_date", "<=", endDate!))
-      .groupBy("COALESCE(oi.requirement_group_id, ord.requirement_group_id), oi.item_id");
+      .when(Boolean(startDate), (builder: QueryBuilder) => builder.where("rec.receipt_date", ">=", startDate!))
+      .when(Boolean(endDate), (builder: QueryBuilder) => builder.where("rec.receipt_date", "<=", endDate!));
 
     // 4. Groups Query
     const groupsQuery = new QueryBuilder()
-      .select("requirement_group_id", "group_name", "budget")
+      .select("requirement_group_id", "group_name", "has_detail", "budget")
       .from("requirement_groups")
       .where("project_id", "=", projectId)
-      .withSoftDelete("requirement_groups")
       .orderBy("requirement_group_id", "ASC");
 
     // Execute queries concurrently
@@ -219,15 +227,9 @@ export async function getRequirementReport(
 
     const groupBudgetMap = new Map<string, number>();
     for (const group of groupRows) {
-      if (group.budget && group.budget > 0) {
+      if (group.has_detail && group.budget != null && group.budget > 0) {
         groupBudgetMap.set(group.requirement_group_id, group.budget);
       }
-    }
-
-    const receiptMap = new Map<string, number>();
-    for (const receipt of receiptRows) {
-      const key = makeKey(receipt.requirement_group_id, receipt.item_id);
-      receiptMap.set(key, (receiptMap.get(key) || 0) + (receipt.total_delivered || 0));
     }
 
     const itemMap = new Map<string, RequirementReportItem>();
@@ -294,6 +296,51 @@ export async function getRequirementReport(
       item.total_order_price += subtotal;
     }
 
+    // Process Receipts
+    for (const rec of receiptRows) {
+      const key = makeKey(rec.requirement_group_id, rec.item_id);
+      let item = itemMap.get(key);
+      if (!item) {
+        // Jika ada penerimaan tanpa PO atau BOQ terdaftar sebelumnya
+        const groupBudget = rec.requirement_group_id ? (groupBudgetMap.get(rec.requirement_group_id) ?? null) : null;
+        item = createEmptyItem(
+          {
+            category: "LAINNYA",
+            item_code: "-",
+            item_id: rec.item_id,
+            item_name: "Item Penerimaan",
+            requirement_group_id: rec.requirement_group_id,
+          },
+          true,
+          groupBudget,
+        );
+        itemMap.set(key, item);
+      }
+
+      const hasTax = Boolean(rec.has_tax);
+      const { dpp, taxAmount, subtotal } = calculateVariant(rec.qty, rec.price, hasTax);
+
+      const variant: RequirementReportVariant = {
+        dpp,
+        has_tax: hasTax,
+        item_price_id: rec.item_price_id,
+        price: rec.price,
+        qty: rec.qty,
+        subtotal,
+        tax_amount: taxAmount,
+        vendor_name: rec.vendor_name,
+      };
+
+      if (!item.receipt_variants) {
+        item.receipt_variants = [];
+      }
+      item.receipt_variants.push(variant);
+      item.total_delivered += rec.qty;
+      item.total_receipt_dpp += dpp;
+      item.total_receipt_tax += taxAmount;
+      item.total_receipt_price += subtotal;
+    }
+
     // Include groups that have no items
     const existingGroupIds = new Set<string>();
     for (const reportItem of itemMap.values()) {
@@ -312,11 +359,12 @@ export async function getRequirementReport(
           category_prefix: undefined,
           is_unplanned: false,
           is_empty_group: true,
-          group_budget: group.budget ?? null,
+          group_budget: group.has_detail ? (group.budget ?? null) : null,
           item_code: "-",
           item_id: `empty_${group.requirement_group_id}`,
           item_name: "(Belum ada rincian item)",
           order_variants: [],
+          receipt_variants: [],
           planned_budget: 0,
           planned_dpp: 0,
           planned_tax: 0,
@@ -324,6 +372,9 @@ export async function getRequirementReport(
           planned_volume: 0,
           price: 0,
           total_delivered: 0,
+          total_receipt_dpp: 0,
+          total_receipt_tax: 0,
+          total_receipt_price: 0,
           total_order_dpp: 0,
           total_order_price: 0,
           total_order_tax: 0,
@@ -333,16 +384,17 @@ export async function getRequirementReport(
       }
     }
 
-    // Attach receipts and finalize
+    // Finalize all items
     const allItems = Array.from(itemMap.values());
     for (const item of allItems) {
-      const key = makeKey(item.requirement_group_id, item.item_id);
-      item.total_delivered = receiptMap.get(key) || 0;
       if (item.requirement_group_id) {
         item.group_budget = groupBudgetMap.get(item.requirement_group_id) ?? null;
       }
       if (!item.price && item.order_variants.length > 0) {
         item.price = item.order_variants[0].price;
+      }
+      if (!item.price && item.receipt_variants && item.receipt_variants.length > 0) {
+        item.price = item.receipt_variants[0].price;
       }
     }
 

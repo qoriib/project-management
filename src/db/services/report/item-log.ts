@@ -1,5 +1,5 @@
 import { QueryBuilder } from "@/db/core/query-builder";
-import { DbError, wrapDbError } from "@/db/core/errors";
+import { wrapDbError } from "@/db/core/errors";
 import type { ItemLogEntry } from "./types";
 
 /**
@@ -19,10 +19,9 @@ export async function getItemLog(
       .select("order_items.qty", "vendors.vendor_name")
       .from("order_items", "order_items")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
       .where("orders.project_id", "=", projectId)
-      .where("order_items.item_id", "=", itemId)
-      .withSoftDelete("orders");
+      .where("order_items.item_id", "=", itemId);
 
     if (requirementGroupId === null) {
       orderQuery.whereNull("COALESCE(order_items.requirement_group_id, orders.requirement_group_id)");
@@ -44,10 +43,9 @@ export async function getItemLog(
       .join("receipts", "receipts", "receipts.receipt_id = receipt_items.receipt_id")
       .join("order_items", "order_items", "order_items.order_item_id = receipt_items.order_item_id")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
       .where("orders.project_id", "=", projectId)
-      .where("order_items.item_id", "=", itemId)
-      .withSoftDelete("receipts", "orders");
+      .where("order_items.item_id", "=", itemId);
 
     if (requirementGroupId === null) {
       receiptQuery.whereNull("COALESCE(order_items.requirement_group_id, orders.requirement_group_id)");
@@ -69,7 +67,7 @@ export async function getItemLog(
 
     return combinedLogs;
   } catch (error) {
-    if (error instanceof DbError) throw error;
+    if (error instanceof Error && error.message.includes("DbError")) throw error;
     throw wrapDbError(error, "item_log");
   }
 }

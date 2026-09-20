@@ -61,8 +61,29 @@ function DashboardPage() {
 
   const totalBudget = itemsBudgetNonPagu + totalPaguBudget;
   const totalPO = report.reduce((sum, item) => sum + item.total_order_price, 0);
-  const totalVariance = totalBudget - totalPO;
-  const isOverBudget = totalPO > totalBudget && totalBudget > 0;
+  const totalNP = report.reduce((sum, item) => sum + (item.total_receipt_price || 0), 0);
+
+  const deviasiPOvsBOQ = totalBudget - totalPO;
+  const isPOOverBudget = (totalPO > totalBudget && totalBudget > 0) || (totalBudget === 0 && totalPO > 0);
+  const poDeviasiColor =
+    totalPO === 0 && totalBudget === 0
+      ? undefined
+      : deviasiPOvsBOQ < 0
+        ? "var(--color-error)"
+        : deviasiPOvsBOQ > 0
+          ? "var(--color-success)"
+          : "var(--color-text-secondary)";
+
+  const deviasiNPvsPO = totalPO - totalNP;
+  const isNPOverPO = (totalNP > totalPO && totalPO > 0) || (totalPO === 0 && totalNP > 0);
+  const npDeviasiColor =
+    totalNP === 0 && totalPO === 0
+      ? undefined
+      : deviasiNPvsPO < 0
+        ? "var(--color-error)"
+        : deviasiNPvsPO > 0
+          ? "var(--color-success)"
+          : "var(--color-text-secondary)";
 
   return (
     <>
@@ -127,23 +148,35 @@ function DashboardPage() {
                     type="code"
                     weight="bold"
                     size="lg"
-                    style={isOverBudget ? { color: "var(--color-error)" } : undefined}
+                    style={isPOOverBudget ? { color: "var(--color-error)" } : undefined}
                   >
                     Rp {formatNumber(totalPO, "currency")}
                   </Text>
+                  {poDeviasiColor && (
+                    <Text type="code" size="sm" weight="medium" style={{ color: poDeviasiColor }}>
+                      ({deviasiPOvsBOQ < 0 ? "+" : deviasiPOvsBOQ > 0 ? "-" : ""}Rp{" "}
+                      {formatNumber(Math.abs(deviasiPOvsBOQ), "currency")})
+                    </Text>
+                  )}
                 </HStack>
                 <HStack gap={2} vAlign="end">
                   <Text weight="medium" size="base" color="secondary">
-                    Deviasi:
+                    Nilai NP:
                   </Text>
                   <Text
                     type="code"
                     weight="bold"
                     size="lg"
-                    style={{ color: totalVariance < 0 ? "var(--color-error)" : "var(--color-success)" }}
+                    style={isNPOverPO ? { color: "var(--color-error)" } : undefined}
                   >
-                    Rp {formatNumber(totalVariance, "currency")}
+                    Rp {formatNumber(totalNP, "currency")}
                   </Text>
+                  {npDeviasiColor && (
+                    <Text type="code" size="sm" weight="medium" style={{ color: npDeviasiColor }}>
+                      ({deviasiNPvsPO < 0 ? "+" : deviasiNPvsPO > 0 ? "-" : ""}Rp{" "}
+                      {formatNumber(Math.abs(deviasiNPvsPO), "currency")})
+                    </Text>
+                  )}
                 </HStack>
               </HStack>
             </LayoutFooter>

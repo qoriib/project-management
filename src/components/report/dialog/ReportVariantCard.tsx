@@ -20,7 +20,7 @@ interface VariantRow extends RequirementReportVariant, Record<string, unknown> {
   unique_id: string;
 }
 
-export type ReportVariantType = "planned" | "order";
+export type ReportVariantType = "planned" | "order" | "receipt";
 
 interface ReportVariantCardProps {
   type: ReportVariantType;
@@ -50,6 +50,13 @@ const VARIANT_CONFIG: Record<
     idPrefix: "order",
     getVariants: (item) => item.order_variants,
     getTotalAmount: (item) => item.total_order_price,
+  },
+  receipt: {
+    title: "Penerimaan (NP)",
+    emptyTitle: "Belum ada rincian penerimaan (NP)",
+    idPrefix: "receipt",
+    getVariants: (item) => item.receipt_variants,
+    getTotalAmount: (item) => item.total_receipt_price || 0,
   },
 };
 

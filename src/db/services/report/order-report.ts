@@ -25,7 +25,7 @@ export async function getProjectOrderReport(
         "categories.category_name",
         "units.unit_name",
         "order_items.qty",
-        "item_prices.price",
+        "item_prices.price as price",
         "order_items.has_tax",
       )
       .selectRaw(
@@ -33,33 +33,20 @@ export async function getProjectOrderReport(
       )
       .from("order_items", "order_items")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
-      .leftJoin(
-        "requirement_groups",
-        "order_groups",
-        "order_groups.requirement_group_id = orders.requirement_group_id AND order_groups.deleted_at IS NULL",
-      )
+      .join("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
+      .leftJoin("requirement_groups", "order_groups", "order_groups.requirement_group_id = orders.requirement_group_id")
       .leftJoin(
         "requirement_groups",
         "item_groups",
-        "item_groups.requirement_group_id = order_items.requirement_group_id AND item_groups.deleted_at IS NULL",
+        "item_groups.requirement_group_id = order_items.requirement_group_id",
       )
-      .join("items", "items", "items.item_id = order_items.item_id AND items.deleted_at IS NULL")
-      .join(
-        "item_prices",
-        "item_prices",
-        "item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL",
-      )
-      .leftJoin(
-        "item_categories",
-        "categories",
-        "categories.category_id = items.category_id AND categories.deleted_at IS NULL",
-      )
-      .leftJoin("units", "units", "units.unit_id = items.unit_id AND units.deleted_at IS NULL")
-      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL")
+      .join("items", "items", "items.item_id = order_items.item_id")
+      .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
+      .leftJoin("units", "units", "units.unit_id = items.unit_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
       .where("orders.project_id", "=", projectId)
-      .withSoftDelete("orders")
-      .when(Boolean(startDate), (builder) => builder.where("orders.order_date", ">=", startDate!))
-      .when(Boolean(endDate), (builder) => builder.where("orders.order_date", "<=", endDate!))
+      .when(Boolean(startDate), (builder: QueryBuilder) => builder.where("orders.order_date", ">=", startDate!))
+      .when(Boolean(endDate), (builder: QueryBuilder) => builder.where("orders.order_date", "<=", endDate!))
       .orderBy("orders.order_id", "ASC");
 
     const rows = await query.getMany<OrderReportItem>();

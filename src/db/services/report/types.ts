@@ -24,6 +24,7 @@ export interface RequirementReportItem {
   price?: number;
   planned_variants: RequirementReportVariant[];
   order_variants: RequirementReportVariant[];
+  receipt_variants?: RequirementReportVariant[];
   planned_volume: number;
   planned_dpp: number;
   planned_tax: number;
@@ -33,6 +34,9 @@ export interface RequirementReportItem {
   total_order_tax: number;
   total_order_price: number;
   total_delivered: number;
+  total_receipt_dpp: number;
+  total_receipt_tax: number;
+  total_receipt_price: number;
   is_unplanned?: boolean;
   is_empty_group?: boolean;
   is_pagu_account?: boolean;
@@ -78,6 +82,8 @@ export interface ReceiptReportItem {
   category_name: string | null;
   unit_name: string | null;
   qty: number;
+  price: number;
+  has_tax: boolean;
 }
 
 export interface RequirementReportDetailItem {
