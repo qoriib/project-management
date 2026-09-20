@@ -1,7 +1,14 @@
 import { create } from "zustand";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
-import { type ReceiptSummary, receiptRepo, orderRepo } from "@/db/repositories";
+import {
+  type ReceiptSummary,
+  type ReceiptItemDetail,
+  type ReceiptItemInput,
+  type OrderItemDetail,
+  receiptRepo,
+  orderRepo,
+} from "@/db/repositories";
 
 export interface ReceiptDetail {
   receipt_id: string;
@@ -11,26 +18,13 @@ export interface ReceiptDetail {
   receipt_code: string;
 }
 
-export interface ReceiptItemDetail extends Record<string, unknown> {
-  order_item_id: string;
-  item_id: string | null;
-  item_name: string;
-  category_prefix?: string | null;
-  category_code?: string | null;
-  item_code?: string | null;
-  price?: number;
-  item_price_id?: string | null;
-  unit: string;
-  remaining: number;
-  qty: string | number;
-  ordered: number;
-  delivered: number;
-}
+export type { ReceiptItemDetail };
 
 interface ReceiptStore {
   receipts: ReceiptSummary[];
   currentReceipt: ReceiptDetail | null;
   currentItems: ReceiptItemDetail[];
+  availableOrderItems: OrderItemDetail[];
 
   loadAllReceipts: (projectId?: string) => Promise<void>;
   loadReceiptDetail: (id: string) => Promise<void>;
@@ -38,7 +32,17 @@ interface ReceiptStore {
 
   createReceiptForOrder: (orderId: string, projectId?: string) => Promise<string>;
   updateReceiptHeader: (id: string, data: { receipt_date?: string; receipt_code?: string }) => Promise<void>;
-  upsertReceiptItem: (receiptId: string, orderId: string, orderItemId: string, qty: number) => Promise<void>;
+  addReceiptItem: (receiptId: string, item: ReceiptItemInput) => Promise<string>;
+  updateReceiptItem: (receiptId: string, receiptItemId: string, item: ReceiptItemInput) => Promise<void>;
+  deleteReceiptItem: (receiptId: string, receiptItemId: string) => Promise<void>;
+  upsertReceiptItem: (
+    receiptId: string,
+    orderId: string,
+    orderItemId: string,
+    item_price_id: string,
+    qty: number,
+    has_tax?: boolean,
+  ) => Promise<void>;
   deleteReceipt: (id: string) => Promise<void>;
 }
 
@@ -46,9 +50,10 @@ export const useReceiptStore = create<ReceiptStore>((set, get) => ({
   receipts: [],
   currentReceipt: null,
   currentItems: [],
+  availableOrderItems: [],
 
   clearReceiptDetail: () => {
-    set({ currentReceipt: null, currentItems: [] });
+    set({ currentReceipt: null, currentItems: [], availableOrderItems: [] });
   },
 
   loadAllReceipts: async (projectId) => {
@@ -59,39 +64,15 @@ export const useReceiptStore = create<ReceiptStore>((set, get) => ({
   loadReceiptDetail: async (id: string) => {
     const receipt = await receiptRepo.findById(id);
     if (!receipt) {
-      set({ currentReceipt: null, currentItems: [] });
+      set({ currentReceipt: null, currentItems: [], availableOrderItems: [] });
       return;
     }
 
-    const [order, orderItems, delivItems] = await Promise.all([
+    const [order, orderItems, items] = await Promise.all([
       orderRepo.findById(receipt.order_id),
       orderRepo.findItems(receipt.order_id),
       receiptRepo.findItems(id),
     ]);
-
-    const items: ReceiptItemDetail[] = orderItems.map((item) => {
-      const existingDelivItem = delivItems.find((delivItem) => delivItem.order_item_id === item.order_item_id);
-      const oldQty = existingDelivItem?.qty ?? 0;
-      const originalSisa = item.remaining ?? 0;
-      const restoredSisa = originalSisa + oldQty;
-      const originalDelivered = (item.total_delivered ?? 0) - oldQty;
-
-      return {
-        delivered: originalDelivered,
-        item_id: item.item_id,
-        item_name: item.item_name ?? "",
-        category_prefix: item.category_prefix,
-        category_code: item.category_code,
-        item_code: item.item_code,
-        price: item.price,
-        item_price_id: item.item_price_id,
-        ordered: item.qty ?? 0,
-        order_item_id: item.order_item_id,
-        remaining: restoredSisa,
-        qty: oldQty,
-        unit: item.unit ?? "",
-      };
-    });
 
     set({
       currentReceipt: {
@@ -102,6 +83,7 @@ export const useReceiptStore = create<ReceiptStore>((set, get) => ({
         receipt_code: receipt.receipt_code || "",
       },
       currentItems: items,
+      availableOrderItems: orderItems,
     });
   },
 
@@ -127,8 +109,45 @@ export const useReceiptStore = create<ReceiptStore>((set, get) => ({
     }
   },
 
-  upsertReceiptItem: async (receiptId, orderId, orderItemId, qty) => {
-    await receiptRepo.upsertItem(receiptId, orderItemId, qty);
+  addReceiptItem: async (receiptId, item) => {
+    const id = await receiptRepo.createItem(receiptId, item);
+    await get().loadReceiptDetail(receiptId);
+    const { currentReceipt } = get();
+    if (currentReceipt?.order_id) {
+      const orderStore = useOrderStore.getState();
+      if (orderStore.currentOrder?.order_id === currentReceipt.order_id) {
+        await orderStore.loadOrderDetail(currentReceipt.order_id);
+      }
+    }
+    return id;
+  },
+
+  updateReceiptItem: async (receiptId, receiptItemId, item) => {
+    await receiptRepo.updateItem(receiptItemId, item);
+    await get().loadReceiptDetail(receiptId);
+    const { currentReceipt } = get();
+    if (currentReceipt?.order_id) {
+      const orderStore = useOrderStore.getState();
+      if (orderStore.currentOrder?.order_id === currentReceipt.order_id) {
+        await orderStore.loadOrderDetail(currentReceipt.order_id);
+      }
+    }
+  },
+
+  deleteReceiptItem: async (receiptId, receiptItemId) => {
+    await receiptRepo.deleteItem(receiptItemId);
+    await get().loadReceiptDetail(receiptId);
+    const { currentReceipt } = get();
+    if (currentReceipt?.order_id) {
+      const orderStore = useOrderStore.getState();
+      if (orderStore.currentOrder?.order_id === currentReceipt.order_id) {
+        await orderStore.loadOrderDetail(currentReceipt.order_id);
+      }
+    }
+  },
+
+  upsertReceiptItem: async (receiptId, orderId, orderItemId, item_price_id, qty, has_tax) => {
+    await receiptRepo.upsertItem(receiptId, orderItemId, item_price_id, qty, has_tax);
     const orderStore = useOrderStore.getState();
     if (orderStore.currentOrder?.order_id === orderId) {
       await orderStore.loadOrderDetail(orderId);
