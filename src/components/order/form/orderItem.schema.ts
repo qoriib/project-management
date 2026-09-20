@@ -19,14 +19,11 @@ export const orderItemSchema = v.object({
 
 export type OrderItemFormValues = v.InferOutput<typeof orderItemSchema>;
 
-export function buildDefaultValues(
-  initialData?: Partial<OrderItemDetail>,
-  defaultRequirementGroupId?: string,
-): OrderItemFormValues {
+export function buildDefaultValues(initialData?: Partial<OrderItemDetail>): OrderItemFormValues {
   return {
     item_id: initialData?.item_id ?? "",
     item_price_id: initialData?.item_price_id ?? "",
-    requirement_group_id: initialData?.requirement_group_id || defaultRequirementGroupId || "",
+    requirement_group_id: initialData?.requirement_group_id ?? "",
     qty: initialData?.qty != null ? String(initialData.qty).replace(".", ",") : "",
     vendor_id: initialData?.vendor_id ?? "",
     has_tax: Boolean(initialData?.has_tax),

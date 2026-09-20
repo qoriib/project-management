@@ -11,20 +11,14 @@ export type OrderItemInputPayload = Omit<OrderItemInput, "order_item_id">;
 
 export interface OrderItemFormProps {
   initialData?: OrderItemDetail;
-  defaultRequirementGroupId?: string;
   onSuccess: () => void;
   onSubmitItem: (item: OrderItemInputPayload) => Promise<void> | void;
 }
 
-export function useOrderItemForm({
-  initialData,
-  defaultRequirementGroupId,
-  onSuccess,
-  onSubmitItem,
-}: OrderItemFormProps) {
+export function useOrderItemForm({ initialData, onSuccess, onSubmitItem }: OrderItemFormProps) {
   const showToast = useToast(),
     form = useForm({
-      defaultValues: buildDefaultValues(initialData, defaultRequirementGroupId),
+      defaultValues: buildDefaultValues(initialData),
       validators: { onChange: orderItemSchema },
       onSubmit: async ({ value }) => {
         try {
@@ -37,7 +31,7 @@ export function useOrderItemForm({
             vendor_id: value.vendor_id,
             item_price_id: value.item_price_id,
             price: resolvedPrice,
-            requirement_group_id: value.requirement_group_id || defaultRequirementGroupId || undefined,
+            requirement_group_id: value.requirement_group_id || undefined,
             qty: parseDecimalInput(value.qty),
             has_tax: Boolean(value.has_tax),
           };
@@ -45,7 +39,7 @@ export function useOrderItemForm({
           await onSubmitItem(payload);
 
           if (!initialData) {
-            form.reset(buildDefaultValues(undefined, defaultRequirementGroupId));
+            form.reset(buildDefaultValues());
           }
 
           onSuccess();
@@ -70,7 +64,7 @@ export function useOrderItemForm({
   }
 
   useEffect(() => {
-    form.reset(buildDefaultValues(initialData, defaultRequirementGroupId));
+    form.reset(buildDefaultValues(initialData));
 
     if (initialData?.item_id) {
       const { loadItemPrices, itemPricesMap } = useMasterStore.getState();
@@ -79,7 +73,7 @@ export function useOrderItemForm({
         loadItemPrices(initialData.item_id);
       }
     }
-  }, [initialData, defaultRequirementGroupId]);
+  }, [initialData]);
 
   return {
     form,

@@ -24,13 +24,9 @@ export async function getItemLog(
       .where("order_items.item_id", "=", itemId);
 
     if (requirementGroupId === null) {
-      orderQuery.whereNull("COALESCE(order_items.requirement_group_id, orders.requirement_group_id)");
+      orderQuery.whereNull("order_items.requirement_group_id");
     } else {
-      orderQuery.where(
-        "COALESCE(order_items.requirement_group_id, orders.requirement_group_id)",
-        "=",
-        requirementGroupId,
-      );
+      orderQuery.where("order_items.requirement_group_id", "=", requirementGroupId);
     }
 
     const receiptQuery = new QueryBuilder()
@@ -48,13 +44,9 @@ export async function getItemLog(
       .where("order_items.item_id", "=", itemId);
 
     if (requirementGroupId === null) {
-      receiptQuery.whereNull("COALESCE(order_items.requirement_group_id, orders.requirement_group_id)");
+      receiptQuery.whereNull("order_items.requirement_group_id");
     } else {
-      receiptQuery.where(
-        "COALESCE(order_items.requirement_group_id, orders.requirement_group_id)",
-        "=",
-        requirementGroupId,
-      );
+      receiptQuery.where("order_items.requirement_group_id", "=", requirementGroupId);
     }
 
     const [orderLogs, receiptLogs] = await Promise.all([

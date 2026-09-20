@@ -100,13 +100,11 @@ CREATE TABLE `requirements` (
 CREATE TABLE `orders` (
 	`order_id` text NOT NULL PRIMARY KEY,
 	`project_id` text NOT NULL,
-	`requirement_group_id` text,
 	`order_code` text,
 	`order_date` text NOT NULL,
 	`created_at` text DEFAULT (datetime('now', 'localtime')),
 	`updated_at` text DEFAULT (datetime('now', 'localtime')),
-	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`requirement_group_id`) REFERENCES `requirement_groups`(`requirement_group_id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`project_id`) REFERENCES `projects`(`project_id`) ON UPDATE no action ON DELETE cascade
 );
 
 CREATE TABLE `order_items` (

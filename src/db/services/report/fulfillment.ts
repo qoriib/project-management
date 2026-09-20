@@ -157,7 +157,7 @@ export async function getRequirementReport(
     // 2. Orders Query — price comes from item_prices via oi.item_price_id
     const orderQuery = new QueryBuilder()
       .select(
-        "COALESCE(oi.requirement_group_id, ord.requirement_group_id) as requirement_group_id",
+        "oi.requirement_group_id as requirement_group_id",
         "grp.group_name",
         "oi.item_id",
         "oi.item_price_id",
@@ -176,11 +176,7 @@ export async function getRequirementReport(
       .from("order_items", "oi")
       .join("orders", "ord", "ord.order_id = oi.order_id")
       .join("item_prices", "ip", "ip.item_price_id = oi.item_price_id")
-      .leftJoin(
-        "requirement_groups",
-        "grp",
-        "COALESCE(oi.requirement_group_id, ord.requirement_group_id) = grp.requirement_group_id",
-      )
+      .leftJoin("requirement_groups", "grp", "oi.requirement_group_id = grp.requirement_group_id")
       .join("items", "items", "items.item_id = oi.item_id")
       .leftJoin("item_categories", "cats", "items.category_id = cats.category_id")
       .leftJoin("units", "units", "items.unit_id = units.unit_id")
@@ -192,7 +188,7 @@ export async function getRequirementReport(
     // 3. Receipts Query — price comes from item_prices via ri.item_price_id
     const receiptQuery = new QueryBuilder()
       .select(
-        "COALESCE(oi.requirement_group_id, ord.requirement_group_id) as requirement_group_id",
+        "oi.requirement_group_id as requirement_group_id",
         "oi.item_id",
         "ri.item_price_id",
         "ip.price as price",

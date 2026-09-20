@@ -1,18 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  AlertDialog,
-  Button,
-  EmptyState,
-  Heading,
-  HStack,
-  Selector,
-  Table,
-  Text,
-  TextInput,
-  VStack,
-} from "@astryxdesign/core";
+import { AlertDialog, Button, EmptyState, Heading, HStack, Table, Text, TextInput, VStack } from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { Card, Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useTableStickyColumns } from "@astryxdesign/core/Table";
@@ -20,7 +9,6 @@ import { useTableRowIndex } from "@/components/shared/useTableRowIndex";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useAppStore } from "@/store/useAppStore";
-import { useRequirementGroupStore } from "@/store/useRequirementGroupStore";
 import { ProjectRequired } from "@/components/shared/ProjectRequired";
 import { OrderItemDialog } from "@/components/order/OrderItemDialog";
 import { buildDefaultValues, poSchema } from "@/components/order/form/order.schema";
@@ -46,19 +34,7 @@ export function OrderForm({ order }: OrderFormProps) {
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
 
   const { currentItems, addOrderItem, updateOrderItem, deleteOrderItem, updateOrderHeader } = useOrderStore();
-  const { groups, loadGroups } = useRequirementGroupStore();
   const items = currentItems;
-
-  useEffect(() => {
-    if (selectedProjectId) {
-      loadGroups(selectedProjectId);
-    }
-  }, [selectedProjectId, loadGroups]);
-
-  const groupOptions = groups.map((group) => ({
-    label: group.group_name,
-    value: String(group.requirement_group_id),
-  }));
 
   const grandTotal = useMemo(() => calcGrandTotal(items), [items]);
 
@@ -214,31 +190,6 @@ export function OrderForm({ order }: OrderFormProps) {
                         />
                       )}
                     </form.Field>
-                    <form.Field name="requirement_group_id">
-                      {(field) => (
-                        <Selector
-                          hasSearch
-                          width={260}
-                          label="Kelompok Pekerjaan (Default)"
-                          searchPlaceholder="Pilih pekerjaan default..."
-                          statusVariant="tooltip"
-                          status={getFieldError(field.state.meta.errors, field.state.meta.isTouched)}
-                          options={groupOptions}
-                          value={field.state.value || undefined}
-                          onChange={async (val) => {
-                            const v = (val as string) || null;
-                            field.handleChange(v);
-                            if (order && v !== order.requirement_group_id) {
-                              try {
-                                await updateOrderHeader(order.order_id, { requirement_group_id: v ?? undefined });
-                              } catch (error: unknown) {
-                                handleFormError(error, showToast);
-                              }
-                            }
-                          }}
-                        />
-                      )}
-                    </form.Field>
                   </HStack>
                   <Card>
                     <Table
@@ -290,7 +241,6 @@ export function OrderForm({ order }: OrderFormProps) {
           setEditingItem(undefined);
         }}
         initialData={editingItem}
-        defaultRequirementGroupId={order.requirement_group_id || undefined}
         onSubmitItem={handleSaveItem}
       />
     </>

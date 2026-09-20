@@ -49,8 +49,8 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
       .select(
         "order_items.order_item_id",
         "order_items.order_id",
-        "COALESCE(order_items.requirement_group_id, orders.requirement_group_id) as requirement_group_id",
-        "COALESCE(item_groups.group_name, order_groups.group_name) as group_name",
+        "order_items.requirement_group_id as requirement_group_id",
+        "item_groups.group_name as group_name",
         "order_items.item_id",
         "order_items.vendor_id",
         "order_items.item_price_id",
@@ -72,7 +72,6 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
         "item_groups",
         "item_groups.requirement_group_id = order_items.requirement_group_id",
       )
-      .leftJoin("requirement_groups", "order_groups", "order_groups.requirement_group_id = orders.requirement_group_id")
       .leftJoin("items", "items", "items.item_id = order_items.item_id")
       .leftJoin("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
       .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")

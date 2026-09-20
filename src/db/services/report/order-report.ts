@@ -13,8 +13,8 @@ export async function getProjectOrderReport(
   try {
     const query = new QueryBuilder()
       .select(
-        "orders.requirement_group_id",
-        "COALESCE(item_groups.group_name, order_groups.group_name) as group_name",
+        "order_items.requirement_group_id",
+        "item_groups.group_name as group_name",
         "orders.order_code",
         "orders.order_date",
         "vendors.vendor_name",
@@ -34,7 +34,6 @@ export async function getProjectOrderReport(
       .from("order_items", "order_items")
       .join("orders", "orders", "orders.order_id = order_items.order_id")
       .join("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
-      .leftJoin("requirement_groups", "order_groups", "order_groups.requirement_group_id = orders.requirement_group_id")
       .leftJoin(
         "requirement_groups",
         "item_groups",

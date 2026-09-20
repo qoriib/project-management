@@ -311,7 +311,6 @@ export async function seedOrders(): Promise<void> {
           order_code: ord.orderCode,
           order_date: ord.orderDate,
           project_id: project.project_id,
-          requirement_group_id: requirementGroupId,
         },
         orderItems,
       );

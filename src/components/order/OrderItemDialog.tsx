@@ -37,17 +37,10 @@ interface OrderItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
   initialData?: OrderItemDetail;
-  defaultRequirementGroupId?: string;
   onSubmitItem: (item: OrderItemInputPayload) => void;
 }
 
-export function OrderItemDialog({
-  isOpen,
-  onClose,
-  initialData,
-  defaultRequirementGroupId,
-  onSubmitItem,
-}: OrderItemDialogProps) {
+export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: OrderItemDialogProps) {
   const [isGroupFormOpen, setIsGroupFormOpen] = useState(false);
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
   const [isPriceFormOpen, setIsPriceFormOpen] = useState(false);
@@ -64,7 +57,6 @@ export function OrderItemDialog({
   }, [selectedProjectId, loadGroups]);
 
   const { form, handleItemChange } = useOrderItemForm({
-    defaultRequirementGroupId,
     initialData,
     onSubmitItem,
     onSuccess: () => {
@@ -88,9 +80,7 @@ export function OrderItemDialog({
   const selectedItem = items.find((item) => item.item_id === selectedItemId);
   const selectedItemCode = selectedItem ? formatItemCode(selectedItem) : "";
   const priceOptions = (itemPricesMap.get(selectedItemId) ?? []).map((priceItem) => ({
-    label: priceItem.note
-      ? `Rp ${formatNumber(priceItem.price, "currency")} (${priceItem.note})`
-      : `Rp ${formatNumber(priceItem.price, "currency")}`,
+    label: `Rp ${formatNumber(priceItem.price, "currency")}`,
     value: String(priceItem.item_price_id),
   }));
 
