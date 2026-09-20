@@ -4,12 +4,12 @@ import { type CreateOrderItem, type OrderItem, OrderItemModel } from "@/db/model
 export interface OrderItemDetail {
   order_item_id: string;
   order_id: string | null;
-  requirement_group_id?: string;
+  requirement_group_id?: string | null;
   group_name?: string;
   item_id: string | null;
   vendor_id: string | null;
   item_price_id: string;
-  /** Resolved price from joined item_prices */
+  /** Snapshot price stored on the order item */
   price: number;
   qty: number;
   has_tax?: boolean;
@@ -25,10 +25,11 @@ export interface OrderItemDetail {
 
 export interface OrderItemInput {
   order_item_id?: string;
-  requirement_group_id?: string;
+  requirement_group_id?: string | null;
   item_id: string | null;
   vendor_id: string | null;
   item_price_id: string;
+  price: number;
   qty: number;
   has_tax?: boolean;
 }
@@ -42,45 +43,47 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
 
   /**
    * Get all items for a specific Order, with joined details and delivery calculation.
-   * Only active (non-soft-deleted) receipts are counted in total_delivered.
    */
   async findByOrder(orderId: string): Promise<OrderItemDetail[]> {
-    const sql = `
-      SELECT order_items.order_item_id,
-             order_items.order_id,
-             COALESCE(order_items.requirement_group_id, orders.requirement_group_id) as requirement_group_id,
-             COALESCE(item_groups.group_name, order_groups.group_name) as group_name,
-             order_items.item_id,
-             order_items.vendor_id,
-             order_items.item_price_id,
-             order_items.qty,
-             order_items.has_tax,
-             item_prices.price,
-             items.item_name,
-             items.item_code,
-             categories.prefix as category_prefix,
-             categories.category_code,
-             units.unit_name as unit,
-             vendors.vendor_name,
-             COALESCE(SUM(CASE WHEN receipts.deleted_at IS NULL THEN receipt_items.qty ELSE 0 END), 0) as total_delivered,
-             order_items.qty - COALESCE(SUM(CASE WHEN receipts.deleted_at IS NULL THEN receipt_items.qty ELSE 0 END), 0) as remaining
-      FROM order_items
-      LEFT JOIN orders ON orders.order_id = order_items.order_id
-      LEFT JOIN requirement_groups item_groups ON item_groups.requirement_group_id = order_items.requirement_group_id AND item_groups.deleted_at IS NULL
-      LEFT JOIN requirement_groups order_groups ON order_groups.requirement_group_id = orders.requirement_group_id AND order_groups.deleted_at IS NULL
-      LEFT JOIN item_prices ON item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL
-      LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
-      LEFT JOIN item_categories categories ON categories.category_id = items.category_id AND categories.deleted_at IS NULL
-      LEFT JOIN units ON items.unit_id = units.unit_id AND units.deleted_at IS NULL
-      LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
-      LEFT JOIN receipt_items ON receipt_items.order_item_id = order_items.order_item_id
-      LEFT JOIN receipts ON receipts.receipt_id = receipt_items.receipt_id AND receipts.deleted_at IS NULL
-      WHERE order_items.order_id = $1
-      GROUP BY order_items.order_item_id
-      ORDER BY order_items.order_item_id ASC
-    `;
+    const rows = await this.query("order_items")
+      .select(
+        "order_items.order_item_id",
+        "order_items.order_id",
+        "COALESCE(order_items.requirement_group_id, orders.requirement_group_id) as requirement_group_id",
+        "COALESCE(item_groups.group_name, order_groups.group_name) as group_name",
+        "order_items.item_id",
+        "order_items.vendor_id",
+        "order_items.item_price_id",
+        "item_prices.price as price",
+        "order_items.qty",
+        "order_items.has_tax",
+        "items.item_name",
+        "items.item_code",
+        "categories.prefix as category_prefix",
+        "categories.category_code",
+        "units.unit_name as unit",
+        "vendors.vendor_name",
+      )
+      .selectSum("receipt_items.qty", "total_delivered", 0)
+      .selectRaw("order_items.qty - COALESCE(SUM(receipt_items.qty), 0) as remaining")
+      .leftJoin("orders", "orders", "orders.order_id = order_items.order_id")
+      .leftJoin(
+        "requirement_groups",
+        "item_groups",
+        "item_groups.requirement_group_id = order_items.requirement_group_id",
+      )
+      .leftJoin("requirement_groups", "order_groups", "order_groups.requirement_group_id = orders.requirement_group_id")
+      .leftJoin("items", "items", "items.item_id = order_items.item_id")
+      .leftJoin("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
+      .leftJoin("item_categories", "categories", "categories.category_id = items.category_id")
+      .leftJoin("units", "units", "items.unit_id = units.unit_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
+      .leftJoin("receipt_items", "receipt_items", "receipt_items.order_item_id = order_items.order_item_id")
+      .where("order_items.order_id", "=", orderId)
+      .groupBy("order_items.order_item_id")
+      .orderBy("order_items.order_item_id", "ASC")
+      .getMany<OrderItemDetail>();
 
-    const rows = await this.rawSelect<OrderItemDetail>(sql, [orderId]);
     return rows.map((row) => ({
       ...row,
       has_tax: Boolean(row.has_tax),
@@ -91,7 +94,7 @@ class OrderItemRepository extends BaseRepository<OrderItem, CreateOrderItem, Upd
    * Delete all items belonging to a specific order.
    */
   async deleteByOrder(orderId: string): Promise<number> {
-    return this.deleteWhere({ order_id: orderId }, false);
+    return this.deleteWhere({ order_id: orderId });
   }
 }
 

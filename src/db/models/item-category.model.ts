@@ -12,14 +12,14 @@ export interface ItemCategory {
   category_code: string;
   /** Nama kategori */
   category_name: string;
+  /** Timestamp waktu pembuatan data */
+  created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
   updated_at: string;
-  /** Timestamp waktu soft delete (null jika masih aktif) */
-  deleted_at: string | null;
 }
 
 /** Payload untuk membuat data kategori baru */
-export type CreateItemCategory = Omit<ItemCategory, "category_id" | "updated_at" | "deleted_at">;
+export type CreateItemCategory = Omit<ItemCategory, "category_id" | "created_at" | "updated_at">;
 
 /** Payload untuk memperbarui data kategori yang sudah ada */
 export type UpdateItemCategory = Partial<CreateItemCategory>;
@@ -30,7 +30,6 @@ export type UpdateItemCategory = Partial<CreateItemCategory>;
 export const ItemCategoryModel: ModelDefinition = {
   createColumns: ["prefix", "category_code", "category_name"],
   primaryKey: "category_id",
-  softDelete: true,
   tableName: "item_categories",
   updateColumns: ["prefix", "category_code", "category_name"],
 };

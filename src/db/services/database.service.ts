@@ -25,7 +25,7 @@ export async function resetDatabase(): Promise<void> {
     // 1. Disable foreign keys temporarily for clean wipe
     await db.execute("PRAGMA foreign_keys = OFF;");
 
-    // 2. Clear all tables
+    // 2. Drop or clear all tables
     const tables = [
       "receipt_items",
       "receipts",
@@ -41,8 +41,22 @@ export async function resetDatabase(): Promise<void> {
       "projects",
     ];
 
-    for (const table of tables) {
-      await db.execute(`DELETE FROM ${table};`);
+    if (typeof window === "undefined") {
+      for (const table of tables) {
+        await db.execute(`DROP TABLE IF EXISTS ${table};`);
+      }
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const initSql = fs.readFileSync(path.resolve(process.cwd(), "src-tauri/migrations/001_init.sql"), "utf-8");
+      if (db.exec) {
+        await db.exec(initSql);
+      } else {
+        await db.execute(initSql);
+      }
+    } else {
+      for (const table of tables) {
+        await db.execute(`DELETE FROM ${table};`);
+      }
     }
 
     // 3. Re-enable foreign keys and run VACUUM

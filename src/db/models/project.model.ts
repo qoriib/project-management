@@ -18,15 +18,10 @@ export interface Project {
   created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
   updated_at: string;
-  /** Timestamp waktu soft delete (null jika masih aktif) */
-  deleted_at: string | null;
 }
 
 /** Payload untuk membuat data proyek baru (requirements_is_approved bernilai default 0 jika diabaikan) */
-export type CreateProject = Omit<
-  Project,
-  "project_id" | "created_at" | "updated_at" | "deleted_at" | "requirements_is_approved"
-> & {
+export type CreateProject = Omit<Project, "project_id" | "created_at" | "updated_at" | "requirements_is_approved"> & {
   requirements_is_approved?: number;
 };
 
@@ -39,7 +34,6 @@ export type UpdateProject = Partial<CreateProject>;
 export const ProjectModel: ModelDefinition = {
   createColumns: ["project_name", "company_name", "fiscal_year", "requirements_is_approved"],
   primaryKey: "project_id",
-  softDelete: true,
   tableName: "projects",
   updateColumns: ["project_name", "company_name", "fiscal_year", "requirements_is_approved"],
 };

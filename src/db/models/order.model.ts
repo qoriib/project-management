@@ -9,7 +9,7 @@ export interface Order {
   /** Relasi ID proyek tempat pemesanan dilakukan */
   project_id: string;
   /** Relasi ID kelompok kebutuhan default untuk item baru (opsional) */
-  requirement_group_id?: string | null;
+  requirement_group_id: string | null;
   /** Nomor / kode unik dokumen PO (contoh: 'PO-2026-0001') */
   order_code: string | null;
   /** Tanggal pesanan diterbitkan (format: YYYY-MM-DD) */
@@ -18,12 +18,10 @@ export interface Order {
   created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
   updated_at: string;
-  /** Timestamp waktu soft delete (null jika masih aktif) */
-  deleted_at: string | null;
 }
 
 /** Payload untuk membuat pesanan baru */
-export type CreateOrder = Omit<Order, "order_id" | "created_at" | "updated_at" | "deleted_at">;
+export type CreateOrder = Omit<Order, "order_id" | "created_at" | "updated_at">;
 
 /** Payload untuk memperbarui pesanan yang ada */
 export type UpdateOrder = Partial<CreateOrder>;
@@ -34,7 +32,6 @@ export type UpdateOrder = Partial<CreateOrder>;
 export const OrderModel: ModelDefinition = {
   createColumns: ["project_id", "requirement_group_id", "order_code", "order_date"],
   primaryKey: "order_id",
-  softDelete: true,
   tableName: "orders",
   updateColumns: ["project_id", "requirement_group_id", "order_code", "order_date"],
 };

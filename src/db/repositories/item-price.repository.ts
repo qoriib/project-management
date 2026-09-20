@@ -2,7 +2,7 @@ import { BaseRepository } from "@/db/core/base-repository";
 import { type CreateItemPrice, type ItemPrice, ItemPriceModel, type UpdateItemPrice } from "@/db/models";
 
 export type ItemPriceWithRelation = ItemPrice & {
-  /** True if this price is referenced by any active BOM or active PO line */
+  /** True if this price is referenced by any BOM or PO line */
   has_relation: boolean;
 };
 
@@ -12,29 +12,29 @@ class ItemPriceRepository extends BaseRepository<ItemPrice, CreateItemPrice, Upd
   }
 
   /**
-   * Get all active price variants for a specific item.
+   * Get all price variants for a specific item.
    */
   async findByItem(itemId: string): Promise<ItemPrice[]> {
-    return this.rawSelect<ItemPrice>(
-      "SELECT * FROM item_prices WHERE item_id = $1 AND deleted_at IS NULL ORDER BY item_price_id DESC",
-      [itemId],
-    );
+    return this.findAll({
+      where: { item_id: itemId },
+      orderBy: { column: "item_price_id", direction: "DESC" },
+    });
   }
 
   /**
-   * Get all active price variants for an item, enriched with has_relation flag.
-   * Only active (non-soft-deleted) relations are considered.
+   * Get all price variants for an item, enriched with has_relation flag.
    */
   async findByItemWithRelation(itemId: string): Promise<ItemPriceWithRelation[]> {
-    const rows = await this.rawSelect<ItemPrice & { has_relation: number | boolean }>(
-      `SELECT item_prices.*,
-              (EXISTS(SELECT 1 FROM requirements WHERE item_price_id = item_prices.item_price_id AND deleted_at IS NULL)
-               OR EXISTS(SELECT 1 FROM order_items oi JOIN orders o ON o.order_id = oi.order_id WHERE oi.item_price_id = item_prices.item_price_id AND o.deleted_at IS NULL)) as has_relation
-       FROM item_prices
-       WHERE item_prices.item_id = $1 AND item_prices.deleted_at IS NULL
-       ORDER BY item_prices.item_price_id DESC`,
-      [itemId],
-    );
+    const rows = await this.query("item_prices")
+      .select("item_prices.*")
+      .selectRaw(
+        `(EXISTS(SELECT 1 FROM requirements WHERE item_price_id = item_prices.item_price_id)
+         OR EXISTS(SELECT 1 FROM order_items WHERE item_price_id = item_prices.item_price_id)
+         OR EXISTS(SELECT 1 FROM receipt_items WHERE item_price_id = item_prices.item_price_id)) as has_relation`,
+      )
+      .where("item_prices.item_id", "=", itemId)
+      .orderBy("item_prices.item_price_id", "DESC")
+      .getMany<ItemPriceWithRelation & { has_relation: number | boolean }>();
 
     return rows.map((row) => ({
       ...row,

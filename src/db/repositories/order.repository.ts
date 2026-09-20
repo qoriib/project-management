@@ -1,8 +1,11 @@
 import { BaseRepository } from "@/db/core/base-repository";
-import { type CreateOrder, type Order, OrderModel, type UpdateOrder } from "@/db/models";
+import { QueryBuilder } from "@/db/core/query-builder";
+import { requirementGroupRepo } from "./requirement-group.repository";
 import { generateNextCode } from "@/utils/formatters";
 import { orderItemRepo, type OrderItemDetail, type OrderItemInput } from "./order-item.repository";
-import { requirementGroupRepo } from "./requirement-group.repository";
+import { receiptItemRepo } from "./receipt-item.repository";
+import { receiptRepo } from "./receipt.repository";
+import { type CreateOrder, type Order, OrderModel, type UpdateOrder } from "@/db/models";
 
 export type OrderWithSummary = Order & {
   project_name?: string;
@@ -38,60 +41,41 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
     super(OrderModel);
   }
 
-  /**
-   * Get all Orders with summary (project name, group name, total price, item count, vendor names, item names).
-   */
-  async findAllWithSummary(filters?: OrderFilters): Promise<OrderWithSummary[]> {
-    const params: unknown[] = [];
-    let pIdx = 1;
-    let whereSql = "WHERE orders.deleted_at IS NULL";
+  private buildSummaryQuery(): QueryBuilder {
+    return this.query("orders")
+      .select(
+        "orders.order_id",
+        "orders.order_code",
+        "orders.project_id",
+        "orders.requirement_group_id",
+        "requirement_groups.group_name",
+        "orders.order_date",
+        "orders.created_at",
+        "projects.project_name",
+      )
+      .selectGroupConcat("vendors.vendor_name", "vendor_names", true)
+      .selectGroupConcat("items.item_name", "item_names", true)
+      .selectGroupConcat("COALESCE(item_rg.group_name, requirement_groups.group_name)", "group_names", true)
+      .selectRaw(
+        "COALESCE(SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price",
+      )
+      .selectCount("order_items.order_item_id", "item_count")
+      .leftJoin("projects", "projects", "projects.project_id = orders.project_id")
+      .leftJoin(
+        "requirement_groups",
+        "requirement_groups",
+        "requirement_groups.requirement_group_id = orders.requirement_group_id",
+      )
+      .leftJoin("order_items", "order_items", "order_items.order_id = orders.order_id")
+      .leftJoin("requirement_groups", "item_rg", "item_rg.requirement_group_id = order_items.requirement_group_id")
+      .leftJoin("items", "items", "items.item_id = order_items.item_id")
+      .leftJoin("vendors", "vendors", "vendors.vendor_id = order_items.vendor_id")
+      .leftJoin("item_prices", "item_prices", "item_prices.item_price_id = order_items.item_price_id")
+      .groupBy("orders.order_id");
+  }
 
-    if (filters?.project_id) {
-      whereSql += ` AND orders.project_id = $${pIdx++}`;
-      params.push(filters.project_id);
-    }
-    if (filters?.requirement_group_id) {
-      whereSql += ` AND orders.requirement_group_id = $${pIdx++}`;
-      params.push(filters.requirement_group_id);
-    }
-    if (filters?.start_date) {
-      whereSql += ` AND orders.order_date >= $${pIdx++}`;
-      params.push(filters.start_date);
-    }
-    if (filters?.end_date) {
-      whereSql += ` AND orders.order_date <= $${pIdx++}`;
-      params.push(filters.end_date);
-    }
-
-    const sql = `
-      SELECT orders.order_id,
-             orders.order_code,
-             orders.project_id,
-             orders.requirement_group_id,
-             requirement_groups.group_name,
-             orders.order_date,
-             orders.created_at,
-             projects.project_name,
-             GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names,
-             GROUP_CONCAT(DISTINCT items.item_name) as item_names,
-             GROUP_CONCAT(DISTINCT COALESCE(item_rg.group_name, requirement_groups.group_name)) as group_names,
-             COALESCE(SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price,
-             COUNT(order_items.order_item_id) as item_count
-      FROM orders
-      LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
-      LEFT JOIN requirement_groups ON requirement_groups.requirement_group_id = orders.requirement_group_id AND requirement_groups.deleted_at IS NULL
-      LEFT JOIN order_items ON order_items.order_id = orders.order_id
-      LEFT JOIN requirement_groups AS item_rg ON item_rg.requirement_group_id = order_items.requirement_group_id AND item_rg.deleted_at IS NULL
-      LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
-      LEFT JOIN item_prices ON item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL
-      LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
-      ${whereSql}
-      GROUP BY orders.order_id
-      ORDER BY orders.order_date DESC, orders.order_id DESC
-    `;
-
-    const rows = await this.rawSelect<RawOrderSummaryRow>(sql, params);
-    return rows.map((row) => ({
+  private formatSummaryRow(row: RawOrderSummaryRow): OrderWithSummary {
+    return {
       ...row,
       vendor_names: row.vendor_names ? row.vendor_names.split(",").map((name) => name.trim()) : [],
       item_names: row.item_names ? row.item_names.split(",").map((name) => name.trim()) : [],
@@ -105,58 +89,34 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
             ),
           ]
         : [],
-    }));
+    };
+  }
+
+  /**
+   * Get all Orders with summary (project name, group name, total price, item count, vendor names, item names).
+   */
+  async findAllWithSummary(filters?: OrderFilters): Promise<OrderWithSummary[]> {
+    const qb = this.buildSummaryQuery()
+      .when(Boolean(filters?.project_id), (b) => b.where("orders.project_id", "=", filters!.project_id))
+      .when(Boolean(filters?.requirement_group_id), (b) =>
+        b.where("orders.requirement_group_id", "=", filters!.requirement_group_id),
+      )
+      .when(Boolean(filters?.start_date), (b) => b.where("orders.order_date", ">=", filters!.start_date))
+      .when(Boolean(filters?.end_date), (b) => b.where("orders.order_date", "<=", filters!.end_date))
+      .orderBy("orders.order_date", "DESC")
+      .orderBy("orders.order_id", "DESC");
+
+    const rows = await qb.getMany<RawOrderSummaryRow>();
+    return rows.map((row) => this.formatSummaryRow(row));
   }
 
   /**
    * Get a single Order by ID with summary info.
    */
   async findByIdWithSummary(orderId: string): Promise<OrderWithSummary | null> {
-    const sql = `
-      SELECT orders.order_id,
-             orders.order_code,
-             orders.project_id,
-             orders.requirement_group_id,
-             requirement_groups.group_name,
-             orders.order_date,
-             orders.created_at,
-             projects.project_name,
-             GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names,
-             GROUP_CONCAT(DISTINCT items.item_name) as item_names,
-             GROUP_CONCAT(DISTINCT COALESCE(item_rg.group_name, requirement_groups.group_name)) as group_names,
-             COALESCE(SUM(order_items.qty * item_prices.price * (CASE WHEN order_items.has_tax = 1 THEN 1.12 ELSE 1.0 END)), 0) as total_price,
-             COUNT(order_items.order_item_id) as item_count
-      FROM orders
-      LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
-      LEFT JOIN requirement_groups ON requirement_groups.requirement_group_id = orders.requirement_group_id AND requirement_groups.deleted_at IS NULL
-      LEFT JOIN order_items ON order_items.order_id = orders.order_id
-      LEFT JOIN requirement_groups AS item_rg ON item_rg.requirement_group_id = order_items.requirement_group_id AND item_rg.deleted_at IS NULL
-      LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
-      LEFT JOIN item_prices ON item_prices.item_price_id = order_items.item_price_id AND item_prices.deleted_at IS NULL
-      LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
-      WHERE orders.order_id = $1 AND orders.deleted_at IS NULL
-      GROUP BY orders.order_id
-    `;
+    const row = await this.buildSummaryQuery().where("orders.order_id", "=", orderId).getOne<RawOrderSummaryRow>();
 
-    const rows = await this.rawSelect<RawOrderSummaryRow>(sql, [orderId]);
-    if (!rows[0]) return null;
-
-    const firstRow = rows[0];
-    return {
-      ...firstRow,
-      vendor_names: firstRow.vendor_names ? firstRow.vendor_names.split(",").map((name) => name.trim()) : [],
-      item_names: firstRow.item_names ? firstRow.item_names.split(",").map((name) => name.trim()) : [],
-      group_names: firstRow.group_names
-        ? [
-            ...new Set(
-              firstRow.group_names
-                .split(",")
-                .map((name) => name.trim())
-                .filter(Boolean),
-            ),
-          ]
-        : [],
-    };
+    return row ? this.formatSummaryRow(row) : null;
   }
 
   /**
@@ -174,7 +134,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
     const rows = items.map((item) => [
       this.generateId(),
       orderId,
-      item.requirement_group_id || order.requirement_group_id || "",
+      item.requirement_group_id || order.requirement_group_id || null,
       item.item_id ?? null,
       item.vendor_id ?? null,
       item.item_price_id,
@@ -202,7 +162,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
       item_price_id: item.item_price_id,
       order_id: orderId,
       qty: item.qty,
-      requirement_group_id: item.requirement_group_id || order?.requirement_group_id || "",
+      requirement_group_id: item.requirement_group_id ?? order?.requirement_group_id ?? null,
       vendor_id: item.vendor_id!,
     });
   }
@@ -225,7 +185,7 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
    * Delete a single item from an Order and any referencing receipt items.
    */
   async deleteItem(orderItemId: string): Promise<void> {
-    await this.rawExecute(`DELETE FROM receipt_items WHERE order_item_id = $1`, [orderItemId]);
+    await receiptItemRepo.deleteWhere({ order_item_id: orderItemId });
     await orderItemRepo.delete(orderItemId);
   }
 
@@ -251,32 +211,19 @@ class OrderRepository extends BaseRepository<Order, CreateOrder, UpdateOrder> {
       project_id: projectId,
       order_code: nextCode,
       order_date: today,
-      requirement_group_id: groups[0]?.requirement_group_id ?? "",
+      requirement_group_id: groups[0]?.requirement_group_id ?? null,
     });
   }
 
   /**
    * Hapus pesanan (PO) beserta seluruh item dan penerimaan (NP) terkait secara cascading.
+   * FK cascade menangani receipt_items → FK constraints menangani receipt_items saat orders dihapus.
+   * Namun receipt harus dihapus manual karena ON DELETE hanya cascade dari orders→order_items.
    */
   override async delete(id: string): Promise<void> {
-    // 1. Ambil seluruh receipt terkait order ini
-    const receipts = await this.rawSelect<{ receipt_id: string }>(
-      `SELECT receipt_id FROM receipts WHERE order_id = $1`,
-      [id],
-    );
-
-    // 2. Hapus item penerimaan dan soft-delete dokumen penerimaan
-    if (receipts.length > 0) {
-      for (const r of receipts) {
-        await this.rawExecute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [r.receipt_id]);
-      }
-      await this.rawExecute(`UPDATE receipts SET deleted_at = datetime('now') WHERE order_id = $1`, [id]);
-    }
-
-    // 3. Hapus seluruh item pesanan
-    await orderItemRepo.deleteByOrder(id);
-
-    // 4. Soft-delete pesanan
+    // FK cascade: orders → order_items → receipt_items (via ON DELETE CASCADE).
+    // receipts hanya FK ke orders, tidak cascade otomatis.
+    await receiptRepo.deleteWhere({ order_id: id });
     await super.delete(id);
   }
 }

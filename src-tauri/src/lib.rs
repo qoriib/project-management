@@ -38,20 +38,12 @@ pub fn run() {
             tauri_plugin_sql::Builder::default()
                 .add_migrations(
                     DB_SQLITE_URL,
-                    vec![
-                        Migration {
-                            version: 1,
-                            description: "init_schema",
-                            sql: include_str!("../migrations/001_init.sql"),
-                            kind: MigrationKind::Up,
-                        },
-                        Migration {
-                            version: 2,
-                            description: "requirement_groups",
-                            sql: include_str!("../migrations/002_requirement_groups.sql"),
-                            kind: MigrationKind::Up,
-                        },
-                    ],
+                    vec![Migration {
+                        version: 1,
+                        description: "init_schema",
+                        sql: include_str!("../migrations/001_init.sql"),
+                        kind: MigrationKind::Up,
+                    }],
                 )
                 .build(),
         )

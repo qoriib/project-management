@@ -10,14 +10,16 @@ export interface ItemPrice {
   item_id: string;
   /** Nilai harga satuan (dalam Rupiah) */
   price: number;
+  /** Catatan atau variasi harga opsional */
+  note?: string | null;
+  /** Timestamp waktu pembuatan data */
+  created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
   updated_at: string;
-  /** Timestamp waktu soft delete (null jika masih aktif) */
-  deleted_at: string | null;
 }
 
 /** Payload untuk membuat variasi harga baru */
-export type CreateItemPrice = Omit<ItemPrice, "item_price_id" | "updated_at" | "deleted_at">;
+export type CreateItemPrice = Omit<ItemPrice, "item_price_id" | "created_at" | "updated_at">;
 
 /** Payload untuk memperbarui variasi harga */
 export type UpdateItemPrice = Partial<CreateItemPrice>;
@@ -26,9 +28,8 @@ export type UpdateItemPrice = Partial<CreateItemPrice>;
  * Metadata definisi tabel basis data untuk model ItemPrice
  */
 export const ItemPriceModel: ModelDefinition = {
-  createColumns: ["item_id", "price"],
+  createColumns: ["item_id", "price", "note"],
   primaryKey: "item_price_id",
-  softDelete: true,
   tableName: "item_prices",
-  updateColumns: ["item_id", "price"],
+  updateColumns: ["item_id", "price", "note"],
 };

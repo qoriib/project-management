@@ -14,14 +14,14 @@ export interface Item {
   category_id: string;
   /** Relasi ID satuan pengukuran barang */
   unit_id: string;
+  /** Timestamp waktu pembuatan data */
+  created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
   updated_at: string;
-  /** Timestamp waktu soft delete (null jika masih aktif) */
-  deleted_at: string | null;
 }
 
 /** Payload untuk membuat data item baru */
-export type CreateItem = Omit<Item, "item_id" | "updated_at" | "deleted_at">;
+export type CreateItem = Omit<Item, "item_id" | "created_at" | "updated_at">;
 
 /** Payload untuk memperbarui data item yang sudah ada */
 export type UpdateItem = Partial<CreateItem>;
@@ -32,7 +32,6 @@ export type UpdateItem = Partial<CreateItem>;
 export const ItemModel: ModelDefinition = {
   createColumns: ["item_code", "item_name", "category_id", "unit_id"],
   primaryKey: "item_id",
-  softDelete: true,
   tableName: "items",
   updateColumns: ["item_code", "item_name", "category_id", "unit_id"],
 };

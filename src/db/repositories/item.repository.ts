@@ -17,49 +17,44 @@ class ItemRepository extends BaseRepository<Item, CreateItem, UpdateItem> {
 
   /**
    * Get all items with category, unit, and relation status.
-   * Only active (non-soft-deleted) relations are considered.
    */
-  async findAll(options?: FindOptions): Promise<ItemWithDetails[]> {
-    const includeDeleted = options?.includeDeleted ?? false;
-    const deletedFilter = includeDeleted ? "" : "AND items.deleted_at IS NULL";
-
-    let sql = `
-      SELECT items.*,
-             categories.category_name,
-             categories.prefix as category_prefix,
-             categories.category_code,
-             units.unit_name,
-             (EXISTS(SELECT 1 FROM item_prices WHERE item_id = items.item_id AND deleted_at IS NULL) 
-              OR EXISTS(SELECT 1 FROM requirements WHERE item_id = items.item_id AND deleted_at IS NULL) 
-              OR EXISTS(SELECT 1 FROM order_items oi JOIN orders o ON o.order_id = oi.order_id WHERE oi.item_id = items.item_id AND o.deleted_at IS NULL)) as has_relation
-      FROM items
-      LEFT JOIN item_categories categories ON items.category_id = categories.category_id AND categories.deleted_at IS NULL
-      LEFT JOIN units ON items.unit_id = units.unit_id AND units.deleted_at IS NULL
-      WHERE 1=1 ${deletedFilter}
-    `;
-    const params: unknown[] = [];
-    let pIdx = 1;
+  override async findAll(options?: FindOptions): Promise<ItemWithDetails[]> {
+    const qb = this.query("items")
+      .select(
+        "items.*",
+        "categories.category_name",
+        "categories.prefix as category_prefix",
+        "categories.category_code",
+        "units.unit_name",
+      )
+      .selectRaw(
+        `(EXISTS(SELECT 1 FROM item_prices WHERE item_id = items.item_id)
+          OR EXISTS(SELECT 1 FROM requirements WHERE item_id = items.item_id)
+          OR EXISTS(SELECT 1 FROM order_items WHERE item_id = items.item_id)) as has_relation`,
+      )
+      .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
+      .leftJoin("units", "units", "items.unit_id = units.unit_id")
+      .orderBy("items.item_id", "ASC");
 
     if (options?.where) {
-      for (const [column, value] of Object.entries(options.where)) {
-        const colName = column.includes(".") ? column : `items.${column}`;
-        sql += ` AND ${colName} = $${pIdx++}`;
-        params.push(value);
+      qb.applySimpleWhere(options.where);
+    }
+
+    if (options?.orderBy) {
+      const orders = Array.isArray(options.orderBy) ? options.orderBy : [options.orderBy];
+      for (const order of orders) {
+        qb.orderBy(order.column, order.direction);
       }
     }
 
-    sql += " ORDER BY items.item_id ASC";
-
     if (options?.limit !== undefined) {
-      sql += ` LIMIT $${pIdx++}`;
-      params.push(options.limit);
+      qb.limit(options.limit);
     }
     if (options?.offset !== undefined) {
-      sql += ` OFFSET $${pIdx++}`;
-      params.push(options.offset);
+      qb.offset(options.offset);
     }
 
-    const rows = await this.rawSelect<ItemWithDetails & { has_relation: number | boolean }>(sql, params);
+    const rows = await qb.getMany<ItemWithDetails & { has_relation: number | boolean }>();
 
     return rows.map((row) => ({
       ...row,

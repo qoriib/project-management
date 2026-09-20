@@ -5,6 +5,7 @@ import {
   type CreateRequirementGroup,
   type UpdateRequirementGroup,
 } from "@/db/models";
+import { projectRepo } from "./project.repository";
 
 class RequirementGroupRepository extends BaseRepository<
   RequirementGroup,
@@ -29,12 +30,8 @@ class RequirementGroupRepository extends BaseRepository<
    * Validasi di level aplikasi bahwa proyek belum di-approve sebelum melakukan perubahan kelompok kebutuhan.
    */
   async ensureNotApproved(projectId: string): Promise<void> {
-    const db = await this.db();
-    const rows = await db.select<{ requirements_is_approved: number }[]>(
-      "SELECT requirements_is_approved FROM projects WHERE project_id = $1 AND deleted_at IS NULL",
-      [projectId],
-    );
-    if (rows[0]?.requirements_is_approved === 1) {
+    const project = await projectRepo.findById(projectId);
+    if (project?.requirements_is_approved) {
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
     }
   }
@@ -57,20 +54,13 @@ class RequirementGroupRepository extends BaseRepository<
     if (existing) {
       await this.ensureNotApproved(existing.project_id);
 
-      const db = await this.db();
-      const reqCount = await db.select<{ count: number }[]>(
-        "SELECT count(*) as count FROM requirements WHERE requirement_group_id = $1 AND deleted_at IS NULL",
-        [id],
-      );
-      if ((reqCount[0]?.count ?? 0) > 0) {
+      const reqCount = await this.query("requirements").where("requirement_group_id", id).count();
+      if (reqCount > 0) {
         throw new Error("Gagal: Kelompok pekerjaan masih digunakan oleh item kebutuhan.");
       }
 
-      const orderCount = await db.select<{ count: number }[]>(
-        "SELECT count(*) as count FROM orders WHERE requirement_group_id = $1 AND deleted_at IS NULL",
-        [id],
-      );
-      if ((orderCount[0]?.count ?? 0) > 0) {
+      const orderCount = await this.query("orders").where("requirement_group_id", id).count();
+      if (orderCount > 0) {
         throw new Error("Gagal: Kelompok pekerjaan masih digunakan oleh pesanan (PO).");
       }
     }

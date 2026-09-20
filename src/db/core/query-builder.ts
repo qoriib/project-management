@@ -4,6 +4,7 @@
  */
 
 import { getDB } from "@/db/index";
+import { wrapDbError } from "./errors";
 import type {
   JoinClause,
   JoinType,
@@ -32,8 +33,6 @@ export class QueryBuilder {
   private _orderBys: OrderByClause[] = [];
   private _limit: number | null = null;
   private _offset: number | null = null;
-  private _softDeleteAliases: string[] = [];
-  private _includeDeleted = false;
 
   /** Specify columns to select. Pass `"*"` or individual column names. */
   select(...columns: string[]): this {
@@ -42,8 +41,8 @@ export class QueryBuilder {
   }
 
   /** Specify a raw SELECT expression. */
-  selectRaw(expression: string): this {
-    this._selectColumns.push(expression);
+  selectRaw(expression: string, alias?: string): this {
+    this._selectColumns.push(alias ? `${expression} as ${alias}` : expression);
     return this;
   }
 
@@ -62,6 +61,11 @@ export class QueryBuilder {
     const distinctClause = distinct ? "DISTINCT " : "";
     const sepClause = separator !== "," ? `, '${separator}'` : "";
     return this.selectRaw(`GROUP_CONCAT(${distinctClause}${expression}${sepClause}) as ${alias}`);
+  }
+
+  /** Select an EXISTS subquery expression as an alias. */
+  selectExists(subquery: string, alias = "has_relation"): this {
+    return this.selectRaw(`(EXISTS(${subquery})) as ${alias}`);
   }
 
   /** Set the primary table. */
@@ -87,6 +91,13 @@ export class QueryBuilder {
     return this.addJoin("INNER", table, aliasOrOn, on);
   }
 
+  /** Add an INNER JOIN (alias for join). */
+  innerJoin(table: string, on: string): this;
+  innerJoin(table: string, alias: string, on: string): this;
+  innerJoin(table: string, aliasOrOn: string, on?: string): this {
+    return this.addJoin("INNER", table, aliasOrOn, on);
+  }
+
   /** Add a LEFT JOIN. */
   leftJoin(table: string, on: string): this;
   leftJoin(table: string, alias: string, on: string): this;
@@ -95,8 +106,14 @@ export class QueryBuilder {
   }
 
   /** Add a WHERE condition (AND). */
-  where(column: string, operator: WhereOperator, value?: unknown): this {
-    this._wheres.push({ column, connector: "AND", operator, value });
+  where(column: string, value: unknown): this;
+  where(column: string, operator: WhereOperator, value?: unknown): this;
+  where(column: string, operatorOrValue: WhereOperator | unknown, value?: unknown): this {
+    if (arguments.length === 2) {
+      this._wheres.push({ column, connector: "AND", operator: "=", value: operatorOrValue });
+    } else {
+      this._wheres.push({ column, connector: "AND", operator: operatorOrValue as WhereOperator, value });
+    }
     return this;
   }
 
@@ -134,6 +151,28 @@ export class QueryBuilder {
       operator: "=",
       value: params,
     });
+    return this;
+  }
+
+  /** Add a WHERE EXISTS subquery condition. */
+  whereExists(subquery: string): this {
+    return this.whereRaw(`EXISTS(${subquery})`);
+  }
+
+  /** Add a WHERE NOT EXISTS subquery condition. */
+  whereNotExists(subquery: string): this {
+    return this.whereRaw(`NOT EXISTS(${subquery})`);
+  }
+
+  /** Add an OR WHERE condition. */
+  orWhere(column: string, value: unknown): this;
+  orWhere(column: string, operator: WhereOperator, value?: unknown): this;
+  orWhere(column: string, operatorOrValue: WhereOperator | unknown, value?: unknown): this {
+    if (arguments.length === 2) {
+      this._wheres.push({ column, connector: "OR", operator: "=", value: operatorOrValue });
+    } else {
+      this._wheres.push({ column, connector: "OR", operator: operatorOrValue as WhereOperator, value });
+    }
     return this;
   }
 
@@ -213,29 +252,6 @@ export class QueryBuilder {
     return this;
   }
 
-  /** Enable soft-delete filtering (adds `WHERE alias.deleted_at IS NULL`). Supports multiple table aliases. */
-  withSoftDelete(...aliases: (string | undefined)[]): this {
-    if (aliases.length === 0) {
-      if (!this._softDeleteAliases.includes("")) {
-        this._softDeleteAliases.push("");
-      }
-    } else {
-      for (const a of aliases) {
-        const alias = a ?? "";
-        if (!this._softDeleteAliases.includes(alias)) {
-          this._softDeleteAliases.push(alias);
-        }
-      }
-    }
-    return this;
-  }
-
-  /** Bypass soft-delete filter to include deleted records. */
-  includeDeleted(): this {
-    this._includeDeleted = true;
-    return this;
-  }
-
   /** Create a deep clone of the current QueryBuilder instance. */
   clone(): QueryBuilder {
     const cloned = new QueryBuilder();
@@ -249,8 +265,6 @@ export class QueryBuilder {
     cloned._orderBys = [...this._orderBys];
     cloned._limit = this._limit;
     cloned._offset = this._offset;
-    cloned._softDeleteAliases = [...this._softDeleteAliases];
-    cloned._includeDeleted = this._includeDeleted;
     return cloned;
   }
 
@@ -276,28 +290,12 @@ export class QueryBuilder {
       parts.push(`${join.type} JOIN ${tableExpr} ON ${join.on}`);
     }
 
-    // Collect WHERE conditions
-    const allWheres: WhereCondition[] = [...this._wheres];
-
-    // Soft delete filter
-    if (this._softDeleteAliases.length > 0 && !this._includeDeleted) {
-      for (let i = this._softDeleteAliases.length - 1; i >= 0; i--) {
-        const alias = this._softDeleteAliases[i];
-        const prefix = alias ? `${alias}.` : "";
-        allWheres.unshift({
-          column: `${prefix}deleted_at`,
-          connector: "AND",
-          operator: "IS NULL",
-        });
-      }
-    }
-
     // WHERE
-    if (allWheres.length > 0) {
+    if (this._wheres.length > 0) {
       const whereParts: string[] = [];
 
-      for (let i = 0; i < allWheres.length; i++) {
-        const cond = allWheres[i];
+      for (let i = 0; i < this._wheres.length; i++) {
+        const cond = this._wheres[i];
         let fragment: string;
 
         if (cond.column.startsWith("__RAW__")) {
@@ -368,9 +366,13 @@ export class QueryBuilder {
 
   /** Execute compiled query and fetch all matching rows. */
   async getMany<T>(): Promise<T[]> {
-    const { sql, params } = this.build();
-    const db = await getDB();
-    return db.select<T[]>(sql, params);
+    try {
+      const { sql, params } = this.build();
+      const db = await getDB();
+      return await db.select<T[]>(sql, params);
+    } catch (error) {
+      throw wrapDbError(error, this._from || "query");
+    }
   }
 
   /** Execute compiled query and fetch the first matching row. */
@@ -378,5 +380,16 @@ export class QueryBuilder {
     this.limit(1);
     const rows = await this.getMany<T>();
     return rows[0] ?? null;
+  }
+
+  /** Execute query as COUNT(*) and return the number of rows. */
+  async count(): Promise<number> {
+    const qb = this.clone();
+    qb._selectColumns = ["COUNT(*) as count"];
+    qb._orderBys = [];
+    qb._limit = null;
+    qb._offset = null;
+    const row = await qb.getOne<{ count: number }>();
+    return Number(row?.count ?? 0);
   }
 }

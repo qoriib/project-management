@@ -69,7 +69,6 @@ export interface FindOptions {
   orderBy?: OrderByClause | OrderByClause[];
   limit?: number;
   offset?: number;
-  includeDeleted?: boolean;
 }
 
 export interface ModelDefinition {
@@ -81,8 +80,6 @@ export interface ModelDefinition {
   createColumns: readonly string[];
   /** Columns that can be updated (usually same as createColumns) */
   updateColumns: readonly string[];
-  /** Whether this table supports soft delete via `deleted_at` column */
-  softDelete: boolean;
 }
 
 export interface JoinClause {

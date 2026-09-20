@@ -9,6 +9,7 @@ import { DB_SQLITE_URL } from "@/configs/database.config";
 export interface DatabaseLike {
   select<T>(sql: string, params?: any[]): Promise<T>;
   execute(sql: string, params?: any[]): Promise<{ lastInsertId: number; rowsAffected: number } | any>;
+  exec?: (sql: string) => Promise<void>;
 }
 
 let dbInstance: Database | null = null;

@@ -12,14 +12,14 @@ export interface Receipt {
   receipt_code: string | null;
   /** Tanggal fisik barang diterima di lapangan (format: YYYY-MM-DD) */
   receipt_date: string;
+  /** Timestamp waktu pembuatan data */
+  created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
   updated_at: string;
-  /** Timestamp waktu soft delete (null jika masih aktif) */
-  deleted_at: string | null;
 }
 
 /** Payload untuk membuat tanda terima baru */
-export type CreateReceipt = Omit<Receipt, "receipt_id" | "updated_at" | "deleted_at">;
+export type CreateReceipt = Omit<Receipt, "receipt_id" | "created_at" | "updated_at">;
 
 /** Payload untuk memperbarui data tanda terima */
 export type UpdateReceipt = Partial<CreateReceipt>;
@@ -30,7 +30,6 @@ export type UpdateReceipt = Partial<CreateReceipt>;
 export const ReceiptModel: ModelDefinition = {
   createColumns: ["order_id", "receipt_code", "receipt_date"],
   primaryKey: "receipt_id",
-  softDelete: true,
   tableName: "receipts",
   updateColumns: ["order_id", "receipt_code", "receipt_date"],
 };

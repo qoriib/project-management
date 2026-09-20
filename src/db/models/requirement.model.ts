@@ -9,7 +9,7 @@ export interface Requirement {
   /** Relasi ID proyek pemilik kebutuhan */
   project_id: string;
   /** Relasi ID kelompok kebutuhan / item pekerjaan */
-  requirement_group_id?: string | null;
+  requirement_group_id: string | null;
   /** Relasi ID item yang direncanakan */
   item_id: string;
   /** Relasi ID harga satuan acuan yang dipilih */
@@ -22,20 +22,15 @@ export interface Requirement {
   created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
   updated_at: string;
-  /** Timestamp waktu soft delete (null jika masih aktif) */
-  deleted_at: string | null;
 }
 
-/** Payload untuk membuat baris kebutuhan proyek baru (has_tax bernilai default false jika diabaikan) */
-export type CreateRequirement = Omit<
-  Requirement,
-  "requirement_id" | "created_at" | "updated_at" | "deleted_at" | "has_tax"
-> & {
+/** Payload untuk membuat baris kebutuhan proyek baru */
+export type CreateRequirement = Omit<Requirement, "requirement_id" | "created_at" | "updated_at" | "has_tax"> & {
   has_tax?: boolean;
 };
 
 /** Payload untuk memperbarui baris kebutuhan proyek */
-export type UpdateRequirement = Partial<CreateRequirement>;
+export type UpdateRequirement = Partial<Omit<Requirement, "requirement_id" | "created_at" | "updated_at">>;
 
 /**
  * Metadata definisi tabel basis data untuk model Requirement
@@ -43,7 +38,6 @@ export type UpdateRequirement = Partial<CreateRequirement>;
 export const RequirementModel: ModelDefinition = {
   createColumns: ["project_id", "requirement_group_id", "item_id", "item_price_id", "qty", "has_tax"],
   primaryKey: "requirement_id",
-  softDelete: true,
   tableName: "requirements",
-  updateColumns: ["project_id", "requirement_group_id", "item_id", "item_price_id", "qty", "has_tax"],
+  updateColumns: ["requirement_group_id", "item_id", "item_price_id", "qty", "has_tax"],
 };

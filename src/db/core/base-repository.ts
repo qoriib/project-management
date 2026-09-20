@@ -1,5 +1,5 @@
 /**
- * Base Repository — Generic CRUD with soft-delete support and atomic transactions.
+ * Base Repository — Generic CRUD with atomic transactions.
  *
  * Provides standard find/create/update/delete operations
  * that all entity repositories inherit and can extend.
@@ -7,7 +7,7 @@
 
 import { getDB } from "@/db/index";
 import { QueryBuilder } from "./query-builder";
-import { DbError, wrapDbError } from "./errors";
+import { wrapDbError } from "./errors";
 import { v7 as uuidv7 } from "uuid";
 import type { FindOptions, ModelDefinition, OrderByClause, SimpleWhere } from "./types";
 
@@ -27,93 +27,58 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
    * Find all records, optionally filtered, sorted, and paginated.
    */
   async findAll(options?: FindOptions): Promise<TEntity[]> {
-    try {
-      const qb = this.query();
+    const qb = this.query();
 
-      if (options?.includeDeleted) {
-        qb.includeDeleted();
-      }
-
-      if (options?.where) {
-        qb.applySimpleWhere(options.where);
-      }
-
-      if (options?.orderBy) {
-        const orders: OrderByClause[] = Array.isArray(options.orderBy) ? options.orderBy : [options.orderBy];
-        for (const order of orders) {
-          qb.orderBy(order.column, order.direction);
-        }
-      }
-
-      if (options?.limit !== undefined) {
-        qb.limit(options.limit);
-      }
-      if (options?.offset !== undefined) {
-        qb.offset(options.offset);
-      }
-
-      const { sql, params } = qb.build();
-      const db = await this.db();
-      return await db.select<TEntity[]>(sql, params);
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
+    if (options?.where) {
+      qb.applySimpleWhere(options.where);
     }
+
+    if (options?.orderBy) {
+      const orders: OrderByClause[] = Array.isArray(options.orderBy) ? options.orderBy : [options.orderBy];
+      for (const order of orders) {
+        qb.orderBy(order.column, order.direction);
+      }
+    }
+
+    if (options?.limit !== undefined) {
+      qb.limit(options.limit);
+    }
+    if (options?.offset !== undefined) {
+      qb.offset(options.offset);
+    }
+
+    return qb.getMany<TEntity>();
   }
 
   /**
    * Find a single record by its primary key (UUID string).
-   * Returns null if not found (or if soft-deleted).
+   * Returns null if not found.
    */
-  async findById(id: string, includeDeleted = false): Promise<TEntity | null> {
-    try {
-      const qb = this.query().where(this.model.primaryKey, "=", id);
-      if (includeDeleted) qb.includeDeleted();
-
-      const { sql, params } = qb.build();
-      const db = await this.db();
-      const rows = await db.select<TEntity[]>(sql, params);
-      return rows[0] ?? null;
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
+  async findById(id: string): Promise<TEntity | null> {
+    return this.query().where(this.model.primaryKey, "=", id).getOne<TEntity>();
   }
 
   /**
    * Find the first record matching the given where conditions.
    */
-  async findOne(where: SimpleWhere, includeDeleted = false): Promise<TEntity | null> {
-    const results = await this.findAll({
-      includeDeleted,
-      limit: 1,
-      where,
-    });
-    return results[0] ?? null;
+  async findOne(where: SimpleWhere): Promise<TEntity | null> {
+    return this.query().applySimpleWhere(where).getOne<TEntity>();
   }
 
   /**
    * Count records matching optional where conditions.
    */
-  async count(where?: SimpleWhere, includeDeleted = false): Promise<number> {
-    try {
-      const qb = this.query().selectRaw("COUNT(*) as count");
-      if (includeDeleted) qb.includeDeleted();
-      if (where) qb.applySimpleWhere(where);
-
-      const { sql, params } = qb.build();
-      const db = await this.db();
-      const rows = await db.select<{ count: number }[]>(sql, params);
-      return rows[0]?.count ?? 0;
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
+  async count(where?: SimpleWhere): Promise<number> {
+    const qb = this.query();
+    if (where) qb.applySimpleWhere(where);
+    return qb.count();
   }
 
   /**
    * Check if a record exists matching the given conditions.
    */
-  async exists(where: SimpleWhere, includeDeleted = false): Promise<boolean> {
-    const c = await this.count(where, includeDeleted);
-    return c > 0;
+  async exists(where: SimpleWhere): Promise<boolean> {
+    return (await this.count(where)) > 0;
   }
 
   /**
@@ -215,30 +180,21 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   }
 
   /**
-   * Soft-delete a record by setting `deleted_at` to current timestamp.
-   * Falls back to hard delete if the model doesn't support soft delete.
+   * Delete a record by its primary key.
    */
   async delete(id: string): Promise<void> {
     try {
       const db = await this.db();
-
-      if (this.model.softDelete) {
-        await db.execute(
-          `UPDATE ${this.model.tableName} SET deleted_at = datetime('now', 'localtime'), updated_at = datetime('now', 'localtime') WHERE ${this.model.primaryKey} = $1`,
-          [id],
-        );
-      } else {
-        await this.hardDelete(id);
-      }
+      await db.execute(`DELETE FROM ${this.model.tableName} WHERE ${this.model.primaryKey} = $1`, [id]);
     } catch (error) {
       throw wrapDbError(error, this.model.tableName);
     }
   }
 
   /**
-   * Delete records matching a where condition (soft or hard).
+   * Delete records matching a where condition.
    */
-  async deleteWhere(where: SimpleWhere, soft = true): Promise<number> {
+  async deleteWhere(where: SimpleWhere): Promise<number> {
     try {
       const db = await this.db();
       const qb = new QueryBuilder().from(this.model.tableName).applySimpleWhere(where);
@@ -246,13 +202,7 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
 
       const whereMatch = built.sql.match(/WHERE\s+([\s\S]+)$/);
       const whereClause = whereMatch ? `WHERE ${whereMatch[1]}` : "";
-
-      let sql: string;
-      if (this.model.softDelete && soft) {
-        sql = `UPDATE ${this.model.tableName} SET deleted_at = datetime('now', 'localtime'), updated_at = datetime('now', 'localtime') ${whereClause}`;
-      } else {
-        sql = `DELETE FROM ${this.model.tableName} ${whereClause}`;
-      }
+      const sql = `DELETE FROM ${this.model.tableName} ${whereClause}`;
 
       const res = await db.execute(sql, built.params);
       return res.rowsAffected ?? 0;
@@ -264,51 +214,16 @@ export abstract class BaseRepository<TEntity extends object, TCreate extends obj
   /**
    * Delete multiple records by an array of primary keys.
    */
-  async deleteByIds(ids: string[], soft = true): Promise<void> {
+  async deleteByIds(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
-    await this.deleteWhere({ [this.model.primaryKey]: { in: ids } }, soft);
-  }
-
-  /**
-   * Permanently delete a record from the database.
-   */
-  async hardDelete(id: string): Promise<void> {
-    try {
-      const db = await this.db();
-      await db.execute(`DELETE FROM ${this.model.tableName} WHERE ${this.model.primaryKey} = $1`, [id]);
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
-  }
-
-  /**
-   * Restore a soft-deleted record by clearing `deleted_at`.
-   */
-  async restore(id: string): Promise<void> {
-    if (!this.model.softDelete) {
-      throw new DbError(`Tabel ${this.model.tableName} tidak mendukung soft delete`);
-    }
-
-    try {
-      const db = await this.db();
-      await db.execute(
-        `UPDATE ${this.model.tableName} SET deleted_at = NULL, updated_at = datetime('now', 'localtime') WHERE ${this.model.primaryKey} = $1`,
-        [id],
-      );
-    } catch (error) {
-      throw wrapDbError(error, this.model.tableName);
-    }
+    await this.deleteWhere({ [this.model.primaryKey]: { in: ids } });
   }
 
   /**
    * Create a new QueryBuilder pre-configured for this model's table.
    */
   public query(alias?: string): QueryBuilder {
-    const qb = new QueryBuilder().from(this.model.tableName, alias);
-    if (this.model.softDelete) {
-      qb.withSoftDelete(alias);
-    }
-    return qb;
+    return new QueryBuilder().from(this.model.tableName, alias);
   }
 
   /**

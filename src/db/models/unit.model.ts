@@ -8,14 +8,14 @@ export interface Unit {
   unit_id: string;
   /** Nama satuan pengukuran */
   unit_name: string;
+  /** Timestamp waktu pembuatan data */
+  created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
   updated_at: string;
-  /** Timestamp waktu soft delete (null jika masih aktif) */
-  deleted_at: string | null;
 }
 
 /** Payload untuk membuat satuan pengukuran baru */
-export type CreateUnit = Omit<Unit, "unit_id" | "updated_at" | "deleted_at">;
+export type CreateUnit = Omit<Unit, "unit_id" | "created_at" | "updated_at">;
 
 /** Payload untuk memperbarui data satuan */
 export type UpdateUnit = Partial<CreateUnit>;
@@ -26,7 +26,6 @@ export type UpdateUnit = Partial<CreateUnit>;
 export const UnitModel: ModelDefinition = {
   createColumns: ["unit_name"],
   primaryKey: "unit_id",
-  softDelete: true,
   tableName: "units",
   updateColumns: ["unit_name"],
 };

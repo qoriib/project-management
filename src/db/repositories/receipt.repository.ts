@@ -44,50 +44,33 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
    * Get all receipts with summary info (item_count, vendor_names, item_names, project_name, order_code).
    */
   async findAllWithSummary(filters?: ReceiptFilters): Promise<ReceiptSummary[]> {
-    const params: unknown[] = [];
-    let pIdx = 1;
-    let whereSql = "WHERE receipts.deleted_at IS NULL";
+    const rows = await this.query("receipts")
+      .select(
+        "receipts.receipt_id",
+        "receipts.receipt_code",
+        "receipts.order_id",
+        "orders.order_code",
+        "receipts.receipt_date",
+        "projects.project_name",
+      )
+      .selectCount("receipt_items.receipt_item_id", "item_count")
+      .selectGroupConcat("vendors.vendor_name", "vendor_names", true)
+      .selectGroupConcat("items.item_name", "item_names", true)
+      .leftJoin("orders", "orders.order_id = receipts.order_id")
+      .leftJoin("projects", "projects.project_id = orders.project_id")
+      .leftJoin("receipt_items", "receipt_items.receipt_id = receipts.receipt_id")
+      .leftJoin("order_items", "order_items.order_item_id = receipt_items.order_item_id")
+      .leftJoin("items", "items.item_id = order_items.item_id")
+      .leftJoin("vendors", "vendors.vendor_id = order_items.vendor_id")
+      .when(Boolean(filters?.vendor_id), (q) => q.where("order_items.vendor_id", filters!.vendor_id))
+      .when(Boolean(filters?.project_id), (q) => q.where("orders.project_id", filters!.project_id))
+      .when(Boolean(filters?.start_date), (q) => q.where("receipts.receipt_date", ">=", filters!.start_date))
+      .when(Boolean(filters?.end_date), (q) => q.where("receipts.receipt_date", "<=", filters!.end_date))
+      .groupBy("receipts.receipt_id")
+      .orderBy("receipts.receipt_date", "DESC")
+      .orderBy("receipts.receipt_id", "DESC")
+      .getMany<RawReceiptSummaryRow>();
 
-    if (filters?.vendor_id) {
-      whereSql += ` AND order_items.vendor_id = $${pIdx++}`;
-      params.push(filters.vendor_id);
-    }
-    if (filters?.project_id) {
-      whereSql += ` AND orders.project_id = $${pIdx++}`;
-      params.push(filters.project_id);
-    }
-    if (filters?.start_date) {
-      whereSql += ` AND receipts.receipt_date >= $${pIdx++}`;
-      params.push(filters.start_date);
-    }
-    if (filters?.end_date) {
-      whereSql += ` AND receipts.receipt_date <= $${pIdx++}`;
-      params.push(filters.end_date);
-    }
-
-    const sql = `
-      SELECT receipts.receipt_id,
-             receipts.receipt_code,
-             receipts.order_id,
-             orders.order_code,
-             receipts.receipt_date,
-             projects.project_name,
-             COUNT(receipt_items.receipt_item_id) as item_count,
-             GROUP_CONCAT(DISTINCT vendors.vendor_name) as vendor_names,
-             GROUP_CONCAT(DISTINCT items.item_name) as item_names
-      FROM receipts
-      LEFT JOIN orders ON orders.order_id = receipts.order_id AND orders.deleted_at IS NULL
-      LEFT JOIN projects ON projects.project_id = orders.project_id AND projects.deleted_at IS NULL
-      LEFT JOIN receipt_items ON receipt_items.receipt_id = receipts.receipt_id
-      LEFT JOIN order_items ON order_items.order_item_id = receipt_items.order_item_id
-      LEFT JOIN items ON items.item_id = order_items.item_id AND items.deleted_at IS NULL
-      LEFT JOIN vendors ON vendors.vendor_id = order_items.vendor_id AND vendors.deleted_at IS NULL
-      ${whereSql}
-      GROUP BY receipts.receipt_id
-      ORDER BY receipts.receipt_date DESC, receipts.receipt_id DESC
-    `;
-
-    const rows = await this.rawSelect<RawReceiptSummaryRow>(sql, params);
     return rows.map((row) => ({
       ...row,
       vendor_names: row.vendor_names ? row.vendor_names.split(",").map((name) => name.trim()) : [],
@@ -103,7 +86,7 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
   }
 
   /**
-   * Get all receipt items for a specific Order (across all active receipts).
+   * Get all receipt items for a specific Order (across all receipts).
    */
   async findItemsByOrder(orderId: string): Promise<ReceiptItemByOrder[]> {
     return receiptItemRepo.findByOrder(orderId);
@@ -124,8 +107,19 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
 
     const validItems = items.filter((item) => item.qty > 0);
     if (validItems.length > 0) {
-      const rows = validItems.map((item) => [this.generateId(), receiptId, item.order_item_id, item.qty]);
-      await this.bulkInsert("receipt_items", ["receipt_item_id", "receipt_id", "order_item_id", "qty"], rows);
+      const rows = validItems.map((item) => [
+        this.generateId(),
+        receiptId,
+        item.order_item_id,
+        item.item_price_id,
+        item.qty,
+        item.has_tax ? 1 : 0,
+      ]);
+      await this.bulkInsert(
+        "receipt_items",
+        ["receipt_item_id", "receipt_id", "order_item_id", "item_price_id", "qty", "has_tax"],
+        rows,
+      );
     }
   }
 
@@ -154,39 +148,81 @@ class ReceiptRepository extends BaseRepository<Receipt, CreateReceipt, UpdateRec
   }
 
   /**
+   * Add a single item to a receipt.
+   */
+  async createItem(receiptId: string, item: ReceiptItemInput): Promise<string> {
+    return receiptItemRepo.create({
+      receipt_id: receiptId,
+      order_item_id: item.order_item_id,
+      item_price_id: item.item_price_id,
+      qty: item.qty,
+      has_tax: item.has_tax ?? false,
+    });
+  }
+
+  /**
+   * Update an existing item in a receipt.
+   */
+  async updateItem(receiptItemId: string, item: ReceiptItemInput): Promise<void> {
+    await receiptItemRepo.update(receiptItemId, {
+      order_item_id: item.order_item_id,
+      item_price_id: item.item_price_id,
+      qty: item.qty,
+      has_tax: item.has_tax ?? false,
+    });
+  }
+
+  /**
+   * Delete a single receipt item.
+   */
+  async deleteItem(receiptItemId: string): Promise<void> {
+    await receiptItemRepo.delete(receiptItemId);
+  }
+
+  /**
    * Upsert a single receipt item by order_item_id.
    * If qty > 0, insert or update the record.
    * If qty <= 0, delete the record.
    */
-  async upsertItem(receiptId: string, orderItemId: string, qty: number): Promise<void> {
-    const existing = await this.rawSelect<{ receipt_item_id: string }>(
-      `SELECT receipt_item_id FROM receipt_items WHERE receipt_id = $1 AND order_item_id = $2 LIMIT 1`,
-      [receiptId, orderItemId],
-    );
+  async upsertItem(
+    receiptId: string,
+    orderItemId: string,
+    item_price_id: string,
+    qty: number,
+    has_tax = false,
+  ): Promise<void> {
+    const existing = await receiptItemRepo.findOne({
+      receipt_id: receiptId,
+      order_item_id: orderItemId,
+    });
 
     if (qty > 0) {
-      if (existing.length > 0) {
-        await this.rawExecute(`UPDATE receipt_items SET qty = $1 WHERE receipt_item_id = $2`, [
+      if (existing) {
+        await receiptItemRepo.update(existing.receipt_item_id, {
+          item_price_id,
           qty,
-          existing[0].receipt_item_id,
-        ]);
+          has_tax,
+        });
       } else {
-        const id = this.generateId();
-        await this.rawExecute(
-          `INSERT INTO receipt_items (receipt_item_id, receipt_id, order_item_id, qty) VALUES ($1, $2, $3, $4)`,
-          [id, receiptId, orderItemId, qty],
-        );
+        await receiptItemRepo.create({
+          receipt_id: receiptId,
+          order_item_id: orderItemId,
+          item_price_id,
+          qty,
+          has_tax,
+        });
       }
-    } else if (existing.length > 0) {
-      await this.rawExecute(`DELETE FROM receipt_items WHERE receipt_item_id = $1`, [existing[0].receipt_item_id]);
+    } else if (existing) {
+      await receiptItemRepo.delete(existing.receipt_item_id);
     }
   }
 
   /**
-   * Soft-delete a receipt and hard-delete its receipt_items to prevent orphaned rows.
+   * Delete a receipt and hard-delete its receipt_items (FK cascade handles this automatically,
+   * but explicit delete ensures no orphans from FK restrict scenarios).
    */
   override async delete(id: string): Promise<void> {
-    await this.rawExecute(`DELETE FROM receipt_items WHERE receipt_id = $1`, [id]);
+    await receiptItemRepo.deleteWhere({ receipt_id: id });
     await super.delete(id);
   }
 }

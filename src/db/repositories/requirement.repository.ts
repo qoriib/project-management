@@ -1,7 +1,10 @@
 import { BaseRepository } from "@/db/core/base-repository";
 import { RequirementModel, type Requirement, type CreateRequirement, type UpdateRequirement } from "@/db/models";
 
+import { projectRepo } from "./project.repository";
+
 export type RequirementDetail = Requirement & {
+  price: number;
   item_name?: string;
   item_code?: string;
   category_prefix?: string;
@@ -10,8 +13,6 @@ export type RequirementDetail = Requirement & {
   project_name?: string;
   group_name?: string;
   category?: string;
-  /** Resolved price value from item_prices join */
-  price?: number;
   estimated_total?: number;
 };
 
@@ -28,44 +29,41 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
    * Get all Requirements with joined details (item, price variant, unit, category, project, group).
    */
   async findAllWithDetails(filters?: RequirementFilters): Promise<RequirementDetail[]> {
-    const params: unknown[] = [];
-    let whereClause = "WHERE requirements.deleted_at IS NULL";
-    if (filters?.project_id) {
-      whereClause += " AND requirements.project_id = $1";
-      params.push(filters.project_id);
-    }
+    const rows = await this.query("requirements")
+      .select(
+        "requirements.requirement_id",
+        "requirements.project_id",
+        "requirements.requirement_group_id",
+        "requirement_groups.group_name",
+        "requirements.item_id",
+        "requirements.item_price_id",
+        "item_prices.price as price",
+        "requirements.qty",
+        "requirements.has_tax",
+        "requirements.created_at",
+        "items.item_name",
+        "items.item_code",
+        "units.unit_name as unit",
+        "categories.category_name as category",
+        "categories.prefix as category_prefix",
+        "categories.category_code",
+        "projects.project_name",
+      )
+      .selectRaw(
+        "(requirements.qty * item_prices.price * (CASE WHEN requirements.has_tax = 1 THEN 1.12 ELSE 1.0 END))",
+        "estimated_total",
+      )
+      .leftJoin("requirement_groups", "requirement_groups.requirement_group_id = requirements.requirement_group_id")
+      .leftJoin("items", "items.item_id = requirements.item_id")
+      .leftJoin("item_prices", "item_prices.item_price_id = requirements.item_price_id")
+      .leftJoin("item_categories", "categories", "items.category_id = categories.category_id")
+      .leftJoin("units", "items.unit_id = units.unit_id")
+      .leftJoin("projects", "projects.project_id = requirements.project_id")
+      .when(Boolean(filters?.project_id), (q) => q.where("requirements.project_id", filters!.project_id))
+      .orderBy("COALESCE(requirement_groups.requirement_group_id, '')", "ASC")
+      .orderBy("requirements.requirement_id", "ASC")
+      .getMany<RequirementDetail>();
 
-    const sql = `
-      SELECT requirements.requirement_id,
-             requirements.project_id,
-             requirements.requirement_group_id,
-             requirement_groups.group_name,
-             requirements.item_id,
-             requirements.item_price_id,
-             requirements.qty,
-             requirements.has_tax,
-             requirements.created_at,
-             item_prices.price,
-             items.item_name,
-             items.item_code,
-             units.unit_name as unit,
-             categories.category_name as category,
-             categories.prefix as category_prefix,
-             categories.category_code,
-             projects.project_name,
-             (requirements.qty * item_prices.price * (CASE WHEN requirements.has_tax = 1 THEN 1.12 ELSE 1.0 END)) as estimated_total
-      FROM requirements
-      LEFT JOIN requirement_groups ON requirement_groups.requirement_group_id = requirements.requirement_group_id AND requirement_groups.deleted_at IS NULL
-      LEFT JOIN item_prices ON item_prices.item_price_id = requirements.item_price_id AND item_prices.deleted_at IS NULL
-      LEFT JOIN items ON items.item_id = requirements.item_id AND items.deleted_at IS NULL
-      LEFT JOIN item_categories categories ON items.category_id = categories.category_id AND categories.deleted_at IS NULL
-      LEFT JOIN units ON items.unit_id = units.unit_id AND units.deleted_at IS NULL
-      LEFT JOIN projects ON projects.project_id = requirements.project_id AND projects.deleted_at IS NULL
-      ${whereClause}
-      ORDER BY COALESCE(requirement_groups.requirement_group_id, '') ASC, requirements.requirement_id ASC
-    `;
-
-    const rows = await this.rawSelect<RequirementDetail>(sql, params);
     return rows.map((row) => ({
       ...row,
       has_tax: Boolean(row.has_tax),
@@ -76,12 +74,8 @@ class RequirementRepository extends BaseRepository<Requirement, CreateRequiremen
    * Validasi di sisi aplikasi bahwa proyek belum di-approve sebelum melakukan perubahan kebutuhan.
    */
   async ensureNotApproved(projectId: string): Promise<void> {
-    const db = await this.db();
-    const rows = await db.select<{ requirements_is_approved: number }[]>(
-      "SELECT requirements_is_approved FROM projects WHERE project_id = $1 AND deleted_at IS NULL",
-      [projectId],
-    );
-    if (rows[0]?.requirements_is_approved === 1) {
+    const project = await projectRepo.findById(projectId);
+    if (project?.requirements_is_approved) {
       throw new Error("Gagal: Kebutuhan untuk proyek ini telah dikunci karena sudah disetujui.");
     }
   }

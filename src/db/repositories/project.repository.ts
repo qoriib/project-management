@@ -12,14 +12,15 @@ class ProjectRepository extends BaseRepository<Project, CreateProject, UpdatePro
    * Get all projects and check if they have BOM or PO relations.
    */
   async findAllWithRelations(): Promise<ProjectWithRelations[]> {
-    const rows = await this.rawSelect<Project & { has_relation: number | boolean }>(
-      `SELECT projects.*,
-              (EXISTS(SELECT 1 FROM requirements WHERE project_id = projects.project_id AND deleted_at IS NULL) 
-               OR EXISTS(SELECT 1 FROM orders WHERE project_id = projects.project_id AND deleted_at IS NULL)) as has_relation
-       FROM projects
-       WHERE projects.deleted_at IS NULL
-       ORDER BY projects.project_id ASC`,
-    );
+    const rows = await this.query("projects")
+      .select("projects.*")
+      .selectRaw(
+        `(EXISTS(SELECT 1 FROM requirements WHERE requirements.project_id = projects.project_id)
+          OR EXISTS(SELECT 1 FROM orders WHERE orders.project_id = projects.project_id))`,
+        "has_relation",
+      )
+      .orderBy("projects.project_id", "ASC")
+      .getMany<Project & { has_relation: number | boolean }>();
 
     return rows.map((project) => ({
       ...project,

@@ -16,12 +16,10 @@ export interface Vendor {
   created_at: string;
   /** Timestamp waktu pembaruan data terakhir */
   updated_at: string;
-  /** Timestamp waktu soft delete (null jika masih aktif) */
-  deleted_at: string | null;
 }
 
 /** Payload untuk membuat data vendor baru */
-export type CreateVendor = Omit<Vendor, "vendor_id" | "created_at" | "updated_at" | "deleted_at">;
+export type CreateVendor = Omit<Vendor, "vendor_id" | "created_at" | "updated_at">;
 
 /** Payload untuk memperbarui data vendor yang sudah ada */
 export type UpdateVendor = Partial<CreateVendor>;
@@ -32,7 +30,6 @@ export type UpdateVendor = Partial<CreateVendor>;
 export const VendorModel: ModelDefinition = {
   createColumns: ["vendor_name", "phone", "address"],
   primaryKey: "vendor_id",
-  softDelete: true,
   tableName: "vendors",
   updateColumns: ["vendor_name", "phone", "address"],
 };
