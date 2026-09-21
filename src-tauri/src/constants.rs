@@ -15,27 +15,27 @@ pub const MASTER_TABLES: &[(&str, &str, &str)] = &[
     (
         "vendors",
         "vendor_id",
-        "vendor_name = excluded.vendor_name, phone = excluded.phone, address = excluded.address, deleted_at = excluded.deleted_at",
+        "vendor_name = excluded.vendor_name, phone = excluded.phone, address = excluded.address",
     ),
     (
         "item_categories",
         "category_id",
-        "prefix = excluded.prefix, category_code = excluded.category_code, category_name = excluded.category_name, deleted_at = excluded.deleted_at",
+        "prefix = excluded.prefix, category_code = excluded.category_code, category_name = excluded.category_name",
     ),
     (
         "units",
         "unit_id",
-        "unit_name = excluded.unit_name, deleted_at = excluded.deleted_at",
+        "unit_name = excluded.unit_name",
     ),
     (
         "items",
         "item_id",
-        "item_code = excluded.item_code, item_name = excluded.item_name, category_id = excluded.category_id, unit_id = excluded.unit_id, deleted_at = excluded.deleted_at",
+        "item_code = excluded.item_code, item_name = excluded.item_name, category_id = excluded.category_id, unit_id = excluded.unit_id",
     ),
     (
         "item_prices",
         "item_price_id",
-        "item_id = excluded.item_id, price = excluded.price, deleted_at = excluded.deleted_at",
+        "item_id = excluded.item_id, price = excluded.price",
     ),
 ];
 

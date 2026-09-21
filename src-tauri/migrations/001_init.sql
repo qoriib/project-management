@@ -163,7 +163,6 @@ CREATE INDEX IF NOT EXISTS idx_requirements_item_id ON requirements(item_id);
 CREATE INDEX IF NOT EXISTS idx_requirements_item_price_id ON requirements(item_price_id);
 
 CREATE INDEX IF NOT EXISTS idx_orders_project_id ON orders(project_id);
-CREATE INDEX IF NOT EXISTS idx_orders_group_id ON orders(requirement_group_id);
 CREATE INDEX IF NOT EXISTS idx_orders_order_date ON orders(order_date);
 
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
