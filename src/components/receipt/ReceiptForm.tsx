@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertDialog, Button, EmptyState, Heading, HStack, Table, Text, TextInput, VStack } from "@astryxdesign/core";
+import {
+  AlertDialog,
+  Button,
+  EmptyState,
+  Heading,
+  HStack,
+  IconButton,
+  Table,
+  Text,
+  TextInput,
+  VStack,
+} from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { Card, Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useTableStickyColumns } from "@astryxdesign/core/Table";
@@ -17,6 +28,7 @@ import { calcGrandTotal } from "@/utils/calc";
 import { useKeyboardShortcut } from "@/utils/useKeyboardShortcut";
 import { type ReceiptItemRow, useReceiptItemFormColumns } from "@/components/receipt/table/useReceiptItemFormColumns";
 import type { ReceiptItemInputPayload } from "@/components/receipt/form/useReceiptItemForm";
+import { ArrowLeft } from "lucide-react";
 import type { ReceiptItemDetail } from "@/db/repositories";
 
 export interface ReceiptFormProps {
@@ -115,13 +127,26 @@ export function ReceiptForm({ receipt }: ReceiptFormProps) {
         header={
           <LayoutHeader hasDivider padding={6}>
             <HStack gap={2} vAlign="center" hAlign="between">
-              <VStack gap={0.5}>
-                <Heading level={3}>Edit Penerimaan</Heading>
-                <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                  Perbarui rincian penerimaan {receipt.receipt_code}
-                  {receipt.order_code ? ` (PO: ${receipt.order_code})` : ""}
-                </Text>
-              </VStack>
+              <HStack gap={3} vAlign="center">
+                <IconButton
+                  variant="ghost"
+                  icon={<ArrowLeft />}
+                  label="Kembali"
+                  tooltip="Kembali"
+                  onClick={() =>
+                    navigate({
+                      to: receipt.order_id ? `/order/${receipt.order_id}` : "/receipt",
+                    })
+                  }
+                />
+                <VStack gap={0.5}>
+                  <Heading level={3}>Edit Penerimaan</Heading>
+                  <Text color="secondary" wordBreak="break-word" textWrap="wrap">
+                    Perbarui rincian penerimaan {receipt.receipt_code}
+                    {receipt.order_code ? ` (PO: ${receipt.order_code})` : ""}
+                  </Text>
+                </VStack>
+              </HStack>
               <Button
                 variant="primary"
                 type="button"

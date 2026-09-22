@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertDialog, Button, EmptyState, Heading, HStack, Table, Text, TextInput, VStack } from "@astryxdesign/core";
+import {
+  AlertDialog,
+  Button,
+  EmptyState,
+  Heading,
+  HStack,
+  IconButton,
+  Table,
+  Text,
+  TextInput,
+  VStack,
+} from "@astryxdesign/core";
 import { DateInput, type DateInputProps } from "@astryxdesign/core/DateInput";
 import { Card, Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useTableStickyColumns } from "@astryxdesign/core/Table";
@@ -18,6 +29,7 @@ import { calcGrandTotal } from "@/utils/calc";
 import { useKeyboardShortcut } from "@/utils/useKeyboardShortcut";
 import { type OrderItemRow, useOrderItemFormColumns } from "@/components/order/table/useOrderItemFormColumns";
 import type { OrderItemInputPayload } from "@/components/order/form/useOrderItemForm";
+import { ArrowLeft } from "lucide-react";
 import type { OrderItemDetail, OrderWithSummary } from "@/db/repositories";
 
 export interface OrderFormProps {
@@ -112,12 +124,21 @@ export function OrderForm({ order }: OrderFormProps) {
         header={
           <LayoutHeader hasDivider padding={6}>
             <HStack gap={2} vAlign="center" hAlign="between">
-              <VStack gap={0.5}>
-                <Heading level={3}>Edit Pengadaan</Heading>
-                <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                  Perbarui rincian pengadaan {order.order_code}
-                </Text>
-              </VStack>
+              <HStack gap={3} vAlign="center">
+                <IconButton
+                  variant="ghost"
+                  icon={<ArrowLeft />}
+                  label="Kembali ke Detail Pengadaan"
+                  tooltip="Kembali ke Detail Pengadaan"
+                  onClick={() => navigate({ to: `/order/${order.order_id}` })}
+                />
+                <VStack gap={0.5}>
+                  <Heading level={3}>Edit Pengadaan</Heading>
+                  <Text color="secondary" wordBreak="break-word" textWrap="wrap">
+                    Perbarui rincian pengadaan {order.order_code}
+                  </Text>
+                </VStack>
+              </HStack>
               <Button
                 variant="primary"
                 type="button"

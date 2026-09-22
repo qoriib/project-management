@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button, Card, HStack, Heading, Text, Toolbar, VStack, IconButton } from "@astryxdesign/core";
 import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
-import { Download, Printer } from "lucide-react";
+import { ArrowLeft, Download, Printer } from "lucide-react";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useReceiptStore } from "@/store/useReceiptStore";
@@ -69,12 +69,21 @@ function OrderDetailPage() {
         header={
           <LayoutHeader hasDivider padding={6}>
             <HStack gap={2} vAlign="center" hAlign="between">
-              <VStack gap={0.5}>
-                <Heading level={3}>Detail Pengadaan</Heading>
-                <Text color="secondary" wordBreak="break-word" textWrap="wrap">
-                  {`Informasi dan pelacakan pengadaan ${order.order_code}`}
-                </Text>
-              </VStack>
+              <HStack gap={3} vAlign="center">
+                <IconButton
+                  variant="ghost"
+                  icon={<ArrowLeft />}
+                  label="Kembali ke Daftar Pengadaan"
+                  tooltip="Kembali ke Daftar Pengadaan"
+                  onClick={() => navigate({ to: "/order" })}
+                />
+                <VStack gap={0.5}>
+                  <Heading level={3}>Detail Pengadaan</Heading>
+                  <Text color="secondary" wordBreak="break-word" textWrap="wrap">
+                    {`Informasi dan pelacakan pengadaan ${order.order_code}`}
+                  </Text>
+                </VStack>
+              </HStack>
               <HStack gap={2} wrap="wrap">
                 <Button
                   variant="primary"
