@@ -5,6 +5,7 @@
 
 import Database from "@tauri-apps/plugin-sql";
 import { DB_SQLITE_URL } from "@/configs/database.config";
+import { ensureSchemaCompatibility } from "./core/schema-guard";
 
 export interface DatabaseLike {
   select<T>(sql: string, params?: any[]): Promise<T>;
@@ -40,6 +41,9 @@ async function getTauriDb(): Promise<DatabaseLike> {
 
     // Enforce FK constraints (SQLite disables them by default).
     await dbInstance.execute("PRAGMA foreign_keys = ON;");
+
+    // Guarantee that all required tables, columns (e.g. has_detail on requirement_groups), and indexes exist
+    await ensureSchemaCompatibility(dbInstance);
   }
 
   return {
@@ -59,7 +63,9 @@ async function getTauriDb(): Promise<DatabaseLike> {
  */
 async function getNodeDb(): Promise<DatabaseLike> {
   const { getLocalNodeDb } = await import("./node-db");
-  return getLocalNodeDb() as any as DatabaseLike;
+  const nodeDb = getLocalNodeDb() as any as DatabaseLike;
+  await ensureSchemaCompatibility(nodeDb);
+  return nodeDb;
 }
 
 export async function getDB(): Promise<DatabaseLike> {

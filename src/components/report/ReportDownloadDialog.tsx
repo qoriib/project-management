@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button, Dialog, HStack, Heading, SelectableCard, Text, VStack } from "@astryxdesign/core";
-import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Button, Dialog, DialogHeader, HStack, SelectableCard, Text, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
@@ -84,6 +84,7 @@ export function ReportDownloadDialog({ isOpen, onClose, projectId, startDate, en
   return (
     <Dialog
       isOpen={isOpen}
+      purpose="form"
       onOpenChange={(open) => {
         if (!open && !isDownloading) {
           onClose();
@@ -93,9 +94,15 @@ export function ReportDownloadDialog({ isOpen, onClose, projectId, startDate, en
     >
       <Layout
         header={
-          <LayoutHeader hasDivider>
-            <Heading level={3}>Unduh Laporan</Heading>
-          </LayoutHeader>
+          <DialogHeader
+            hasDivider
+            title="Unduh Laporan"
+            onOpenChange={(open) => {
+              if (!open && !isDownloading) {
+                onClose();
+              }
+            }}
+          />
         }
         content={
           <LayoutContent padding={4}>

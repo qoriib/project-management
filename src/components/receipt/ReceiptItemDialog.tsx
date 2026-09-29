@@ -2,23 +2,22 @@ import { useEffect, useState } from "react";
 import {
   Button,
   Dialog,
+  DialogHeader,
   FormLayout,
   HStack,
-  Heading,
   IconButton,
   InputGroup,
   InputGroupText,
   Layout,
   LayoutContent,
   LayoutFooter,
-  LayoutHeader,
   Selector,
   Switch,
   Text,
   TextInput,
   VStack,
 } from "@astryxdesign/core";
-import { MoreHorizontal, X } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { useSelector } from "@tanstack/react-form";
 import { ItemPriceSummaryCard } from "@/components/shared/ItemPriceSummaryCard";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
@@ -93,7 +92,7 @@ export function ReceiptItemDialog({
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh">
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh" purpose="form">
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -104,12 +103,11 @@ export function ReceiptItemDialog({
           <Layout
             height="fill"
             header={
-              <LayoutHeader hasDivider>
-                <HStack justify="between" align="center" width="100%">
-                  <Heading level={3}>{initialData ? "Edit Item Penerimaan" : "Tambah Item Penerimaan"}</Heading>
-                  <IconButton type="button" variant="secondary" icon={<X />} label="Tutup" onClick={onClose} />
-                </HStack>
-              </LayoutHeader>
+              <DialogHeader
+                hasDivider
+                title={initialData ? "Edit Item Penerimaan" : "Tambah Item Penerimaan"}
+                onOpenChange={(open) => !open && onClose()}
+              />
             }
             content={
               <LayoutContent padding={4}>

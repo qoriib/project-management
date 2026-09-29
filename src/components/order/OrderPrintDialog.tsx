@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Dialog, FormLayout, HStack, Heading, Selector, Text, TextArea, VStack } from "@astryxdesign/core";
-import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Button, Dialog, DialogHeader, FormLayout, HStack, Selector, Text, TextArea, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { generateAssetRequestPdf, generatePurchaseOrderPdf } from "@/db/services/pdf";
 import type { OrderPdfTemplate } from "@/db/services/pdf";
@@ -158,9 +158,15 @@ export function OrderPrintDialog({ isOpen, onClose, order, items }: OrderPrintDi
       >
         <Layout
           header={
-            <LayoutHeader hasDivider>
-              <Heading level={3}>Cetak Dokumen</Heading>
-            </LayoutHeader>
+            <DialogHeader
+              hasDivider
+              title="Cetak Dokumen"
+              onOpenChange={(open) => {
+                if (!open && !isPrinting) {
+                  onClose();
+                }
+              }}
+            />
           }
           content={
             <LayoutContent padding={4}>

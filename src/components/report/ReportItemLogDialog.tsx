@@ -1,5 +1,5 @@
-import { Button, Dialog, HStack, Heading, Token, VStack } from "@astryxdesign/core";
-import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Button, Dialog, DialogHeader, HStack, Token, VStack } from "@astryxdesign/core";
+import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { ReportVariantCard } from "./dialog/ReportVariantCard";
 import { TransactionHistoryCard } from "./dialog/TransactionHistoryCard";
 import type { RequirementReportItem } from "@/db/services";
@@ -13,17 +13,15 @@ interface ReportItemLogDialogProps {
 
 export function ReportItemLogDialog({ isOpen, onClose, projectId, item }: ReportItemLogDialogProps) {
   return (
-    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={850} maxHeight="85vh">
+    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={850} maxHeight="85vh" purpose="form">
       <Layout
         header={
-          <LayoutHeader hasDivider padding={4}>
-            <HStack justify="between" align="center" width="100%">
-              <HStack gap={2} align="center">
-                <Heading level={3}>{item.item_name}</Heading>
-              </HStack>
-              {item.group_name ? <Token label={item.group_name} /> : null}
-            </HStack>
-          </LayoutHeader>
+          <DialogHeader
+            hasDivider
+            title={item.item_name}
+            endContent={item.group_name ? <Token label={item.group_name} /> : undefined}
+            onOpenChange={(open) => !open && onClose()}
+          />
         }
         content={
           <LayoutContent padding={4}>

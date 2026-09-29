@@ -7,6 +7,7 @@
 
 import { getDB } from "@/db/index";
 import { wrapDbError } from "@/db/core/errors";
+import { ensureSchemaCompatibility } from "@/db/core/schema-guard";
 
 /**
  * Resets all application data at the ORM level by performing a clean hard wipe
@@ -62,6 +63,9 @@ export async function resetDatabase(): Promise<void> {
     // 3. Re-enable foreign keys and run VACUUM
     await db.execute("PRAGMA foreign_keys = ON;");
     await db.execute("VACUUM;");
+
+    // 4. Ensure complete schema integrity after wipe
+    await ensureSchemaCompatibility(db, true);
   } catch (error) {
     throw wrapDbError(error, "database_reset");
   }

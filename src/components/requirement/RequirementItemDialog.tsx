@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import {
   Button,
   Dialog,
+  DialogHeader,
   HStack,
-  Heading,
   IconButton,
   InputGroup,
   InputGroupText,
@@ -13,7 +13,7 @@ import {
   VStack,
 } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { MasterItemForm } from "@/components/master/MasterItemForm";
 import { MasterItemPriceDialog } from "@/components/master/MasterItemPriceDialog";
@@ -90,7 +90,7 @@ export function RequirementItemDialog({ isOpen, onClose, initialData, initialGro
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh">
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh" purpose="form">
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -100,9 +100,11 @@ export function RequirementItemDialog({ isOpen, onClose, initialData, initialGro
         >
           <Layout
             header={
-              <LayoutHeader hasDivider>
-                <Heading level={3}>{initialData ? "Edit Item Kebutuhan" : "Tambah Item Kebutuhan"}</Heading>
-              </LayoutHeader>
+              <DialogHeader
+                hasDivider
+                title={initialData ? "Edit Item Kebutuhan" : "Tambah Item Kebutuhan"}
+                onOpenChange={(open) => !open && onClose()}
+              />
             }
             content={
               <LayoutContent padding={4}>

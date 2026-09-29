@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import {
   Button,
   Dialog,
+  DialogHeader,
   HStack,
   FormLayout,
-  Heading,
   Layout,
   LayoutContent,
   LayoutFooter,
-  LayoutHeader,
   IconButton,
   InputGroup,
   InputGroupText,
@@ -96,7 +95,7 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh">
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} maxHeight="85vh" purpose="form">
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -106,9 +105,11 @@ export function OrderItemDialog({ isOpen, onClose, initialData, onSubmitItem }: 
         >
           <Layout
             header={
-              <LayoutHeader hasDivider>
-                <Heading level={3}>{initialData ? "Edit Item Pesanan" : "Tambah Item Pesanan"}</Heading>
-              </LayoutHeader>
+              <DialogHeader
+                hasDivider
+                title={initialData ? "Edit Item Pesanan" : "Tambah Item Pesanan"}
+                onOpenChange={(open) => !open && onClose()}
+              />
             }
             content={
               <LayoutContent padding={4}>

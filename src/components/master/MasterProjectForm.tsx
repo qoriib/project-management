@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { Button, Dialog, HStack, Heading, TextInput } from "@astryxdesign/core";
+import { Button, Dialog, DialogHeader, HStack, TextInput } from "@astryxdesign/core";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { useToast } from "@astryxdesign/core/Toast";
 import { useMasterStore } from "@/store/useMasterStore";
 import { useForm } from "@tanstack/react-form";
@@ -62,7 +62,7 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
   }, [isOpen, initialData]);
 
   return (
-    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520}>
+    <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={520} purpose="form">
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -72,9 +72,11 @@ export function MasterProjectForm({ isOpen, onClose, initialData }: MasterProjec
       >
         <Layout
           header={
-            <LayoutHeader hasDivider>
-              <Heading level={3}>{initialData ? "Edit Proyek" : "Tambah Proyek"}</Heading>
-            </LayoutHeader>
+            <DialogHeader
+              hasDivider
+              title={initialData ? "Edit Proyek" : "Tambah Proyek"}
+              onOpenChange={(open) => !open && onClose()}
+            />
           }
           content={
             <LayoutContent padding={4}>

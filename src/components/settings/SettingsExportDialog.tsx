@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Button, Dialog, HStack, Heading, Text } from "@astryxdesign/core";
+import { Button, Dialog, DialogHeader, HStack, Text } from "@astryxdesign/core";
 import { Selector } from "@astryxdesign/core/Selector";
 import { FormLayout } from "@astryxdesign/core/FormLayout";
-import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { useMasterStore } from "@/store/useMasterStore";
 
 type ExportMode = "project" | "master";
@@ -45,6 +45,7 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
 
   return (
     <Dialog
+      purpose="form"
       width={520}
       isOpen={isOpen}
       onOpenChange={(open) => {
@@ -62,9 +63,15 @@ export function SettingsExportDialog({ isOpen, onClose, onConfirm, isLoading }: 
       >
         <Layout
           header={
-            <LayoutHeader hasDivider>
-              <Heading level={3}>Ekspor Data</Heading>
-            </LayoutHeader>
+            <DialogHeader
+              hasDivider
+              title="Ekspor Data"
+              onOpenChange={(open) => {
+                if (!open && !isLoading) {
+                  onClose();
+                }
+              }}
+            />
           }
           content={
             <LayoutContent padding={4}>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Dialog, FormLayout, HStack, Heading, Selector, Text, TextArea } from "@astryxdesign/core";
-import { Layout, LayoutContent, LayoutFooter, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Button, Dialog, DialogHeader, FormLayout, HStack, Selector, Text, TextArea } from "@astryxdesign/core";
+import { Layout, LayoutContent, LayoutFooter } from "@astryxdesign/core/Layout";
 import { RadioList, RadioListItem } from "@astryxdesign/core/RadioList";
 import { useToast } from "@astryxdesign/core/Toast";
 import { save } from "@tauri-apps/plugin-dialog";
@@ -145,9 +145,15 @@ export function OrderDownloadDialog({ isOpen, onClose, order, items }: OrderDown
       >
         <Layout
           header={
-            <LayoutHeader hasDivider>
-              <Heading level={3}>Unduh Dokumen</Heading>
-            </LayoutHeader>
+            <DialogHeader
+              hasDivider
+              title="Unduh Dokumen"
+              onOpenChange={(open) => {
+                if (!open && !isDownloading) {
+                  onClose();
+                }
+              }}
+            />
           }
           content={
             <LayoutContent padding={4}>

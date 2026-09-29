@@ -1,19 +1,19 @@
-import { Trash2, X } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Card,
   Dialog,
+  DialogHeader,
   EmptyState,
   HStack,
-  Heading,
   IconButton,
   Table,
   Text,
   TextInput,
   VStack,
 } from "@astryxdesign/core";
-import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
@@ -221,15 +221,14 @@ export function MasterItemPriceDialog({ isOpen, onClose, item, onSuccess }: Mast
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={640} maxHeight="85vh">
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={640} maxHeight="85vh" purpose="form">
         <Layout
           header={
-            <LayoutHeader hasDivider>
-              <HStack justify="between" align="center" width="100%">
-                <Heading level={3}>{item?.item_name ?? "Riwayat Harga"}</Heading>
-                <IconButton variant="secondary" icon={<X />} label="Tutup" onClick={onClose} />
-              </HStack>
-            </LayoutHeader>
+            <DialogHeader
+              hasDivider
+              title={item?.item_name ?? "Riwayat Harga"}
+              onOpenChange={(open) => !open && onClose()}
+            />
           }
           content={
             <LayoutContent padding={4}>

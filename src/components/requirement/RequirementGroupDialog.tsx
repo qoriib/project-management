@@ -1,13 +1,13 @@
-import { Pencil, Trash2, X } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
   Card,
   Dialog,
+  DialogHeader,
   EmptyState,
   HStack,
-  Heading,
   IconButton,
   InputGroup,
   InputGroupText,
@@ -17,7 +17,7 @@ import {
   TextInput,
   VStack,
 } from "@astryxdesign/core";
-import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
+import { Layout, LayoutContent } from "@astryxdesign/core/Layout";
 import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { useToast } from "@astryxdesign/core/Toast";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
@@ -258,16 +258,9 @@ export function RequirementGroupDialog({ isOpen, onClose, onSuccess }: Requireme
 
   return (
     <>
-      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={720} maxHeight="85vh">
+      <Dialog isOpen={isOpen} onOpenChange={(open) => !open && onClose()} width={720} maxHeight="85vh" purpose="form">
         <Layout
-          header={
-            <LayoutHeader hasDivider>
-              <HStack justify="between" align="center" width="100%">
-                <Heading level={3}>Kelola Pekerjaan</Heading>
-                <IconButton variant="secondary" icon={<X />} label="Tutup" onClick={onClose} />
-              </HStack>
-            </LayoutHeader>
-          }
+          header={<DialogHeader hasDivider title="Kelola Pekerjaan" onOpenChange={(open) => !open && onClose()} />}
           content={
             <LayoutContent padding={4}>
               <VStack gap={4}>
